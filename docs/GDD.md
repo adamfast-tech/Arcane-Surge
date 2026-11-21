@@ -17,6 +17,8 @@ autour : classes, races, équipement, runes, arbres de compétences, histoire à
 | Macro (sessions) | Loot + XP → salles (Forge, Labo…) → points de compétence → niveau suivant / choix narratif |
 
 ## 3. Combat (cœur)
+> Détail complet : [`design/03-combat.md`](design/03-combat.md)
+
 - **Lanceur central** (contrôlé) : tire le flux principal, vise latéralement.
 - **2 bots** (gauche/droite) : IA autonome, personnalisables (classe, race, sorts, équipement). Option solo.
 - **Portails runiques** : ×2, +N, conversion élémentaire (feu/givre/foudre/ombre/lumière), bouclier, soin.
@@ -110,7 +112,8 @@ iOS (iPhone 16 Pro Max, iPad), Android, PC (16:9, 16:10).
 ## 13. Décisions techniques (validées)
 | Sujet | Choix |
 |---|---|
-| Moteur | **Godot 4** (GDScript), export iOS / Android / Windows / macOS |
+| Moteur | **Godot 4** (GDScript) |
+| Plateforme initiale | **Web-app** (export Godot web mono-thread) hébergée depuis le repo GitHub (GitHub Pages). Stores iOS / Google Play plus tard |
 | Style visuel | **2.5D isométrique pixel-art** haute densité, éclairage atmosphérique (brume, lueurs magiques, lune). Réf. : `docs/art/style-reference-01.jpg` |
 | Performance | **60 fps cible, 40 fps plancher** stable ; pooling d'unités, batching, particules GPU |
 | Animations | Pixel-art fluide : sprites 8–12 frames + interpolation/tweens, VFX shaders (glow, distorsion) |
@@ -133,7 +136,7 @@ iOS (iPhone 16 Pro Max, iPad), Android, PC (16:9, 16:10).
 ## 14. Feuille de route des étapes
 1. ✅ Vision (ce document)
 2. ✅ Décisions techniques (moteur, style, économie)
-3. Combat détaillé : formules, portails, IA des bots
+3. ✅ Combat détaillé : formules, portails, IA des bots
 4. Classes & races : stats, arbres de compétences
 5. Équipement, runes, crafting, rareté
 6. Monde : zones, niveaux, ennemis, boss
