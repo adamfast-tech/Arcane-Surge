@@ -12,6 +12,12 @@
   "objective": "boss",
   "desc": "L'arbre gardien des elfes est corrompu. Ses racines balaient l'arène, ses Fleurs-sèves le soignent et son écorce ne cède qu'au Feu.",
   "par_time": 300,
+  "story_mods": [
+    {"if": "s1.fees_liberees", "barrier_shield": 30, "orbs": {"count": 4, "mana": 6, "respawn": 7},
+     "log": "Les fées libérées protègent la Barrière (+30) et sèment des lucioles dans l'arène."},
+    {"if": "s1.sylvarche_poursuivie", "boss_hp": 0.85,
+     "log": "La Sylvarche n'a pas fini de s'enraciner : elle commence le combat affaiblie (85 %)."}
+  ],
   "boss": {
     "kind": "sylvarche",
     "hp": 70000,

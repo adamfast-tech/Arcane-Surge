@@ -4,7 +4,8 @@ extends RefCounted
 ## niveaux terminés. Sauvegarde locale (user://save.json), synchronisée par Cloud.
 ## Les identifiants d'objets sont des chaînes (« i12 ») pour survivre au passage en JSON.
 
-const SAVE_PATH := "user://save.json"
+## Fichier de sauvegarde locale (les outils de test en utilisent un autre).
+static var save_path := "user://save.json"
 const VERSION := 1
 const STATS := ["pou", "vig", "esp", "cel", "des"]
 
@@ -25,6 +26,7 @@ static func default_data() -> Dictionary:
 		"player": {"level": 1, "xp": 0, "class": "mage", "race": "elfe", "skill_points": 0},
 		"gold": 0, "dust": 0, "materials": {}, "inventory": [], "equipped": {}, "levels": {},
 		"settings": {"guest": false, "auto_fire": false}, "next_uid": 1,
+		"story": Story.default_state(),
 	}
 
 
@@ -32,8 +34,8 @@ static func default_data() -> Dictionary:
 
 static func load_local() -> void:
 	data = default_data()
-	if FileAccess.file_exists(SAVE_PATH):
-		var f := FileAccess.open(SAVE_PATH, FileAccess.READ)
+	if FileAccess.file_exists(save_path):
+		var f := FileAccess.open(save_path, FileAccess.READ)
 		if f != null:
 			var parsed: Variant = JSON.parse_string(f.get_as_text())
 			if parsed is Dictionary:
@@ -61,7 +63,7 @@ static func replace_with(src: Dictionary) -> void:
 
 static func save_local() -> void:
 	data["updated"] = Time.get_unix_time_from_system()
-	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	var f := FileAccess.open(save_path, FileAccess.WRITE)
 	if f == null:
 		push_warning("Profile : sauvegarde locale impossible")
 		return
@@ -357,8 +359,6 @@ static func apply_battle(level_id: String, victory: bool, stars: int, time: floa
 			var pool: Array = items_db()["loot_pool"][zone]
 			var it := make_item(str(pool[rng.randi_range(0, pool.size() - 1)]), _roll(table, rng), gl, rng)
 			items.append(it)
-		if level_id == "z01_l10" and (first or rng.randf() < 0.1):
-			items.append(make_item("baton_seve", "legendaire", gl, rng))
 		for m in (p["materials"][zone] as Dictionary).keys():
 			var r: Array = p["materials"][zone][m]
 			var n := rng.randi_range(int(r[0]), int(r[1]))
@@ -394,6 +394,7 @@ static func _roll(table: Dictionary, rng: RandomNumberGenerator) -> String:
 	return str(table.keys()[0])
 
 
-## Options passées à la simulation pour refléter la progression.
+## Options passées à la simulation pour refléter la progression et les fils du destin.
 static func battle_opts() -> Dictionary:
-	return {"player_level": level(), "gear": gear_stats(), "weapon_element": weapon_element(), "bot_level": maxi(1, level() - 1)}
+	return {"player_level": level(), "gear": gear_stats(), "weapon_element": weapon_element(), "bot_level": maxi(1, level() - 1),
+		"flags": Story.active_flags(), "healed": Story.has_flag("s1.sylvarche_purifiee")}

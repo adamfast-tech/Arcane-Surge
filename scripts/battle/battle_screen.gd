@@ -60,6 +60,22 @@ var journal_label: Label
 var hint_label: Label
 var toast_label: Label
 
+# Répliques des compagnons pendant le combat (data/dialogues, « barks »).
+const BARK_TIME := 3.6
+const BARK_GAP := 7.0
+var bark_panel: PanelContainer
+var bark_portrait: TextureRect
+var bark_name: Label
+var bark_text: Label
+var _bark_t := 0.0
+var _bark_cd := 2.0
+var _bark_side := "left"
+var _barks_fired: Dictionary = {}
+var _bark_phase := 0
+var _bark_rng := RandomNumberGenerator.new()
+var _present: Array[String] = []
+var _pending_note := ""
+
 
 func configure(id: String, solo_mode: bool, opts: Dictionary = {}) -> void:
 	_opts = opts
@@ -86,7 +102,12 @@ func _ready() -> void:
 	add_child(vp)
 	arena = Arena3D.new()
 	vp.add_child(arena)
-	arena.setup(sim, UiTheme.font())
+	arena.setup(sim, UiTheme.font(), bool(_opts.get("healed", false)))
+	for c in sim.casters:
+		if c.is_bot and c.id != "":
+			_present.append(c.id)
+	_bark_rng.randomize()
+	_pending_note = " ".join(sim.story_notes)
 
 	backdrop = TextureRect.new()
 	backdrop.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -179,10 +200,12 @@ func _build_hud() -> void:
 	hud.add_child(hint_label)
 	toast_label = UiTheme.label("", 24, UiTheme.TEXT)
 	toast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	toast_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	toast_label.add_theme_color_override("font_outline_color", Color(0.05, 0.03, 0.1))
 	toast_label.add_theme_constant_override("outline_size", 8)
-	_anchor(toast_label, 0.0, 0.5, 1.0, 0.5, 0.0, -20.0, 0.0, 20.0)
+	_anchor(toast_label, 0.0, 0.5, 1.0, 0.5, 40.0, -20.0, -40.0, 20.0)
 	hud.add_child(toast_label)
+	_build_bark()
 
 
 func _build_portrait() -> void:
@@ -494,6 +517,10 @@ func _process(delta: float) -> void:
 	arena.aim_pos = _hover
 	flash_rect.color.a = clampf(arena.flash * 1.2, 0.0, 0.8)
 	_toast_t = maxf(0.0, _toast_t - delta)
+	if _pending_note != "" and toast_label != null:
+		_toast(_pending_note, 5.0)
+		_pending_note = ""
+	_update_barks(delta)
 	_update_hud()
 	if sim.state == "echo" and not _echo_open:
 		_open_echo()
@@ -578,6 +605,7 @@ func _update_hud() -> void:
 	else:
 		_set_text(hint_label, "")
 	toast_label.modulate.a = clampf(_toast_t, 0.0, 1.0)
+	_place_bark()
 
 
 func _set_text(n: Variant, s: String) -> void:
@@ -585,9 +613,116 @@ func _set_text(n: Variant, s: String) -> void:
 		n.text = s
 
 
-func _toast(s: String) -> void:
+func _toast(s: String, dur: float = 1.8) -> void:
 	toast_label.text = s
-	_toast_t = 1.8
+	_toast_t = dur
+
+
+# ---------------------------------------------------------------- répliques des compagnons
+
+func _build_bark() -> void:
+	bark_panel = PanelContainer.new()
+	bark_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bark_panel.visible = false
+	hud.add_child(bark_panel)
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 10)
+	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bark_panel.add_child(h)
+	bark_portrait = TextureRect.new()
+	bark_portrait.custom_minimum_size = Vector2(64, 64)
+	bark_portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bark_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	bark_portrait.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	bark_portrait.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	bark_portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	h.add_child(bark_portrait)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 0)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	h.add_child(v)
+	bark_name = UiTheme.title("", 20, UiTheme.TEXT)
+	v.add_child(bark_name)
+	bark_text = UiTheme.wrap("", 22, UiTheme.TEXT)
+	v.add_child(bark_text)
+
+
+## Déclenche une réplique (une fois par partie et par déclencheur, espacées de BARK_GAP s).
+func _bark(trigger: String, force: bool = false) -> void:
+	if _barks_fired.has(trigger) or _present.is_empty() or bark_panel == null:
+		return
+	if _bark_cd > 0.0 and not force:
+		return
+	var key := trigger.rstrip("0123456789")
+	var list := Dialogues.barks(level_id, key, _present)
+	_barks_fired[trigger] = true
+	if list.is_empty():
+		return
+	var b: Dictionary = list[_bark_rng.randi_range(0, list.size() - 1)]
+	var who := str(b["who"])
+	var col := Dialogues.color(who)
+	bark_portrait.texture = PortraitArt.texture(who, str(b.get("mood", "neutre")))
+	bark_name.text = Dialogues.display_name(who).to_upper()
+	bark_name.add_theme_color_override("font_color", col)
+	bark_text.text = Dialogues.fmt(str(b["text"]))
+	bark_panel.add_theme_stylebox_override("panel", UiTheme.box(Color(UiTheme.BG, 0.9), col, 12, 2, 10))
+	_bark_side = "left"
+	for c in sim.casters:
+		if c.id == who:
+			_bark_side = c.side
+	_bark_t = BARK_TIME
+	_bark_cd = BARK_GAP
+	bark_panel.visible = true
+	_place_bark()
+
+
+func _place_bark() -> void:
+	if bark_panel == null or not bark_panel.visible:
+		return
+	var w := minf(size.x - 24.0, 520.0)
+	var x0 := 12.0
+	var x1 := size.x - 12.0
+	var bottom := size.y - BOTTOM_H - 12.0
+	if _landscape:
+		x0 = arena_rect.position.x + 12.0
+		x1 = arena_rect.position.x + arena_rect.size.x - 12.0
+		w = minf(w, x1 - x0)
+		bottom = size.y - 16.0
+	# Largeur du texte fixée : sinon le retour à la ligne est calculé sur 10 px et le cadre s'étire.
+	bark_text.custom_minimum_size = Vector2(w - 64.0 - 10.0 - 22.0, 0)
+	bark_text.size = Vector2(w - 64.0 - 10.0 - 22.0, bark_text.size.y)
+	bark_panel.custom_minimum_size = Vector2(w, 0)
+	bark_panel.size = Vector2(w, 0)
+	bark_panel.reset_size()
+	bark_panel.position = Vector2(x0 if _bark_side != "right" else x1 - w, bottom - bark_panel.size.y)
+
+
+func _update_barks(delta: float) -> void:
+	_bark_cd = maxf(0.0, _bark_cd - delta)
+	if bark_panel != null and _bark_t > 0.0:
+		_bark_t -= delta
+		# Fondu d'entrée (le temps que le cadre prenne sa taille) et de sortie.
+		bark_panel.modulate.a = clampf(minf(_bark_t / 0.4, (BARK_TIME - _bark_t - 0.05) / 0.2), 0.0, 1.0)
+		if _bark_t <= 0.0:
+			bark_panel.visible = false
+	if sim.state != "running" or paused:
+		return
+	if sim.boss != null and sim.boss_phase > _bark_phase:
+		_bark_phase = sim.boss_phase
+		_bark("boss_phase%d" % _bark_phase, true)
+	if sim.time >= 2.0:
+		_bark("start")
+	if sim.barrier_hp < sim.barrier_max * 0.4:
+		_bark("barrier_low", true)
+	if sim.escort != null and sim.escort.alive and sim.escort.hp < sim.escort.max_hp * 0.5:
+		_bark("escort_low", true)
+	if sim.objective_ratio() <= 0.5:
+		_bark("half")
+	if not sim.echoes_taken.is_empty():
+		_bark("echo")
+	if sim.allies.size() >= 120:
+		_bark("crowd")
 
 
 # ---------------------------------------------------------------- commandes
@@ -701,6 +836,7 @@ func _cast_aimed(at: Vector2) -> void:
 	if aiming == "ultimate":
 		if sim.cast_ultimate(at):
 			aiming = ""
+			_bark("ultimate", true)
 		return
 	var c := sim.player()
 	if sim.cast_spell(c, aiming, at):
@@ -833,6 +969,7 @@ func _open_end() -> void:
 	aiming = ""
 	var win := sim.state == "victory"
 	if _rewards.is_empty():
+		Story.on_battle(_present)
 		_rewards = Profile.apply_battle(level_id, win, sim.stars, sim.time)
 		if Cloud.instance != null:
 			Cloud.instance.push()
@@ -868,7 +1005,7 @@ func _open_end() -> void:
 		line += " · 1re victoire ×2"
 	rv.add_child(UiTheme.label(line, 22, UiTheme.GOLD))
 	if int(_rewards.get("levels", 0)) > 0:
-		rv.add_child(UiTheme.label("NIVEAU %d → %d ! (+%d point de compétence)" % [int(_rewards["level_before"]), int(_rewards["level_after"]), int(_rewards["levels"])], 22, UiTheme.CYAN))
+		rv.add_child(UiTheme.label("NIVEAU %d ATTEINT ! (+%d point de compétence)" % [int(_rewards["level_after"]), int(_rewards["levels"])], 22, UiTheme.CYAN))
 	var mats: Dictionary = _rewards.get("materials", {})
 	if not mats.is_empty():
 		var names: Array[String] = []

@@ -42,8 +42,14 @@ func _ready() -> void:
 	grid.add_child(_tile("ÉQUIPEMENT & FORGE", "Puissance %d\n%d objets" % [Profile.power(), (Profile.data["inventory"] as Array).size()], true, func() -> void: open_equipment.emit()))
 	grid.add_child(_tile("BIBLIOTHÈQUE", "Sorts et Grimoire\nBientôt (étape 10.3)", false, Callable()))
 	grid.add_child(_tile("ENTRAÎNEMENT", "Arbre de compétences\nBientôt (étape 10.3)", false, Callable()))
-	grid.add_child(_tile("LE CERCLE", "Brann · Sylwen\nBientôt (étape 10.3)", false, Callable()))
-	grid.add_child(_tile("OBSERVATOIRE", "Fils du destin\nActe 2", false, Callable()))
+	grid.add_child(_tile("LE CERCLE", "Loyauté : Brann %d · Sylwen %d\nBientôt (étape 10.3)" % [Story.loyalty("brann"), Story.loyalty("sylwen")], false, Callable()))
+	var thread := "Fils du destin"
+	match Story.choice("z01_l10"):
+		"A":
+			thread = "Fil : Sylvarche purifiée"
+		"B":
+			thread = "Fil : Sylvarche abattue"
+	grid.add_child(_tile("OBSERVATOIRE", "%s\nChanger le futur : bientôt" % thread, false, Callable()))
 	var ver := UiTheme.label("v%s" % str(ProjectSettings.get_setting("application/config/version", "0.1")), 16, UiTheme.MUTED)
 	ver.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	col.add_child(ver)

@@ -42,6 +42,8 @@ Les drapeaux sont rangés par saison (`s1.*`, `s2.*`) pour que l'histoire puisse
 | 9 | ✦ 9-10 Le Reflet | A. Le briser · B. L'absorber · C. Se réconcilier | A : vers la Purification · B : Corruption +25, vers la Domination · C : condition de **la Boucle** |
 | 10 | ✦ Le Roi Éclipsé | Selon les fins débloquées (§4) | Fin du jeu et état de départ de la saison 2 |
 
+> Zone 1 mise en œuvre à l'étape 10.2 : voir [`12-narration-zone1.md`](12-narration-zone1.md). En 1-10, l'aide des fées vaut Barrière +30 et 4 lucioles ; la Sylvarche « affaiblie » commence à 85 % de ses PV.
+
 ## 3. Changer le futur
 
 ### 3.1 Accès et interface

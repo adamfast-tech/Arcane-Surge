@@ -36,7 +36,8 @@ static func _disc(img: Image, cx: int, cy: int, r: int, c: Color) -> void:
 
 ## Sol de l'arène : herbe au clair de lune, chemin pavé, sol corrompu près du Nexus, parvis.
 ## La ligne 0 correspond au fond de l'arène (y logique maximal).
-static func ground_texture() -> ImageTexture:
+## healed : la forêt guérie (Sylvarche purifiée) a une herbe plus verte et des veines dorées.
+static func ground_texture(healed: bool = false) -> ImageTexture:
 	var w := int(GROUND_SIZE.x * PX_PER_M)
 	var h := int(GROUND_SIZE.y * PX_PER_M)
 	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
@@ -49,6 +50,8 @@ static func ground_texture() -> ImageTexture:
 			col = Color("2c2a48").lerp(Color("2a3a3a"), clampf((16.5 - ly) / 3.7, 0.0, 1.0))
 		elif ly > 1.0:
 			col = Color("2a4a36").lerp(Color("35593f"), clampf((12.8 - ly) / 11.8, 0.0, 1.0))
+			if healed:
+				col = col.lerp(Color("3f7a3a"), 0.45)
 		else:
 			col = Color("3b3854")
 		img.fill_rect(Rect2i(0, row, w, 1), col)
@@ -66,7 +69,7 @@ static func ground_texture() -> ImageTexture:
 		_px(img, x, y - 1, b.lightened(0.14))
 	# Petites fleurs (blanc lunaire, violet, jaune).
 	var flowers := [Color("e8e4ff"), Color("b89cf0"), Color("f2e28b"), Color("cfe8ff")]
-	for i in range(w * h / 150):
+	for i in range(w * h / (70 if healed else 150)):
 		var x := rng.randi_range(0, w - 1)
 		var y := rng.randi_range(int(3.0 * PX_PER_M), h - 1)
 		_px(img, x, y, flowers[rng.randi_range(0, flowers.size() - 1)])
@@ -74,7 +77,10 @@ static func ground_texture() -> ImageTexture:
 	for v in range(10):
 		var p := Vector2(rng.randf_range(0.0, float(w)), rng.randf_range(0.0, 3.0 * PX_PER_M))
 		for s in range(70):
-			_px(img, int(p.x), int(p.y), Color("5b3a8a") if s % 7 != 0 else Color("b07cff"))
+			if healed:
+				_px(img, int(p.x), int(p.y), Color("8a7a2a") if s % 7 != 0 else Color("f2e28b"))
+			else:
+				_px(img, int(p.x), int(p.y), Color("5b3a8a") if s % 7 != 0 else Color("b07cff"))
 			p += Vector2(rng.randf_range(-1.0, 1.0), rng.randf_range(0.3, 1.0))
 	# Chemin pavé central.
 	var x0 := int((3.35 - GROUND_MIN.x) * PX_PER_M)

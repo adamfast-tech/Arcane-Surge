@@ -111,3 +111,20 @@ transparent background, no ground shadow, no text, single character
 - Je vérifie chaque sprite en jeu (taille, lisibilité, animation) et ajuste au besoin `HEIGHT_M` dans `scripts/gfx/sprite_atlas.gd`.
 - Si un sprite généré est plus détaillé que sa toile, je peux augmenter la résolution de rendu de l'arène pour en profiter.
 - Prochains sprites : boss Sylvarche, compagnons des actes suivants, icônes de sorts et d'objets.
+
+## 7. Portraits de dialogue (étape 10.2)
+
+Les portraits actuels sont générés par code (`scripts/gfx/portrait_art.gd`). Pour en remplacer un, déposer une image dans `assets/portraits/` :
+- `<perso>-<expression>.png` pour une expression précise ;
+- `<perso>.png` pour toutes les expressions de ce personnage.
+
+| Règle | Valeur |
+|---|---|
+| Toile | **64×64**, fond transparent, buste de face (épaules en bas de l'image) |
+| Lumière, contour, palette | Comme les sprites (§1 et §2) : lune en haut à droite, contour `#120e1a` de 1 px |
+| Expressions | `neutre`, `joie`, `colere`, `triste`, `surpris` |
+| Personnages | `porteur` (toi : capuche bleu nuit, visage dans l'ombre, regard cyan), `sylwen`, `brann`, `ancien` (Ancien Tobin, doyen de Lysbourg), `cerf` (Grand Cerf purifié, bois lumineux), `sylvarche` (visage d'écorce ; `joie` = purifiée), `fee`, `voix` (silhouette couronnée, regard violet) |
+
+**Prompt** (après le prompt de style, en remplaçant « full body » par « bust portrait, facing the viewer, 64x64 ») :
+- `sylwen` : *portrait of a young elf archer, green hood, long pointed ears, blonde braid over the right shoulder, green eyes, leather quiver strap*
+- `brann` : *portrait of a stout dwarf knight, horned steel helmet, big braided ginger beard with gold rings, red cape, steel pauldrons*

@@ -29,6 +29,7 @@ const SURGE_PER_BIG := 3.0
 
 class Caster:
 	var idx := 0
+	var id := "" ## « player » ou identifiant du compagnon (data/party.json)
 	var name := ""
 	var class_id := ""
 	var race_id := ""
@@ -153,6 +154,8 @@ var orbs: Array[Dictionary] = []
 var orb_cfg: Dictionary = {}
 var telegraphs: Array[Dictionary] = []
 var end_reason := ""
+## Effets des fils du destin appliqués à ce niveau (textes affichés au départ).
+var story_notes: Array[String] = []
 
 
 # ---------------------------------------------------------------- mise en place
@@ -176,6 +179,7 @@ func setup(level_data: Dictionary, party: Dictionary, seed_value: int, opts: Dic
 	_setup_towers()
 	_setup_casters(party, opts)
 	_setup_objective()
+	_apply_story_mods(opts)
 	_setup_orbs()
 	for e in level.get("initial_enemies", []):
 		_spawn_enemy(str(e["kind"]), Vector2(float(e["x"]), float(e["y"])))
@@ -216,8 +220,28 @@ func _setup_objective() -> void:
 		_pending_allies.append(escort)
 
 
-func _setup_orbs() -> void:
+## « story_mods » du niveau : bonus ou malus selon les drapeaux de l'histoire (opts.flags).
+func _apply_story_mods(opts: Dictionary) -> void:
 	orb_cfg = level.get("orbs", {})
+	var flags: Array = opts.get("flags", [])
+	for m in level.get("story_mods", []):
+		var need := str(m.get("if", ""))
+		if need != "" and not flags.has(need):
+			continue
+		if m.has("barrier_shield"):
+			barrier_shield += float(m["barrier_shield"])
+		if m.has("mana"):
+			casters[0].mana = minf(casters[0].mana_max, casters[0].mana + float(m["mana"]))
+		if m.has("orbs"):
+			orb_cfg = m["orbs"]
+		if m.has("boss_hp") and boss != null:
+			boss.hp = boss.max_hp * clampf(float(m["boss_hp"]), 0.05, 1.0)
+		if m.has("log"):
+			_log(str(m["log"]))
+			story_notes.append(str(m["log"]))
+
+
+func _setup_orbs() -> void:
 	if orb_cfg.is_empty():
 		return
 	for i in range(int(orb_cfg.get("count", 5))):
@@ -329,6 +353,7 @@ func _setup_casters(party: Dictionary, opts: Dictionary = {}) -> void:
 func _make_caster(idx: int, d: Dictionary, classes: Dictionary, races: Dictionary, gear: Dictionary = {}) -> Caster:
 	var c := Caster.new()
 	c.idx = idx
+	c.id = str(d.get("id", "player" if idx == 0 else ""))
 	c.name = str(d["name"])
 	c.class_id = str(d["class"])
 	c.race_id = str(d["race"])

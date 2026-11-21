@@ -12,8 +12,10 @@ Jeu de « foule contrôlée » en univers de fantasy magique : tu lances des flu
 - **Compte :** connexion avec ton **compte Académie** (même pseudo et même mot de passe), ou jeu sans compte, la progression restant alors sur l'appareil.
 - **Havre-Aube :** le hub, avec profil et progression, la carte de la zone 1 et l'équipement avec la Forge.
 - **Zone 1, Bois des Lucioles :** 10 niveaux, dont un mini-boss (le Grand Cerf), une escorte, un siège et le boss **la Sylvarche**.
+- **Histoire :** prologue, dialogues avant et après chaque niveau avec portraits, choix qui changent la suite (les fées captives, le sort de la Sylvarche), loyauté de Brann et Sylwen, répliques des compagnons en combat.
 - **Progression :** XP, niveaux, or, butin par étoile, équipement à améliorer.
 - **Accès direct à un niveau :** `…/Arcane-Surge/?level=z01_l10` (ajouter `&solo=1` pour jouer sans bots).
+- **Aperçu d'une scène :** `…/Arcane-Surge/?scene=z01_l10_outro`.
 
 ### Commandes
 | Action | Tactile | PC |
@@ -25,6 +27,7 @@ Jeu de « foule contrôlée » en univers de fantasy magique : tu lances des flu
 | Ultime | Bouton puis l'arène | `Espace` |
 | Ordre aux bots | Toucher le bot | `Q` / `R` |
 | Pause | Bouton `II` | `Échap` |
+| Dialogue : suite / historique / passer | Toucher l'écran, boutons | `Espace` / `H` / `Échap` |
 
 ![Prototype en portrait](docs/art/prototype-portrait.png)
 
@@ -46,10 +49,10 @@ godot --headless --path . --export-release "Web" build/web/index.html           
 |---|---|
 | `scripts/battle/` | Simulation du combat (`sim.gd`, pas fixe 30 Hz, déterministe), IA des bots, rendu de l'arène, HUD |
 | `scripts/battle/arena_3d.gd` | Rendu 2,5D : scène 3D pixelisée, caméra inclinée, décor de ruines, brume, lumières |
-| `scripts/gfx/` | Pixel-art généré par code (atlas de sprites, textures du décor, toile de fond) |
-| `data/` | Unités, sorts, Échos, groupe du joueur, niveaux (JSON, modifiables sans toucher au code) |
-| `scripts/core/` | Profil et progression (`profile.gd`), compte et sauvegarde en ligne (`cloud.gd`), thème |
-| `scripts/ui/` | Écrans : connexion, Havre-Aube, carte, équipement et Forge |
+| `scripts/gfx/` | Pixel-art généré par code (atlas de sprites, textures du décor, toile de fond, portraits, illustrations) |
+| `data/` | Unités, sorts, Échos, groupe du joueur, niveaux, dialogues (JSON, modifiables sans toucher au code) |
+| `scripts/core/` | Profil et progression (`profile.gd`), histoire (`story.gd`, `dialogues.gd`), compte et sauvegarde en ligne (`cloud.gd`), thème |
+| `scripts/ui/` | Écrans : connexion, Havre-Aube, carte, équipement et Forge, dialogues |
 | `tools/` | Simulateur d'équilibrage et test de fumée (sans affichage) |
 
 ### Remplacer les sprites
@@ -57,6 +60,7 @@ Les sprites actuels sont générés par code. Pour en remplacer un, déposer `as
 - La taille en jeu est fixée en mètres : n'importe quelle résolution convient.
 - Les fiches de chaque personnage (vue, taille de toile, palette, prompts prêts à l'emploi) sont dans [`docs/design/10-sprites.md`](docs/design/10-sprites.md).
 - La planche des sprites actuels est [`docs/sprites/planche.png`](docs/sprites/planche.png).
+- Les portraits de dialogue (64×64) se remplacent de la même façon dans `assets/portraits/` (fiche : [`10-sprites.md`](docs/design/10-sprites.md) §7).
 
 ## Mise en ligne (GitHub Pages)
 

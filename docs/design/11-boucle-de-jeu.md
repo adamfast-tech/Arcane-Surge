@@ -1,6 +1,6 @@
 # Étape 10.1 — Boucle de jeu, progression et zone 1 complète
 
-> Suite de [`09-prototype.md`](09-prototype.md). Étapes suivantes : 10.2 (narration de la zone 1), 10.3 (compétences, Bibliothèque, Cercle).
+> Suite de [`09-prototype.md`](09-prototype.md). Étapes suivantes : 10.2 (narration de la zone 1, [`12-narration-zone1.md`](12-narration-zone1.md)), 10.3 (compétences, Bibliothèque, Cercle).
 
 ## 1. Parcours du joueur
 
@@ -27,7 +27,7 @@ Jouer sans compte ───────────┴─> Havre-Aube ─┬─>
 | Stats | Base de la classe + progression par niveau + race + équipement (étape 4) |
 | XP et or d'une victoire | (30 + 15 × niveau du lieu) XP et (20 + 10 × niveau) or, +10 % par étoile, ×2 à la 1re victoire |
 | Défaite | 30 % de l'XP, pas d'or ni de butin |
-| Butin | 1 coffre par étoile (Commun 70 %, Rare 25 %, Épique 5 %). Boss : le 1er coffre est Rare ou Épique. 1re victoire sur la Sylvarche : **Bâton de la Première Sève** (légendaire, élément Nature) |
+| Butin | 1 coffre par étoile (Commun 70 %, Rare 25 %, Épique 5 %). Boss : le 1er coffre est Rare ou Épique. **Bâton de la Première Sève** (légendaire, élément Nature) : si la Sylvarche est abattue (choix de 1-10, étape 10.2) |
 | Objets | Base de la zone × (1 + 0,12 × (iLvl − 1)) × rareté, + affixes aléatoires selon la rareté. Amélioration +4 % par niveau |
 | Matériaux | Bois-lune, Luciole séchée (pour la fabrication à venir) |
 | Groupe | 1-1 en solo · Sylwen rejoint en 1-2 · Brann en 1-3. Les bots ont le niveau du joueur − 1 |

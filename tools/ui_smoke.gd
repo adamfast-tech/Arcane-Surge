@@ -1,6 +1,10 @@
 extends SceneTree
-## Test de fumée de l'interface : menu → combat → Écho → victoire → rejouer → défaite → pause.
+## Test de fumée de l'interface, sur une sauvegarde de test (user://smoke_save.json) :
+## prologue et intro → combat → Écho → victoire → dialogue de fin → rejouer → défaite → pause →
+## écrans hors combat → choix de l'histoire et leurs effets → objectifs spéciaux.
 ##   godot --headless --path . --script res://tools/ui_smoke.gd
+
+var main: Control
 
 
 func _initialize() -> void:
@@ -12,13 +16,61 @@ func _frames(n: int) -> void:
 		await process_frame
 
 
+func _screen() -> Control:
+	return main.get("_screen")
+
+
+## Fait défiler les dialogues affichés (Passer, et 1re option à chaque choix) jusqu'au combat ou au menu.
+func _through_dialogues(pick: int = 0) -> int:
+	var n := 0
+	while _screen() is DialogueScreen and n < 40:
+		var d: DialogueScreen = _screen()
+		if d.get("_waiting_choice"):
+			var btns: Array = []
+			for ch in d.choice_box.get_children():
+				if ch is Button:
+					btns.append(ch)
+			(btns[mini(pick, btns.size() - 1)] as Button).pressed.emit()
+		else:
+			d._skip()
+		n += 1
+		await _frames(3)
+	return n
+
+
 func _run() -> void:
-	var main: Control = load("res://scenes/main.tscn").instantiate()
+	Profile.save_path = "user://smoke_save.json"
+	if FileAccess.file_exists(Profile.save_path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(Profile.save_path))
+	main = load("res://scenes/main.tscn").instantiate()
 	root.add_child(main)
 	await _frames(5)
+	# Dialogues : prologue + intro de 1-1, lus jusqu'au bout (tap), avec l'historique.
+	main.call("_play", "z01_l01", false)
+	await _frames(5)
+	var d: DialogueScreen = _screen()
+	print("dialogue : ", d.scenes)
+	d._open_history()
+	await _frames(2)
+	d._close_history()
+	var taps := 0
+	while _screen() is DialogueScreen and taps < 200:
+		d._tap()
+		taps += 1
+		await _frames(1)
+	print("taps : ", taps, " · écran : ", _screen().get_class(), " · prologue vu : ", Story.seen("prologue"), " · intro vue : ", Story.seen("z01_l01_intro"))
+	var b: BattleScreen = _screen()
+	b.sim.debug_set_ratio(0.0)
+	await _frames(10)
+	b.exit_requested.emit("map")
+	await _frames(5)
+	print("après 1-1 : ", _screen().get_class(), " · outro : ", (_screen() as DialogueScreen).scenes if _screen() is DialogueScreen else [])
+	await _through_dialogues()
+	print("  -> ", _screen().get_class(), " · outro vue : ", Story.seen("z01_l01_outro"))
+	# Combat complet (Écho, sorts, Champion, Ultime, ordre), puis victoire et dialogue de fin.
 	main.call("_start", "z01_l08", false)
 	await _frames(10)
-	var b: BattleScreen = main.get("_screen")
+	b = _screen()
 	b.sim.set_player_firing(true)
 	await _frames(60)
 	b.sim.debug_set_ratio(0.6)
@@ -33,6 +85,7 @@ func _run() -> void:
 	b._cast_aimed(Vector2(4.5, 12.0))
 	b.sim.cycle_order(1)
 	await _frames(10)
+	print("réplique : ", b.bark_text.text if b.bark_panel.visible else "(aucune)")
 	b.sim.debug_set_ratio(0.3)
 	await _frames(5)
 	print("2e Écho : ", b.sim.state, " · fenêtre : ", b._echo_open)
@@ -41,8 +94,10 @@ func _run() -> void:
 	await _frames(10)
 	print("état : ", b.sim.state, " · fenêtre de fin : ", b._end_open, " · étoiles : ", b.sim.stars)
 	b.restart_requested.emit()
-	await _frames(10)
-	b = main.get("_screen")
+	await _frames(5)
+	await _through_dialogues()
+	await _frames(5)
+	b = _screen()
 	b.sim.barrier_hp = 0.0
 	await _frames(10)
 	print("état : ", b.sim.state, " · fenêtre de fin : ", b._end_open)
@@ -50,7 +105,7 @@ func _run() -> void:
 	await _frames(10)
 	main.call("_start", "z01_l01", true)
 	await _frames(10)
-	b = main.get("_screen")
+	b = _screen()
 	b._open_pause()
 	await _frames(5)
 	print("pause : ", b.paused)
@@ -63,7 +118,7 @@ func _run() -> void:
 	await _frames(5)
 	main.call("_show_equipment")
 	await _frames(5)
-	var eq: EquipmentScreen = main.get("_screen")
+	var eq: EquipmentScreen = _screen()
 	var inv: Array = Profile.data["inventory"]
 	if inv.size() > 0:
 		Profile.equip(str(inv[inv.size() - 1]["uid"]))
@@ -72,11 +127,27 @@ func _run() -> void:
 	main.call("_show_login", true)
 	await _frames(5)
 	print("niveau joueur : ", Profile.level(), " · or : ", Profile.gold(), " · objets : ", inv.size(), " · puissance : ", Profile.power())
-	# Objectifs spéciaux : boss, escorte, siège.
+	# Choix de l'histoire : 1-9 « Libérer les fées » (A), 1-10 « Abattre la Sylvarche » (B).
+	var loy0 := Story.loyalty("sylwen")
+	main.call("_show_dialogue", ["z01_l09_outro"], Callable(main, "_show_map"))
+	await _frames(3)
+	await _through_dialogues(0)
+	print("1-9 : fées libérées ", Story.has_flag("s1.fees_liberees"), " · Sylwen ", loy0, " -> ", Story.loyalty("sylwen"))
+	var items0 := (Profile.data["inventory"] as Array).size()
+	main.call("_show_dialogue", ["z01_l10_outro"], Callable(main, "_show_map"))
+	await _frames(3)
+	await _through_dialogues(1)
+	var staff := false
+	for it in Profile.data["inventory"]:
+		staff = staff or str(it["base"]) == "baton_seve"
+	print("1-10 : abattue ", Story.has_flag("s1.sylvarche_abattue"), " · Sylwen ", Story.loyalty("sylwen"), " · Bâton ", staff, " · objets ", items0, " -> ", (Profile.data["inventory"] as Array).size(), " · choix ", Story.choice("z01_l10"))
+	# Objectifs spéciaux : boss (avec l'aide des fées), escorte, siège, lucioles.
 	for id in ["z01_l05", "z01_l07", "z01_l09", "z01_l10", "z01_l02"]:
 		main.call("_start", id, false)
 		await _frames(30)
-		var bs: BattleScreen = main.get("_screen")
+		var bs: BattleScreen = _screen()
+		if id == "z01_l10":
+			print("  fées : bouclier ", bs.sim.barrier_shield, " · lucioles ", bs.sim.orbs.size(), " · notes ", bs.sim.story_notes.size())
 		bs.sim.set_player_firing(true)
 		await _frames(90)
 		print(id, " · ", bs.sim.objective_title(), " · ", bs.sim.objective_info(), " · état ", bs.sim.state)
@@ -86,5 +157,9 @@ func _run() -> void:
 			bs.sim.boss.alive = false
 		await _frames(10)
 		print("  -> ", bs.sim.state, " · ", bs.sim.end_reason)
+		bs.exit_requested.emit("map")
+		await _frames(3)
+		await _through_dialogues()
+	print("scènes vues : ", (Story.st()["seen"] as Dictionary).size(), " · forêt guérie : ", Profile.battle_opts()["healed"])
 	print("OK smoke")
 	quit()

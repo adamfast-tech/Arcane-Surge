@@ -49,15 +49,18 @@ var _casters: Array[Sprite3D] = []
 var _staff_fx: CPUParticles3D
 var _staff_light: OmniLight3D
 var _torch_lights: Array[OmniLight3D] = []
+## Forêt guérie (la Sylvarche a été purifiée) : sol plus vert, veines dorées, lucioles.
+var healed := false
 
 
 static func w3(p: Vector2, h: float = 0.0) -> Vector3:
 	return Vector3(p.x, h, -p.y)
 
 
-func setup(s: BattleSim, f: Font) -> void:
+func setup(s: BattleSim, f: Font, forest_healed: bool = false) -> void:
 	sim = s
 	font = f
+	healed = forest_healed
 	_billboard = load("res://shaders/billboard_atlas.gdshader")
 	_stone_mat = _triplanar(WorldArt.stone_texture(), 0.55)
 	_build_environment()
@@ -138,11 +141,11 @@ func _build_environment() -> void:
 	_env = Environment.new()
 	_env.background_mode = Environment.BG_CLEAR_COLOR
 	_env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	_env.ambient_light_color = Color("7078c0")
+	_env.ambient_light_color = Color("7890c0") if healed else Color("7078c0")
 	_env.ambient_light_energy = 1.0
 	_env.fog_enabled = true
 	_env.fog_mode = Environment.FOG_MODE_DEPTH
-	_env.fog_light_color = Color("2d2c5e")
+	_env.fog_light_color = Color("26405a") if healed else Color("2d2c5e")
 	_env.fog_depth_begin = 40.0
 	_env.fog_depth_end = 80.0
 	_env.glow_enabled = true
@@ -199,7 +202,7 @@ func _build_terrain() -> void:
 	pm.size = WorldArt.GROUND_SIZE
 	top.mesh = pm
 	var gm := StandardMaterial3D.new()
-	gm.albedo_texture = WorldArt.ground_texture()
+	gm.albedo_texture = WorldArt.ground_texture(healed)
 	gm.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS
 	gm.roughness = 1.0
 	top.material_override = gm
@@ -636,6 +639,27 @@ func _build_casters() -> void:
 	ramp.set_color(1, Color(0.75, 0.45, 1.0, 0.0))
 	_staff_fx.color_ramp = ramp
 	add_child(_staff_fx)
+	if healed:
+		var ff := CPUParticles3D.new()
+		ff.amount = 48
+		ff.lifetime = 6.0
+		ff.preprocess = 6.0
+		ff.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+		ff.emission_box_extents = Vector3(6.0, 1.2, 9.0)
+		ff.position = Vector3(4.5, 1.4, -8.0)
+		ff.direction = Vector3(0, 1, 0)
+		ff.spread = 180.0
+		ff.initial_velocity_min = 0.05
+		ff.initial_velocity_max = 0.25
+		ff.gravity = Vector3.ZERO
+		ff.mesh = _particle_mesh(0.06)
+		var fr := Gradient.new()
+		fr.set_color(0, Color(0.95, 0.9, 0.45, 0.0))
+		fr.add_point(0.3, Color(0.95, 0.9, 0.45, 1.0))
+		fr.add_point(0.7, Color(0.85, 1.0, 0.55, 1.0))
+		fr.set_color(fr.get_point_count() - 1, Color(0.85, 1.0, 0.55, 0.0))
+		ff.color_ramp = fr
+		add_child(ff)
 	_staff_light = OmniLight3D.new()
 	_staff_light.light_color = Color("4fe3d2")
 	_staff_light.light_energy = 1.2

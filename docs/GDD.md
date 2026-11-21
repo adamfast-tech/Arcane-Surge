@@ -153,6 +153,6 @@ iOS (iPhone 16 Pro Max, iPad), Android, PC (16:9, 16:10).
 9. ✅ Prototype jouable (combat seul) — [`design/09-prototype.md`](design/09-prototype.md)
 10. Itérations :
     - 10.1 ✅ boucle de jeu, compte Académie et sauvegarde, Havre-Aube, carte, équipement et Forge, 10 niveaux de la zone 1 avec boss — [`design/11-boucle-de-jeu.md`](design/11-boucle-de-jeu.md) ; sprites : [`design/10-sprites.md`](design/10-sprites.md)
-    - 10.2 narration de la zone 1 (dialogues, choix, fils du destin)
+    - 10.2 ✅ narration de la zone 1 : prologue, 20 dialogues avec portraits, choix et fils du destin, répliques de combat — [`design/12-narration-zone1.md`](design/12-narration-zone1.md)
     - 10.3 arbres de compétences, Bibliothèque (sorts), Cercle (bots)
 11. Saison 2 : zones 11–15, niveau max 150, L'Ourdisseur (fils semés en saison 1)
