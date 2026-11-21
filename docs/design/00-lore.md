@@ -25,7 +25,7 @@
 - **Liens entre ce pouvoir et le gameplay** :
   - Les **Échos** choisis en combat sont des fragments de lignes temporelles alternatives.
   - L'option **« Changer le futur »** est l'usage narratif du Sceau. L'avertissement en jeu est un rappel direct du destin de Morvaen.
-  - *(Proposition)* Un compteur caché de retours dans le passé débloque une **fin cachée** (« la Boucle ») : le joueur risque de devenir un nouveau Morvaen.
+  - Un compteur caché de retours dans le passé débloque une **fin cachée** (« la Boucle ») : le joueur risque de devenir un nouveau Morvaen.
 
 ## 4. Lieux clés
 | Lieu | Rôle |
@@ -45,7 +45,7 @@
 | Fées | Nées de la magie pure des Veines. Le Surge les rend instables (lumineuses ou sombres) | Bois des Lucioles |
 | Draconiques | Descendants des dragons. Le feu du Surge brûle dans leur sang | Forêt Cendrée |
 | Reptiliens | Peuple de la Cité Engloutie, gardiens des **Archives du Temps** | Marais, Cité Engloutie |
-| *(Proposition)* Revenants | Morts ramenés par le Surge, ayant gardé leur conscience. Race débloquée par l'histoire | Royaume d'Ombre |
+| Revenants | Morts ramenés par le Surge, ayant gardé leur conscience. Race débloquée par l'histoire | Royaume d'Ombre |
 
 ## 6. Ordres (classes)
 | Classe | Ordre | Philosophie |

@@ -58,7 +58,7 @@ Combinaison Classe × Race = identité du personnage.
 | Laboratoire | Potions, élixirs, bonus temporaires de partie |
 | Atelier runique | Gravure de runes sur armes, boucliers, armures, médaillons, anneaux, charmes |
 | Sanctum arcanique | Bâtons, grimoires, focalisateurs magiques |
-| Ménagerie *(proposition)* | Familiers / montures à bonus passifs |
+| Ménagerie | Familiers / montures à bonus passifs |
 
 ### Capacités
 | Salle | Fonction |
@@ -66,8 +66,8 @@ Combinaison Classe × Race = identité du personnage.
 | Salle d'entraînement | Tester capacités, petit gain d'XP |
 | Salle de rituel | Capacités sombres (nécromancie, sang, ombre) — coût/risque |
 | Salle de méditation | Capacités stables (soins, boucliers, buffs) |
-| Bibliothèque *(proposition)* | Débloquer/apprendre de nouveaux sorts (parchemins) |
-| Observatoire *(proposition)* | Capacités célestes / Surge, liées au lore |
+| Bibliothèque | Débloquer/apprendre de nouveaux sorts (parchemins) |
+| Observatoire | Capacités célestes / Surge, liées au lore |
 
 ### Personnalisation
 Apparence, couleurs, tenue, effets visuels des sorts ; même chose pour les 2 bots.
