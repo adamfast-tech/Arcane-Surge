@@ -102,7 +102,7 @@ Bêtes, Morts-vivants, Démons, Élémentaires, Créatures arcaniques, Humanoïd
 Dragons, Boss. Chaque catégorie a faiblesses/résistances élémentaires → stratégie de choix de sorts.
 
 ## 11. Narration
-> Canon : [`design/00-lore.md`](design/00-lore.md)
+> Canon : [`design/00-lore.md`](design/00-lore.md) · Choix, fins, compagnons, saison 2 : [`design/07-narration.md`](design/07-narration.md)
 
 - Lore principal : l'**Arcane Surge**, déferlement de magie brute qui fracture le monde.
 - Dialogues entre niveaux, PNJ dans le hub.
@@ -148,7 +148,8 @@ iOS (iPhone 16 Pro Max, iPad), Android, PC (16:9, 16:10).
 4. ✅ Classes & races : stats, arbres de compétences (+ bible du lore)
 5. ✅ Équipement, runes, crafting, rareté
 6. ✅ Monde : zones, niveaux, ennemis, boss
-7. Narration : lore, arbre de choix, « Changer le futur »
+7. ✅ Narration : lore, arbre de choix, « Changer le futur »
 8. UI/UX : écrans, formats d'écran
 9. Prototype jouable (combat seul)
 10. Itérations : hub, progression, contenu
+11. Saison 2 : zones 11–15, niveau max 150, L'Ourdisseur (fils semés en saison 1)
