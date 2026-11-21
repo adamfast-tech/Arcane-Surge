@@ -70,7 +70,7 @@ func color() -> Color:
 		"add", "mult":
 			return Color("4fe3d2")
 		"elem":
-			return Color(str(PixelSprites.ELEM.get(element, ["", "ffffff"])[1]))
+			return Color(str(SpriteAtlas.ELEM.get(element, ["", "", "ffffff", ""])[2]))
 		"power", "giant", "haste", "aegis":
 			return Color("f2c46b")
 	return Color("d93cf2")

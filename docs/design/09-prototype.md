@@ -24,9 +24,14 @@
   - portrait et paysage selon la fenêtre ;
   - commandes tactiles, souris et clavier ;
   - fenêtres Écho, pause et fin de partie.
-- **Pixel-art** :
-  - généré par code, aucune image externe ;
-  - l'arène est rendue en basse résolution puis agrandie d'un facteur entier, pour des pixels nets.
+- **Rendu 2,5D** (`scripts/battle/arena_3d.gd`) :
+  - scène 3D rendue en basse résolution puis agrandie d'un facteur entier, ce qui donne un « pixel-art 3D » aux pixels nets ;
+  - caméra inclinée à 50° derrière les lanceurs, recadrée automatiquement en portrait comme en paysage ;
+  - chaussée de ruines au-dessus d'un gouffre brumeux, sapins, piliers moussus, bannière, torches, lucioles ;
+  - toile de fond peinte : ciel étoilé, lune, montagnes, Tour du Croissant ;
+  - clair de lune, halos sur les portails, le Nexus et les tours ;
+  - unités affichées en sprites face caméra (alliés de dos, ennemis de face, 2 images d'animation), avec leurs ombres.
+- **Sprites** (`scripts/gfx/sprite_atlas.gd`) : pixel-art généré par code, de 10 à 21 px de haut, en attendant des sprites dessinés. Pour en remplacer un, déposer `assets/sprites/<nom>.png` (images côte à côte).
 
 ## 2. Ajustements par rapport au design (validés par le simulateur)
 
@@ -58,6 +63,7 @@ L'IA joue mieux qu'un débutant. Un joueur humain mettra plus longtemps et subir
 
 ## 5. Captures
 
+![Menu](../art/prototype-menu.png)
 ![Portrait](../art/prototype-portrait.png)
 ![Paysage](../art/prototype-paysage.png)
 

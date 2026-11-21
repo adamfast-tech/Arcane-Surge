@@ -13,6 +13,19 @@ func _ready() -> void:
 	bg.color = UiTheme.BG
 	add_child(bg)
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	# Illustration de l'écran titre (image de référence de la direction artistique).
+	var art := TextureRect.new()
+	art.texture = load("res://assets/art/title.jpg")
+	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(art)
+	art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var shade := ColorRect.new()
+	shade.color = Color(0.05, 0.04, 0.12, 0.62)
+	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(shade)
+	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	add_child(scroll)

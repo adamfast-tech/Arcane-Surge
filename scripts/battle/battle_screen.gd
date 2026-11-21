@@ -13,7 +13,9 @@ const TOP_H_LAND := 92.0
 var level_id := "z01_l08"
 var solo := false
 var sim: BattleSim
-var view: ArenaView
+var arena: Arena3D
+var backdrop: TextureRect
+var flash_rect: ColorRect
 var vp: SubViewport
 var arena_rect: TextureRect
 var hud: Control
@@ -69,15 +71,23 @@ func _ready() -> void:
 	sim.setup(_level, GameData.party(), int(Time.get_ticks_usec() % 1000000), {"solo": solo})
 
 	vp = SubViewport.new()
-	vp.disable_3d = true
-	vp.transparent_bg = false
+	vp.own_world_3d = true
+	vp.transparent_bg = true
+	vp.msaa_3d = Viewport.MSAA_DISABLED
 	vp.canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	vp.size = Vector2i(360, 640)
 	add_child(vp)
-	view = ArenaView.new()
-	vp.add_child(view)
-	view.setup(sim, vp.size, UiTheme.font())
+	arena = Arena3D.new()
+	vp.add_child(arena)
+	arena.setup(sim, UiTheme.font())
+
+	backdrop = TextureRect.new()
+	backdrop.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	backdrop.stretch_mode = TextureRect.STRETCH_SCALE
+	backdrop.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(backdrop)
 
 	arena_rect = TextureRect.new()
 	arena_rect.texture = vp.get_texture()
@@ -88,6 +98,10 @@ func _ready() -> void:
 	arena_rect.gui_input.connect(_on_arena_input)
 	arena_rect.mouse_exited.connect(_on_arena_exit)
 	add_child(arena_rect)
+	flash_rect = ColorRect.new()
+	flash_rect.color = Color(1.0, 0.95, 0.85, 0.0)
+	flash_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(flash_rect)
 
 	hud = Control.new()
 	hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -127,10 +141,15 @@ func _place_arena(avail: Rect2) -> void:
 	_k = maxi(1, int(floor(fit_w / 270.0)))
 	var vs := Vector2i(maxi(64, int(avail.size.x / _k)), maxi(64, int(avail.size.y / _k)))
 	vp.size = vs
-	view.resize(vs)
+	arena.fit_camera(vs)
 	var shown := Vector2(vs * _k)
 	arena_rect.position = (avail.position + (avail.size - shown) * 0.5).floor()
 	arena_rect.size = shown
+	backdrop.texture = WorldArt.backdrop(vs)
+	backdrop.position = arena_rect.position
+	backdrop.size = shown
+	flash_rect.position = arena_rect.position
+	flash_rect.size = shown
 
 
 func _build_hud() -> void:
@@ -459,12 +478,13 @@ func _process(delta: float) -> void:
 		if steps >= 4:
 			_acc = 0.0
 		_keyboard_move(delta)
-	view.alpha = clampf(_acc / BattleSim.TICK, 0.0, 1.0)
+	arena.alpha = clampf(_acc / BattleSim.TICK, 0.0, 1.0)
 	if not sim.events.is_empty():
-		view.consume_events(sim.events)
+		arena.consume_events(sim.events)
 		sim.events.clear()
-	view.aim_active = aiming != "" and _hover_in
-	view.aim_pos = _hover
+	arena.aim_active = aiming != "" and _hover_in
+	arena.aim_pos = _hover
+	flash_rect.color.a = clampf(arena.flash * 1.2, 0.0, 0.8)
 	_toast_t = maxf(0.0, _toast_t - delta)
 	_update_hud()
 	if sim.state == "echo" and not _echo_open:
@@ -599,7 +619,7 @@ func _on_arena_input(ev: InputEvent) -> void:
 
 
 func _to_logic(local: Vector2) -> Vector2:
-	return view.to_logic(local / float(_k))
+	return arena.pick(local / float(_k))
 
 
 func _unhandled_input(ev: InputEvent) -> void:
@@ -653,8 +673,8 @@ func _on_spell_pressed(i: int, quick: bool = false) -> void:
 		return
 	aiming = id
 	var sp: Dictionary = sim.spells_db[id]
-	view.aim_radius = float(sp.get("radius", 1.0)) if str(sp["type"]) != "purify" else 0.9
-	view.aim_color = Color(str(sp.get("color", "FFFFFF")))
+	arena.aim_radius = float(sp.get("radius", 1.0)) if str(sp["type"]) != "purify" else 0.9
+	arena.aim_color = Color(str(sp.get("color", "FFFFFF")))
 	if quick:
 		_cast_aimed(_hover)
 
@@ -668,8 +688,8 @@ func _on_ultimate_pressed() -> void:
 		return
 	aiming = "ultimate"
 	var sp: Dictionary = sim.spells_db[sim.ultimate_id]
-	view.aim_radius = float(sp.get("radius", 3.0))
-	view.aim_color = Color(str(sp.get("color", "B07CFF")))
+	arena.aim_radius = float(sp.get("radius", 3.0))
+	arena.aim_color = Color(str(sp.get("color", "B07CFF")))
 
 
 func _cast_aimed(at: Vector2) -> void:
@@ -807,7 +827,7 @@ func _open_end() -> void:
 		stars.add_theme_constant_override("separation", 16)
 		for i in range(3):
 			var tr := TextureRect.new()
-			tr.texture = PixelSprites.star(i < sim.stars)
+			tr.texture = SpriteAtlas.single("star" if i < sim.stars else "star_off")
 			tr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 			tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED

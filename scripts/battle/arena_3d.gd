@@ -1,0 +1,953 @@
+class_name Arena3D
+extends Node3D
+## Rendu 2,5D de l'arène : scène 3D rendue en basse résolution puis agrandie (pixels nets),
+## caméra inclinée derrière les lanceurs, chaussée de ruines au-dessus d'un gouffre brumeux,
+## clair de lune, halos lumineux. Lit l'état de BattleSim (logique pure).
+## Repère : position logique (x, y) -> monde (x, hauteur, -y). Le joueur est en z ≈ 0,
+## le Nexus vers z = -15. La caméra regarde vers -z.
+
+const TEXEL := 0.058 ## mètres par pixel de sprite
+const MAX_SPRITES := 1000
+const MAX_SHADOWS := 560
+const PITCH_DEG := 50.0
+const FOV := 40.0
+const BAR_W := 0.62
+
+var sim: BattleSim
+var font: Font
+var alpha := 0.0
+var t := 0.0
+var shake := 0.0
+var flash := 0.0
+var aim_active := false
+var aim_pos := Vector2(-100.0, -100.0)
+var aim_radius := 1.0
+var aim_color := Color.WHITE
+
+var cam: Camera3D
+var _cam_base := Transform3D.IDENTITY
+var _env: Environment
+var _units_mm: MultiMesh
+var _shadow_mm: MultiMesh
+var _trees_mm: MultiMesh
+var _billboard: Shader
+var _stone_mat: StandardMaterial3D
+var _fx_lines: ImmediateMesh
+var _fx_points: ImmediateMesh
+var _fx_mat: StandardMaterial3D
+var _fx_pt_mat: StandardMaterial3D
+var _fx: Array[Dictionary] = []
+var _labels: Array[Label3D] = []
+var _label_next := 0
+var _portal_nodes: Array[Dictionary] = []
+var _tower_nodes: Array[Dictionary] = []
+var _nexus_crystal: MeshInstance3D
+var _nexus_mat: StandardMaterial3D
+var _nexus_shield: MeshInstance3D
+var _nexus_light: OmniLight3D
+var _barrier_mat: StandardMaterial3D
+var _barrier_shield: MeshInstance3D
+var _casters: Array[Sprite3D] = []
+var _staff_fx: CPUParticles3D
+var _staff_light: OmniLight3D
+var _torch_lights: Array[OmniLight3D] = []
+
+
+static func w3(p: Vector2, h: float = 0.0) -> Vector3:
+	return Vector3(p.x, h, -p.y)
+
+
+func setup(s: BattleSim, f: Font) -> void:
+	sim = s
+	font = f
+	_billboard = load("res://shaders/billboard_atlas.gdshader")
+	_stone_mat = _triplanar(WorldArt.stone_texture(), 0.55)
+	_build_environment()
+	_build_terrain()
+	_build_props()
+	_build_portals()
+	_build_towers()
+	_build_nexus()
+	_build_barrier()
+	_build_units()
+	_build_casters()
+	_build_fx()
+	cam = Camera3D.new()
+	cam.fov = FOV
+	cam.near = 0.5
+	cam.far = 220.0
+	add_child(cam)
+	cam.current = true
+
+
+# ---------------------------------------------------------------- caméra
+
+## Recule la caméra jusqu'à ce que toute l'arène (et un peu de ciel) soit visible.
+func fit_camera(size: Vector2i) -> void:
+	if cam == null:
+		return
+	var pts: Array[Vector3] = [
+		w3(Vector2(-0.2, -0.7)), w3(Vector2(9.2, -0.7)), w3(Vector2(-0.2, 16.0)), w3(Vector2(9.2, 16.0)),
+		w3(BattleSim.NEXUS_POS, 3.0),
+	]
+	var pitch := deg_to_rad(PITCH_DEG)
+	var dir := Vector3(0.0, sin(pitch), cos(pitch))
+	var target := w3(Vector2(4.5, 7.0))
+	var lo := 4.0
+	var hi := 120.0
+	for i in range(30):
+		var mid := (lo + hi) * 0.5
+		cam.look_at_from_position(target + dir * mid, target, Vector3.UP)
+		if _all_visible(pts, size):
+			hi = mid
+		else:
+			lo = mid
+	cam.look_at_from_position(target + dir * hi, target, Vector3.UP)
+	_cam_base = cam.transform
+	var far_d := cam.global_position.distance_to(w3(Vector2(4.5, 16.5)))
+	_env.fog_depth_begin = far_d + 2.0
+	_env.fog_depth_end = far_d + 34.0
+	var stretch := 1.0 / maxf(0.3, cos(pitch))
+	(_trees_mm_instance().material_override as ShaderMaterial).set_shader_parameter("upright_stretch", stretch)
+
+
+func _all_visible(pts: Array[Vector3], size: Vector2i) -> bool:
+	var m := Vector2(size) * 0.01
+	for p in pts:
+		if cam.is_position_behind(p):
+			return false
+		var s := cam.unproject_position(p)
+		if s.x < m.x or s.y < m.y or s.x > size.x - m.x or s.y > size.y - m.y:
+			return false
+	return true
+
+
+## Position logique visée par un point de l'écran (pixels du SubViewport).
+func pick(screen: Vector2) -> Vector2:
+	if cam == null:
+		return Vector2(-100.0, -100.0)
+	var o := cam.project_ray_origin(screen)
+	var d := cam.project_ray_normal(screen)
+	if d.y > -1e-4:
+		return Vector2(-100.0, -100.0)
+	var hit := o + d * (-o.y / d.y)
+	return Vector2(hit.x, -hit.z)
+
+
+# ---------------------------------------------------------------- construction
+
+func _build_environment() -> void:
+	_env = Environment.new()
+	_env.background_mode = Environment.BG_CLEAR_COLOR
+	_env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	_env.ambient_light_color = Color("7078c0")
+	_env.ambient_light_energy = 1.0
+	_env.fog_enabled = true
+	_env.fog_mode = Environment.FOG_MODE_DEPTH
+	_env.fog_light_color = Color("2d2c5e")
+	_env.fog_depth_begin = 40.0
+	_env.fog_depth_end = 80.0
+	_env.glow_enabled = true
+	_env.glow_intensity = 0.45
+	_env.glow_bloom = 0.0
+	_env.glow_hdr_threshold = 1.0
+	var we := WorldEnvironment.new()
+	we.environment = _env
+	add_child(we)
+	var moon := DirectionalLight3D.new()
+	moon.light_color = Color("b4c0ff")
+	moon.light_energy = 1.1
+	moon.rotation_degrees = Vector3(-55.0, -35.0, 0.0)
+	add_child(moon)
+
+
+func _triplanar(tex: Texture2D, scale: float) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_texture = tex
+	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS
+	m.uv1_triplanar = true
+	m.uv1_world_triplanar = true
+	m.uv1_scale = Vector3(scale, scale, scale)
+	m.roughness = 1.0
+	return m
+
+
+func _box(size: Vector3, pos: Vector3, mat: Material, parent: Node3D = null) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = size
+	mi.mesh = bm
+	mi.material_override = mat
+	mi.position = pos
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	(parent if parent != null else self).add_child(mi)
+	return mi
+
+
+func _unshaded(col: Color, transparent: bool = false) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.albedo_color = col
+	if transparent:
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	return m
+
+
+func _build_terrain() -> void:
+	# Dessus de la chaussée.
+	var top := MeshInstance3D.new()
+	var pm := PlaneMesh.new()
+	pm.size = WorldArt.GROUND_SIZE
+	top.mesh = pm
+	var gm := StandardMaterial3D.new()
+	gm.albedo_texture = WorldArt.ground_texture()
+	gm.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS
+	gm.roughness = 1.0
+	top.material_override = gm
+	top.position = w3(WorldArt.GROUND_MIN + WorldArt.GROUND_SIZE * 0.5)
+	add_child(top)
+	# Murs de la chaussée et piles du pont qui plongent dans la brume.
+	var c := WorldArt.GROUND_MIN + WorldArt.GROUND_SIZE * 0.5
+	_box(Vector3(WorldArt.GROUND_SIZE.x, 2.6, WorldArt.GROUND_SIZE.y), w3(c, -1.31), _stone_mat)
+	for y in [0.5, 5.5, 10.5, 15.5]:
+		for x in [0.6, 8.4]:
+			_box(Vector3(1.4, 14.0, 1.4), w3(Vector2(x, y), -8.5), _stone_mat)
+	# Falaises boisées de part et d'autre.
+	var rock := _triplanar(WorldArt.rock_texture(), 0.4)
+	var moss := _triplanar(WorldArt.moss_texture(), 0.5)
+	for side in [-1, 1]:
+		var cx := 4.5 + float(side) * 14.5
+		_box(Vector3(18.0, 10.0, 46.0), Vector3(cx, -7.6, -9.0), rock)
+		_box(Vector3(18.0, 0.2, 46.0), Vector3(cx, -2.5, -9.0), moss)
+		for k in range(4):
+			var rx := 4.5 + float(side) * (6.2 + float(k) * 1.3)
+			_box(Vector3(1.6, 1.2 + float(k) * 0.4, 2.2), Vector3(rx, -2.2, 3.0 - float(k) * 9.5), rock)
+	# Brume.
+	var mist_shader: Shader = load("res://shaders/mist.gdshader")
+	var noise := WorldArt.mist_texture()
+	var layers := [[-1.4, Color("8a8ad0"), 0.45, Vector2(0.012, 0.004)], [-3.0, Color("6a6ab8"), 0.55, Vector2(-0.008, 0.006)]]
+	for l in layers:
+		var mi := MeshInstance3D.new()
+		var mp := PlaneMesh.new()
+		mp.size = Vector2(70.0, 60.0)
+		mi.mesh = mp
+		var sm := ShaderMaterial.new()
+		sm.shader = mist_shader
+		sm.set_shader_parameter("noise_tex", noise)
+		sm.set_shader_parameter("tint", l[1])
+		sm.set_shader_parameter("strength", l[2])
+		sm.set_shader_parameter("speed", l[3])
+		mi.material_override = sm
+		mi.position = Vector3(4.5, float(l[0]), -10.0)
+		add_child(mi)
+	# Sapins (billboards verticaux).
+	var pine := WorldArt.pine_texture()
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_colors = true
+	mm.use_custom_data = true
+	mm.mesh = _quad_mesh()
+	var spots: Array = []
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 808
+	for i in range(90):
+		var side := -1.0 if i % 2 == 0 else 1.0
+		var x := 4.5 + side * rng.randf_range(6.0, 17.0)
+		var y := rng.randf_range(-6.0, 34.0)
+		spots.append([Vector3(x, -2.5, -y), rng.randf_range(3.0, 6.0), rng.randi_range(0, 2)])
+	for i in range(14):
+		var side := -1.0 if i % 2 == 0 else 1.0
+		spots.append([Vector3(4.5 + side * rng.randf_range(5.6, 7.0), -7.0, -rng.randf_range(-2.0, 22.0)), rng.randf_range(6.0, 8.5), rng.randi_range(0, 2)])
+	mm.instance_count = spots.size()
+	for i in range(spots.size()):
+		var s: Array = spots[i]
+		var hgt: float = s[1]
+		var tf := Transform3D(Basis.from_scale(Vector3(hgt * 20.0 / 44.0, hgt, 1.0)), s[0])
+		mm.set_instance_transform(i, tf)
+		var shade := rng.randf_range(0.8, 1.05)
+		mm.set_instance_color(i, Color(shade, shade, shade * 1.05))
+		var v: int = s[2]
+		mm.set_instance_custom_data(i, Color(float(v) / 3.0, 0.0, 1.0 / 3.0, 1.0))
+	var tmi := MultiMeshInstance3D.new()
+	tmi.name = "Trees"
+	tmi.multimesh = mm
+	var tmat := ShaderMaterial.new()
+	tmat.shader = _billboard
+	tmat.set_shader_parameter("atlas", pine)
+	tmat.set_shader_parameter("upright", true)
+	tmat.set_shader_parameter("upright_stretch", 1.5)
+	tmi.material_override = tmat
+	tmi.custom_aabb = AABB(Vector3(-30.0, -15.0, -60.0), Vector3(70.0, 40.0, 80.0))
+	add_child(tmi)
+	_trees_mm = mm
+
+
+func _trees_mm_instance() -> MultiMeshInstance3D:
+	return get_node("Trees") as MultiMeshInstance3D
+
+
+func _build_props() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 99
+	var moss_cap := _unshaded(Color("3f6a3a"))
+	moss_cap.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
+	# Piliers en ruine le long de la chaussée.
+	for y in [1.8, 4.2, 7.8, 9.6, 12.2, 15.4]:
+		for side in [-1, 1]:
+			if rng.randf() < 0.25:
+				continue
+			var x := -0.55 if side < 0 else 9.55
+			var h := rng.randf_range(0.6, 2.4)
+			_box(Vector3(0.6, h, 0.6), w3(Vector2(x, y), h * 0.5), _stone_mat)
+			_box(Vector3(0.66, 0.08, 0.66), w3(Vector2(x, y), h + 0.04), moss_cap)
+			if rng.randf() < 0.6:
+				var block := _box(Vector3(0.45, 0.3, 0.4), w3(Vector2(x + float(-side) * 0.1, y + 0.7), 0.15), _stone_mat)
+				block.rotation.y = rng.randf_range(-0.6, 0.6)
+	# Bannière près des lanceurs (comme sur l'image de référence).
+	var banner := Sprite3D.new()
+	banner.texture = WorldArt.banner_texture()
+	banner.pixel_size = TEXEL
+	banner.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+	banner.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	banner.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+	banner.shaded = false
+	banner.offset = Vector2(0.0, 13.0)
+	banner.position = w3(Vector2(-0.55, 0.4))
+	add_child(banner)
+	# Torches.
+	var flame := WorldArt.flame_texture()
+	for x in [-0.55, 9.55]:
+		_box(Vector3(0.12, 0.8, 0.12), w3(Vector2(x, -0.6), 0.4), _stone_mat)
+		var f := Sprite3D.new()
+		f.texture = flame
+		f.pixel_size = TEXEL
+		f.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		f.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		f.shaded = false
+		f.modulate = Color(1.4, 1.2, 1.0)
+		f.position = w3(Vector2(x, -0.6), 0.95)
+		add_child(f)
+		var l := OmniLight3D.new()
+		l.light_color = Color("ff9b4a")
+		l.light_energy = 1.4
+		l.omni_range = 4.0
+		l.position = w3(Vector2(x, -0.6), 1.1)
+		add_child(l)
+		_torch_lights.append(l)
+	# Lucioles.
+	var ff := CPUParticles3D.new()
+	ff.amount = 34
+	ff.lifetime = 6.0
+	ff.preprocess = 6.0
+	ff.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	ff.emission_box_extents = Vector3(11.0, 1.4, 11.0)
+	ff.position = Vector3(4.5, 0.9, -8.0)
+	ff.direction = Vector3(0, 1, 0)
+	ff.spread = 180.0
+	ff.initial_velocity_min = 0.05
+	ff.initial_velocity_max = 0.25
+	ff.gravity = Vector3.ZERO
+	ff.mesh = _particle_mesh(0.07)
+	var ramp := Gradient.new()
+	ramp.set_color(0, Color(1.0, 0.95, 0.55, 0.0))
+	ramp.set_color(1, Color(1.0, 0.95, 0.55, 0.0))
+	ramp.add_point(0.2, Color(1.0, 0.95, 0.6, 1.0))
+	ramp.add_point(0.8, Color(0.85, 1.0, 0.55, 1.0))
+	ff.color_ramp = ramp
+	add_child(ff)
+
+
+func _particle_mesh(size: float) -> QuadMesh:
+	var q := QuadMesh.new()
+	q.size = Vector2(size, size)
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.vertex_color_use_as_albedo = true
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	q.material = m
+	return q
+
+
+func _quad_mesh() -> QuadMesh:
+	var q := QuadMesh.new()
+	q.size = Vector2(1.0, 1.0)
+	q.center_offset = Vector3(0.0, 0.5, 0.0)
+	return q
+
+
+func _label(size: int, col: Color) -> Label3D:
+	var l := Label3D.new()
+	l.font = font
+	l.font_size = size
+	l.pixel_size = 0.0085
+	l.outline_size = 12
+	l.outline_modulate = Color(0.04, 0.03, 0.09, 0.95)
+	l.modulate = col
+	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	l.no_depth_test = true
+	l.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	l.render_priority = 10
+	l.outline_render_priority = 9
+	return l
+
+
+func _build_portals() -> void:
+	for p in sim.portals:
+		var root := Node3D.new()
+		root.position = w3(Vector2(p.x, p.y))
+		add_child(root)
+		var half := p.width * 0.5
+		var col := p.color()
+		_box(Vector3(0.26, 1.45, 0.26), Vector3(-half - 0.13, 0.725, 0.0), _stone_mat, root)
+		_box(Vector3(0.26, 1.45, 0.26), Vector3(half + 0.13, 0.725, 0.0), _stone_mat, root)
+		_box(Vector3(p.width + 0.6, 0.2, 0.32), Vector3(0.0, 1.5, 0.0), _stone_mat, root)
+		var panel := MeshInstance3D.new()
+		var qm := QuadMesh.new()
+		qm.size = Vector2(p.width, 1.3)
+		panel.mesh = qm
+		var pmat := _unshaded(Color(col, 0.35), true)
+		panel.material_override = pmat
+		panel.position = Vector3(0.0, 0.7, 0.0)
+		root.add_child(panel)
+		var strip := MeshInstance3D.new()
+		var sp := PlaneMesh.new()
+		sp.size = Vector2(p.width, 0.16)
+		strip.mesh = sp
+		var smat := _unshaded(col)
+		strip.material_override = smat
+		strip.position = Vector3(0.0, 0.03, 0.0)
+		root.add_child(strip)
+		var lab := _label(72, Color.WHITE)
+		lab.position = Vector3(0.0, 2.05, 0.0)
+		lab.text = p.label()
+		root.add_child(lab)
+		var seal := _label(44, Color("e070ff"))
+		seal.position = Vector3(0.0, 2.65, 0.0)
+		root.add_child(seal)
+		var light := OmniLight3D.new()
+		light.light_color = col
+		light.light_energy = 0.9
+		light.omni_range = 2.6
+		light.position = Vector3(0.0, 0.8, 0.4)
+		root.add_child(light)
+		_portal_nodes.append({"portal": p, "root": root, "panel": pmat, "strip": smat, "label": lab, "seal": seal, "light": light})
+
+
+func _build_towers() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 3
+	for tw in sim.towers:
+		var root := Node3D.new()
+		root.position = w3(tw["pos"])
+		add_child(root)
+		var parts: Array[Node3D] = []
+		for k in range(3):
+			var b := _box(Vector3(0.8 - float(k) * 0.08, 0.55, 0.8 - float(k) * 0.08), Vector3(0.0, 0.3 + float(k) * 0.56, 0.0), _stone_mat, root)
+			b.rotation.y = rng.randf_range(-0.2, 0.2)
+			parts.append(b)
+		var crystal := MeshInstance3D.new()
+		crystal.mesh = _octahedron()
+		var cm := StandardMaterial3D.new()
+		cm.albedo_color = Color("b07cff")
+		cm.emission_enabled = true
+		cm.emission = Color("9a6aff")
+		cm.emission_energy_multiplier = 1.4
+		crystal.material_override = cm
+		crystal.scale = Vector3(0.25, 0.42, 0.25)
+		crystal.position = Vector3(0.0, 2.15, 0.0)
+		root.add_child(crystal)
+		parts.append(crystal)
+		var l := OmniLight3D.new()
+		l.light_color = Color("b07cff")
+		l.light_energy = 1.0
+		l.omni_range = 3.0
+		l.position = Vector3(0.0, 2.1, 0.0)
+		root.add_child(l)
+		parts.append(l)
+		var rubble := _box(Vector3(0.9, 0.25, 0.9), Vector3(0.0, 0.12, 0.0), _stone_mat, root)
+		rubble.visible = false
+		_tower_nodes.append({"data": tw, "parts": parts, "rubble": rubble, "crystal": crystal})
+
+
+func _build_nexus() -> void:
+	var root := Node3D.new()
+	root.position = w3(BattleSim.NEXUS_POS)
+	add_child(root)
+	var ped := MeshInstance3D.new()
+	var cyl := CylinderMesh.new()
+	cyl.top_radius = 0.85
+	cyl.bottom_radius = 1.1
+	cyl.height = 0.5
+	cyl.radial_segments = 8
+	ped.mesh = cyl
+	ped.material_override = _stone_mat
+	ped.position = Vector3(0.0, 0.25, 0.0)
+	root.add_child(ped)
+	_nexus_crystal = MeshInstance3D.new()
+	_nexus_crystal.mesh = _octahedron()
+	_nexus_mat = StandardMaterial3D.new()
+	_nexus_mat.albedo_color = Color("c8a0ff")
+	_nexus_mat.emission_enabled = true
+	_nexus_mat.emission = Color("8a52ff")
+	_nexus_mat.emission_energy_multiplier = 1.6
+	_nexus_crystal.material_override = _nexus_mat
+	_nexus_crystal.scale = Vector3(0.62, 1.25, 0.62)
+	_nexus_crystal.position = Vector3(0.0, 1.9, 0.0)
+	root.add_child(_nexus_crystal)
+	_nexus_light = OmniLight3D.new()
+	_nexus_light.light_color = Color("a070ff")
+	_nexus_light.light_energy = 2.2
+	_nexus_light.omni_range = 6.5
+	_nexus_light.position = Vector3(0.0, 1.9, 0.0)
+	root.add_child(_nexus_light)
+	_nexus_shield = MeshInstance3D.new()
+	var sph := SphereMesh.new()
+	sph.radius = 1.55
+	sph.height = 3.1
+	sph.radial_segments = 16
+	sph.rings = 8
+	_nexus_shield.mesh = sph
+	_nexus_shield.material_override = _unshaded(Color(0.85, 0.24, 0.95, 0.16), true)
+	_nexus_shield.position = Vector3(0.0, 1.5, 0.0)
+	root.add_child(_nexus_shield)
+
+
+func _octahedron() -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var top := Vector3(0, 1, 0)
+	var bottom := Vector3(0, -1, 0)
+	var ring := [Vector3(1, 0, 0), Vector3(0, 0, 1), Vector3(-1, 0, 0), Vector3(0, 0, -1)]
+	for i in range(4):
+		var a: Vector3 = ring[i]
+		var b: Vector3 = ring[(i + 1) % 4]
+		for v in [top, b, a, bottom, a, b]:
+			st.add_vertex(v)
+	st.generate_normals()
+	return st.commit()
+
+
+func _build_barrier() -> void:
+	var y := BattleSim.BARRIER_Y
+	var strip := MeshInstance3D.new()
+	var pm := PlaneMesh.new()
+	pm.size = Vector2(9.0, 0.12)
+	strip.mesh = pm
+	_barrier_mat = _unshaded(Color("f2c46b"))
+	strip.material_override = _barrier_mat
+	strip.position = w3(Vector2(4.5, y), 0.025)
+	add_child(strip)
+	var x := 0.0
+	while x <= 9.0:
+		var post := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = Vector3(0.08, 0.32, 0.08)
+		post.mesh = bm
+		post.material_override = _barrier_mat
+		post.position = w3(Vector2(x, y), 0.16)
+		add_child(post)
+		x += 1.5
+	_barrier_shield = MeshInstance3D.new()
+	var sm := PlaneMesh.new()
+	sm.size = Vector2(9.0, 0.08)
+	_barrier_shield.mesh = sm
+	_barrier_shield.material_override = _unshaded(Color("4fe3d2"))
+	_barrier_shield.position = w3(Vector2(4.5, y + 0.2), 0.03)
+	add_child(_barrier_shield)
+
+
+func _build_units() -> void:
+	var tex := SpriteAtlas.texture()
+	_units_mm = MultiMesh.new()
+	_units_mm.transform_format = MultiMesh.TRANSFORM_3D
+	_units_mm.use_colors = true
+	_units_mm.use_custom_data = true
+	_units_mm.mesh = _quad_mesh()
+	_units_mm.instance_count = MAX_SPRITES
+	_units_mm.visible_instance_count = 0
+	var mi := MultiMeshInstance3D.new()
+	mi.multimesh = _units_mm
+	var mat := ShaderMaterial.new()
+	mat.shader = _billboard
+	mat.set_shader_parameter("atlas", tex)
+	mi.material_override = mat
+	mi.custom_aabb = AABB(Vector3(-5.0, -2.0, -22.0), Vector3(20.0, 10.0, 28.0))
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(mi)
+	_shadow_mm = MultiMesh.new()
+	_shadow_mm.transform_format = MultiMesh.TRANSFORM_3D
+	var plane := PlaneMesh.new()
+	plane.size = Vector2(1.0, 1.0)
+	_shadow_mm.mesh = plane
+	_shadow_mm.instance_count = MAX_SHADOWS
+	_shadow_mm.visible_instance_count = 0
+	var smi := MultiMeshInstance3D.new()
+	smi.multimesh = _shadow_mm
+	var smat := StandardMaterial3D.new()
+	smat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	smat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	smat.albedo_texture = WorldArt.blob_texture()
+	smat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	smi.material_override = smat
+	smi.custom_aabb = mi.custom_aabb
+	add_child(smi)
+
+
+func _build_casters() -> void:
+	var tex := SpriteAtlas.texture()
+	for c in sim.casters:
+		var s := Sprite3D.new()
+		s.texture = tex
+		s.region_enabled = true
+		s.pixel_size = TEXEL * 1.25
+		s.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		s.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		s.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+		s.shaded = false
+		s.modulate = Color(1.1, 1.1, 1.15)
+		add_child(s)
+		_casters.append(s)
+	_staff_fx = CPUParticles3D.new()
+	_staff_fx.amount = 22
+	_staff_fx.lifetime = 0.9
+	_staff_fx.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	_staff_fx.emission_sphere_radius = 0.22
+	_staff_fx.direction = Vector3(0, 1, 0)
+	_staff_fx.spread = 180.0
+	_staff_fx.initial_velocity_min = 0.2
+	_staff_fx.initial_velocity_max = 0.6
+	_staff_fx.gravity = Vector3(0, 0.4, 0)
+	_staff_fx.tangential_accel_min = 2.0
+	_staff_fx.tangential_accel_max = 4.0
+	_staff_fx.mesh = _particle_mesh(0.07)
+	var ramp := Gradient.new()
+	ramp.set_color(0, Color(0.55, 1.0, 0.95, 1.0))
+	ramp.set_color(1, Color(0.75, 0.45, 1.0, 0.0))
+	_staff_fx.color_ramp = ramp
+	add_child(_staff_fx)
+	_staff_light = OmniLight3D.new()
+	_staff_light.light_color = Color("4fe3d2")
+	_staff_light.light_energy = 1.2
+	_staff_light.omni_range = 3.2
+	add_child(_staff_light)
+
+
+func _build_fx() -> void:
+	_fx_lines = ImmediateMesh.new()
+	_fx_points = ImmediateMesh.new()
+	_fx_mat = StandardMaterial3D.new()
+	_fx_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_fx_mat.vertex_color_use_as_albedo = true
+	_fx_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_fx_pt_mat = _fx_mat.duplicate()
+	_fx_pt_mat.use_point_size = true
+	_fx_pt_mat.point_size = 3.0
+	for m in [_fx_lines, _fx_points]:
+		var mi := MeshInstance3D.new()
+		mi.mesh = m
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.custom_aabb = AABB(Vector3(-10.0, -2.0, -25.0), Vector3(30.0, 12.0, 32.0))
+		add_child(mi)
+	for i in range(28):
+		var l := _label(56, Color.WHITE)
+		l.visible = false
+		add_child(l)
+		_labels.append(l)
+
+
+# ---------------------------------------------------------------- évènements
+
+func consume_events(events: Array[Dictionary]) -> void:
+	for e in events:
+		match str(e["t"]):
+			"barrier":
+				shake = 0.25
+			"flash":
+				flash = 0.35
+			"text":
+				_spawn_label(e)
+			_:
+				var d := e.duplicate()
+				d["age"] = 0.0
+				if not d.has("dur"):
+					d["dur"] = 0.35
+				_fx.append(d)
+	while _fx.size() > 320:
+		_fx.remove_at(0)
+
+
+func _spawn_label(e: Dictionary) -> void:
+	var l := _labels[_label_next]
+	_label_next = (_label_next + 1) % _labels.size()
+	l.text = str(e["text"])
+	l.modulate = Color(str(e.get("color", "FFFFFF")))
+	l.position = w3(e["pos"], 1.2)
+	l.set_meta("age", 0.0)
+	l.visible = true
+
+
+# ---------------------------------------------------------------- mise à jour
+
+func _process(delta: float) -> void:
+	if sim == null or cam == null:
+		return
+	t += delta
+	shake = maxf(0.0, shake - delta)
+	flash = maxf(0.0, flash - delta)
+	cam.transform = _cam_base
+	if shake > 0.0:
+		cam.position += Vector3(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0), 0.0) * shake * 0.5
+	_update_portals()
+	_update_towers()
+	_update_nexus()
+	_update_barrier()
+	_update_units()
+	_update_casters()
+	_update_labels(delta)
+	_draw_fx(delta)
+	for l in _torch_lights:
+		l.light_energy = 1.25 + 0.25 * sin(t * 11.0 + l.position.x) + 0.1 * sin(t * 23.0)
+
+
+func _update_portals() -> void:
+	for pn in _portal_nodes:
+		var p: Portal = pn["portal"]
+		var root: Node3D = pn["root"]
+		root.position.x = p.x
+		var col := p.color()
+		var dim := (p.kind == "add" and not p.ready) or (p.kind == "sub" and p.charges <= 0)
+		var a := 0.3 + 0.08 * sin(t * 4.0 + float(p.id))
+		if dim:
+			a = 0.1
+		if p.flash_t > 0.0:
+			a = 0.75
+		(pn["panel"] as StandardMaterial3D).albedo_color = Color(col, a)
+		(pn["strip"] as StandardMaterial3D).albedo_color = col if not dim else col.darkened(0.5)
+		var lab: Label3D = pn["label"]
+		var text := p.label()
+		if lab.text != text:
+			lab.text = text
+		lab.modulate = Color(1, 1, 1, 0.55) if dim else Color.WHITE
+		var seal: Label3D = pn["seal"]
+		seal.visible = p.is_seal and not p.purified
+		if seal.visible:
+			seal.text = "SCEAU %d/%d" % [p.purity, p.purity_needed]
+		(pn["light"] as OmniLight3D).light_color = col
+
+
+func _update_towers() -> void:
+	for tn in _tower_nodes:
+		var alive: bool = tn["data"]["alive"]
+		for n in tn["parts"]:
+			(n as Node3D).visible = alive
+		(tn["rubble"] as Node3D).visible = not alive
+		if alive:
+			var c: MeshInstance3D = tn["crystal"]
+			c.rotation.y = t * 1.5
+			c.position.y = 2.15 + sin(t * 2.0) * 0.06
+
+
+func _update_nexus() -> void:
+	_nexus_crystal.rotation.y = t * 0.7
+	_nexus_crystal.position.y = 1.9 + sin(t * 1.6) * 0.1
+	_nexus_mat.emission_energy_multiplier = 1.6 + (2.5 if sim.nexus_flash > 0.0 else 0.0)
+	_nexus_light.light_energy = 2.0 + 0.4 * sin(t * 3.0)
+	_nexus_shield.visible = sim.nexus_shielded()
+	if _nexus_shield.visible:
+		_nexus_shield.rotation.y = t * 0.5
+		var s := 1.0 + 0.03 * sin(t * 4.0)
+		_nexus_shield.scale = Vector3(s, s, s)
+
+
+func _update_barrier() -> void:
+	_barrier_mat.albedo_color = Color("ff5a5a") if sim.barrier_flash > 0.0 else Color("f2c46b")
+	_barrier_shield.visible = sim.barrier_shield > 0.0
+
+
+func _update_units() -> void:
+	var cam_right := cam.global_transform.basis.x
+	var cam_back := cam.global_transform.basis.z
+	var n := 0
+	var sn := 0
+	for u in sim.allies:
+		if n >= MAX_SPRITES - 3:
+			break
+		n = _put_unit(u, n, cam_right, cam_back)
+		sn = _put_shadow(u, sn)
+	for u in sim.enemies:
+		if n >= MAX_SPRITES - 3:
+			break
+		n = _put_unit(u, n, cam_right, cam_back)
+		sn = _put_shadow(u, sn)
+	for tn in _tower_nodes:
+		var tw: Dictionary = tn["data"]
+		if tw["alive"] and float(tw["hp"]) < float(tw["max"]) and n < MAX_SPRITES - 2:
+			n = _put_bar(w3(tw["pos"], 2.75), float(tw["hp"]) / float(tw["max"]), Color("ff6b8a"), n, cam_right, cam_back)
+	_units_mm.visible_instance_count = n
+	_shadow_mm.visible_instance_count = sn
+
+
+func _put_unit(u: Unit, n: int, cam_right: Vector3, cam_back: Vector3) -> int:
+	if not u.alive:
+		return n
+	var lp := u.prev_pos.lerp(u.pos, alpha)
+	var moving := not u.engaged and u.speed_factor() > 0.0
+	var fr := SpriteAtlas.frame(u.sprite, u.element, int(u.anim * 6.0) if moving else 0)
+	var w := float(fr["w"]) * TEXEL
+	var h := float(fr["h"]) * TEXEL
+	var bob := absf(sin(u.anim * 9.0)) * 0.035 if moving else 0.0
+	var pos := w3(lp, bob)
+	_units_mm.set_instance_transform(n, Transform3D(Basis.from_scale(Vector3(w, h, 1.0)), pos))
+	_units_mm.set_instance_color(n, _tint(u))
+	var uv: Rect2 = fr["uv"]
+	_units_mm.set_instance_custom_data(n, Color(uv.position.x, uv.position.y, uv.size.x, uv.size.y))
+	n += 1
+	var big := (u.team == 1 and u.max_hp >= 25.0) or u.role == "champion" or u.role == "elite"
+	if big and u.hp < u.max_hp:
+		n = _put_bar(pos + Vector3(0.0, h + 0.12, 0.0), clampf(u.hp / u.max_hp, 0.0, 1.0), Color("ff6b8a") if u.team == 1 else Color("6fe39a"), n, cam_right, cam_back)
+	if u.role == "soigneur":
+		var cr := SpriteAtlas.frame("cross")
+		var cuv: Rect2 = cr["uv"]
+		_units_mm.set_instance_transform(n, Transform3D(Basis.from_scale(Vector3(5.0 * TEXEL, 5.0 * TEXEL, 1.0)), pos + Vector3(0.0, h + 0.22, 0.0) + cam_back * 0.02))
+		_units_mm.set_instance_color(n, Color(1.4, 1.4, 1.4))
+		_units_mm.set_instance_custom_data(n, Color(cuv.position.x, cuv.position.y, cuv.size.x, cuv.size.y))
+		n += 1
+	return n
+
+
+func _put_bar(pos: Vector3, frac: float, col: Color, n: int, cam_right: Vector3, cam_back: Vector3) -> int:
+	var px := SpriteAtlas.frame("px")
+	var uv: Rect2 = px["uv"]
+	var custom := Color(uv.position.x, uv.position.y, uv.size.x, uv.size.y)
+	_units_mm.set_instance_transform(n, Transform3D(Basis.from_scale(Vector3(BAR_W, 0.06, 1.0)), pos))
+	_units_mm.set_instance_color(n, Color(0.08, 0.05, 0.12))
+	_units_mm.set_instance_custom_data(n, custom)
+	var fw := BAR_W * frac
+	var fpos := pos + cam_right * (-(BAR_W - fw) * 0.5) + cam_back * 0.015
+	_units_mm.set_instance_transform(n + 1, Transform3D(Basis.from_scale(Vector3(maxf(0.001, fw), 0.06, 1.0)), fpos))
+	_units_mm.set_instance_color(n + 1, col)
+	_units_mm.set_instance_custom_data(n + 1, custom)
+	return n + 2
+
+
+func _put_shadow(u: Unit, sn: int) -> int:
+	if not u.alive or sn >= MAX_SHADOWS:
+		return sn
+	var lp := u.prev_pos.lerp(u.pos, alpha)
+	var r := u.radius
+	_shadow_mm.set_instance_transform(sn, Transform3D(Basis.from_scale(Vector3(r * 2.6, 1.0, r * 1.5)), w3(lp, 0.012)))
+	return sn + 1
+
+
+func _tint(u: Unit) -> Color:
+	if u.flash_t > 0.0:
+		return Color(1.9, 0.75, 0.75) if u.team == 1 else Color(1.8, 1.8, 1.8)
+	if u.frozen_t > 0.0:
+		return Color(0.65, 0.9, 1.45)
+	if u.rooted_t > 0.0:
+		return Color(0.85, 1.2, 0.6)
+	if u.burn_t > 0.0 and int(t * 10.0) % 2 == 0:
+		return Color(1.5, 0.95, 0.6)
+	if u.poison_t > 0.0 and int(t * 8.0) % 3 == 0:
+		return Color(0.8, 1.3, 0.75)
+	if u.team == 0:
+		return Color(1.12, 1.12, 1.18)
+	return Color.WHITE
+
+
+func _update_casters() -> void:
+	var cam_right := cam.global_transform.basis.x
+	var cam_up := cam.global_transform.basis.y
+	for i in range(_casters.size()):
+		var c := sim.casters[i]
+		var s := _casters[i]
+		var x := lerpf(c.prev_x, c.x, alpha)
+		var moving := absf(c.x - c.prev_x) > 0.001 or c.firing
+		var fr := SpriteAtlas.frame(c.sprite, "", int(t * 5.0) if moving else 0)
+		var px: Rect2i = fr["px"]
+		s.region_rect = Rect2(px)
+		s.offset = Vector2(0.0, float(px.size.y) * 0.5)
+		s.position = w3(Vector2(x, BattleSim.CASTER_Y), 0.0)
+		if i == 0:
+			var tip := s.position + cam_right * (5.5 * TEXEL * 1.25) + cam_up * (float(px.size.y) - 1.5) * TEXEL * 1.25
+			_staff_fx.position = tip
+			_staff_fx.emitting = c.firing
+			_staff_light.position = tip
+			_staff_light.light_energy = 1.6 if c.firing else 0.7
+
+
+func _update_labels(delta: float) -> void:
+	for l in _labels:
+		if not l.visible:
+			continue
+		var age := float(l.get_meta("age", 0.0)) + delta
+		l.set_meta("age", age)
+		if age >= 0.9:
+			l.visible = false
+			continue
+		l.position.y += delta * 0.9
+		l.modulate.a = 1.0 - age / 0.9
+
+
+func _draw_fx(delta: float) -> void:
+	var i := 0
+	while i < _fx.size():
+		var e: Dictionary = _fx[i]
+		e["age"] = float(e["age"]) + delta
+		if float(e["age"]) >= float(e["dur"]):
+			_fx.remove_at(i)
+		else:
+			i += 1
+	_fx_lines.clear_surfaces()
+	_fx_points.clear_surfaces()
+	var lines: Array = [] # [Vector3, Vector3, Color]
+	var points: Array = [] # [Vector3, Color]
+	for e in _fx:
+		var k := float(e["age"]) / float(e["dur"])
+		var col := Color(str(e.get("color", "FFFFFF")))
+		match str(e["t"]):
+			"ring":
+				_ring(lines, e["pos"], float(e["r"]) * (0.45 + 0.55 * k), Color(col, 1.0 - k), 0.06)
+				if k < 0.35:
+					_ring(lines, e["pos"], float(e["r"]) * 0.3 * (1.0 + k), Color(col, 0.6 * (1.0 - k)), 0.06)
+			"beam":
+				lines.append([w3(e["a"], 0.45), w3(e["b"], 0.35), Color(col, 1.0 - k)])
+			"puff":
+				var c := w3(e["pos"], 0.3 + k * 0.4)
+				var d := 0.1 + k * 0.35
+				var cc := Color(col, 1.0 - k)
+				for o in [Vector3(-d, 0, 0), Vector3(d, 0, 0), Vector3(0, d, 0), Vector3(0, 0, d), Vector3(0, 0, -d)]:
+					points.append([c + o, cc])
+	# Ligne de visée du joueur et cercle de ciblage.
+	var px := lerpf(sim.player().prev_x, sim.player().x, alpha)
+	var y := BattleSim.CASTER_Y + 1.2
+	while y < BattleSim.H - 1.0:
+		lines.append([w3(Vector2(px, y), 0.04), w3(Vector2(px, y + 0.25), 0.04), Color(0.31, 0.89, 0.82, 0.35)])
+		y += 0.6
+	if aim_active and aim_pos.x > -50.0:
+		_ring(lines, aim_pos, aim_radius, Color(aim_color, 0.95), 0.07)
+		_ring(lines, aim_pos, aim_radius * 0.15, Color(aim_color, 0.95), 0.07)
+	if not lines.is_empty():
+		_fx_lines.surface_begin(Mesh.PRIMITIVE_LINES, _fx_mat)
+		for l in lines:
+			_fx_lines.surface_set_color(l[2])
+			_fx_lines.surface_add_vertex(l[0])
+			_fx_lines.surface_set_color(l[2])
+			_fx_lines.surface_add_vertex(l[1])
+		_fx_lines.surface_end()
+	if not points.is_empty():
+		_fx_points.surface_begin(Mesh.PRIMITIVE_POINTS, _fx_pt_mat)
+		for p in points:
+			_fx_points.surface_set_color(p[1])
+			_fx_points.surface_add_vertex(p[0])
+		_fx_points.surface_end()
+
+
+func _ring(lines: Array, center: Vector2, r: float, col: Color, h: float) -> void:
+	var seg := 28
+	for s in range(seg):
+		var a0 := TAU * float(s) / float(seg)
+		var a1 := TAU * float(s + 1) / float(seg)
+		lines.append([w3(center + Vector2(cos(a0), sin(a0)) * r, h), w3(center + Vector2(cos(a1), sin(a1)) * r, h), col])

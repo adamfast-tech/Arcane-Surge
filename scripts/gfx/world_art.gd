@@ -1,0 +1,461 @@
+class_name WorldArt
+extends RefCounted
+## Textures pixel-art du décor, générées par code (zone 1 : chaussée en ruine au clair de lune,
+## d'après docs/art/style-reference-01.jpg).
+
+const PX_PER_M := 16
+## Zone couverte par la texture du sol, en coordonnées logiques (x, y).
+const GROUND_MIN := Vector2(-1.0, -1.5)
+const GROUND_SIZE := Vector2(11.0, 19.0)
+
+
+static func _tex(img: Image, mipmaps: bool = false) -> ImageTexture:
+	if mipmaps:
+		img.generate_mipmaps()
+	return ImageTexture.create_from_image(img)
+
+
+static func _px(img: Image, x: int, y: int, c: Color) -> void:
+	if x < 0 or y < 0 or x >= img.get_width() or y >= img.get_height():
+		return
+	if c.a < 1.0:
+		c = img.get_pixel(x, y).lerp(Color(c, 1.0), c.a)
+	img.set_pixel(x, y, c)
+
+
+static func _pget(img: Image, x: int, y: int) -> Color:
+	return img.get_pixel(clampi(x, 0, img.get_width() - 1), clampi(y, 0, img.get_height() - 1))
+
+
+static func _disc(img: Image, cx: int, cy: int, r: int, c: Color) -> void:
+	for y in range(-r, r + 1):
+		var half := int(sqrt(float(r * r - y * y)))
+		for x in range(-half, half + 1):
+			_px(img, cx + x, cy + y, c)
+
+
+## Sol de l'arène : herbe au clair de lune, chemin pavé, sol corrompu près du Nexus, parvis.
+## La ligne 0 correspond au fond de l'arène (y logique maximal).
+static func ground_texture() -> ImageTexture:
+	var w := int(GROUND_SIZE.x * PX_PER_M)
+	var h := int(GROUND_SIZE.y * PX_PER_M)
+	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 4242
+	for row in range(h):
+		var ly := GROUND_MIN.y + GROUND_SIZE.y - (float(row) + 0.5) / PX_PER_M
+		var col: Color
+		if ly > 12.8:
+			col = Color("2c2a48").lerp(Color("2a3a3a"), clampf((16.5 - ly) / 3.7, 0.0, 1.0))
+		elif ly > 1.0:
+			col = Color("2a4a36").lerp(Color("35593f"), clampf((12.8 - ly) / 11.8, 0.0, 1.0))
+		else:
+			col = Color("3b3854")
+		img.fill_rect(Rect2i(0, row, w, 1), col)
+	# Grain de l'herbe et touffes.
+	for i in range(w * h / 5):
+		var x := rng.randi_range(0, w - 1)
+		var y := rng.randi_range(0, h - 1)
+		var b := _pget(img, x, y)
+		_px(img, x, y, b.lightened(0.10) if rng.randf() < 0.55 else b.darkened(0.16))
+	for i in range(w * h / 60):
+		var x := rng.randi_range(0, w - 1)
+		var y := rng.randi_range(0, h - 1)
+		var b := _pget(img, x, y)
+		_px(img, x, y, b.lightened(0.22))
+		_px(img, x, y - 1, b.lightened(0.14))
+	# Petites fleurs (blanc lunaire, violet, jaune).
+	var flowers := [Color("e8e4ff"), Color("b89cf0"), Color("f2e28b"), Color("cfe8ff")]
+	for i in range(w * h / 150):
+		var x := rng.randi_range(0, w - 1)
+		var y := rng.randi_range(int(3.0 * PX_PER_M), h - 1)
+		_px(img, x, y, flowers[rng.randi_range(0, flowers.size() - 1)])
+	# Veines corrompues dans la zone ennemie.
+	for v in range(10):
+		var p := Vector2(rng.randf_range(0.0, float(w)), rng.randf_range(0.0, 3.0 * PX_PER_M))
+		for s in range(70):
+			_px(img, int(p.x), int(p.y), Color("5b3a8a") if s % 7 != 0 else Color("b07cff"))
+			p += Vector2(rng.randf_range(-1.0, 1.0), rng.randf_range(0.3, 1.0))
+	# Chemin pavé central.
+	var x0 := int((3.35 - GROUND_MIN.x) * PX_PER_M)
+	var x1 := int((5.65 - GROUND_MIN.x) * PX_PER_M)
+	var y_top := int((GROUND_MIN.y + GROUND_SIZE.y - 14.3) * PX_PER_M)
+	var y_bot := int((GROUND_MIN.y + GROUND_SIZE.y - 1.0) * PX_PER_M)
+	_cobbles(img, rng, Rect2i(x0, y_top, x1 - x0, y_bot - y_top), 5)
+	# Parvis derrière la Barrière : grandes dalles.
+	_cobbles(img, rng, Rect2i(0, y_bot, w, h - y_bot), 8)
+	# Bordures de la chaussée (pierres de taille, mousse).
+	var ex0 := int((0.0 - GROUND_MIN.x) * PX_PER_M)
+	var ex1 := int((9.0 - GROUND_MIN.x) * PX_PER_M)
+	_cobbles(img, rng, Rect2i(0, 0, ex0, h), 6)
+	_cobbles(img, rng, Rect2i(ex1, 0, w - ex1, h), 6)
+	for y in range(h):
+		_px(img, ex0 - 1, y, Color("1a1f2a"))
+		_px(img, ex1, y, Color("1a1f2a"))
+		for k in range(2):
+			if rng.randf() < 0.45:
+				_px(img, ex0 - 3 - k, y, Color("4f7a3a"))
+			if rng.randf() < 0.45:
+				_px(img, ex1 + 2 + k, y, Color("4f7a3a"))
+	return _tex(img, true)
+
+
+static func _cobbles(img: Image, rng: RandomNumberGenerator, r: Rect2i, tile: int) -> void:
+	var row := 0
+	var y := r.position.y
+	while y < r.end.y:
+		var x := r.position.x - (tile / 2 if row % 2 == 1 else 0)
+		while x < r.end.x:
+			var a := maxi(x, r.position.x)
+			var b := mini(x + tile - 1, r.end.x)
+			var hh := mini(tile - 1, r.end.y - y)
+			if b > a and hh > 0 and rng.randf() > 0.06:
+				var stone := Color("4a4a60").lerp(Color("6a6a84"), rng.randf())
+				img.fill_rect(Rect2i(a, y, b - a, hh), stone)
+				img.fill_rect(Rect2i(a, y, b - a, 1), stone.lightened(0.18))
+				img.fill_rect(Rect2i(a, y + hh - 1, b - a, 1), stone.darkened(0.25))
+				if rng.randf() < 0.35:
+					_px(img, a + rng.randi_range(0, maxi(0, b - a - 1)), y + hh - 1, Color("5f8a44"))
+				if rng.randf() < 0.15:
+					_px(img, a + rng.randi_range(0, maxi(0, b - a - 1)), y + rng.randi_range(0, hh - 1), Color("7faa4a"))
+			x += tile
+		y += tile
+		row += 1
+
+
+## Blocs de pierre (murs de la chaussée, piliers, portails, tours) — à répéter.
+static func stone_texture() -> ImageTexture:
+	var img := Image.create_empty(32, 32, false, Image.FORMAT_RGBA8)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 77
+	img.fill(Color("26243a"))
+	for by in range(4):
+		var off := 0 if by % 2 == 0 else 8
+		for bx in range(-1, 3):
+			var x := bx * 16 + off
+			var c := Color("4c4a64").lerp(Color("66647e"), rng.randf())
+			img.fill_rect(Rect2i(x + 1, by * 8 + 1, 14, 6), c)
+			img.fill_rect(Rect2i(x + 1, by * 8 + 1, 14, 1), c.lightened(0.2))
+			img.fill_rect(Rect2i(x + 1, by * 8 + 6, 14, 1), c.darkened(0.25))
+			for k in range(3):
+				_px(img, (x + 2 + rng.randi_range(0, 11)) % 32, by * 8 + 2 + rng.randi_range(0, 3), c.darkened(0.12))
+	for i in range(26):
+		var x := rng.randi_range(0, 31)
+		var y := rng.randi_range(0, 31)
+		_px(img, x, y, Color("4f7a3a"))
+		if rng.randf() < 0.5:
+			_px(img, x, y + 1, Color("3f6a32"))
+	return _tex(img, true)
+
+
+## Roche des falaises, sombre et moussue.
+static func rock_texture() -> ImageTexture:
+	var img := Image.create_empty(32, 32, false, Image.FORMAT_RGBA8)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 91
+	img.fill(Color("23263a"))
+	for i in range(220):
+		var x := rng.randi_range(0, 31)
+		var y := rng.randi_range(0, 31)
+		_px(img, x, y, Color("2f3350") if rng.randf() < 0.6 else Color("1a1c2c"))
+	for i in range(60):
+		_px(img, rng.randi_range(0, 31), rng.randi_range(0, 31), Color("35553a"))
+	return _tex(img, true)
+
+
+## Herbe sombre du haut des falaises.
+static func moss_texture() -> ImageTexture:
+	var img := Image.create_empty(32, 32, false, Image.FORMAT_RGBA8)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 13
+	img.fill(Color("22402e"))
+	for i in range(300):
+		_px(img, rng.randi_range(0, 31), rng.randi_range(0, 31), Color("2e5238") if rng.randf() < 0.6 else Color("1a3022"))
+	for i in range(8):
+		_px(img, rng.randi_range(0, 31), rng.randi_range(0, 31), Color("d8d4f8"))
+	return _tex(img, true)
+
+
+## Trois sapins (atlas horizontal 3 × 20×44 px).
+static func pine_texture() -> ImageTexture:
+	var fw := 20
+	var fh := 44
+	var img := Image.create_empty(fw * 3, fh, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 5
+	var dark := [Color("0f2420"), Color("12281f"), Color("102a26")]
+	var mid := [Color("1d3d33"), Color("1f4336"), Color("1a3a34")]
+	var lit := [Color("3a6a5a"), Color("3f7058"), Color("3a6670")]
+	for v in range(3):
+		var ox := v * fw
+		var cx := ox + fw / 2
+		img.fill_rect(Rect2i(cx - 1, fh - 7, 2, 7), Color("2a1e18"))
+		var layers := 5 + v
+		for l in range(layers):
+			var top := 2 + int(float(l) * float(fh - 12) / float(layers))
+			var bottom := top + 10 + l
+			for y in range(top, mini(bottom, fh - 5)):
+				var half := int(float(y - top + 1) * (0.45 + 0.05 * float(v)) + 1.0)
+				half = mini(half, fw / 2 - 1)
+				for x in range(-half, half + 1):
+					var c: Color = mid[v]
+					if x < -half + 2:
+						c = dark[v]
+					elif x > half - 2 and y % 3 != 0:
+						c = lit[v]
+					if absi(x) == half and rng.randf() < 0.4:
+						continue
+					_px(img, cx + x, y, c)
+		_px(img, cx, 1, lit[v])
+	return _tex(img)
+
+
+## Ciel nocturne : dégradé, étoiles, nuages fins et pleine lune.
+static func sky_texture() -> ImageTexture:
+	var w := 160
+	var h := 120
+	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 2024
+	for y in range(h):
+		var k := float(y) / float(h - 1)
+		img.fill_rect(Rect2i(0, y, w, 1), Color("070818").lerp(Color("3a3478"), pow(k, 1.6)))
+	for i in range(170):
+		var x := rng.randi_range(0, w - 1)
+		var y := rng.randi_range(0, int(h * 0.8))
+		_px(img, x, y, Color(0.9, 0.9, 1.0, rng.randf_range(0.35, 1.0)))
+	for i in range(14):
+		var y := rng.randi_range(int(h * 0.3), h - 10)
+		var x := rng.randi_range(-20, w)
+		var len := rng.randi_range(18, 50)
+		for s in range(len):
+			_px(img, x + s, y + int(sin(float(s) * 0.2) * 1.5), Color(0.62, 0.6, 0.9, 0.25))
+	# Lune (avec halo et cratères).
+	var mx := int(w * 0.72)
+	var my := int(h * 0.22)
+	for r in range(18, 9, -1):
+		_disc(img, mx, my, r, Color(0.75, 0.75, 1.0, 0.05))
+	_disc(img, mx, my, 9, Color("e8e4d0"))
+	_disc(img, mx + 2, my - 2, 6, Color("f6f2e2"))
+	for c in [Vector2i(-3, 2), Vector2i(3, 3), Vector2i(-1, -4), Vector2i(4, -1)]:
+		_px(img, mx + c.x, my + c.y, Color("c8c2b0"))
+		_px(img, mx + c.x + 1, my + c.y, Color("c8c2b0"))
+	return _tex(img)
+
+
+## Chaîne de montagnes (silhouette avec transparence au-dessus de la crête).
+static func mountains_texture(seed_value: int, base: Color, light: Color) -> ImageTexture:
+	var w := 256
+	var h := 72
+	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	var ridge: Array[float] = []
+	var y := float(h) * 0.5
+	var slope := 0.0
+	for x in range(w):
+		slope = clampf(slope + rng.randf_range(-0.35, 0.35), -1.4, 1.4)
+		if y < h * 0.12 or y > h * 0.8:
+			slope = -slope
+		y = clampf(y + slope, h * 0.08, h * 0.85)
+		ridge.append(y)
+	for x in range(w):
+		var top := int(ridge[x])
+		for yy in range(top, h):
+			var c := base
+			if yy - top < 2 and x > 0 and ridge[x] < ridge[x - 1]:
+				c = light
+			_px(img, x, yy, c)
+	return _tex(img)
+
+
+## Tour du Croissant : silhouette du château, fenêtres éclairées, croissant au sommet.
+static func castle_texture() -> ImageTexture:
+	return _tex(castle_image())
+
+
+static func castle_image() -> Image:
+	var w := 64
+	var h := 96
+	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var body := Color("1c1a33")
+	var edge := Color("34305a")
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 31
+	# Remparts et tours.
+	var towers := [[4, 52, 10], [16, 40, 9], [26, 14, 12], [40, 36, 10], [52, 50, 9]]
+	img.fill_rect(Rect2i(0, 66, w, h - 66), body)
+	for t in towers:
+		var x: int = t[0]
+		var top: int = t[1]
+		var tw: int = t[2]
+		img.fill_rect(Rect2i(x, top, tw, h - top), body)
+		img.fill_rect(Rect2i(x + tw - 1, top, 1, h - top), edge)
+		for c in range(0, tw, 3):
+			img.fill_rect(Rect2i(x + c, top - 2, 2, 2), body)
+		for k in range(4):
+			if rng.randf() < 0.8:
+				_px(img, x + rng.randi_range(2, tw - 3), top + 6 + k * 9 + rng.randi_range(0, 3), Color("f2c46b"))
+	# Flèche centrale et croissant.
+	for y in range(2, 16):
+		var half := int(float(y) / 5.0)
+		img.fill_rect(Rect2i(32 - half, y, half * 2 + 1, 1), body)
+	for a in range(0, 360, 6):
+		var r := deg_to_rad(float(a))
+		var px := 32 + int(cos(r) * 5.0)
+		var py := 6 + int(sin(r) * 5.0)
+		if cos(r) < 0.3:
+			_px(img, px, py, Color("cfc8ff"))
+	return img
+
+
+## Bruit doux et répétable pour la brume.
+static func mist_texture() -> ImageTexture:
+	var n := 64
+	var img := Image.create_empty(n, n, false, Image.FORMAT_RGBA8)
+	var noise := FastNoiseLite.new()
+	noise.seed = 9
+	noise.frequency = 0.06
+	noise.fractal_octaves = 3
+	for y in range(n):
+		for x in range(n):
+			# Échantillonnage sur un tore pour un motif sans couture.
+			var ax := float(x) / n * TAU
+			var ay := float(y) / n * TAU
+			var v := noise.get_noise_3d(cos(ax) * 10.0, sin(ax) * 10.0 + cos(ay) * 10.0, sin(ay) * 10.0)
+			var g := clampf(v * 0.5 + 0.5, 0.0, 1.0)
+			img.set_pixel(x, y, Color(g, g, g, 1.0))
+	return _tex(img)
+
+
+## Ombre au sol (ellipse douce).
+static func blob_texture() -> ImageTexture:
+	var img := Image.create_empty(16, 16, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	for y in range(16):
+		for x in range(16):
+			var d := Vector2((x - 7.5) / 7.5, (y - 7.5) / 7.5).length()
+			if d < 1.0:
+				img.set_pixel(x, y, Color(0.02, 0.02, 0.06, 0.55 * (1.0 - d * d)))
+	return _tex(img)
+
+
+## Bannière bleue à sigle (comme sur l'image de référence) et flamme de torche.
+static func banner_texture() -> ImageTexture:
+	var img := Image.create_empty(12, 26, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	img.fill_rect(Rect2i(5, 0, 2, 26), Color("5a3e26"))
+	img.fill_rect(Rect2i(1, 2, 10, 1), Color("7a5636"))
+	img.fill_rect(Rect2i(1, 3, 10, 15), Color("2a3a8a"))
+	img.fill_rect(Rect2i(1, 3, 1, 15), Color("1e2a66"))
+	for y in range(6, 14):
+		_px(img, 6, y, Color("d8d4f8"))
+	for x in range(4, 9):
+		_px(img, x, 9, Color("d8d4f8"))
+	_px(img, 5, 7, Color("d8d4f8"))
+	_px(img, 7, 7, Color("d8d4f8"))
+	for x in range(1, 11):
+		if x % 3 != 0:
+			_px(img, x, 18, Color("2a3a8a"))
+	return _tex(img)
+
+
+static func flame_texture() -> ImageTexture:
+	var img := Image.create_empty(5, 8, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var rows := ["..y..", ".yoy.", ".ooy.", "yowoy", "yowoy", ".ooo.", "..o..", "..b.."]
+	var pal := {"y": Color("ffd45a"), "o": Color("ff8a2a"), "w": Color("fff6d8"), "b": Color("5a3e26")}
+	for y in range(rows.size()):
+		for x in range(5):
+			var ch: String = rows[y][x]
+			if pal.has(ch):
+				img.set_pixel(x, y, pal[ch])
+	return _tex(img)
+
+
+## Toile de fond peinte derrière la scène 3D (taille du SubViewport) : ciel étoilé, lune,
+## montagnes, Tour du Croissant et son faisceau, nappes de brume vers le bas.
+static func backdrop(size: Vector2i) -> ImageTexture:
+	var w := maxi(8, size.x)
+	var h := maxi(8, size.y)
+	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1701
+	var stops := [[0.0, Color("04050f")], [0.32, Color("12123a")], [0.55, Color("23224f")], [0.72, Color("2d2c5e")], [1.0, Color("242454")]]
+	for y in range(h):
+		var k := float(y) / float(h - 1)
+		var c: Color = stops[0][1]
+		for i in range(stops.size() - 1):
+			var a: Array = stops[i]
+			var b: Array = stops[i + 1]
+			if k >= float(a[0]) and k <= float(b[0]):
+				c = (a[1] as Color).lerp(b[1], (k - float(a[0])) / (float(b[0]) - float(a[0])))
+		img.fill_rect(Rect2i(0, y, w, 1), c)
+	for i in range(w * h / 260):
+		var x := rng.randi_range(0, w - 1)
+		var y := rng.randi_range(0, int(h * 0.5))
+		_px(img, x, y, Color(0.92, 0.92, 1.0, rng.randf_range(0.3, 1.0)))
+		if rng.randf() < 0.05:
+			_px(img, x + 1, y, Color(0.92, 0.92, 1.0, 0.4))
+			_px(img, x - 1, y, Color(0.92, 0.92, 1.0, 0.4))
+			_px(img, x, y + 1, Color(0.92, 0.92, 1.0, 0.4))
+			_px(img, x, y - 1, Color(0.92, 0.92, 1.0, 0.4))
+	# Lune et halo.
+	var mr := maxi(7, int(minf(w, h) * 0.045))
+	var mx := int(w * 0.8)
+	var my := int(h * 0.11)
+	for r in range(mr * 3, mr, -1):
+		_disc(img, mx, my, r, Color(0.7, 0.72, 1.0, 0.035))
+	_disc(img, mx, my, mr, Color("e8e4d0"))
+	_disc(img, mx + mr / 4, my - mr / 4, int(mr * 0.65), Color("f6f2e2"))
+	for c in [Vector2i(-mr / 3, mr / 4), Vector2i(mr / 3, mr / 3), Vector2i(-mr / 6, -mr / 2)]:
+		_px(img, mx + c.x, my + c.y, Color("c8c2b0"))
+		_px(img, mx + c.x + 1, my + c.y, Color("c8c2b0"))
+	# Nuages fins.
+	for i in range(int(w / 18.0)):
+		var y := rng.randi_range(int(h * 0.18), int(h * 0.45))
+		var x := rng.randi_range(-30, w)
+		var len := rng.randi_range(20, 70)
+		for sx in range(len):
+			_px(img, x + sx, y + int(sin(float(sx) * 0.15) * 2.0), Color(0.55, 0.55, 0.9, 0.22))
+	# Montagnes lointaines.
+	_ridge(img, rng, int(h * 0.36), int(h * 0.12), Color("1f1e48"), Color("3a3a78"))
+	# Tour du Croissant (avec faisceau violet).
+	var castle := castle_image()
+	var cx := int(w * 0.66) - castle.get_width() / 2
+	var cy := int(h * 0.5) - castle.get_height()
+	for y in range(0, cy + 14):
+		var a := 0.22 * (1.0 - float(y) / float(cy + 14))
+		for dx in range(-1, 2):
+			_px(img, cx + 32 + dx, y, Color(0.75, 0.5, 1.0, a * (1.0 if dx == 0 else 0.5)))
+	img.blend_rect(castle, Rect2i(Vector2i.ZERO, castle.get_size()), Vector2i(cx, cy))
+	# Montagnes proches et brume.
+	_ridge(img, rng, int(h * 0.5), int(h * 0.08), Color("17163a"), Color("2a2a5c"))
+	for i in range(int(w * h / 900.0)):
+		var y := rng.randi_range(int(h * 0.52), h - 1)
+		var x := rng.randi_range(-40, w)
+		var len := rng.randi_range(30, 90)
+		for sx in range(len):
+			_px(img, x + sx, y, Color(0.5, 0.5, 0.85, 0.12))
+	return _tex(img)
+
+
+static func _ridge(img: Image, rng: RandomNumberGenerator, base_y: int, amp: int, body: Color, edge: Color) -> void:
+	var w := img.get_width()
+	var h := img.get_height()
+	var y := float(base_y)
+	var slope := 0.0
+	var prev := base_y
+	for x in range(w):
+		slope = clampf(slope + rng.randf_range(-0.4, 0.4), -1.3, 1.3)
+		if y < base_y - amp or y > base_y + amp:
+			slope = -slope * 0.8
+		y += slope
+		var top := int(y)
+		img.fill_rect(Rect2i(x, top, 1, h - top), body)
+		if top <= prev:
+			_px(img, x, top, edge)
+		prev = top

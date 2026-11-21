@@ -48,9 +48,15 @@ godot --headless --path . --export-release "Web" build/web/index.html           
 | Dossier | Contenu |
 |---|---|
 | `scripts/battle/` | Simulation du combat (`sim.gd`, pas fixe 30 Hz, déterministe), IA des bots, rendu de l'arène, HUD |
-| `scripts/gfx/` | Pixel-art généré par code (sprites, décor) |
+| `scripts/battle/arena_3d.gd` | Rendu 2,5D : scène 3D pixelisée, caméra inclinée, décor de ruines, brume, lumières |
+| `scripts/gfx/` | Pixel-art généré par code (atlas de sprites, textures du décor, toile de fond) |
 | `data/` | Unités, sorts, Échos, groupe du joueur, niveaux (JSON, modifiables sans toucher au code) |
 | `tools/` | Simulateur d'équilibrage et test de fumée (sans affichage) |
+
+### Remplacer les sprites
+Les sprites actuels sont générés par code, en attendant des sprites dessinés. Pour remplacer un personnage, déposer `assets/sprites/<nom>.png`, les 2 images d'animation côte à côte, avec un fond transparent.
+- **Alliés, vus de dos** : `mage`, `brann`, `sylwen`, `familiar`, `knight`, `archer`, `golem`, `fusion`, `skeleton`.
+- **Ennemis, vus de face** : `mushroom`, `rabbit`, `bear`, `pixie`, `turtle`, `wisp`, `dryad`.
 
 ## Mise en ligne (GitHub Pages)
 
