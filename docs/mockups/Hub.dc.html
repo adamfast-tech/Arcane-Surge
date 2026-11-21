@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Hub — Havre-Aube</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&amp;family=Inter:wght@400;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#4FE3D2}a:hover{color:#ECE8FF}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #120E22; color: #ECE8FF; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+
+  <div style="padding: 44px 16px 10px; display: flex; flex-direction: column; gap: 10px; background: #1E1838; border-bottom: 1px solid #4A3D7A">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <div style="width: 44px; height: 44px; border-radius: 10px; background: #2A2150; border: 2px solid #4FE3D2; flex-shrink: 0"></div>
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+        <span style="font-weight: 600; font-size: 15px">[PSEUDO ACADÉMIE]</span>
+        <span style="font-size: 12px; color: #A99FD0">Mage elfe · niv. 8 · Acte 1</span>
+      </div>
+      <button aria-label="Réglages" style="width: 44px; height: 44px; background: #2A2150; border: 1px solid #4A3D7A; border-radius: 10px; color: #ECE8FF; display: flex; align-items: center; justify-content: center; padding: 0">
+        <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="2" fill="none"/><path d="M10 2v3M10 15v3M2 10h3M15 10h3M4.3 4.3l2.1 2.1M13.6 13.6l2.1 2.1M4.3 15.7l2.1-2.1M13.6 6.4l2.1-2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div style="display: flex; gap: 8px; font-family: 'Pixelify Sans', monospace; font-size: 13px">
+      <span style="flex: 1; background: #2A2150; border-radius: 6px; padding: 6px 8px; color: #F2C46B">OR 12 450</span>
+      <span style="flex: 1; background: #2A2150; border-radius: 6px; padding: 6px 8px; color: #B07CFF">POUSS. 830</span>
+      <span style="flex: 1; background: #2A2150; border-radius: 6px; padding: 6px 8px; color: #4FE3D2">ÉCLATS 12</span>
+    </div>
+  </div>
+
+  <div style="flex: 1; position: relative; background: #1A1730; overflow: hidden">
+    <div style="position: absolute; left: 16px; top: 12px; font-family: 'Pixelify Sans', monospace; font-size: 22px">HAVRE-AUBE</div>
+    <div style="position: absolute; right: 16px; top: 14px; display: flex; gap: 4px; font-size: 12px">
+      <button style="height: 32px; padding: 0 10px; background: #F2C46B; color: #1A1230; border: none; border-radius: 6px">Citadelle</button>
+      <button style="height: 32px; padding: 0 10px; background: #2A2150; color: #ECE8FF; border: 1px solid #4A3D7A; border-radius: 6px">Liste</button>
+    </div>
+    <div style="position: absolute; left: 95px; top: 90px; width: 200px; height: 200px; background: #2A2150; border: 2px solid #4A3D7A; transform: rotate(45deg) scale(1, 1)"></div>
+    <div style="position: absolute; left: 175px; top: 60px; width: 40px; height: 110px; background: #3B2A6B; border: 2px solid #A99FD0; border-radius: 4px 4px 0 0"></div>
+    <div style="position: absolute; left: 180px; top: 48px; width: 30px; height: 18px; background: #F2C46B; border-radius: 50% 50% 0 0"></div>
+    <sc-for list="{{rooms}}" as="r" hint-placeholder-count="10">
+      <button style="position: absolute; left: {{r.x}}px; top: {{r.y}}px; height: 32px; padding: 0 8px; border-radius: 16px; font-size: 11px; background: {{r.bg}}; color: {{r.fg}}; border: 1px solid {{r.border}}; white-space: nowrap">{{r.label}}</button>
+    </sc-for>
+  </div>
+
+  <div style="padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; background: #120E22">
+    <div style="font-size: 12px; color: #A99FD0; background: #1E1838; border: 1px solid #4A3D7A; border-radius: 8px; padding: 8px 10px">Veillée disponible : <span style="color: #ECE8FF">Brann et Sylwen</span> au coin du feu</div>
+    <a href="Preparation.dc.html" style="height: 56px; background: #F2C46B; color: #1A1230; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none">
+      <span style="font-family: 'Pixelify Sans', monospace; font-size: 18px">CONTINUER</span>
+      <span style="font-size: 12px">1-8 · La Source flétrie</span>
+    </a>
+  </div>
+
+  <nav style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); background: #1E1838; border-top: 1px solid #4A3D7A; padding: 6px 4px 22px">
+    <sc-for list="{{tabs}}" as="t" hint-placeholder-count="5">
+      <button style="height: 48px; background: none; border: none; color: {{t.fg}}; font-size: 11px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px">
+        <span style="width: 20px; height: 20px; border-radius: 5px; border: 2px solid {{t.fg}}; box-sizing: border-box"></span>{{t.label}}
+      </button>
+    </sc-for>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const open = (label, x, y) => ({ label: label, x: x, y: y, bg: '#2A2150', fg: '#ECE8FF', border: '#4FE3D2' });
+    const locked = (label, x, y) => ({ label: label, x: x, y: y, bg: '#120E22', fg: '#A99FD0', border: '#4A3D7A' });
+    return {
+      rooms: [
+        open('Forge', 24, 110),
+        open('Bibliothèque', 250, 100),
+        open('Entraînement', 20, 200),
+        open('Laboratoire', 262, 190),
+        open('Sanctum', 150, 250),
+        open('Méditation', 40, 290),
+        open('Atelier runique', 230, 280),
+        locked('Ménagerie · Acte 2', 18, 360),
+        locked('Observatoire · Acte 2', 196, 360),
+        locked('Rituel · Acte 3', 120, 400)
+      ],
+      tabs: [
+        { label: 'Carte', fg: '#F2C46B' },
+        { label: 'Équipement', fg: '#ECE8FF' },
+        { label: 'Capacités', fg: '#ECE8FF' },
+        { label: 'Cercle', fg: '#ECE8FF' },
+        { label: 'Boutique', fg: '#A99FD0' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

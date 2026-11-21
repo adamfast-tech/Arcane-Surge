@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Combat — paysage</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&amp;family=Inter:wght@400;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#4FE3D2}a:hover{color:#ECE8FF}
+</style>
+</helmet>
+<div style="width: 1280px; height: 720px; display: flex; background: #120E22; color: #ECE8FF; font-family: Inter, system-ui, sans-serif; overflow: hidden">
+
+  <div style="width: 260px; flex-shrink: 0; box-sizing: border-box; padding: 16px; background: #1E1838; border-right: 1px solid #4A3D7A; display: flex; flex-direction: column; gap: 12px">
+    <div style="font-family: 'Pixelify Sans', monospace; font-size: 16px; color: #A99FD0">LE CERCLE</div>
+    <sc-for list="{{bots}}" as="b" hint-placeholder-count="2">
+      <div style="background: #2A2150; border: 1px solid #4A3D7A; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline">
+          <span style="font-weight: 600; font-size: 14px">{{b.name}}</span>
+          <span style="font-size: 11px; color: #A99FD0">{{b.side}}</span>
+        </div>
+        <div style="font-size: 12px; color: #A99FD0">{{b.desc}}</div>
+        <div style="height: 6px; background: #120E22; border-radius: 3px; overflow: hidden"><div style="width: {{b.mana}}%; height: 100%; background: #5AA9FF"></div></div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px">
+          <sc-for list="{{b.orders}}" as="o" hint-placeholder-count="4">
+            <button style="height: 32px; border-radius: 6px; font-size: 11px; background: {{o.bg}}; color: {{o.fg}}; border: 1px solid #4A3D7A">{{o.label}}</button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+    <div style="font-family: 'Pixelify Sans', monospace; font-size: 16px; color: #A99FD0">ÉCHOS ACTIFS</div>
+    <div style="background: #2A2150; border: 1px solid #4FE3D2; border-radius: 10px; padding: 10px; font-size: 12px; display: flex; flex-direction: column; gap: 4px">
+      <span style="color: #4FE3D2; font-weight: 600">Résonance</span>
+      <span style="color: #A99FD0">Portails « Nombre » +1</span>
+    </div>
+  </div>
+
+  <div style="flex: 1; position: relative; overflow: hidden; background: #1A2233">
+    <div style="position: absolute; left: 0; top: 0; width: 760px; height: 190px; background: #221A3A"></div>
+    <div style="position: absolute; left: 16px; top: 14px; width: 728px; display: flex; flex-direction: column; gap: 6px">
+      <div style="display: flex; gap: 12px; align-items: center">
+        <span style="font-family: 'Pixelify Sans', monospace; font-size: 16px">NEXUS</span>
+        <div style="flex: 1; height: 14px; background: #2A2150; border: 1px solid #4A3D7A; border-radius: 4px; overflow: hidden"><div style="width: 62%; height: 100%; background: #C2456B"></div></div>
+        <span style="font-size: 12px; color: #A99FD0">4 650 / 7 500</span>
+        <span style="font-family: 'Pixelify Sans', monospace; font-size: 14px; color: #4FE3D2">SURGE 72%</span>
+      </div>
+    </div>
+
+    <div style="position: absolute; left: 352px; top: 58px; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center">
+      <div style="width: 38px; height: 38px; background: #B07CFF; border: 2px solid #ECE8FF; transform: rotate(45deg); box-shadow: 0 0 26px #B07CFF"></div>
+    </div>
+    <div style="position: absolute; left: 180px; top: 70px; width: 24px; height: 34px; background: #4A3D7A; border: 1px solid #A99FD0; border-radius: 3px"></div>
+    <div style="position: absolute; left: 556px; top: 70px; width: 24px; height: 34px; background: #4A3D7A; border: 1px solid #A99FD0; border-radius: 3px"></div>
+
+    <div style="position: absolute; left: 150px; top: 230px; width: 150px; height: 30px; border: 2px solid #4FE3D2; border-radius: 6px; background: #4FE3D233; display: flex; align-items: center; justify-content: center; font-family: 'Pixelify Sans', monospace; font-size: 20px">×2</div>
+    <div style="position: absolute; left: 460px; top: 230px; width: 150px; height: 30px; border: 2px solid #4FE3D2; border-radius: 6px; background: #4FE3D233; display: flex; align-items: center; justify-content: center; font-family: 'Pixelify Sans', monospace; font-size: 20px">+5 <span style="font-size: 13px; color: #4FE3D2">&#160;(+1)</span></div>
+    <div style="position: absolute; left: 110px; top: 410px; width: 150px; height: 30px; border: 2px solid #FF9B4A; border-radius: 6px; background: #FF9B4A33; display: flex; align-items: center; justify-content: center; font-family: 'Pixelify Sans', monospace; font-size: 18px">FEU</div>
+    <div style="position: absolute; left: 500px; top: 410px; width: 150px; height: 30px; border: 2px dashed #D93CF2; border-radius: 6px; background: #D93CF233; display: flex; align-items: center; justify-content: center; font-family: 'Pixelify Sans', monospace; font-size: 20px">−5</div>
+
+    <sc-for list="{{units}}" as="u" hint-placeholder-count="40">
+      <div style="position: absolute; left: {{u.x}}px; top: {{u.y}}px; width: {{u.s}}px; height: {{u.s}}px; background: {{u.c}}; border-radius: 50%"></div>
+    </sc-for>
+
+    <div style="position: absolute; left: 0; top: 610px; width: 760px; height: 4px; background: #F2C46B; box-shadow: 0 0 10px #F2C46B"></div>
+    <div style="position: absolute; right: 12px; top: 590px; font-size: 12px; color: #F2C46B">Barrière 82/100</div>
+    <div style="position: absolute; left: 150px; top: 630px; width: 34px; height: 34px; border-radius: 50%; background: #2A2150; border: 2px solid #A99FD0"></div>
+    <div style="position: absolute; left: 356px; top: 624px; width: 46px; height: 46px; border-radius: 50%; background: #2A2150; border: 2px solid #4FE3D2; box-shadow: 0 0 12px #4FE3D2"></div>
+    <div style="position: absolute; left: 576px; top: 630px; width: 34px; height: 34px; border-radius: 50%; background: #2A2150; border: 2px solid #A99FD0"></div>
+    <div style="position: absolute; left: 16px; top: 684px; font-size: 12px; color: #A99FD0">Clic gauche maintenu : Flux · Souris : viser · 1–4 : sorts · E : Champion · Espace : Ultime · Q/R : ordres</div>
+  </div>
+
+  <div style="width: 260px; flex-shrink: 0; box-sizing: border-box; padding: 16px; background: #1E1838; border-left: 1px solid #4A3D7A; display: flex; flex-direction: column; gap: 12px">
+    <div style="font-family: 'Pixelify Sans', monospace; font-size: 16px; color: #A99FD0">CARTE</div>
+    <div style="height: 120px; background: #1A2233; border: 1px solid #4A3D7A; border-radius: 8px; position: relative">
+      <div style="position: absolute; left: 108px; top: 8px; width: 12px; height: 12px; background: #B07CFF; transform: rotate(45deg)"></div>
+      <div style="position: absolute; left: 0; top: 100px; width: 226px; height: 2px; background: #F2C46B"></div>
+      <div style="position: absolute; left: 60px; top: 40px; width: 40px; height: 22px; background: #4FE3D255; border-radius: 4px"></div>
+      <div style="position: absolute; left: 130px; top: 56px; width: 30px; height: 20px; background: #FF6B8A88; border-radius: 4px"></div>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: baseline">
+      <span style="font-family: 'Pixelify Sans', monospace; font-size: 16px; color: #A99FD0">SORTS</span>
+      <span style="font-size: 12px; color: #5AA9FF">Mana 58/100</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+      <sc-for list="{{spells}}" as="sp" hint-placeholder-count="4">
+        <button style="height: 56px; background: #2A2150; border: 1px solid #4A3D7A; border-radius: 8px; color: #ECE8FF; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px">
+          <span>{{sp.key}} · {{sp.name}}</span><span style="font-family: 'Pixelify Sans', monospace; color: #5AA9FF">{{sp.cost}}</span>
+        </button>
+      </sc-for>
+      <button style="height: 44px; background: #2A2150; border: 1px solid #F2C46B; border-radius: 8px; color: #F2C46B; font-family: 'Pixelify Sans', monospace; font-size: 13px">E · 24/30</button>
+      <button style="height: 44px; background: #4FE3D2; border: none; border-radius: 8px; color: #120E22; font-family: 'Pixelify Sans', monospace; font-size: 13px">ULTIME 72%</button>
+    </div>
+    <div style="font-family: 'Pixelify Sans', monospace; font-size: 16px; color: #A99FD0">JOURNAL</div>
+    <div style="flex: 1; background: #120E22; border: 1px solid #4A3D7A; border-radius: 8px; padding: 8px; font-size: 12px; display: flex; flex-direction: column; gap: 4px; color: #A99FD0">
+      <span><span style="color: #4FE3D2">×2</span> : 13 → 26 familiers</span>
+      <span><span style="color: #6FE39A">Dryade</span> soigne le Nexus +180</span>
+      <span><span style="color: #ECE8FF">Sylwen</span> vise la Dryade</span>
+      <span><span style="color: #FF9B4A">Brûlure</span> sur 6 ennemis</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":720}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const units = [];
+    const line = (x0, y0, x1, y1, n, c, s) => {
+      for (let i = 0; i < n; i++) {
+        const t = n === 1 ? 0 : i / (n - 1);
+        const j = ((i * 37) % 11) - 5;
+        units.push({ x: Math.round(x0 + (x1 - x0) * t + j), y: Math.round(y0 + (y1 - y0) * t), s: s, c: c });
+      }
+    };
+    const ally = '#4FE3D2', fire = '#FF9B4A', foe = '#FF6B8A';
+    line(376, 600, 225, 268, 16, ally, 8);
+    line(205, 222, 330, 110, 12, ally, 8);
+    line(240, 222, 360, 118, 12, ally, 8);
+    line(166, 600, 185, 450, 7, ally, 8);
+    line(185, 400, 230, 300, 7, fire, 8);
+    line(592, 600, 575, 450, 6, ally, 8);
+    line(380, 300, 500, 360, 10, foe, 9);
+    line(400, 330, 470, 390, 6, foe, 9);
+    line(620, 520, 690, 580, 4, foe, 10);
+    const mk = (active) => ['Focus Nexus', 'Défends', 'Suis-moi', 'Libre'].map((l) => ({ label: l, bg: l === active ? '#F2C46B' : '#1E1838', fg: l === active ? '#1A1230' : '#ECE8FF' }));
+    return {
+      units: units,
+      bots: [
+        { name: 'Brann Forgecœur', side: 'Gauche', desc: 'Nain · Chevalier · Défensif · niv. 7', mana: 70, orders: mk('Défends') },
+        { name: 'Sylwen', side: 'Droite', desc: 'Elfe · Archère · Opportuniste · niv. 7', mana: 40, orders: mk('Focus Nexus') }
+      ],
+      spells: [
+        { key: '1', name: 'Boule de feu', cost: '30' },
+        { key: '2', name: 'Pluie de givre', cost: '35' },
+        { key: '3', name: 'Purifier', cost: '25' },
+        { key: '4', name: 'Racines', cost: '30' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

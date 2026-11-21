@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Arbre de compétences</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&amp;family=Inter:wght@400;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#4FE3D2}a:hover{color:#ECE8FF}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; overflow: hidden; background: #120E22; color: #ECE8FF; font-family: Inter, system-ui, sans-serif; box-sizing: border-box; padding: 44px 16px 20px; display: flex; flex-direction: column; gap: 12px">
+
+  <div style="display: flex; justify-content: space-between; align-items: baseline">
+    <span style="font-family: 'Pixelify Sans', monospace; font-size: 22px">MAGE</span>
+    <span style="font-size: 12px; color: #A99FD0">Points <span style="font-family: 'Pixelify Sans', monospace; font-size: 16px; color: #F2C46B">3</span> · Clés de voûte 0/2</span>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px">
+    <button style="height: 40px; background: #FF9B4A; color: #1A1230; border: none; border-radius: 8px; font-size: 13px; font-weight: 600">Pyromancie · 6</button>
+    <button style="height: 40px; background: #1E1838; color: #ECE8FF; border: 1px solid #4A3D7A; border-radius: 8px; font-size: 13px">Cryomancie · 1</button>
+    <button style="height: 40px; background: #120E22; color: #A99FD0; border: 1px dashed #4A3D7A; border-radius: 8px; font-size: 12px">Arcanomancie · Acte 3</button>
+  </div>
+
+  <div style="flex: 1; display: flex; flex-direction: column; gap: 8px">
+    <sc-for list="{{tiers}}" as="t" hint-placeholder-count="5">
+      <div style="display: flex; gap: 10px; align-items: center; background: #1E1838; border: 1px solid #4A3D7A; border-radius: 10px; padding: 8px 10px; opacity: {{t.op}}">
+        <div style="width: 44px; display: flex; flex-direction: column; align-items: center">
+          <span style="font-family: 'Pixelify Sans', monospace; font-size: 15px">{{t.id}}</span>
+          <span style="font-size: 11px; color: #A99FD0">{{t.req}}</span>
+        </div>
+        <div style="flex: 1; display: flex; gap: 8px; flex-wrap: wrap">
+          <sc-for list="{{t.nodes}}" as="n" hint-placeholder-count="2">
+            <button style="min-width: 78px; height: 56px; background: {{n.bg}}; border: 2px solid {{n.border}}; border-radius: {{n.radius}}; color: #ECE8FF; font-size: 11px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 2px 6px">
+              <span>{{n.name}}</span>
+              <span style="font-family: 'Pixelify Sans', monospace; font-size: 13px; color: {{n.border}}">{{n.rank}}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="background: #1E1838; border: 2px solid #FF9B4A; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 6px">
+    <div style="display: flex; justify-content: space-between"><span style="font-weight: 600">Combustion</span><span style="font-family: 'Pixelify Sans', monospace; color: #FF9B4A">3/5</span></div>
+    <span style="font-size: 13px; color: #A99FD0">Dégâts de brûlure <span style="color: #ECE8FF">+6 %</span> → <span style="color: #6FE39A">+8 %</span></span>
+    <div style="display: flex; gap: 8px">
+      <button style="flex: 1; height: 44px; background: #F2C46B; color: #1A1230; border: none; border-radius: 10px; font-family: 'Pixelify Sans', monospace; font-size: 15px">INVESTIR 1 POINT</button>
+      <button style="height: 44px; padding: 0 12px; background: #2A2150; color: #ECE8FF; border: 1px solid #4A3D7A; border-radius: 10px; font-size: 12px">Configs 1/3</button>
+    </div>
+    <a href="#" style="font-size: 12px">Réinitialiser à la Salle de méditation</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const fire = '#FF9B4A';
+    const p = (name, rank, on) => ({ name: name, rank: rank, bg: on ? '#2A2150' : '#120E22', border: on ? fire : '#4A3D7A', radius: '8px' });
+    const act = (name, rank, on) => ({ name: name, rank: rank, bg: on ? '#2A2150' : '#120E22', border: on ? '#4FE3D2' : '#4A3D7A', radius: '28px' });
+    const key = (name) => ({ name: name, rank: 'CLÉ', bg: '#120E22', border: '#F2C46B', radius: '4px' });
+    return {
+      tiers: [
+        { id: 'P1', req: '0 pt', op: 1, nodes: [p('Combustion', '3/5', true), p('Ardeur', '2/5', true)] },
+        { id: 'P2', req: '5 pts', op: 1, nodes: [p('Braises', '1/5', true), p('Chaleur', '0/5', true), act('Boule de feu+', 'SORT', true)] },
+        { id: 'P3', req: '10 pts', op: 0.6, nodes: [p('Fournaise', '0/5', false), p('Cendres', '0/5', false), p('Étincelle', '0/5', false)] },
+        { id: 'P4', req: '20 pts', op: 0.6, nodes: [p('Feu vivant', '0/3', false), act('Météore+', 'ÉVOL.', false)] },
+        { id: 'P5', req: '30 pts', op: 0.6, nodes: [key('Embrasement')] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

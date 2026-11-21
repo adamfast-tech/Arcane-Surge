@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Fils du destin — Changer le futur</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&amp;family=Inter:wght@400;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#4FE3D2}a:hover{color:#ECE8FF}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #0E0B1C; color: #ECE8FF; font-family: Inter, system-ui, sans-serif">
+
+  <div style="padding: 44px 16px 0; display: flex; flex-direction: column; gap: 4px">
+    <span style="font-family: 'Pixelify Sans', monospace; font-size: 22px">FILS DU DESTIN</span>
+    <span style="font-size: 12px; color: #A99FD0">Observatoire · Séléné</span>
+  </div>
+
+  <div style="position: absolute; left: 40px; top: 110px; width: 2px; height: 270px; background: #4A3D7A"></div>
+  <div style="position: absolute; left: 16px; top: 100px; width: 358px; display: flex; flex-direction: column; gap: 14px">
+    <sc-for list="{{nodes}}" as="n" hint-placeholder-count="4">
+      <div style="display: flex; gap: 12px; align-items: center">
+        <div style="width: 50px; display: flex; justify-content: center">
+          <div style="width: 18px; height: 18px; transform: rotate(45deg); background: {{n.fill}}; border: 2px solid {{n.border}}"></div>
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 11px; color: #A99FD0">{{n.when}}</span>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap">
+            <span style="font-size: 12px; padding: 4px 8px; border-radius: 6px; background: #1E1838; border: 1px solid {{n.border}}">{{n.chosen}}</span>
+            <span style="font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 1px dashed #4A3D7A; color: #A99FD0">{{n.alt}}</span>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+    <div style="margin-left: 62px; font-size: 11px; color: #6F6890; text-decoration: line-through">Ligne abandonnée : Sylvarche abattue</div>
+  </div>
+
+  <div style="position: absolute; inset: 0; background: #0E0B1CB3"></div>
+
+  <div style="position: absolute; left: 0; bottom: 0; width: 390px; box-sizing: border-box; padding: 20px 16px 28px; background: #1E1838; border-top: 2px solid #B07CFF; border-radius: 18px 18px 0 0; display: flex; flex-direction: column; gap: 12px">
+    <span style="font-family: 'Pixelify Sans', monospace; font-size: 20px; color: #B07CFF">CHANGER LE FUTUR</span>
+    <span style="font-size: 12px; color: #A99FD0">Retour à : Acte 1 · 1-10 La Sylvarche</span>
+    <p style="margin: 0; font-size: 14px; line-height: 1.45; font-style: italic">« Vous allez retourner dans le passé, avec vos capacités mais… êtes-vous sûr de cela ? Changer le passé risque de changer votre vie… »</p>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; font-size: 12px">
+      <div style="background: #120E22; border: 1px solid #FF6B6B; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 4px">
+        <span style="font-weight: 600; color: #FF6B6B">Perdu</span>
+        <span>Histoire après 1-10</span>
+        <span>2 fils du destin</span>
+        <span>Récompenses déjà reçues non redonnées</span>
+      </div>
+      <div style="background: #120E22; border: 1px solid #6FE39A; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 4px">
+        <span style="font-weight: 600; color: #6FE39A">Conservé</span>
+        <span>Niveau, XP, arbres</span>
+        <span>Équipement, inventaire, or</span>
+        <span>Codex, Mémoire d'Écho</span>
+      </div>
+    </div>
+    <button style="height: 56px; position: relative; overflow: hidden; background: #2A2150; border: 2px solid #B07CFF; border-radius: 12px; color: #ECE8FF; padding: 0">
+      <span style="position: absolute; left: 0; top: 0; width: 40%; height: 100%; background: #B07CFF55"></span>
+      <span style="position: relative; font-family: 'Pixelify Sans', monospace; font-size: 15px">MAINTENIR 2 S POUR CHANGER LE FUTUR</span>
+    </button>
+    <button style="height: 44px; background: none; border: 1px solid #4A3D7A; border-radius: 12px; color: #ECE8FF; font-size: 14px">Rester dans le présent</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      nodes: [
+        { when: 'Acte 1 · 1-9', chosen: 'Fées libérées', alt: '?', fill: '#2A2150', border: '#A99FD0' },
+        { when: 'Acte 1 · 1-10 ✦ · sélectionné', chosen: 'Sylvarche purifiée', alt: '?', fill: '#B07CFF', border: '#B07CFF' },
+        { when: 'Acte 2 · 2-9', chosen: 'Village humain défendu', alt: '?', fill: '#2A2150', border: '#A99FD0' },
+        { when: 'Acte 2 · 2-10 ✦ · présent', chosen: 'Gharok exorcisé', alt: '?', fill: '#F2C46B', border: '#F2C46B' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
