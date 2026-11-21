@@ -113,7 +113,7 @@ Le détail des nœuds (valeurs par rang) ira dans `data/skill_trees/*.json` pend
 - **XP** : un bot gagne 80 % de l'XP du joueur. Un bot laissé sur le banc gagne 30 %.
 - **Loyauté des compagnons** (de 0 à 100) :
   - au-dessus de 75 : passif d'amitié (+5 % de stats) et dialogues exclusifs ;
-  - sous 25 : risque de trahison dans l'acte 6.
+  - sous 25 : risque de trahison dans l'acte 6, avec une rédemption possible qui garde l'Héritage de cendre (voir `06-monde.md` §4.1).
 
 ## 6. Niveaux et XP
 - Niveau maximum : **100**, aligné sur les zones.

@@ -60,7 +60,7 @@
 
 ## 7. Compagnons (les bots)
 Deux sortes de bots :
-- **Compagnons** : des personnages du lore. Leur race et leur personnalité sont fixes. On peut changer leur classe, leur équipement, leurs sorts et leur apparence. Ils ont leur propre arc narratif et une **loyauté** qui varie selon les choix du joueur.
+- **Compagnons** : des personnages du lore. Leur race et leur personnalité sont fixes. On peut changer leur classe, leur équipement, leurs sorts et leur apparence. Ils ont leur propre arc narratif et une **loyauté** qui varie selon les choix du joueur. Un compagnon peut trahir à l'acte 6, puis revenir en gardant les pouvoirs acquis chez l'ennemi (voir `06-monde.md` §4.1).
 - **Mercenaires** : entièrement personnalisables (race, classe, apparence). Ils n'ont ni histoire ni loyauté.
 
 | Compagnon | Race / classe par défaut | Arrivée |

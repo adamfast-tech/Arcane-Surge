@@ -68,11 +68,34 @@ Chaque boss a 3 phases (à 100, 66 et 33 % de PV), avec un choix d'Écho entre c
 | 3 | **Hydre des brumes** | Feu | **Têtes multiples** : 3 têtes ciblables ; une tête tranchée repousse en double si elle n'est pas brûlée dans les 5 s | P1 morsures + brume · P2 souffle de venin sur une ligne · P3 inondation empoisonnée (mares sur toute l'arène) | Révélation du Cercle sur la Fracture. **Choix Aube/Cendres** : branche 3 et variante de sa Clé de voûte |
 | 4 | **Colosse runique** | Foudre | **Runes corporelles** : chaque rune exposée n'est blessée que par des unités ayant traversé un portail du même élément | P1 coups de poing + avalanches · P2 les runes tournent (bouclier) · P3 il corrompt les Portes runiques | Ysolde reprogramme le Colosse : runes IV–V et mots runiques débloqués |
 | 5 | **Sphinx de verre** | Ombre | **Énigmes** : entre les phases, une énigme du lore et 3 portails ; la bonne réponse rend le boss vulnérable, une mauvaise le renforce | P1 rayons réfléchis · P2 mirages (faux portails) · P3 combat sur le cycle jour/nuit accéléré | Premières traces de Morvaen au Collège |
-| 6 | **Wyrm de cendre** | Givre | **Vol** : en l'air, il ne peut être touché que par les projectiles et les sorts ; il se pose ensuite | P1 souffle au sol · P2 mitraillage aérien en ligne · P3 éclosion d'œufs (Wyverneaux) | **Trahison** : un compagnon dont la loyauté est sous 25 **rejoint le boss** comme lanceur ennemi en P3 |
+| 6 | **Wyrm de cendre** | Givre | **Vol** : en l'air, il ne peut être touché que par les projectiles et les sorts ; il se pose ensuite | P1 souffle au sol · P2 mitraillage aérien en ligne · P3 éclosion d'œufs (Wyverneaux) | **Trahison et rédemption** : un compagnon dont la loyauté est sous 25 **rejoint le boss** comme lanceur ennemi en P3, puis **peut revenir** (§4.1) |
 | 7 | **Léviathan** | Nature | **Marées** : à marée haute, il avale des portails ; des tentacules saisissent des lignes d'unités | P1 vagues déferlantes · P2 tentacules · P3 tourbillon central (aspire les unités) | Les Archives : Morvaen était un Porteur d'Écho |
 | 8 | **Chimère du Surge** | Change avec l'aspect actif | **Aspects** : la faiblesse change toutes les 20 s, signalée par la tête qui brille (lion = Feu, bouc = Givre, serpent = Ombre) | P1 un aspect à la fois · P2 deux aspects · P3 les 3 aspects + portails instables | Les lignes temporelles se mélangent : apparition d'Échos d'alliés morts dans d'autres versions de l'histoire |
 | 9 | **Le Reflet** | Celle du build du joueur | **Miroir** : le boss est une **copie du joueur** (classe, race, deck, ultime) ; l'arène est symétrique, l'ennemi a ses propres portails et familiers, et les bots affrontent leurs reflets | P1 duel de Flux · P2 il copie le dernier Écho choisi · P3 il utilise l'ultime du joueur | Son apparence et sa puissance dépendent de la **Corruption** du joueur |
 | 10 | **Morvaen, le Roi Éclipsé** | Selon la voie (Aube : Ombre · Cendres : Lumière) | **Rembobinage** : une fois par phase, il revient 10 s en arrière et récupère des PV ; le joueur peut le contrer avec **Ancre temporelle** (bouton du Sceau d'Écho, débloqué pour ce combat) | **4 phases** · P1 il choisit aussi des Échos · P2 Rembobinage · P3 Fracture : l'arène se divise en 3 lignes temporelles, un lanceur par ligne · P4 dépend de la fin visée | Fins : Purification / Domination / Sacrifice / la Boucle. Combat de 8 à 10 min ou plus |
+
+### 4.1 Trahison et rédemption d'un compagnon (acte 6)
+1. **Déclencheur** : un compagnon a une loyauté sous 25 au début de l'acte 6. S'il y en a plusieurs, c'est celui dont la loyauté est la plus basse qui trahit.
+2. **Phase 3 du Wyrm** : le compagnon combat contre le joueur, avec des pouvoirs de cendre que le Wyrm lui a donnés.
+   - **Épargner** : le réduire à 0 PV le laisse **brisé**, pas mort.
+   - **Achever** : un sort de dégâts lancé sur lui, une fois brisé, le tue.
+3. **Après le combat**, si le compagnon a été épargné, le joueur choisit :
+   - **Tendre la main** : déclenche la quête **« Les Cendres du Pardon »**, un niveau bonus 6-R. Le joueur affronte la Marque du Wyrm qui ronge le compagnon, et le compagnon combat **à ses côtés** dans ce niveau.
+   - **Le laisser partir** : le compagnon quitte le groupe. Il peut réapparaître dans l'acte 9 (fil *Exilé*).
+4. **Retour du compagnon** (une fois la quête 6-R réussie) :
+   - il rejoint le groupe avec une loyauté de 60 ;
+   - il **garde l'Héritage de cendre**, c'est-à-dire tout ce qu'il a acquis chez le Wyrm.
+
+| Héritage de cendre | Effet |
+|---|---|
+| Passif **Sang du Wyrm** | Feu +15 %, immunité à la brûlure, familiers à élément natif Feu en plus du leur |
+| Actif **Souffle de cendre** | Cône de feu avec Flétrissure (anti-soin) pendant 4 s |
+| Branche d'arbre **Cendre** | Mini-branche de 3 paliers ; sa Clé de voûte **Renaissance** le relève une fois par partie |
+| Cosmétique | Cicatrices de braise, yeux ambrés, aura de cendres |
+
+5. **Continuité** :
+   - Le fil *Rédemption* débloque des dialogues exclusifs et une **scène de l'acte 10** où le compagnon peut retourner l'Héritage contre Morvaen.
+   - « Changer le futur » permet de revenir avant la trahison, mais **l'Héritage est alors perdu**, avec un avertissement explicite.
 
 ## 5. Zone 1 en détail (cible du prototype)
 
