@@ -1,19 +1,109 @@
 {
   "classes": {
-    "mage":      {"name": "Mage", "base": {"pou": 14, "vig": 6, "esp": 16, "cel": 8, "des": 6}, "familiar": "familiar_mage", "champion": "champion_golem", "ultimate": "meteore", "effect_mult": 1.25},
-    "chevalier": {"name": "Chevalier", "base": {"pou": 10, "vig": 18, "esp": 8, "cel": 6, "des": 8}, "familiar": "familiar_knight"},
-    "archer":    {"name": "Archer", "base": {"pou": 12, "vig": 8, "esp": 8, "cel": 14, "des": 8}, "familiar": "familiar_archer"}
+    "mage": {
+      "name": "Mage",
+      "base": {
+        "pou": 14,
+        "vig": 6,
+        "esp": 16,
+        "cel": 8,
+        "des": 6
+      },
+      "familiar": "familiar_mage",
+      "champion": "champion_golem",
+      "ultimate": "meteore",
+      "effect_mult": 1.25
+    },
+    "chevalier": {
+      "name": "Chevalier",
+      "base": {
+        "pou": 10,
+        "vig": 18,
+        "esp": 8,
+        "cel": 6,
+        "des": 8
+      },
+      "familiar": "familiar_knight"
+    },
+    "archer": {
+      "name": "Archer",
+      "base": {
+        "pou": 12,
+        "vig": 8,
+        "esp": 8,
+        "cel": 14,
+        "des": 8
+      },
+      "familiar": "familiar_archer"
+    }
   },
   "races": {
-    "elfe": {"name": "Elfe", "pou": 0, "vig": -1, "esp": 0, "cel": 4, "des": 2, "crit": 0.05},
-    "nain": {"name": "Nain", "pou": 2, "vig": 4, "esp": 0, "cel": -1, "des": 0}
+    "elfe": {
+      "name": "Elfe",
+      "pou": 0,
+      "vig": -1,
+      "esp": 0,
+      "cel": 4,
+      "des": 2,
+      "crit": 0.05
+    },
+    "nain": {
+      "name": "Nain",
+      "pou": 2,
+      "vig": 4,
+      "esp": 0,
+      "cel": -1,
+      "des": 0
+    }
   },
-  "player": {"name": "Toi", "class": "mage", "race": "elfe", "level": 8, "weapon_element": "physique", "sprite": "mage",
-             "deck": ["boule_de_feu", "pluie_de_givre", "purifier", "racines"]},
+  "player": {
+    "name": "Toi",
+    "class": "mage",
+    "race": "elfe",
+    "level": 8,
+    "weapon_element": "physique",
+    "sprite": "mage",
+    "deck": [
+      "boule_de_feu",
+      "pluie_de_givre",
+      "purifier",
+      "racines"
+    ]
+  },
   "bots": [
-    {"name": "Brann", "class": "chevalier", "race": "nain", "level": 7, "side": "left", "sprite": "brann",
-     "personality": "defensif", "order": "defends", "spells": ["bouclier_leve"], "think": 0.4, "aim_error": 0.35, "cadence_mult": 0.8},
-    {"name": "Sylwen", "class": "archer", "race": "elfe", "level": 7, "side": "right", "sprite": "sylwen",
-     "personality": "opportuniste", "order": "focus_nexus", "spells": ["tir_precision"], "think": 0.4, "aim_error": 0.35, "cadence_mult": 0.8}
+    {
+      "name": "Brann",
+      "class": "chevalier",
+      "race": "nain",
+      "level": 7,
+      "side": "left",
+      "sprite": "brann",
+      "personality": "defensif",
+      "order": "defends",
+      "spells": [
+        "bouclier_leve"
+      ],
+      "think": 0.4,
+      "aim_error": 0.35,
+      "cadence_mult": 0.8,
+      "id": "brann"
+    },
+    {
+      "name": "Sylwen",
+      "class": "archer",
+      "race": "elfe",
+      "level": 7,
+      "side": "right",
+      "sprite": "sylwen",
+      "personality": "opportuniste",
+      "order": "focus_nexus",
+      "spells": [
+        "tir_precision"
+      ],
+      "think": 0.4,
+      "aim_error": 0.35,
+      "cadence_mult": 0.8,
+      "id": "sylwen"
+    }
   ]
 }

@@ -41,10 +41,8 @@ var _labels: Array[Label3D] = []
 var _label_next := 0
 var _portal_nodes: Array[Dictionary] = []
 var _tower_nodes: Array[Dictionary] = []
-var _nexus_crystal: MeshInstance3D
-var _nexus_mat: StandardMaterial3D
-var _nexus_shield: MeshInstance3D
-var _nexus_light: OmniLight3D
+var _nexus_nodes: Array[Dictionary] = []
+var _escort_light: OmniLight3D
 var _barrier_mat: StandardMaterial3D
 var _barrier_shield: MeshInstance3D
 var _casters: Array[Sprite3D] = []
@@ -472,46 +470,57 @@ func _build_towers() -> void:
 
 
 func _build_nexus() -> void:
-	var root := Node3D.new()
-	root.position = w3(BattleSim.NEXUS_POS)
-	add_child(root)
-	var ped := MeshInstance3D.new()
-	var cyl := CylinderMesh.new()
-	cyl.top_radius = 0.85
-	cyl.bottom_radius = 1.1
-	cyl.height = 0.5
-	cyl.radial_segments = 8
-	ped.mesh = cyl
-	ped.material_override = _stone_mat
-	ped.position = Vector3(0.0, 0.25, 0.0)
-	root.add_child(ped)
-	_nexus_crystal = MeshInstance3D.new()
-	_nexus_crystal.mesh = _octahedron()
-	_nexus_mat = StandardMaterial3D.new()
-	_nexus_mat.albedo_color = Color("c8a0ff")
-	_nexus_mat.emission_enabled = true
-	_nexus_mat.emission = Color("8a52ff")
-	_nexus_mat.emission_energy_multiplier = 1.6
-	_nexus_crystal.material_override = _nexus_mat
-	_nexus_crystal.scale = Vector3(0.62, 1.25, 0.62)
-	_nexus_crystal.position = Vector3(0.0, 1.9, 0.0)
-	root.add_child(_nexus_crystal)
-	_nexus_light = OmniLight3D.new()
-	_nexus_light.light_color = Color("a070ff")
-	_nexus_light.light_energy = 2.2
-	_nexus_light.omni_range = 6.5
-	_nexus_light.position = Vector3(0.0, 1.9, 0.0)
-	root.add_child(_nexus_light)
-	_nexus_shield = MeshInstance3D.new()
-	var sph := SphereMesh.new()
-	sph.radius = 1.55
-	sph.height = 3.1
-	sph.radial_segments = 16
-	sph.rings = 8
-	_nexus_shield.mesh = sph
-	_nexus_shield.material_override = _unshaded(Color(0.85, 0.24, 0.95, 0.16), true)
-	_nexus_shield.position = Vector3(0.0, 1.5, 0.0)
-	root.add_child(_nexus_shield)
+	for n in sim.nexi:
+		var root := Node3D.new()
+		root.position = w3(n["pos"])
+		add_child(root)
+		var ped := MeshInstance3D.new()
+		var cyl := CylinderMesh.new()
+		cyl.top_radius = 0.85
+		cyl.bottom_radius = 1.1
+		cyl.height = 0.5
+		cyl.radial_segments = 8
+		ped.mesh = cyl
+		ped.material_override = _stone_mat
+		ped.position = Vector3(0.0, 0.25, 0.0)
+		root.add_child(ped)
+		var crystal := MeshInstance3D.new()
+		crystal.mesh = _octahedron()
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = Color("c8a0ff")
+		mat.emission_enabled = true
+		mat.emission = Color("8a52ff")
+		mat.emission_energy_multiplier = 1.6
+		crystal.material_override = mat
+		crystal.scale = Vector3(0.62, 1.25, 0.62)
+		crystal.position = Vector3(0.0, 1.9, 0.0)
+		root.add_child(crystal)
+		var light := OmniLight3D.new()
+		light.light_color = Color("a070ff")
+		light.light_energy = 2.2
+		light.omni_range = 6.5
+		light.position = Vector3(0.0, 1.9, 0.0)
+		root.add_child(light)
+		var shield := MeshInstance3D.new()
+		var sph := SphereMesh.new()
+		sph.radius = 1.55
+		sph.height = 3.1
+		sph.radial_segments = 16
+		sph.rings = 8
+		shield.mesh = sph
+		shield.material_override = _unshaded(Color(0.85, 0.24, 0.95, 0.16), true)
+		shield.position = Vector3(0.0, 1.5, 0.0)
+		root.add_child(shield)
+		var rubble := _box(Vector3(1.2, 0.3, 1.0), Vector3(0.0, 0.6, 0.0), _stone_mat, root)
+		rubble.rotation.y = 0.4
+		rubble.visible = false
+		_nexus_nodes.append({"data": n, "crystal": crystal, "mat": mat, "light": light, "shield": shield, "rubble": rubble})
+	if sim.escort != null:
+		_escort_light = OmniLight3D.new()
+		_escort_light.light_color = Color("ffd45a")
+		_escort_light.light_energy = 1.6
+		_escort_light.omni_range = 3.5
+		add_child(_escort_light)
 
 
 func _octahedron() -> ArrayMesh:
@@ -750,15 +759,31 @@ func _update_towers() -> void:
 
 
 func _update_nexus() -> void:
-	_nexus_crystal.rotation.y = t * 0.7
-	_nexus_crystal.position.y = 1.9 + sin(t * 1.6) * 0.1
-	_nexus_mat.emission_energy_multiplier = 1.6 + (2.5 if sim.nexus_flash > 0.0 else 0.0)
-	_nexus_light.light_energy = 2.0 + 0.4 * sin(t * 3.0)
-	_nexus_shield.visible = sim.nexus_shielded()
-	if _nexus_shield.visible:
-		_nexus_shield.rotation.y = t * 0.5
-		var s := 1.0 + 0.03 * sin(t * 4.0)
-		_nexus_shield.scale = Vector3(s, s, s)
+	var sealed := sim.nexus_shielded()
+	for nn in _nexus_nodes:
+		var n: Dictionary = nn["data"]
+		var alive: bool = n["alive"]
+		var crystal: MeshInstance3D = nn["crystal"]
+		crystal.visible = alive
+		(nn["light"] as OmniLight3D).visible = alive
+		(nn["rubble"] as Node3D).visible = not alive
+		(nn["shield"] as MeshInstance3D).visible = alive and sealed
+		if not alive:
+			continue
+		crystal.rotation.y = t * 0.7
+		crystal.position.y = 1.9 + sin(t * 1.6) * 0.1
+		(nn["mat"] as StandardMaterial3D).emission_energy_multiplier = 1.6 + (2.5 if float(n["flash"]) > 0.0 else 0.0)
+		(nn["light"] as OmniLight3D).light_energy = 2.0 + 0.4 * sin(t * 3.0)
+		var sh: MeshInstance3D = nn["shield"]
+		if sh.visible:
+			sh.rotation.y = t * 0.5
+			var k := 1.0 + 0.03 * sin(t * 4.0)
+			sh.scale = Vector3(k, k, k)
+	if _escort_light != null and sim.escort != null:
+		_escort_light.visible = sim.escort.alive
+		var ep := sim.escort.prev_pos.lerp(sim.escort.pos, alpha)
+		_escort_light.position = w3(ep, 1.4)
+		_escort_light.light_energy = 1.5 + 0.2 * sin(t * 7.0)
 
 
 func _update_barrier() -> void:
@@ -781,6 +806,19 @@ func _update_units() -> void:
 			break
 		n = _put_unit(u, n, cam_right, cam_back)
 		sn = _put_shadow(u, sn)
+	var orb_a := SpriteAtlas.frame("orb", "", 0)
+	var orb_b := SpriteAtlas.frame("orb", "", 1)
+	for o in sim.orbs:
+		if not o["alive"] or n >= MAX_SPRITES - 2:
+			continue
+		var op: Vector2 = o["pos"]
+		var fr: Dictionary = orb_a if int(t * 4.0 + op.x) % 3 != 0 else orb_b
+		var oh := SpriteAtlas.height_m("orb")
+		var ouv: Rect2 = fr["uv"]
+		_units_mm.set_instance_transform(n, Transform3D(Basis.from_scale(Vector3(oh, oh, 1.0)), w3(op, 0.45 + sin(t * 2.5 + op.y) * 0.12)))
+		_units_mm.set_instance_color(n, Color(1.6, 1.5, 1.0))
+		_units_mm.set_instance_custom_data(n, Color(ouv.position.x, ouv.position.y, ouv.size.x, ouv.size.y))
+		n += 1
 	for tn in _tower_nodes:
 		var tw: Dictionary = tn["data"]
 		if tw["alive"] and float(tw["hp"]) < float(tw["max"]) and n < MAX_SPRITES - 2:
@@ -843,7 +881,11 @@ func _put_shadow(u: Unit, sn: int) -> int:
 
 
 func _tint(u: Unit) -> Color:
+	if u == sim.boss and sim.boss_shield_t > 0.0:
+		return Color(0.95, 0.7, 0.45) if u.flash_t <= 0.0 else Color(1.3, 1.0, 0.7)
 	if u.flash_t > 0.0:
+		if u.role == "boss":
+			return Color(1.2, 1.05, 1.05)
 		return Color(1.9, 0.75, 0.75) if u.team == 1 else Color(1.8, 1.8, 1.8)
 	if u.frozen_t > 0.0:
 		return Color(0.65, 0.9, 1.45)
@@ -924,6 +966,15 @@ func _draw_fx(delta: float) -> void:
 				var cc := Color(col, 1.0 - k)
 				for o in [Vector3(-d, 0, 0), Vector3(d, 0, 0), Vector3(0, d, 0), Vector3(0, 0, d), Vector3(0, 0, -d)]:
 					points.append([c + o, cc])
+	# Attaques annoncées (zones rouges) et impacts.
+	for tg in sim.telegraphs:
+		var k2 := 1.0 - float(tg["t"]) / maxf(0.01, float(tg["dur"]))
+		var pulse := 0.5 + 0.5 * sin(t * (10.0 + 14.0 * k2))
+		_rect(lines, tg["rect"], Color(1.0, 0.25, 0.3, 0.45 + 0.5 * pulse), true)
+	for e in _fx:
+		if str(e["t"]) == "strike":
+			var k3 := float(e["age"]) / float(e["dur"])
+			_rect(lines, e["rect"], Color(1.0, 0.85, 0.6, 1.0 - k3), true)
 	# Ligne de visée du joueur et cercle de ciblage.
 	var px := lerpf(sim.player().prev_x, sim.player().x, alpha)
 	var y := BattleSim.CASTER_Y + 1.2
@@ -947,6 +998,24 @@ func _draw_fx(delta: float) -> void:
 			_fx_points.surface_set_color(p[1])
 			_fx_points.surface_add_vertex(p[0])
 		_fx_points.surface_end()
+
+
+func _rect(lines: Array, r: Rect2, col: Color, hatch: bool) -> void:
+	var a := r.position
+	var b := r.end
+	var h := 0.07
+	var corners := [Vector2(a.x, a.y), Vector2(b.x, a.y), Vector2(b.x, b.y), Vector2(a.x, b.y)]
+	for i in range(4):
+		lines.append([w3(corners[i], h), w3(corners[(i + 1) % 4], h), col])
+	if hatch:
+		# Hachures à 45° (droites x - y = c) découpées dans le rectangle.
+		var c := a.x - b.y
+		while c < b.x - a.y:
+			var x0 := maxf(a.x, a.y + c)
+			var x1 := minf(b.x, b.y + c)
+			if x1 > x0:
+				lines.append([w3(Vector2(x0, x0 - c), h), w3(Vector2(x1, x1 - c), h), Color(col, col.a * 0.55)])
+			c += 0.34
 
 
 func _ring(lines: Array, center: Vector2, r: float, col: Color, h: float) -> void:

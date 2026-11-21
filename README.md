@@ -5,18 +5,15 @@ Jeu de « foule contrôlée » en univers de fantasy magique : tu lances des flu
 - Design complet : [`docs/GDD.md`](docs/GDD.md) et [`docs/design/`](docs/design/)
 - Maquettes de l'interface : [`docs/mockups/`](docs/mockups/)
 
-## Prototype jouable (étape 9)
+## Jouer
 
-Version web, combat seul, 3 niveaux de la zone 1 (Bois des Lucioles) :
+**https://adamfast-tech.github.io/Arcane-Surge/** (navigateur, téléphone ou ordinateur).
 
-| Niveau | Type | Ce qu'il montre |
-|---|---|---|
-| 1-1 Premières lueurs | Assaut, solo | Flux, visée, portails `+5` et `×2` |
-| 1-4 Les Ronces | Assaut | Portails négatifs `-5` / `÷2`, sort Purifier, ordres aux bots, tours de garde |
-| 1-8 La Source flétrie | Purification | Sceaux qui protègent le Nexus, unités de Lumière, Dryades qui soignent le Nexus |
-
-En ligne (une fois GitHub Pages activé) : **https://adamfast-tech.github.io/Arcane-Surge/**
-Accès direct à un niveau : `…/Arcane-Surge/?level=z01_l08` (ajouter `&solo=1` pour jouer sans bots).
+- **Compte :** connexion avec ton **compte Académie** (même pseudo et même mot de passe), ou jeu sans compte, la progression restant alors sur l'appareil.
+- **Havre-Aube :** le hub, avec profil et progression, la carte de la zone 1 et l'équipement avec la Forge.
+- **Zone 1, Bois des Lucioles :** 10 niveaux, dont un mini-boss (le Grand Cerf), une escorte, un siège et le boss **la Sylvarche**.
+- **Progression :** XP, niveaux, or, butin par étoile, équipement à améliorer.
+- **Accès direct à un niveau :** `…/Arcane-Surge/?level=z01_l10` (ajouter `&solo=1` pour jouer sans bots).
 
 ### Commandes
 | Action | Tactile | PC |
@@ -51,6 +48,8 @@ godot --headless --path . --export-release "Web" build/web/index.html           
 | `scripts/battle/arena_3d.gd` | Rendu 2,5D : scène 3D pixelisée, caméra inclinée, décor de ruines, brume, lumières |
 | `scripts/gfx/` | Pixel-art généré par code (atlas de sprites, textures du décor, toile de fond) |
 | `data/` | Unités, sorts, Échos, groupe du joueur, niveaux (JSON, modifiables sans toucher au code) |
+| `scripts/core/` | Profil et progression (`profile.gd`), compte et sauvegarde en ligne (`cloud.gd`), thème |
+| `scripts/ui/` | Écrans : connexion, Havre-Aube, carte, équipement et Forge |
 | `tools/` | Simulateur d'équilibrage et test de fumée (sans affichage) |
 
 ### Remplacer les sprites

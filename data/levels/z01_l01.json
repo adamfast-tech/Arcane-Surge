@@ -6,6 +6,7 @@
   "global_level": 1,
   "type": "Assaut",
   "solo": true,
+  "party": [],
   "desc": "Tutoriel. Maintiens sur l'arène pour lancer le Flux, glisse pour viser les portails.",
   "par_time": 90,
   "nexus": {

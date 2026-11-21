@@ -1,0 +1,106 @@
+{
+  "id": "z01_l09",
+  "name": "Le Cœur de la Forêt",
+  "zone": 1,
+  "number": "1-9",
+  "global_level": 9,
+  "type": "Siège",
+  "party": [
+    "brann",
+    "sylwen"
+  ],
+  "desc": "Deux Nexus jumeaux gardent le cœur de la forêt, protégés par une tour. Détruis les deux.",
+  "par_time": 160,
+  "nexi": [
+    {
+      "x": 2.4,
+      "y": 14.9
+    },
+    {
+      "x": 6.6,
+      "y": 14.9
+    }
+  ],
+  "nexus": {
+    "hp": 24000
+  },
+  "towers": [
+    {
+      "x": 4.5,
+      "y": 14.0,
+      "hp": 420
+    }
+  ],
+  "portals": [
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 2.2,
+      "y": 5.0,
+      "width": 2.0,
+      "motion": "slide",
+      "range": 1.0,
+      "speed": 0.6
+    },
+    {
+      "kind": "elem",
+      "element": "feu",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 1.6
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 6.8,
+      "y": 5.0,
+      "width": 2.0,
+      "motion": "slide",
+      "range": 1.0,
+      "speed": 0.6,
+      "phase": 1.5
+    },
+    {
+      "kind": "add",
+      "value": 5,
+      "x": 2.4,
+      "y": 10.4,
+      "width": 2.0
+    },
+    {
+      "kind": "div",
+      "value": 2,
+      "x": 4.5,
+      "y": 10.4,
+      "width": 1.8
+    },
+    {
+      "kind": "add",
+      "value": 5,
+      "x": 6.6,
+      "y": 10.4,
+      "width": 2.0
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 46,
+    "budget_per_level": 13,
+    "local_level": 9,
+    "growth": 0.03,
+    "spawn_y": 14.6,
+    "pool": {
+      "mushroom": 6,
+      "rabbit": 3,
+      "bear": 1,
+      "turtle": 1,
+      "wisp": 1,
+      "pixie": 1
+    }
+  },
+  "initial_enemies": []
+}

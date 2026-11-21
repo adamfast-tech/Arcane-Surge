@@ -20,6 +20,7 @@ const HEIGHT_M := {
 	"familiar": 0.64, "knight": 0.75, "archer": 0.75, "skeleton": 0.7, "golem": 1.0, "fusion": 0.66,
 	"mushroom": 0.58, "rabbit": 0.62, "bear": 0.9, "pixie": 0.52, "turtle": 0.58, "wisp": 0.7, "dryad": 1.05,
 	"cross": 0.29, "px": 1.0,
+	"stag": 1.7, "sylvarche": 3.6, "flower": 0.6, "lantern": 1.25, "orb": 0.3,
 }
 ## Sprites dont les lettres o/d/m/l prennent les couleurs de l'élément.
 const RECOLOR := ["familiar", "knight", "archer", "golem", "fusion"]
@@ -503,6 +504,123 @@ const DEFS := {
 		"obbbo..obbbo",
 		"oooo....oooo",
 	]]},
+	"stag": {"pal": {"o": "120a10", "a": "d8c8a0", "b": "5a3a2a", "B": "7a5238", "e": "d93cf2", "n": "1a0f0a", "w": "e8e0d0", "m": "4f7a3a"}, "frames": [[
+		"a..a............a..a",
+		".aa.a..........a.aa.",
+		"...aa..........aa...",
+		"....aa..oooo..aa....",
+		".....aaobbbboaa.....",
+		"......obbbbbbo......",
+		"......obebbebo......",
+		"......obbbbbbo......",
+		".......obnnbo.......",
+		"....ooowwwwwwooo....",
+		"...obbbwwwwwwbbbo...",
+		"..obbbbbwwwwbbbbbo..",
+		"..obmbbbbbbbbbbmbo..",
+		"..obbbbbbbbbbbbbbo..",
+		"...obbbmbbbbmbbbo...",
+		"...oBBo......oBBo...",
+		"...oBBo......oBBo...",
+		"...obbo......obbo...",
+		"...oooo......oooo...",
+	], [
+		"a..a............a..a",
+		".aa.a..........a.aa.",
+		"...aa..........aa...",
+		"....aa..oooo..aa....",
+		".....aaobbbboaa.....",
+		"......obbbbbbo......",
+		"......obebbebo......",
+		"......obbbbbbo......",
+		".......obnnbo.......",
+		"....ooowwwwwwooo....",
+		"...obbbwwwwwwbbbo...",
+		"..obbbbbwwwwbbbbbo..",
+		"..obmbbbbbbbbbbmbo..",
+		"..obbbbbbbbbbbbbbo..",
+		"...obbbmbbbbmbbbo...",
+		"..oBBo........oBBo..",
+		"..oBBo........oBBo..",
+		"..obbo........obbo..",
+		"..oooo........oooo..",
+	]]},
+	"flower": {"pal": {"o": "1e1a14", "P": "b04a8a", "y": "f2c46b", "e": "2a0a1a", "g": "4f8a3a"}, "frames": [[
+		"...oooo...",
+		"..oPPPPo..",
+		".oPPyyPPo.",
+		".oPyeeyPo.",
+		".oPPyyPPo.",
+		"..oPPPPo..",
+		"...oggo...",
+		"..o.gg.o..",
+		".ogo.gogo.",
+		"...ogggo..",
+		"..oooooo..",
+	], [
+		"..oo..oo..",
+		".oPPooPPo.",
+		".oPPyyPPo.",
+		".oPyeeyPo.",
+		".oPPyyPPo.",
+		"..oPPPPo..",
+		"...oggo...",
+		"..o.gg.o..",
+		".ogo.gogo.",
+		"...ogggo..",
+		"..oooooo..",
+	]]},
+	"lantern": {"pal": {"o": "120e1a", "h": "6a4a2a", "c": "8a6a4a", "C": "a8845a", "y": "ffd45a", "w": "fff6d8", "m": "5a5670", "k": "3a2e2a"}, "frames": [[
+		".....mmmm.....",
+		"....myyyym....",
+		"....mywwym....",
+		"....myyyym....",
+		".....mmmm.....",
+		"......mm......",
+		".....ohho.....",
+		"....ohhhho....",
+		"....ohhhho....",
+		"...occCCcco...",
+		"..occcCCccco..",
+		"..occcCCccco..",
+		"..occcCCccco..",
+		"...occcccco...",
+		"...oko..oko...",
+		"...oko..oko...",
+		"...ooo..ooo...",
+	], [
+		".....mmmm.....",
+		"....myyyym....",
+		"....mywwym....",
+		"....myyyym....",
+		".....mmmm.....",
+		"......mm......",
+		".....ohho.....",
+		"....ohhhho....",
+		"....ohhhho....",
+		"...occCCcco...",
+		"..occcCCccco..",
+		"..occcCCccco..",
+		"..occcCCccco..",
+		"...occcccco...",
+		"..oko....oko..",
+		"..oko....oko..",
+		"..ooo....ooo..",
+	]]},
+	"orb": {"pal": {"y": "f2e28b", "w": "ffffff", "o": "b8a040"}, "frames": [[
+		".ooo.",
+		"oyyyo",
+		"oywyo",
+		"oyyyo",
+		".ooo.",
+	], [
+		".....",
+		".ooo.",
+		".owo.",
+		".ooo.",
+		".....",
+	]]},
+	"sylvarche": {"pal": {}, "procedural": true, "frames": [[], []]},
 	"star": {"pal": {"a": "f2c46b"}, "frames": [[
 		"....a....",
 		"....a....",
@@ -638,6 +756,10 @@ static func _images_for(name: String, element: String) -> Array[Image]:
 			out.append(img)
 		return out
 	var d: Dictionary = DEFS[name]
+	if bool(d.get("procedural", false)):
+		out.append(_gen_sylvarche(0))
+		out.append(_gen_sylvarche(1))
+		return out
 	var pal: Dictionary = (d["pal"] as Dictionary).duplicate()
 	if RECOLOR.has(name):
 		var ec: Array = ELEM[element if ELEM.has(element) else "physique"]
@@ -689,3 +811,94 @@ static func _rasterize(rows: Array, pal: Dictionary) -> Image:
 				continue
 			img.set_pixel(x, y, Color(str(pal[ch])))
 	return img
+
+
+## Boss de la zone 1, dessiné par code : canopée corrompue, tronc à visage, bras-branches, racines.
+static func _gen_sylvarche(frame: int) -> Image:
+	var w := 34
+	var h := 44
+	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 77
+	var sway := float(frame)
+	var leaves := [Color("223a24"), Color("3f6a3a"), Color("6f9a4a"), Color("8fc05a")]
+	for y in range(0, 24):
+		for x in range(w):
+			var dx := (float(x) - 16.5 - sway * 0.8) / 15.5
+			var dy := (float(y) - 11.0) / 11.0
+			var d := dx * dx + dy * dy + rng.randf_range(-0.14, 0.14)
+			if d >= 1.0:
+				continue
+			var shade := 1
+			if dx + (-dy) > 0.55:
+				shade = 3 if d < 0.55 else 2
+			elif dx < -0.35 or dy > 0.45:
+				shade = 0
+			var c: Color = leaves[shade]
+			var r := rng.randf()
+			if r < 0.06:
+				c = Color("8e62e0")
+			elif r < 0.08:
+				c = Color("d93cf2")
+			img.set_pixel(x, y, c)
+	for y in range(17, 38):
+		var half := 4 + int(float(y - 17) / 7.0)
+		for x in range(17 - half, 17 + half):
+			var c := Color("4a3424")
+			if (x * 3 + y) % 7 == 0:
+				c = Color("3a2818")
+			if x >= 17 + half - 2:
+				c = Color("6a4a30")
+			if x <= 17 - half:
+				c = Color("2e2016")
+			img.set_pixel(x, y, c)
+	var glow := Color("ff8af0") if frame == 0 else Color("d93cf2")
+	for e in [Vector2i(13, 23), Vector2i(19, 23)]:
+		img.set_pixel(e.x, e.y, Color("d93cf2"))
+		img.set_pixel(e.x + 1, e.y, Color("d93cf2"))
+		img.set_pixel(e.x, e.y + 1, glow)
+		img.set_pixel(e.x + 1, e.y + 1, glow)
+	for x in range(14, 21):
+		img.set_pixel(x, 28, Color("1a0f0a"))
+	img.set_pixel(15, 29, Color("1a0f0a"))
+	img.set_pixel(19, 29, Color("1a0f0a"))
+	var arm_l := Vector2i(2, 16 - frame)
+	var arm_r := Vector2i(31, 15 + frame)
+	_line(img, Vector2i(12, 26), arm_l, Color("4a3424"))
+	_line(img, Vector2i(12, 27), arm_l + Vector2i(0, 1), Color("2e2016"))
+	_line(img, Vector2i(22, 26), arm_r, Color("6a4a30"))
+	_line(img, Vector2i(22, 27), arm_r + Vector2i(0, 1), Color("4a3424"))
+	_line(img, arm_l, arm_l + Vector2i(-1, -3), Color("4a3424"))
+	_line(img, arm_r, arm_r + Vector2i(1, -3), Color("6a4a30"))
+	for i in range(6):
+		var sx := 11 + i * 2
+		_line(img, Vector2i(sx, 37), Vector2i(3 + i * 6 + frame, 43), Color("3a2818"))
+	for i in range(14):
+		var p := Vector2i(rng.randi_range(12, 22), rng.randi_range(18, 36))
+		if img.get_pixel(p.x, p.y).a > 0.0:
+			img.set_pixel(p.x, p.y, Color("8e62e0"))
+	_outline(img, Color("0c100a"))
+	return img
+
+
+static func _line(img: Image, a: Vector2i, b: Vector2i, c: Color) -> void:
+	var steps := maxi(absi(b.x - a.x), absi(b.y - a.y))
+	for i in range(steps + 1):
+		var t := float(i) / float(maxi(1, steps))
+		var p := Vector2i(roundi(lerpf(a.x, b.x, t)), roundi(lerpf(a.y, b.y, t)))
+		if p.x >= 0 and p.y >= 0 and p.x < img.get_width() and p.y < img.get_height():
+			img.set_pixel(p.x, p.y, c)
+
+
+static func _outline(img: Image, c: Color) -> void:
+	var src := img.duplicate()
+	for y in range(img.get_height()):
+		for x in range(img.get_width()):
+			if src.get_pixel(x, y).a > 0.0:
+				continue
+			for o in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+				var q: Vector2i = Vector2i(x, y) + o
+				if q.x >= 0 and q.y >= 0 and q.x < img.get_width() and q.y < img.get_height() and src.get_pixel(q.x, q.y).a > 0.0:
+					img.set_pixel(x, y, c)
+					break

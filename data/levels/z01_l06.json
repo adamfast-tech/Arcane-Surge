@@ -1,0 +1,81 @@
+{
+  "id": "z01_l06",
+  "name": "Écho des Fées",
+  "zone": 1,
+  "number": "1-6",
+  "global_level": 6,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen"
+  ],
+  "desc": "Les Pixies sombres tirent de loin et les Tortues-souches encaissent. Le Sceau d'Écho s'éveille : choisis bien tes Échos.",
+  "par_time": 130,
+  "nexus": {
+    "hp": 38000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 260
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 260
+    }
+  ],
+  "portals": [
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "motion": "slide",
+      "range": 2.4,
+      "speed": 0.55
+    },
+    {
+      "kind": "elem",
+      "element": "feu",
+      "x": 1.8,
+      "y": 10.2,
+      "width": 2.0
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 4.5,
+      "y": 10.2,
+      "width": 1.6
+    },
+    {
+      "kind": "sub",
+      "value": 5,
+      "x": 7.3,
+      "y": 10.2,
+      "width": 2.0
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 40,
+    "budget_per_level": 12,
+    "local_level": 6,
+    "growth": 0.04,
+    "spawn_y": 14.6,
+    "pool": {
+      "mushroom": 5,
+      "rabbit": 2,
+      "pixie": 2.5,
+      "turtle": 1
+    }
+  },
+  "initial_enemies": []
+}

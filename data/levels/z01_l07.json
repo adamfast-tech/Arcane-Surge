@@ -1,0 +1,99 @@
+{
+  "id": "z01_l07",
+  "name": "Le Pont des Ruines",
+  "zone": 1,
+  "number": "1-7",
+  "global_level": 7,
+  "type": "Escorte",
+  "party": [
+    "brann",
+    "sylwen"
+  ],
+  "objective": "escort",
+  "desc": "Des villageois portent la Lanterne de l'Aube jusqu'au Nexus pour le purifier. Protège-la : si elle s'éteint, la mission échoue.",
+  "par_time": 150,
+  "nexus": {
+    "hp": 20000
+  },
+  "escort": {
+    "kind": "lantern",
+    "x": 4.5,
+    "y": 1.6,
+    "goal_y": 13.8,
+    "speed": 0.1,
+    "hp": 360
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 300
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 300
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "element": "lumiere",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 4.5,
+      "y": 5.0,
+      "width": 1.8,
+      "motion": "slide",
+      "range": 1.2,
+      "speed": 0.5
+    },
+    {
+      "kind": "add",
+      "value": 5,
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 4.5,
+      "y": 10.4,
+      "width": 2.2,
+      "motion": "slide",
+      "range": 2.4,
+      "speed": 0.4
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 34,
+    "budget_per_level": 11,
+    "local_level": 7,
+    "growth": 0.04,
+    "spawn_y": 14.6,
+    "pool": {
+      "mushroom": 6,
+      "rabbit": 3,
+      "turtle": 1,
+      "pixie": 1
+    }
+  },
+  "initial_enemies": [],
+  "ambush": {
+    "every": 13,
+    "count": 6,
+    "kind": "rabbit",
+    "ahead": 2.6
+  }
+}

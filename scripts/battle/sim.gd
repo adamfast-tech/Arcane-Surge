@@ -23,6 +23,7 @@ const NEXUS_PULSE_INTERVAL := 2.5
 const NEXUS_PULSE_RANGE := 1.7
 const NEXUS_PULSE_DMG := 25.0
 const SURGE_PER_KILL := 0.5
+const ELEM_NAMES := {"feu": "Feu", "givre": "Givre", "foudre": "Foudre", "nature": "Nature", "lumiere": "Lumière", "ombre": "Ombre", "physique": "Physique"}
 const SURGE_PER_BIG := 3.0
 
 
@@ -134,6 +135,24 @@ var _nexus_dmg_t := 0.0
 var _heal_log_t := 0.0
 var _shield_fx_t := 0.0
 var _pulse_t := NEXUS_PULSE_INTERVAL
+var _nexus_dmg_pos := NEXUS_POS
+
+## Objectif du niveau : "nexus" (un ou plusieurs), "boss" ou "escort".
+var objective := "nexus"
+var nexi: Array[Dictionary] = []
+var boss: Unit = null
+var boss_name := ""
+var boss_phase := 0
+var boss_timers: Dictionary = {}
+var boss_shield_t := 0.0
+var boss_shield_elem := ""
+var escort: Unit = null
+var escort_start_y := 1.6
+var escort_goal_y := 13.8
+var orbs: Array[Dictionary] = []
+var orb_cfg: Dictionary = {}
+var telegraphs: Array[Dictionary] = []
+var end_reason := ""
 
 
 # ---------------------------------------------------------------- mise en place
@@ -147,20 +166,66 @@ func setup(level_data: Dictionary, party: Dictionary, seed_value: int, opts: Dic
 	autoplay = bool(opts.get("autoplay", false))
 	solo = bool(opts.get("solo", false)) or bool(level.get("solo", false))
 	enemy_mult = pow(1.045, float(level.get("global_level", 1)) - 1.0)
-	nexus_max = float(level["nexus"]["hp"])
-	nexus_hp = nexus_max
+	objective = str(level.get("objective", "nexus"))
 	par_time = float(level.get("par_time", 150))
 	for i in range(GRID_W * GRID_H):
 		_grid_e.append([])
 		_grid_a.append([])
+	_setup_nexi()
 	_setup_portals()
 	_setup_towers()
-	_setup_casters(party)
+	_setup_casters(party, opts)
+	_setup_objective()
+	_setup_orbs()
 	for e in level.get("initial_enemies", []):
 		_spawn_enemy(str(e["kind"]), Vector2(float(e["x"]), float(e["y"])))
 	wave_t = float(level["waves"].get("first", 3.0))
 	_flush()
+	_sync_nexus()
 	_log("%s %s : %s" % [str(level.get("number", "")), str(level.get("name", "")), str(level.get("type", ""))])
+
+
+func _setup_nexi() -> void:
+	if objective == "boss":
+		return
+	var hp := float((level.get("nexus", {}) as Dictionary).get("hp", 10000))
+	var spots: Array = level.get("nexi", [{"x": NEXUS_POS.x, "y": NEXUS_POS.y}])
+	for sp in spots:
+		nexi.append({"pos": Vector2(float(sp["x"]), float(sp["y"])), "hp": hp, "max": hp, "alive": true, "flash": 0.0, "wither": 0.0})
+
+
+func _setup_objective() -> void:
+	if objective == "boss":
+		var bd: Dictionary = level["boss"]
+		boss = _make_unit(str(bd["kind"]), 1, Vector2(float(bd.get("x", 4.5)), float(bd.get("y", 14.4))))
+		boss.hp = float(bd["hp"])
+		boss.max_hp = boss.hp
+		boss.hold_y = boss.pos.y
+		boss.elite = true
+		boss_name = str(units_db[boss.kind].get("name", "Boss"))
+		_pending_enemies.append(boss)
+		_enter_phase(0)
+	elif objective == "escort":
+		var ed: Dictionary = level["escort"]
+		escort = _make_unit(str(ed.get("kind", "lantern")), 0, Vector2(float(ed.get("x", 4.5)), float(ed.get("y", 1.6))))
+		escort.hp = float(ed.get("hp", 300))
+		escort.max_hp = escort.hp
+		escort.speed = float(ed.get("speed", 0.1))
+		escort_start_y = escort.pos.y
+		escort_goal_y = float(ed.get("goal_y", 13.8))
+		_pending_allies.append(escort)
+
+
+func _setup_orbs() -> void:
+	orb_cfg = level.get("orbs", {})
+	if orb_cfg.is_empty():
+		return
+	for i in range(int(orb_cfg.get("count", 5))):
+		orbs.append({"pos": _orb_spot(), "alive": true, "t": 0.0})
+
+
+func _orb_spot() -> Vector2:
+	return Vector2(rng.randf_range(0.8, W - 0.8), rng.randf_range(2.6, 11.8))
 
 
 func _setup_portals() -> void:
@@ -199,11 +264,15 @@ func _setup_towers() -> void:
 		})
 
 
-func _setup_casters(party: Dictionary) -> void:
+func _setup_casters(party: Dictionary, opts: Dictionary = {}) -> void:
 	var classes: Dictionary = party["classes"]
 	var races: Dictionary = party["races"]
-	var pd: Dictionary = party["player"]
-	var pc := _make_caster(0, pd, classes, races)
+	var pd: Dictionary = (party["player"] as Dictionary).duplicate()
+	if opts.has("player_level"):
+		pd["level"] = int(opts["player_level"])
+	if opts.has("weapon_element"):
+		pd["weapon_element"] = str(opts["weapon_element"])
+	var pc := _make_caster(0, pd, classes, races, opts.get("gear", {}))
 	pc.min_x = 0.5
 	pc.max_x = W - 0.5
 	pc.x = W * 0.5
@@ -224,8 +293,14 @@ func _setup_casters(party: Dictionary) -> void:
 	casters.append(pc)
 	if solo:
 		return
+	var allowed: Variant = level.get("party", null)
 	for bd in party["bots"]:
-		var c := _make_caster(casters.size(), bd, classes, races)
+		if allowed is Array and not (allowed as Array).has(str(bd.get("id", ""))):
+			continue
+		var bdd: Dictionary = (bd as Dictionary).duplicate()
+		if opts.has("bot_level"):
+			bdd["level"] = int(opts["bot_level"])
+		var c := _make_caster(casters.size(), bdd, classes, races)
 		c.is_bot = true
 		c.side = str(bd.get("side", "left"))
 		if c.side == "left":
@@ -251,7 +326,7 @@ func _setup_casters(party: Dictionary) -> void:
 		casters.append(c)
 
 
-func _make_caster(idx: int, d: Dictionary, classes: Dictionary, races: Dictionary) -> Caster:
+func _make_caster(idx: int, d: Dictionary, classes: Dictionary, races: Dictionary, gear: Dictionary = {}) -> Caster:
 	var c := Caster.new()
 	c.idx = idx
 	c.name = str(d["name"])
@@ -264,7 +339,7 @@ func _make_caster(idx: int, d: Dictionary, classes: Dictionary, races: Dictionar
 	var base: Dictionary = cls["base"]
 	for k in ["pou", "vig", "esp", "cel", "des"]:
 		var b := float(base.get(k, 0))
-		c.stats[k] = b + b / 10.0 * float(c.level - 1) + float(race.get(k, 0))
+		c.stats[k] = b + b / 10.0 * float(c.level - 1) + float(race.get(k, 0)) + float(gear.get(k, 0))
 	c.familiar = str(cls.get("familiar", "familiar_mage"))
 	c.atk_mult = 1.0 + float(c.stats["pou"]) / 100.0
 	c.hp_mult = 1.0 + float(c.stats["vig"]) / 100.0
@@ -294,9 +369,14 @@ func step() -> void:
 	_ranged_attacks()
 	_towers_attack()
 	_enemy_abilities()
+	_update_boss()
+	_update_telegraphs()
+	_update_orbs()
+	_update_ambush()
 	_nexus_pulse()
 	_reach_checks()
 	_flush()
+	_sync_nexus()
 	peak_allies = maxi(peak_allies, allies.size())
 	_check_end()
 
@@ -423,6 +503,10 @@ func _move_units() -> void:
 		if not u.alive:
 			continue
 		u.anim += TICK
+		if u.role == "escort":
+			if not u.engaged and u.speed_factor() > 0.0:
+				u.pos.y = minf(escort_goal_y, u.pos.y + u.speed * u.speed_factor() * TICK)
+			continue
 		if u.engaged:
 			continue
 		var sf := u.speed_factor()
@@ -441,21 +525,35 @@ func _move_units() -> void:
 			continue
 		if e.hold_y > 0.0 and e.pos.y <= e.hold_y:
 			continue
-		e.pos.y -= e.speed * e.speed_factor() * TICK
+		var sf_e := e.speed_factor()
+		if escort != null and escort.alive and e.pos.y > escort.pos.y and e.pos.y - escort.pos.y < 4.0:
+			# Les ennemis convergent vers la Lanterne de l'Aube.
+			e.pos.x = clampf(e.pos.x + clampf(escort.pos.x - e.pos.x, -0.9, 0.9) * sf_e * TICK, 0.3, W - 0.3)
+		e.pos.y -= e.speed * sf_e * TICK
 
 
 func _homing_target_x(u: Unit) -> float:
 	for t in towers:
 		if t["alive"] and absf(u.pos.x - (t["pos"] as Vector2).x) < 1.3:
 			return (t["pos"] as Vector2).x
-	return NEXUS_POS.x
+	if boss != null and boss.alive:
+		return boss.pos.x
+	var best := NEXUS_POS.x
+	var bd := 1e9
+	for n in nexi:
+		if n["alive"]:
+			var d := absf((n["pos"] as Vector2).x - u.pos.x)
+			if d < bd:
+				bd = d
+				best = (n["pos"] as Vector2).x
+	return best
 
 
 # ---------------------------------------------------------------- portails
 
 func _cross_portals() -> void:
 	for u in allies:
-		if not u.alive:
+		if not u.alive or u.role == "escort":
 			continue
 		for p in portals:
 			if u.prev_pos.y < p.y and u.pos.y >= p.y and absf(u.pos.x - p.x) <= p.width * 0.5 and not u.crossed.has(p.id):
@@ -529,11 +627,14 @@ func _purify(p: Portal) -> bool:
 	_log("Portail purifié")
 	if p.is_seal and not nexus_shielded():
 		_log("Sceaux brisés : le Nexus est vulnérable !")
-		_event({"t": "ring", "pos": NEXUS_POS, "r": 2.0, "color": "FFF6C8", "dur": 0.9})
+		for n in nexi:
+			_event({"t": "ring", "pos": n["pos"], "r": 2.0, "color": "FFF6C8", "dur": 0.9})
 	return true
 
 
 func nexus_shielded() -> bool:
+	if objective == "escort":
+		return true
 	for p in portals:
 		if p.is_seal and not p.purified:
 			return true
@@ -696,8 +797,9 @@ func _tick_status() -> void:
 			u.slow_t -= TICK
 			if u.slow_t <= 0.0:
 				u.slow_stacks = 0
-	nexus_wither_t = maxf(0.0, nexus_wither_t - TICK)
-	nexus_flash = maxf(0.0, nexus_flash - TICK)
+	for n in nexi:
+		n["flash"] = maxf(0.0, float(n["flash"]) - TICK)
+		n["wither"] = maxf(0.0, float(n["wither"]) - TICK)
 	barrier_flash = maxf(0.0, barrier_flash - TICK)
 	_heal_log_t = maxf(0.0, _heal_log_t - TICK)
 	_shield_fx_t = maxf(0.0, _shield_fx_t - TICK)
@@ -771,6 +873,11 @@ func _resolve_contacts() -> void:
 						best = e
 		if best == null:
 			continue
+		if best == boss and not a.siege:
+			# Comme sur un Nexus : l'invocation frappe une fois le boss et se dissipe.
+			_hit(a, best)
+			a.alive = false
+			continue
 		a.engaged = true
 		best.engaged = true
 		var a_can := a.atk_cd <= 0.0
@@ -823,23 +930,43 @@ func _enemy_abilities() -> void:
 		var d: Dictionary = units_db[e.kind]
 		if e.role == "soigneur":
 			e.cast_cd = e.cast_interval
-			var amount := float(d.get("heal_nexus", 0.0)) * enemy_mult
-			if nexus_wither_t > 0.0:
-				amount *= 0.5
-			if amount > 0.0 and nexus_hp < nexus_max:
-				var before := nexus_hp
-				nexus_hp = minf(nexus_max, nexus_hp + amount)
-				healed_total += nexus_hp - before
-				_event({"t": "beam", "a": e.pos, "b": NEXUS_POS, "color": "6FE39A", "dur": 0.35})
-				_event({"t": "text", "pos": NEXUS_POS + Vector2(1.0, -0.2), "text": "+%d" % int(nexus_hp - before), "color": "6FE39A"})
-				if _heal_log_t <= 0.0:
-					_heal_log_t = 8.0
-					_log("Une Dryade soigne le Nexus !")
+			if boss != null and boss.alive:
+				var amount_b := boss.max_hp * float(d["heal_boss"]) if d.has("heal_boss") else float(d.get("heal_nexus", 0.0)) * enemy_mult
+				if boss.wither_t > 0.0:
+					amount_b *= 0.5
+				if boss.hp < boss.max_hp:
+					var before_b := boss.hp
+					boss.hp = minf(boss.max_hp, boss.hp + amount_b)
+					healed_total += boss.hp - before_b
+					_event({"t": "beam", "a": e.pos, "b": boss.pos, "color": "6FE39A", "dur": 0.35})
+					_event({"t": "text", "pos": boss.pos + Vector2(1.4, -0.4), "text": "+%d" % int(boss.hp - before_b), "color": "6FE39A"})
+					if _heal_log_t <= 0.0:
+						_heal_log_t = 8.0
+						_log("Les Fleurs-sèves soignent %s !" % boss_name)
+			else:
+				var target: Dictionary = {}
+				var worst := 2.0
+				for n in nexi:
+					if n["alive"] and float(n["hp"]) / float(n["max"]) < worst:
+						worst = float(n["hp"]) / float(n["max"])
+						target = n
+				var amount := float(d.get("heal_nexus", 0.0)) * enemy_mult
+				if not target.is_empty() and float(target["wither"]) > 0.0:
+					amount *= 0.5
+				if amount > 0.0 and not target.is_empty() and float(target["hp"]) < float(target["max"]):
+					var before := float(target["hp"])
+					target["hp"] = minf(float(target["max"]), before + amount)
+					healed_total += float(target["hp"]) - before
+					_event({"t": "beam", "a": e.pos, "b": target["pos"], "color": "6FE39A", "dur": 0.35})
+					_event({"t": "text", "pos": (target["pos"] as Vector2) + Vector2(1.0, -0.2), "text": "+%d" % int(float(target["hp"]) - before), "color": "6FE39A"})
+					if _heal_log_t <= 0.0:
+						_heal_log_t = 8.0
+						_log("Une Dryade soigne le Nexus !")
 			var hu := float(d.get("heal_units", 0.0))
 			if hu > 0.0:
 				for o in _query(_grid_e, e.pos, 1.5):
-					if o != e:
-						o.hp = minf(o.max_hp, o.hp + o.max_hp * hu * (0.5 if o.wither_t > 0.0 else 1.0))
+					if o != e and o != boss:
+						o.hp = minf(o.max_hp, o.hp + _dot_base(o) * hu * (0.5 if o.wither_t > 0.0 else 1.0))
 		elif e.role == "lanceur":
 			var tgt := _nearest(_grid_a, e.pos, float(d.get("cast_range", 3.5)))
 			if tgt == null:
@@ -857,18 +984,31 @@ func _nexus_pulse() -> void:
 	if _pulse_t > 0.0:
 		return
 	_pulse_t = NEXUS_PULSE_INTERVAL
-	var hit := false
-	for a in _query(_grid_a, NEXUS_POS, NEXUS_PULSE_RANGE):
-		_damage(a, NEXUS_PULSE_DMG * enemy_mult * 100.0 / (100.0 + a.defense), "")
-		hit = true
-	if hit:
-		_event({"t": "ring", "pos": NEXUS_POS, "r": NEXUS_PULSE_RANGE, "color": "B07CFF", "dur": 0.4})
+	if boss != null and boss.alive:
+		var hit_b := false
+		var br := boss.radius + 1.1
+		for a in _query(_grid_a, boss.pos, br):
+			_damage(a, NEXUS_PULSE_DMG * 1.4 * enemy_mult * 100.0 / (100.0 + a.defense), "")
+			hit_b = true
+		if hit_b:
+			_event({"t": "ring", "pos": boss.pos, "r": br, "color": "D93CF2", "dur": 0.4})
+	for n in nexi:
+		if not n["alive"]:
+			continue
+		var hit := false
+		for a in _query(_grid_a, n["pos"], NEXUS_PULSE_RANGE):
+			if a.role == "escort":
+				continue
+			_damage(a, NEXUS_PULSE_DMG * enemy_mult * 100.0 / (100.0 + a.defense), "")
+			hit = true
+		if hit:
+			_event({"t": "ring", "pos": n["pos"], "r": NEXUS_PULSE_RANGE, "color": "B07CFF", "dur": 0.4})
 
 
 func _reach_checks() -> void:
 	var shielded := nexus_shielded()
 	for a in allies:
-		if not a.alive:
+		if not a.alive or a.role == "escort":
 			continue
 		var touched := false
 		for t in towers:
@@ -896,27 +1036,40 @@ func _reach_checks() -> void:
 			break
 		if touched or not a.alive:
 			continue
-		var rn := NEXUS_R + a.radius
-		if a.pos.distance_squared_to(NEXUS_POS) > rn * rn:
-			continue
-		if a.siege:
-			a.engaged = true
-			if a.atk_cd > 0.0:
+		for n in nexi:
+			if not n["alive"]:
 				continue
-			a.atk_cd = a.atk_interval
-		else:
-			a.alive = false
-		if shielded:
-			if _shield_fx_t <= 0.0:
-				_shield_fx_t = 0.4
-				_event({"t": "ring", "pos": NEXUS_POS, "r": 1.3, "color": "D93CF2", "dur": 0.35})
-			continue
-		var dmg := a.atk * (1.5 if rng.randf() < a.crit else 1.0)
-		nexus_hp -= dmg
-		nexus_flash = 0.12
-		_nexus_dmg_acc += dmg
-		if a.element == "ombre":
-			nexus_wither_t = 5.0
+			var np: Vector2 = n["pos"]
+			var rn := NEXUS_R + a.radius
+			if a.pos.distance_squared_to(np) > rn * rn:
+				continue
+			if a.siege:
+				a.engaged = true
+				if a.atk_cd > 0.0:
+					break
+				a.atk_cd = a.atk_interval
+			else:
+				a.alive = false
+			if shielded:
+				if _shield_fx_t <= 0.0:
+					_shield_fx_t = 0.4
+					_event({"t": "ring", "pos": np, "r": 1.3, "color": "D93CF2", "dur": 0.35})
+				break
+			var dmg := a.atk * (1.5 if rng.randf() < a.crit else 1.0)
+			n["hp"] = float(n["hp"]) - dmg
+			n["flash"] = 0.12
+			_nexus_dmg_acc += dmg
+			_nexus_dmg_pos = np
+			if a.element == "ombre":
+				n["wither"] = 5.0
+			if float(n["hp"]) <= 0.0:
+				n["hp"] = 0.0
+				n["alive"] = false
+				surge = minf(100.0, surge + 15.0)
+				_event({"t": "ring", "pos": np, "r": 3.0, "color": "F2C46B", "dur": 1.0})
+				if not _all_nexi_dead():
+					_log("Un Nexus est détruit !")
+			break
 	for e in enemies:
 		if e.alive and e.pos.y <= BARRIER_Y:
 			e.alive = false
@@ -925,8 +1078,219 @@ func _reach_checks() -> void:
 	if _nexus_dmg_t >= 0.4:
 		_nexus_dmg_t = 0.0
 		if _nexus_dmg_acc >= 1.0:
-			_event({"t": "text", "pos": NEXUS_POS + Vector2(rng.randf_range(-0.7, 0.7), -0.5), "text": "-%d" % int(_nexus_dmg_acc), "color": "FFFFFF"})
+			_event({"t": "text", "pos": _nexus_dmg_pos + Vector2(rng.randf_range(-0.7, 0.7), -0.5), "text": "-%d" % int(_nexus_dmg_acc), "color": "FFFFFF"})
 		_nexus_dmg_acc = 0.0
+
+
+func _defeated_word() -> String:
+	return "vaincue" if boss != null and bool(units_db[boss.kind].get("fem", false)) else "vaincu"
+
+
+func _all_nexi_dead() -> bool:
+	for n in nexi:
+		if n["alive"]:
+			return false
+	return true
+
+
+func _sync_nexus() -> void:
+	var hp := 0.0
+	var mx := 0.0
+	var fl := 0.0
+	var wi := 0.0
+	for n in nexi:
+		hp += maxf(0.0, float(n["hp"]))
+		mx += float(n["max"])
+		fl = maxf(fl, float(n["flash"]))
+		wi = maxf(wi, float(n["wither"]))
+	nexus_hp = hp
+	nexus_max = maxf(1.0, mx)
+	nexus_flash = fl
+	nexus_wither_t = wi
+
+
+# ---------------------------------------------------------------- boss, attaques annoncées, lucioles
+
+func _enter_phase(i: int) -> void:
+	boss_phase = i
+	boss_timers.clear()
+	var phases: Array = level["boss"].get("phases", [])
+	if i < phases.size():
+		var list: Array = phases[i]
+		for j in range(list.size()):
+			boss_timers[j] = float((list[j] as Dictionary).get("cd", 10.0)) * (0.45 if j == 0 else 0.75)
+	var onp: Array = level["boss"].get("on_phase", [])
+	if i < onp.size():
+		for ab in onp[i]:
+			_boss_ability(ab)
+	if i > 0:
+		_log("%s entre en phase %d !" % [boss_name, i + 1])
+		_event({"t": "ring", "pos": boss.pos, "r": 3.0, "color": "D93CF2", "dur": 0.8})
+
+
+func _update_boss() -> void:
+	if boss == null or not boss.alive:
+		return
+	boss_shield_t = maxf(0.0, boss_shield_t - TICK)
+	var ratio := boss.hp / boss.max_hp
+	var want := 2 if ratio <= 0.33 else (1 if ratio <= 0.66 else 0)
+	if want > boss_phase:
+		_enter_phase(want)
+	var phases: Array = level["boss"].get("phases", [])
+	if boss_phase >= phases.size():
+		return
+	var list: Array = phases[boss_phase]
+	for j in range(list.size()):
+		boss_timers[j] = float(boss_timers.get(j, 5.0)) - TICK
+		if float(boss_timers[j]) <= 0.0:
+			var ab: Dictionary = list[j]
+			boss_timers[j] = float(ab.get("cd", 10.0))
+			_boss_ability(ab)
+
+
+func _boss_ability(ab: Dictionary) -> void:
+	match str(ab["type"]):
+		"row_sweep":
+			var used: Array[float] = []
+			for k in range(int(ab.get("count", 1))):
+				var y := _target_row(used)
+				used.append(y)
+				var hw := float(ab.get("width", 1.2)) * 0.5
+				_telegraph(Rect2(0.0, y - hw, W, hw * 2.0), float(ab.get("delay", 1.5)), float(ab.get("dmg", 40)), 2.0)
+			_log("%s : balayage de racines !" % boss_name)
+		"lane_strike":
+			var used_x: Array[float] = []
+			for k in range(int(ab.get("count", 1))):
+				var x := _target_lane(used_x)
+				used_x.append(x)
+				var hw := float(ab.get("width", 1.4)) * 0.5
+				_telegraph(Rect2(x - hw, BARRIER_Y, hw * 2.0, boss.pos.y - 0.6 - BARRIER_Y), float(ab.get("delay", 1.2)), float(ab.get("dmg", 40)), 3.0)
+			_log("%s charge !" % boss_name)
+		"summon":
+			var kind := str(ab.get("kind", "mushroom"))
+			for k in range(int(ab.get("count", 4))):
+				if enemies.size() + _pending_enemies.size() >= MAX_ENEMIES:
+					break
+				_spawn_enemy(kind, boss.pos + Vector2(rng.randf_range(-2.4, 2.4), rng.randf_range(-1.8, -0.8)))
+			_event({"t": "ring", "pos": boss.pos, "r": 2.5, "color": "FF6B8A", "dur": 0.5})
+		"healers":
+			var kind := str(ab.get("kind", "flower"))
+			var count := int(ab.get("count", 3))
+			for k in range(count):
+				var x := boss.pos.x + (float(k) - float(count - 1) * 0.5) * 2.2
+				var f := _spawn_enemy(kind, Vector2(clampf(x, 0.6, W - 0.6), boss.pos.y - 1.9))
+				f.hold_y = f.pos.y
+			_log("Des Fleurs-sèves éclosent : elles soignent %s !" % boss_name)
+		"shield":
+			boss_shield_t = float(ab.get("dur", 8.0))
+			boss_shield_elem = str(ab.get("element", "feu"))
+			_log("Écorce : seul le %s blesse %s !" % [str(ELEM_NAMES.get(boss_shield_elem, boss_shield_elem)), boss_name])
+			_event({"t": "ring", "pos": boss.pos, "r": 2.0, "color": "8A5A30", "dur": 0.6})
+
+
+func _telegraph(r: Rect2, delay: float, dmg: float, barrier_dmg: float) -> void:
+	telegraphs.append({"rect": r, "t": delay, "dur": delay, "dmg": dmg * enemy_mult, "barrier": barrier_dmg})
+
+
+func _update_telegraphs() -> void:
+	var i := 0
+	while i < telegraphs.size():
+		var tg: Dictionary = telegraphs[i]
+		tg["t"] = float(tg["t"]) - TICK
+		if float(tg["t"]) > 0.0:
+			i += 1
+			continue
+		var r: Rect2 = tg["rect"]
+		for a in allies:
+			if a.alive and r.has_point(a.pos):
+				var dmg := float(tg["dmg"]) * 100.0 / (100.0 + a.defense)
+				_damage(a, dmg * (0.4 if a.role == "escort" else 1.0), "")
+		if float(tg["barrier"]) > 0.0:
+			_hurt_barrier(float(tg["barrier"]))
+		_event({"t": "strike", "rect": r, "dur": 0.35})
+		telegraphs.remove_at(i)
+
+
+func _target_row(avoid: Array[float]) -> float:
+	var best_y := rng.randf_range(3.0, 11.0)
+	var best_n := -1
+	var y := 2.5
+	while y <= 12.0:
+		var ok := true
+		for v in avoid:
+			if absf(v - y) < 2.0:
+				ok = false
+		if ok:
+			var n := 0
+			for a in allies:
+				if a.alive and absf(a.pos.y - y) <= 0.7:
+					n += 1
+			if n > best_n:
+				best_n = n
+				best_y = y
+		y += 0.5
+	return best_y
+
+
+func _target_lane(avoid: Array[float]) -> float:
+	var best_x := rng.randf_range(1.0, W - 1.0)
+	var best_n := -1
+	var x := 0.8
+	while x <= W - 0.8:
+		var ok := true
+		for v in avoid:
+			if absf(v - x) < 1.8:
+				ok = false
+		if ok:
+			var n := 0
+			for a in allies:
+				if a.alive and a.pos.y < boss.pos.y and absf(a.pos.x - x) <= 0.7:
+					n += 1
+			if n > best_n:
+				best_n = n
+				best_x = x
+		x += 0.5
+	return best_x
+
+
+## Escorte : des groupes surgissent sur les flancs, juste devant la Lanterne.
+var _ambush_t := 12.0
+
+
+func _update_ambush() -> void:
+	if escort == null or not escort.alive:
+		return
+	var am: Dictionary = level.get("ambush", {})
+	if am.is_empty():
+		return
+	_ambush_t -= TICK
+	if _ambush_t > 0.0:
+		return
+	_ambush_t = float(am.get("every", 14.0))
+	var side := 0.4 if rng.randf() < 0.5 else W - 0.4
+	var y := minf(escort.pos.y + float(am.get("ahead", 2.6)), H - 1.5)
+	for k in range(int(am.get("count", 5))):
+		_spawn_enemy(str(am.get("kind", "rabbit")), Vector2(side + rng.randf_range(-0.3, 0.3) * signf(4.5 - side), y + rng.randf_range(-0.5, 0.5)))
+	_log("Embuscade sur le flanc !")
+
+
+func _update_orbs() -> void:
+	for o in orbs:
+		if not o["alive"]:
+			o["t"] = float(o["t"]) - TICK
+			if float(o["t"]) <= 0.0:
+				o["alive"] = true
+				o["pos"] = _orb_spot()
+			continue
+		if _query(_grid_a, o["pos"], 0.45).is_empty():
+			continue
+		o["alive"] = false
+		o["t"] = float(orb_cfg.get("respawn", 6.0))
+		var c := casters[0]
+		var m := float(orb_cfg.get("mana", 6.0))
+		c.mana = minf(c.mana_max, c.mana + m)
+		_event({"t": "text", "pos": o["pos"], "text": "+%d mana" % int(m), "color": "9FF0FF"})
+		_event({"t": "ring", "pos": o["pos"], "r": 0.6, "color": "F2E28B", "dur": 0.4})
 
 
 func _hurt_barrier(amount: float) -> void:
@@ -973,6 +1337,8 @@ static func affinity(a: String, b: String) -> float:
 func _damage(tgt: Unit, amount: float, elem: String) -> void:
 	if not tgt.alive or amount <= 0.0:
 		return
+	if tgt == boss and boss_shield_t > 0.0 and elem != boss_shield_elem:
+		amount *= 0.1
 	if tgt.shield > 0.0:
 		var a := minf(tgt.shield, amount)
 		tgt.shield -= a
@@ -985,13 +1351,18 @@ func _damage(tgt: Unit, amount: float, elem: String) -> void:
 		_kill(tgt)
 
 
+## Base des dégâts sur la durée : PV max, plafonnés pour que boss et élites ne fondent pas.
+func _dot_base(tgt: Unit) -> float:
+	return minf(tgt.max_hp, 150.0 * enemy_mult)
+
+
 func _apply_status(tgt: Unit, elem: String) -> void:
 	if not tgt.alive:
 		return
 	match elem:
 		"feu":
 			tgt.burn_t = 3.0
-			tgt.burn_dps = maxf(tgt.burn_dps, 0.03 * tgt.max_hp * effect_mult)
+			tgt.burn_dps = maxf(tgt.burn_dps, 0.03 * _dot_base(tgt) * effect_mult)
 		"givre":
 			tgt.slow_stacks += 1
 			tgt.slow_t = 3.0
@@ -1001,7 +1372,7 @@ func _apply_status(tgt: Unit, elem: String) -> void:
 		"nature":
 			tgt.poison_stacks = mini(5, tgt.poison_stacks + 1)
 			tgt.poison_t = 4.0
-			tgt.poison_unit = 0.02 * tgt.max_hp * effect_mult
+			tgt.poison_unit = 0.02 * _dot_base(tgt) * effect_mult
 		"ombre":
 			tgt.wither_t = 5.0
 
@@ -1031,6 +1402,10 @@ func _kill(u: Unit) -> void:
 	if not u.alive:
 		return
 	u.alive = false
+	if u == boss:
+		_log("%s est %s !" % [boss_name, _defeated_word()])
+	if u == escort:
+		_log("La Lanterne s'est éteinte…")
 	if u.team == 1:
 		kills += 1
 		var big := u.role in ["brute", "bouclier", "lanceur", "soigneur"] or u.elite
@@ -1072,23 +1447,39 @@ func _compact(arr: Array[Unit]) -> void:
 
 
 func _check_end() -> void:
-	if nexus_hp <= 0.0:
-		nexus_hp = 0.0
+	var won := false
+	match objective:
+		"boss":
+			won = boss != null and not boss.alive
+		"escort":
+			won = escort != null and escort.alive and escort.pos.y >= escort_goal_y - 0.01
+		_:
+			won = _all_nexi_dead()
+	if won:
 		state = "victory"
 		stars = 1
 		if barrier_hp / barrier_max > 0.5:
 			stars += 1
 			if time <= par_time:
 				stars += 1
+		match objective:
+			"boss":
+				end_reason = "%s est %s !" % [boss_name, _defeated_word()]
+			"escort":
+				end_reason = "La Lanterne de l'Aube purifie le Nexus !"
+			_:
+				end_reason = "Le Nexus est détruit !" if nexi.size() <= 1 else "Les Nexus sont détruits !"
 		_log("Victoire !")
-		_event({"t": "ring", "pos": NEXUS_POS, "r": 4.0, "color": "F2C46B", "dur": 1.2})
+		_event({"t": "ring", "pos": objective_pos(), "r": 4.0, "color": "F2C46B", "dur": 1.2})
 		return
-	if barrier_hp <= 0.0:
-		barrier_hp = 0.0
+	var lost_escort := escort != null and not escort.alive
+	if barrier_hp <= 0.0 or lost_escort:
+		barrier_hp = maxf(0.0, barrier_hp)
 		state = "defeat"
-		_log("La Barrière est tombée…")
+		end_reason = "La Lanterne s'est éteinte…" if lost_escort else "La Barrière est tombée…"
+		_log(end_reason)
 		return
-	var ratio := nexus_hp / nexus_max
+	var ratio := objective_ratio()
 	for i in range(echo_thresholds.size()):
 		if not _echo_done[i] and ratio <= echo_thresholds[i]:
 			_echo_done[i] = true
@@ -1219,10 +1610,16 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 						surge = minf(100.0, surge + 10.0)
 						_log("Tour de garde détruite (+10 Surge)")
 			var nr := float(sp.get("nexus_ratio", 0.0))
-			if nr > 0.0 and at.distance_to(NEXUS_POS) <= r + NEXUS_R and not nexus_shielded():
-				nexus_hp -= dmg * nr
-				nexus_flash = 0.2
-				_event({"t": "text", "pos": NEXUS_POS + Vector2(0.0, -0.8), "text": "-%d" % int(dmg * nr), "color": "FFFFFF"})
+			if nr > 0.0 and not nexus_shielded():
+				for n in nexi:
+					if n["alive"] and at.distance_to(n["pos"]) <= r + NEXUS_R:
+						n["hp"] = float(n["hp"]) - dmg * nr
+						n["flash"] = 0.2
+						if float(n["hp"]) <= 0.0:
+							n["hp"] = 0.0
+							n["alive"] = false
+						_event({"t": "text", "pos": (n["pos"] as Vector2) + Vector2(0.0, -0.8), "text": "-%d" % int(dmg * nr), "color": "FFFFFF"})
+				_sync_nexus()
 			_event({"t": "ring", "pos": at, "r": r, "color": col, "dur": 0.45})
 			return true
 		"purify":
@@ -1360,11 +1757,114 @@ func total_threat() -> float:
 
 
 func nexus_access_at(x: float) -> float:
-	var v := 2.0 / (1.0 + absf(x - NEXUS_POS.x))
+	var v := 0.0
+	for tx in _objective_xs():
+		v = maxf(v, 2.0 / (1.0 + absf(x - tx)))
+	if escort != null and escort.alive:
+		v += 1.5 / (1.0 + absf(x - escort.pos.x))
 	for e in enemies:
 		if e.alive and e.role == "soigneur" and absf(e.pos.x - x) < 0.8:
 			v += 3.0
 	return v
+
+
+func _objective_xs() -> Array[float]:
+	var out: Array[float] = []
+	if boss != null and boss.alive:
+		out.append(boss.pos.x)
+	for n in nexi:
+		if n["alive"]:
+			out.append((n["pos"] as Vector2).x)
+	if out.is_empty():
+		out.append(NEXUS_POS.x)
+	return out
+
+
+# ---------------------------------------------------------------- objectif (interface et IA)
+
+## Part restante de l'objectif : 1 au départ, 0 à la victoire.
+func objective_ratio() -> float:
+	match objective:
+		"boss":
+			return clampf(boss.hp / boss.max_hp, 0.0, 1.0) if boss != null else 0.0
+		"escort":
+			if escort == null:
+				return 0.0
+			return clampf(1.0 - (escort.pos.y - escort_start_y) / maxf(0.1, escort_goal_y - escort_start_y), 0.0, 1.0)
+	return clampf(nexus_hp / maxf(1.0, nexus_max), 0.0, 1.0)
+
+
+func objective_title() -> String:
+	match objective:
+		"boss":
+			return boss_name.to_upper()
+		"escort":
+			return "LANTERNE DE L'AUBE"
+	return "NEXUS" if nexi.size() <= 1 else "%d NEXUS" % nexi.size()
+
+
+## Valeur et maximum de la barre d'objectif.
+func objective_bar() -> Vector2:
+	match objective:
+		"boss":
+			return Vector2(maxf(0.0, boss.hp), boss.max_hp) if boss != null else Vector2(0.0, 1.0)
+		"escort":
+			return Vector2(1.0 - objective_ratio(), 1.0)
+	return Vector2(nexus_hp, nexus_max)
+
+
+func objective_info() -> String:
+	var parts: Array[String] = []
+	match objective:
+		"boss":
+			if boss != null:
+				parts.append("%d / %d" % [int(ceil(maxf(0.0, boss.hp))), int(boss.max_hp)])
+				parts.append("phase %d/3" % (boss_phase + 1))
+				if boss_shield_t > 0.0:
+					parts.append("ÉCORCE : seul le %s blesse" % str(ELEM_NAMES.get(boss_shield_elem, boss_shield_elem)))
+		"escort":
+			if escort != null:
+				parts.append("Lanterne %d / %d PV" % [int(ceil(maxf(0.0, escort.hp))), int(escort.max_hp)])
+				parts.append("trajet %d %%" % int((1.0 - objective_ratio()) * 100.0))
+		_:
+			parts.append("%d / %d" % [int(ceil(nexus_hp)), int(nexus_max)])
+			if nexi.size() > 1:
+				var dead := 0
+				for n in nexi:
+					if not n["alive"]:
+						dead += 1
+				parts.append("%d/%d détruits" % [dead, nexi.size()])
+			if nexus_shielded():
+				parts.append("SCELLÉ (sceaux %d/%d)" % [seals_purified(), seals_total])
+	if healers_alive() > 0:
+		parts.append("soin ennemi")
+	return " · ".join(parts)
+
+
+func objective_pos() -> Vector2:
+	if boss != null and boss.alive:
+		return boss.pos
+	for n in nexi:
+		if n["alive"]:
+			return n["pos"]
+	if escort != null:
+		return escort.pos
+	return NEXUS_POS
+
+
+## Débogage et tests : place l'objectif à une fraction donnée.
+func debug_set_ratio(r: float) -> void:
+	match objective:
+		"boss":
+			boss.hp = boss.max_hp * r
+		"escort":
+			escort.pos.y = escort_start_y + (escort_goal_y - escort_start_y) * (1.0 - r)
+		_:
+			for n in nexi:
+				n["hp"] = float(n["max"]) * r
+				if r <= 0.0:
+					n["alive"] = false
+			_sync_nexus()
 
 
 func healer_pos() -> Vector2:

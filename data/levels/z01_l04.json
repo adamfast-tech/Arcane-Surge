@@ -9,7 +9,7 @@
   "desc": "Portails négatifs : -5 absorbe tes unités, ÷2 en détruit une sur deux. Purifie-les avec le sort Purifier. Donne des ordres à tes bots.",
   "par_time": 120,
   "nexus": {
-    "hp": 32000
+    "hp": 56000
   },
   "towers": [
     {
@@ -80,5 +80,9 @@
       "pixie": 1.5
     }
   },
-  "initial_enemies": []
+  "initial_enemies": [],
+  "party": [
+    "brann",
+    "sylwen"
+  ]
 }

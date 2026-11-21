@@ -3,7 +3,7 @@ extends Control
 ## Écran de combat : arène pixel-art + HUD (portrait ou paysage selon la fenêtre),
 ## commandes tactiles / souris / clavier, fenêtres Échos, pause et fin de partie.
 
-signal exit_requested
+signal exit_requested(dest: String)
 signal restart_requested
 
 const TOP_H := 150.0
@@ -40,6 +40,9 @@ var _side_w := 360.0
 # Références du HUD (reconstruites à chaque changement d'orientation)
 var nexus_bar: ProgressBar
 var nexus_info: Label
+var obj_title: Label
+var _opts: Dictionary = {}
+var _rewards: Dictionary = {}
 var barrier_bar: ProgressBar
 var barrier_label: Label
 var surge_bar: ProgressBar
@@ -58,7 +61,8 @@ var hint_label: Label
 var toast_label: Label
 
 
-func configure(id: String, solo_mode: bool) -> void:
+func configure(id: String, solo_mode: bool, opts: Dictionary = {}) -> void:
+	_opts = opts
 	level_id = id
 	solo = solo_mode
 
@@ -68,7 +72,9 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_level = GameData.level(level_id)
 	sim = BattleSim.new()
-	sim.setup(_level, GameData.party(), int(Time.get_ticks_usec() % 1000000), {"solo": solo})
+	var o := _opts.duplicate()
+	o["solo"] = solo
+	sim.setup(_level, GameData.party(), int(Time.get_ticks_usec() % 1000000), o)
 
 	vp = SubViewport.new()
 	vp.own_world_3d = true
@@ -196,7 +202,8 @@ func _build_portrait() -> void:
 	row.add_child(col)
 	var head := HBoxContainer.new()
 	col.add_child(head)
-	head.add_child(UiTheme.label("NEXUS", 24))
+	obj_title = UiTheme.label("NEXUS", 24)
+	head.add_child(obj_title)
 	head.add_child(UiTheme.spacer())
 	head.add_child(UiTheme.label("%s %s" % [str(_level.get("number", "")), str(_level.get("name", ""))], 20, UiTheme.MUTED))
 	nexus_bar = UiTheme.bar(UiTheme.NEXUS, 18)
@@ -216,13 +223,13 @@ func _build_portrait() -> void:
 	r1.add_theme_constant_override("separation", 8)
 	bv.add_child(r1)
 	for c in sim.casters:
-		if c.idx == 1:
+		if c.is_bot and c.side == "left":
 			r1.add_child(_bot_cycle_button(c))
 	champ_btn = _action_button("CHAMPION", UiTheme.GOLD)
 	champ_btn.pressed.connect(_on_champion)
 	r1.add_child(champ_btn)
 	for c in sim.casters:
-		if c.idx == 2:
+		if c.is_bot and c.side == "right":
 			r1.add_child(_bot_cycle_button(c))
 	bv.add_child(_barrier_row())
 	bv.add_child(_mana_row())
@@ -303,7 +310,8 @@ func _build_landscape() -> void:
 	th.add_child(col)
 	var head := HBoxContainer.new()
 	col.add_child(head)
-	head.add_child(UiTheme.label("NEXUS", 22))
+	obj_title = UiTheme.label("NEXUS", 22)
+	head.add_child(obj_title)
 	nexus_info = UiTheme.label("", 18, UiTheme.MUTED)
 	head.add_child(nexus_info)
 	head.add_child(UiTheme.spacer())
@@ -507,14 +515,11 @@ func _keyboard_move(delta: float) -> void:
 func _update_hud() -> void:
 	if nexus_bar == null or not is_instance_valid(nexus_bar):
 		return
-	nexus_bar.max_value = sim.nexus_max
-	nexus_bar.value = sim.nexus_hp
-	var info := "%d / %d" % [int(ceil(sim.nexus_hp)), int(sim.nexus_max)]
-	if sim.nexus_shielded():
-		info += " · SCELLÉ (sceaux %d/%d)" % [sim.seals_purified(), sim.seals_total]
-	elif sim.healers_alive() > 0:
-		info += " · soin ennemi"
-	_set_text(nexus_info, info)
+	var obar := sim.objective_bar()
+	nexus_bar.max_value = obar.y
+	nexus_bar.value = obar.x
+	_set_text(obj_title, sim.objective_title())
+	_set_text(nexus_info, sim.objective_info())
 	surge_bar.value = sim.surge
 	_set_text(surge_label, "%d%%" % int(sim.surge))
 	var c := sim.player()
@@ -653,9 +658,9 @@ func _unhandled_input(ev: InputEvent) -> void:
 			else:
 				_on_ultimate_pressed()
 		KEY_Q:
-			sim.cycle_order(1)
+			sim.cycle_order(_bot_idx("left"))
 		KEY_R:
-			sim.cycle_order(2)
+			sim.cycle_order(_bot_idx("right"))
 		KEY_F:
 			auto_fire = not auto_fire
 			sim.set_player_firing(auto_fire or _pointer_down)
@@ -812,15 +817,26 @@ func _open_pause() -> void:
 	v.add_child(restart)
 	var quit := UiTheme.button("Quitter vers le menu", 24)
 	quit.custom_minimum_size = Vector2(0, 64)
-	quit.pressed.connect(func() -> void: exit_requested.emit())
+	quit.pressed.connect(func() -> void: exit_requested.emit("map"))
 	v.add_child(quit)
+
+
+func _bot_idx(side: String) -> int:
+	for c in sim.casters:
+		if c.is_bot and c.side == side:
+			return c.idx
+	return -1
 
 
 func _open_end() -> void:
 	_end_open = true
 	aiming = ""
 	var win := sim.state == "victory"
-	var v := _modal("VICTOIRE" if win else "DÉFAITE", "Le Nexus est détruit !" if win else "La Barrière est tombée…", UiTheme.GOLD if win else UiTheme.DANGER)
+	if _rewards.is_empty():
+		_rewards = Profile.apply_battle(level_id, win, sim.stars, sim.time)
+		if Cloud.instance != null:
+			Cloud.instance.push()
+	var v := _modal("VICTOIRE" if win else "DÉFAITE", sim.end_reason, UiTheme.GOLD if win else UiTheme.DANGER)
 	if win:
 		var stars := HBoxContainer.new()
 		stars.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -831,23 +847,57 @@ func _open_end() -> void:
 			tr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 			tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			tr.custom_minimum_size = Vector2(63, 63)
+			tr.custom_minimum_size = Vector2(54, 54)
 			stars.add_child(tr)
 		v.add_child(stars)
-		var crit := _wrap_label("1 étoile : victoire · 2 : Barrière > 50 %% · 3 : et en moins de %s" % _fmt_time(sim.par_time), 18, UiTheme.MUTED)
+		var crit := _wrap_label("1 étoile : victoire · 2 : Barrière > 50 %% · 3 : et en moins de %s" % _fmt_time(sim.par_time), 17, UiTheme.MUTED)
 		crit.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		v.add_child(crit)
-	var stats := _wrap_label("Durée : %s\nEnnemis vaincus : %d\nBarrière : %d / %d\nInvocations : %d (fusions : %d)\nSoins ennemis sur le Nexus : +%d" % [
-		_fmt_time(sim.time), sim.kills, int(ceil(sim.barrier_hp)), int(sim.barrier_max), sim.summoned, sim.fusions, int(sim.healed_total)], 22, UiTheme.TEXT)
+	var stats := _wrap_label("Durée %s · %d ennemis vaincus · Barrière %d/%d" % [_fmt_time(sim.time), sim.kills, int(ceil(sim.barrier_hp)), int(sim.barrier_max)], 19, UiTheme.MUTED)
+	stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(stats)
-	var again := UiTheme.button("Rejouer", 26)
-	again.custom_minimum_size = Vector2(0, 72)
+	# Récompenses
+	var rw := PanelContainer.new()
+	rw.add_theme_stylebox_override("panel", UiTheme.box(UiTheme.PANEL2, UiTheme.BORDER, 12, 2, 12))
+	v.add_child(rw)
+	var rv := VBoxContainer.new()
+	rv.add_theme_constant_override("separation", 6)
+	rw.add_child(rv)
+	var line := "+%d XP · +%d or" % [int(_rewards.get("xp", 0)), int(_rewards.get("gold", 0))]
+	if bool(_rewards.get("first", false)):
+		line += " · 1re victoire ×2"
+	rv.add_child(UiTheme.label(line, 22, UiTheme.GOLD))
+	if int(_rewards.get("levels", 0)) > 0:
+		rv.add_child(UiTheme.label("NIVEAU %d → %d ! (+%d point de compétence)" % [int(_rewards["level_before"]), int(_rewards["level_after"]), int(_rewards["levels"])], 22, UiTheme.CYAN))
+	var mats: Dictionary = _rewards.get("materials", {})
+	if not mats.is_empty():
+		var names: Array[String] = []
+		var mdb: Dictionary = Profile.items_db()["materials"]
+		for m in mats.keys():
+			names.append("%s ×%d" % [str(mdb.get(m, {}).get("name", m)), int(mats[m])])
+		rv.add_child(UiTheme.label(" · ".join(names), 19, UiTheme.MUTED))
+	for it in _rewards.get("items", []):
+		var l := _wrap_label("%s  —  %s" % [Profile.item_name(it), Profile.stats_text(Profile.item_stats(it))], 19, Profile.item_color(it))
+		rv.add_child(l)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	v.add_child(row)
+	var again := UiTheme.button("Rejouer", 22)
+	again.custom_minimum_size = Vector2(0, 64)
+	again.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	again.pressed.connect(func() -> void: restart_requested.emit())
-	v.add_child(again)
-	var menu := UiTheme.button("Menu", 24)
-	menu.custom_minimum_size = Vector2(0, 64)
-	menu.pressed.connect(func() -> void: exit_requested.emit())
-	v.add_child(menu)
+	row.add_child(again)
+	var map := UiTheme.button("Carte", 22)
+	map.custom_minimum_size = Vector2(0, 64)
+	map.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	map.add_theme_color_override("font_color", UiTheme.GOLD)
+	map.pressed.connect(func() -> void: exit_requested.emit("map"))
+	row.add_child(map)
+	var hub := UiTheme.button("Havre-Aube", 22)
+	hub.custom_minimum_size = Vector2(0, 64)
+	hub.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hub.pressed.connect(func() -> void: exit_requested.emit("hub"))
+	row.add_child(hub)
 
 
 func _fmt_time(s: float) -> String:

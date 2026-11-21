@@ -87,6 +87,13 @@ static func build() -> Theme:
 	t.set_color("font_hover_color", "CheckBox", TEXT)
 	t.set_color("font_pressed_color", "CheckBox", GOLD)
 	t.set_stylebox("focus", "CheckBox", StyleBoxEmpty.new())
+	t.set_stylebox("normal", "LineEdit", box(Color("16122a"), BORDER, 10, 2, 12))
+	t.set_stylebox("focus", "LineEdit", box(Color("16122a"), CYAN, 10, 2, 12))
+	t.set_stylebox("read_only", "LineEdit", box(Color("16122a"), BORDER, 10, 2, 12))
+	t.set_color("font_color", "LineEdit", TEXT)
+	t.set_color("font_placeholder_color", "LineEdit", Color(MUTED, 0.7))
+	t.set_color("caret_color", "LineEdit", CYAN)
+	t.set_color("selection_color", "LineEdit", Color(CYAN, 0.35))
 	t.set_constant("separation", "VBoxContainer", 10)
 	t.set_constant("separation", "HBoxContainer", 10)
 	return t
@@ -131,3 +138,78 @@ static func spacer() -> Control:
 	c.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	c.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return c
+
+
+## Fond commun des écrans hors combat : illustration de la direction artistique, assombrie.
+static func backdrop(parent: Control, dim: float = 0.62) -> void:
+	var bg := ColorRect.new()
+	bg.color = BG
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(bg)
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var art := TextureRect.new()
+	art.texture = load("res://assets/art/title.jpg")
+	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(art)
+	art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var shade := ColorRect.new()
+	shade.color = Color(0.05, 0.04, 0.12, dim)
+	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(shade)
+	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+
+## Colonne centrée et défilante (largeur max 680 px) ; retourne le conteneur où ajouter le contenu.
+static func scroll_column(parent: Control, max_w: float = 680.0, top: float = 24.0) -> VBoxContainer:
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	parent.add_child(scroll)
+	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var center := CenterContainer.new()
+	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.add_child(center)
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 18)
+	margin.add_theme_constant_override("margin_right", 18)
+	margin.add_theme_constant_override("margin_top", int(top))
+	margin.add_theme_constant_override("margin_bottom", 32)
+	center.add_child(margin)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 14)
+	v.custom_minimum_size = Vector2(minf(max_w, parent.get_viewport_rect().size.x - 36.0), 0)
+	margin.add_child(v)
+	return v
+
+
+static func wrap(text: String, size: int = 20, color: Color = MUTED) -> Label:
+	var l := label(text, size, color)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.custom_minimum_size = Vector2(10, 0)
+	return l
+
+
+static func card(border: Color = BORDER, pad: int = 14) -> Array:
+	var pc := PanelContainer.new()
+	pc.add_theme_stylebox_override("panel", box(Color(PANEL, 0.93), border, 14, 2, pad))
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 8)
+	pc.add_child(v)
+	return [pc, v]
+
+
+static func star_row(n: int, size: int = 26) -> HBoxContainer:
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 4)
+	for i in range(3):
+		var tr := TextureRect.new()
+		tr.texture = SpriteAtlas.single("star" if i < n else "star_off")
+		tr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tr.custom_minimum_size = Vector2(size, size)
+		tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		h.add_child(tr)
+	return h

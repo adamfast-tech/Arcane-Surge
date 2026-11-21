@@ -1,0 +1,65 @@
+{
+  "id": "z01_l02",
+  "name": "Le Sentier des Lucioles",
+  "zone": 1,
+  "number": "1-2",
+  "global_level": 2,
+  "type": "Assaut",
+  "party": [
+    "sylwen"
+  ],
+  "desc": "Sylwen rejoint le Cercle. Fais passer tes invocations dans les lucioles : chacune rend du mana.",
+  "par_time": 100,
+  "nexus": {
+    "hp": 14000
+  },
+  "towers": [],
+  "orbs": {
+    "count": 6,
+    "mana": 6,
+    "respawn": 6
+  },
+  "portals": [
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.2,
+      "motion": "slide",
+      "range": 2.0,
+      "speed": 0.5
+    },
+    {
+      "kind": "add",
+      "value": 5,
+      "x": 7.3,
+      "y": 10.0,
+      "width": 2.0
+    },
+    {
+      "kind": "add",
+      "value": 5,
+      "x": 1.7,
+      "y": 10.0,
+      "width": 2.0
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 18,
+    "budget_per_level": 6,
+    "local_level": 2,
+    "growth": 0.04,
+    "spawn_y": 14.6,
+    "pool": {
+      "mushroom": 5,
+      "rabbit": 2
+    }
+  },
+  "initial_enemies": []
+}

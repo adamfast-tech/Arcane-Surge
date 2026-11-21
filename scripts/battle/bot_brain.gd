@@ -101,7 +101,7 @@ func _use_abilities(sim: BattleSim, c: BattleSim.Caster) -> void:
 	if sim.ultimate_ready():
 		var hp := sim.healer_pos()
 		var cl := sim.densest_enemy(3.0)
-		var target: Vector2 = BattleSim.NEXUS_POS
+		var target: Vector2 = sim.objective_pos()
 		if hp.x >= 0.0:
 			target = hp
 		elif int(cl["n"]) >= 8 or sim.nexus_shielded():
