@@ -1,0 +1,34 @@
+; Engine configuration file.
+; Arcane Surge — prototype de combat (Godot 4.7, rendu Compatibility pour le web).
+
+config_version=5
+
+[application]
+
+config/name="Arcane Surge"
+config/description="Prototype jouable du combat d'Arcane Surge."
+config/version="0.1.0"
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+boot_splash/bg_color=Color(0.0705882, 0.054902, 0.133333, 1)
+boot_splash/show_image=false
+config/icon="res://icon.svg"
+
+[display]
+
+window/size/viewport_width=720
+window/size/viewport_height=1280
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=6
+
+[input_devices]
+
+pointing/emulate_mouse_from_touch=true
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/canvas_textures/default_texture_filter=0
+environment/defaults/default_clear_color=Color(0.0705882, 0.054902, 0.133333, 1)

@@ -76,14 +76,14 @@ Un mode **solo** (sans bots) est jouable et récompensé : **+25 % d'XP**, mais 
 ### 4.2 Catalogue
 | Famille | Portail | Effet |
 |---|---|---|
-| Nombre | `+5`, `+10` | Ajoute N unités derrière le portail |
+| Nombre | `+5`, `+10` | Ajoute N unités derrière le portail, puis se recharge 1,5 s |
 | Nombre | `×2`, `×3` (rare) | Clone chaque unité |
 | Élément | Feu / Givre / Foudre / Nature / Lumière / Ombre | Donne cet élément à l'unité (remplace le précédent) |
 | Renfort | Puissance | +50 % ATQ |
 | Renfort | Géant | +100 % PV, taille ×1,3, −20 % VIT |
 | Renfort | Hâte | +40 % VIT |
 | Renfort | Égide | Bouclier de 10 PV |
-| Négatif (posé par l'ennemi) | `−5`, `÷2` | Retire ou divise les unités |
+| Négatif (posé par l'ennemi) | `−5`, `÷2` | `−N` absorbe N unités puis se recharge 4 s · `÷N` détruit une unité sur N |
 | Négatif | Corruption | 20 % des unités qui passent deviennent ennemies |
 | Négatif | Entrave | −50 % VIT pendant 3 s |
 
@@ -124,7 +124,7 @@ Cycle principal : **Feu → Nature → Foudre → Givre → Feu** (chaque élém
 ### 6.1 Structures
 | Structure | Rôle |
 |---|---|
-| **Nexus** | Objectif : le détruire = victoire |
+| **Nexus** | Objectif : le détruire = victoire. Pulsation défensive toutes les 2,5 s contre les unités qui l'assiègent |
 | **Tour de garde** | Tire sur les unités proches ; la détruire donne un bonus de Surge |
 | **Générateur** | Produit les vagues ; le détruire réduit la pression ennemie |
 

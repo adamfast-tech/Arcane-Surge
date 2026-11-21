@@ -1,0 +1,109 @@
+{
+  "id": "z01_l08",
+  "name": "La Source flétrie",
+  "zone": 1,
+  "number": "1-8",
+  "global_level": 8,
+  "type": "Purification",
+  "solo": false,
+  "desc": "Deux sceaux corrompus rendent le Nexus invulnérable : purifie-les (sort Purifier ou unités de Lumière). Les Dryades soignent le Nexus : abats-les en priorité.",
+  "par_time": 150,
+  "nexus": {
+    "hp": 26000
+  },
+  "towers": [
+    {
+      "x": 1.4,
+      "y": 14.1,
+      "hp": 300
+    },
+    {
+      "x": 7.6,
+      "y": 14.1,
+      "hp": 300
+    }
+  ],
+  "corrupt_spawn": "mushroom",
+  "portals": [
+    {
+      "kind": "elem",
+      "element": "feu",
+      "x": 1.7,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "motion": "slide",
+      "range": 1.4,
+      "speed": 0.5
+    },
+    {
+      "kind": "elem",
+      "element": "lumiere",
+      "x": 7.3,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "corrupt",
+      "x": 2.0,
+      "y": 10.4,
+      "width": 2.2,
+      "seal": true,
+      "purity": 10
+    },
+    {
+      "kind": "add",
+      "value": 5,
+      "x": 4.5,
+      "y": 10.4,
+      "width": 1.8
+    },
+    {
+      "kind": "sub",
+      "value": 5,
+      "x": 7.0,
+      "y": 10.4,
+      "width": 2.2,
+      "seal": true,
+      "purity": 10
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 46,
+    "budget_per_level": 13,
+    "local_level": 8,
+    "growth": 0.03,
+    "spawn_y": 14.6,
+    "pool": {
+      "mushroom": 6,
+      "rabbit": 3,
+      "bear": 1,
+      "turtle": 1.2,
+      "wisp": 0.8,
+      "dryad": 0.3
+    }
+  },
+  "initial_enemies": [
+    {
+      "kind": "dryad",
+      "x": 2.6,
+      "y": 13.3
+    },
+    {
+      "kind": "dryad",
+      "x": 6.4,
+      "y": 13.3
+    }
+  ]
+}

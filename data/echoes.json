@@ -1,0 +1,8 @@
+[
+  {"id": "resonance", "name": "Résonance", "desc": "Tous les portails « Nombre » donnent +1."},
+  {"id": "cendres_vives", "name": "Cendres vives", "desc": "Tes unités de Feu explosent à leur mort."},
+  {"id": "flux_torrentiel", "name": "Flux torrentiel", "desc": "Cadence du Flux +25 % (toi et tes bots)."},
+  {"id": "pacte_ombre", "name": "Pacte d'ombre", "desc": "Sorts à -50 % de mana, mais chaque sort coûte 1 PV de Barrière."},
+  {"id": "echo_jumeau", "name": "Écho jumeau", "desc": "Ton prochain Champion apparaît en double."},
+  {"id": "bastion", "name": "Bastion", "desc": "+30 PV de Barrière (max et actuels).", "stackable": true}
+]

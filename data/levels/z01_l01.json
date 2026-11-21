@@ -1,0 +1,50 @@
+{
+  "id": "z01_l01",
+  "name": "Premières lueurs",
+  "zone": 1,
+  "number": "1-1",
+  "global_level": 1,
+  "type": "Assaut",
+  "solo": true,
+  "desc": "Tutoriel. Maintiens sur l'arène pour lancer le Flux, glisse pour viser les portails.",
+  "par_time": 90,
+  "nexus": {
+    "hp": 10000
+  },
+  "towers": [],
+  "portals": [
+    {
+      "kind": "add",
+      "value": 5,
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.4
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 4.5,
+      "y": 10.0,
+      "width": 2.2,
+      "motion": "slide",
+      "range": 2.2,
+      "speed": 0.6
+    }
+  ],
+  "waves": {
+    "first": 4,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 10,
+    "budget_per_level": 4,
+    "local_level": 1,
+    "growth": 0.05,
+    "spawn_y": 14.6,
+    "pool": {
+      "mushroom": 1
+    }
+  },
+  "initial_enemies": []
+}
