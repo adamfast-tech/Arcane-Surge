@@ -101,19 +101,36 @@ Dragons, Boss. Chaque catégorie a faiblesses/résistances élémentaires → st
   avec avertissement narratif. Le monde se réécrit à partir de ce point.
 
 ## 12. Plateformes & formats
-iOS (iPhone 16 Pro Max, iPad), Android, PC (16:9, 16:10). Orientation portrait sur téléphone ;
-iPad/PC : portrait centré ou layout adapté — **à décider**.
+iOS (iPhone 16 Pro Max, iPad), Android, PC (16:9, 16:10).
+**Orientation au choix du joueur** (réglage + détection) :
+- **Portrait** : arène verticale, HUD compact (sorts en bas, jauge Surge en haut).
+- **Paysage** : arène élargie + panneaux latéraux (stats des bots, file de sorts, journal de combat, minimap).
+- Même logique de jeu ; seule la caméra et le layout UI changent (UI responsive par conteneurs Godot).
 
-## 13. Décisions ouvertes
-1. **Moteur** : Unity (recommandé : 3D/2.5D, mobile+PC, écosystème) vs Godot (gratuit, plus léger) vs Web (prototype rapide).
-2. Style visuel : 2D, 2.5D isométrique, ou 3D low-poly stylisé.
-3. Modèle économique : premium, free-to-play (cosmétiques), ou pub.
-4. Hors-ligne seul ou compte/sauvegarde cloud.
-5. Durée cible d'une partie.
+## 13. Décisions techniques (validées)
+| Sujet | Choix |
+|---|---|
+| Moteur | **Godot 4** (GDScript), export iOS / Android / Windows / macOS |
+| Style visuel | **2.5D isométrique pixel-art** haute densité, éclairage atmosphérique (brume, lueurs magiques, lune). Réf. : `docs/art/style-reference-01.jpg` |
+| Performance | **60 fps cible, 40 fps plancher** stable ; pooling d'unités, batching, particules GPU |
+| Animations | Pixel-art fluide : sprites 8–12 frames + interpolation/tweens, VFX shaders (glow, distorsion) |
+| Économie | Gratuit au lancement → plus tard F2P **cosmétiques uniquement**. **Zéro pub forcée** ; pubs récompensées **optionnelles** (bonus loot/XP, relance) |
+| Sauvegarde | Compte + sauvegarde cloud **Supabase**, mode hors-ligne avec synchro différée |
+| Backend | Projet Supabase partagé `academie-cmd-powershell` (même login que les apps Académie) ; table `public.profiles` réutilisée, tables du jeu préfixées `arcane_` avec RLS |
+
+### Direction artistique (d'après la référence)
+- Palette nuit : violets, bleus profonds, verts mousse ; accents cyan/violet pour la magie, ambre pour les torches.
+- Décors : ruines envahies de végétation, brume en couches, profondeur par parallaxe.
+- Contraste lisibilité : unités et projectiles plus saturés que le décor.
+- Chaque zone décline sa propre palette (zone 1 lumineuse/douce → zones finales sombres/saturées en violet-noir).
+
+## 13 bis. Décisions encore ouvertes
+1. Durée cible d'une partie (proposé : 2–4 min).
+2. Pseudo/profil commun avec les apps Académie ou profil de jeu séparé.
 
 ## 14. Feuille de route des étapes
 1. ✅ Vision (ce document)
-2. Décisions techniques (moteur, style, économie)
+2. ✅ Décisions techniques (moteur, style, économie)
 3. Combat détaillé : formules, portails, IA des bots
 4. Classes & races : stats, arbres de compétences
 5. Équipement, runes, crafting, rareté
