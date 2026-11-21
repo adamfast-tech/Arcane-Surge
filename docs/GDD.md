@@ -151,5 +151,5 @@ iOS (iPhone 16 Pro Max, iPad), Android, PC (16:9, 16:10).
 7. ✅ Narration : lore, arbre de choix, « Changer le futur »
 8. ✅ UI/UX : écrans, formats d'écran — [`design/08-ui-ux.md`](design/08-ui-ux.md), maquettes : `mockups/`
 9. ✅ Prototype jouable (combat seul) — [`design/09-prototype.md`](design/09-prototype.md)
-10. Itérations : hub, progression, contenu
+10. Itérations : hub, progression, contenu — sprites : [`design/10-sprites.md`](design/10-sprites.md)
 11. Saison 2 : zones 11–15, niveau max 150, L'Ourdisseur (fils semés en saison 1)

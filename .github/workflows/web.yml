@@ -2,12 +2,11 @@ name: Web build & GitHub Pages
 
 on:
   push:
+    branches-ignore: [gh-pages]
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: web-${{ github.ref }}
@@ -44,21 +43,23 @@ jobs:
 
       - name: Export web
         run: |
-          mkdir -p build/web
+          mkdir -p build/web && touch build/.gdignore
           $RUNNER_TEMP/godot --headless --path . --export-release "Web" build/web/index.html
           test -f build/web/index.wasm
 
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: build/web
-
-  deploy:
-    needs: build
-    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Publier sur la branche gh-pages
+        if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          remote="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if ! git clone -q --depth 1 --branch gh-pages "$remote" site; then
+            mkdir site && cd site && git init -q && git checkout -q -b gh-pages && git remote add origin "$remote" && cd ..
+          fi
+          rsync -a --delete --exclude .git --exclude '*.import' build/web/ site/
+          touch site/.nojekyll
+          cd site
+          git add -A
+          if git diff --cached --quiet; then echo "Rien de nouveau à publier"; exit 0; fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "Version web ${GITHUB_SHA::7}"
+          git push -q origin gh-pages

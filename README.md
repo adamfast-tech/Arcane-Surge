@@ -54,15 +54,14 @@ godot --headless --path . --export-release "Web" build/web/index.html           
 | `tools/` | Simulateur d'équilibrage et test de fumée (sans affichage) |
 
 ### Remplacer les sprites
-Les sprites actuels sont générés par code, en attendant des sprites dessinés. Pour remplacer un personnage, déposer `assets/sprites/<nom>.png`, les 2 images d'animation côte à côte, avec un fond transparent.
-- **Alliés, vus de dos** : `mage`, `brann`, `sylwen`, `familiar`, `knight`, `archer`, `golem`, `fusion`, `skeleton`.
-- **Ennemis, vus de face** : `mushroom`, `rabbit`, `bear`, `pixie`, `turtle`, `wisp`, `dryad`.
+Les sprites actuels sont générés par code. Pour en remplacer un, déposer `assets/sprites/<nom>.png`, et en option `<nom>-2.png` pour la 2e image d'animation, avec un fond transparent.
+- La taille en jeu est fixée en mètres : n'importe quelle résolution convient.
+- Les fiches de chaque personnage (vue, taille de toile, palette, prompts prêts à l'emploi) sont dans [`docs/design/10-sprites.md`](docs/design/10-sprites.md).
+- La planche des sprites actuels est [`docs/sprites/planche.png`](docs/sprites/planche.png).
 
 ## Mise en ligne (GitHub Pages)
 
-Le workflow `.github/workflows/web.yml` importe le projet, lance les tests, exporte la version web et la publie sur GitHub Pages à chaque push sur la branche par défaut.
-
-À faire une seule fois : **Settings → Pages → Build and deployment → Source : « GitHub Actions »**.
+Le workflow `.github/workflows/web.yml` importe le projet, lance les tests et exporte la version web. À chaque push sur la branche par défaut, il publie le résultat sur la branche `gh-pages`, servie par GitHub Pages.
 
 ## Licences
 

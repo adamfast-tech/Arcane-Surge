@@ -14,6 +14,13 @@ const ELEM := {
 	"lumiere": ["4a3a10", "b89a3a", "f5e7a0", "fffbe8"],
 	"ombre": ["1a1035", "3b2a6b", "8e62e0", "d0b0ff"],
 }
+## Hauteur en jeu (mètres) : un sprite remplacé, quelle que soit sa résolution, garde cette taille.
+const HEIGHT_M := {
+	"mage": 1.5, "brann": 1.25, "sylwen": 1.45,
+	"familiar": 0.64, "knight": 0.75, "archer": 0.75, "skeleton": 0.7, "golem": 1.0, "fusion": 0.66,
+	"mushroom": 0.58, "rabbit": 0.62, "bear": 0.9, "pixie": 0.52, "turtle": 0.58, "wisp": 0.7, "dryad": 1.05,
+	"cross": 0.29, "px": 1.0,
+}
 ## Sprites dont les lettres o/d/m/l prennent les couleurs de l'élément.
 const RECOLOR := ["familiar", "knight", "archer", "golem", "fusion"]
 
@@ -550,6 +557,10 @@ static func frame(name: String, element: String = "", index: int = 0) -> Diction
 	return arr[index % arr.size()]
 
 
+static func height_m(name: String) -> float:
+	return float(HEIGHT_M.get(name, 0.7))
+
+
 static func frame_count(name: String) -> int:
 	if _texture == null:
 		_build()
@@ -614,15 +625,17 @@ static func _images_for(name: String, element: String) -> Array[Image]:
 	var out: Array[Image] = []
 	var override := "res://assets/sprites/%s.png" % name
 	if ResourceLoader.exists(override):
-		var tex: Texture2D = load(override)
-		var full := tex.get_image()
-		full.decompress()
-		full.convert(Image.FORMAT_RGBA8)
-		var def: Dictionary = DEFS.get(name, {})
-		var n := maxi(1, (def.get("frames", [[]]) as Array).size())
-		var fw := int(full.get_width() / float(n))
-		for i in range(n):
-			out.append(full.get_region(Rect2i(i * fw, 0, fw, full.get_height())))
+		for path in [override, "res://assets/sprites/%s-2.png" % name]:
+			if not ResourceLoader.exists(path):
+				continue
+			var tex: Texture2D = load(path)
+			var img := tex.get_image()
+			if img.is_compressed():
+				img.decompress()
+			img.convert(Image.FORMAT_RGBA8)
+			if RECOLOR.has(name):
+				_tint_neutral(img, element)
+			out.append(img)
 		return out
 	var d: Dictionary = DEFS[name]
 	var pal: Dictionary = (d["pal"] as Dictionary).duplicate()
@@ -638,6 +651,27 @@ static func _images_for(name: String, element: String) -> Array[Image]:
 	for rows in d["frames"]:
 		out.append(_rasterize(rows, pal))
 	return out
+
+
+## Parties en gris neutre -> rampe de couleurs de l'élément (noir : foncé, gris : principal, blanc : reflet).
+static func _tint_neutral(img: Image, element: String) -> void:
+	var ec: Array = ELEM[element if ELEM.has(element) else "physique"]
+	var ramp := [Color(str(ec[0])), Color(str(ec[1])), Color(str(ec[2])), Color(str(ec[3]))]
+	for y in range(img.get_height()):
+		for x in range(img.get_width()):
+			var c := img.get_pixel(x, y)
+			if c.a <= 0.0 or c.s > 0.15:
+				continue
+			var v := c.v
+			var out: Color
+			if v < 0.3:
+				out = (ramp[0] as Color).lerp(ramp[1], v / 0.3)
+			elif v < 0.7:
+				out = (ramp[1] as Color).lerp(ramp[2], (v - 0.3) / 0.4)
+			else:
+				out = (ramp[2] as Color).lerp(ramp[3], (v - 0.7) / 0.3)
+			out.a = c.a
+			img.set_pixel(x, y, out)
 
 
 static func _rasterize(rows: Array, pal: Dictionary) -> Image:

@@ -601,7 +601,7 @@ func _build_casters() -> void:
 		var s := Sprite3D.new()
 		s.texture = tex
 		s.region_enabled = true
-		s.pixel_size = TEXEL * 1.25
+		s.pixel_size = TEXEL
 		s.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 		s.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 		s.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
@@ -795,8 +795,8 @@ func _put_unit(u: Unit, n: int, cam_right: Vector3, cam_back: Vector3) -> int:
 	var lp := u.prev_pos.lerp(u.pos, alpha)
 	var moving := not u.engaged and u.speed_factor() > 0.0
 	var fr := SpriteAtlas.frame(u.sprite, u.element, int(u.anim * 6.0) if moving else 0)
-	var w := float(fr["w"]) * TEXEL
-	var h := float(fr["h"]) * TEXEL
+	var h := SpriteAtlas.height_m(u.sprite)
+	var w := h * float(fr["w"]) / float(fr["h"])
 	var bob := absf(sin(u.anim * 9.0)) * 0.035 if moving else 0.0
 	var pos := w3(lp, bob)
 	_units_mm.set_instance_transform(n, Transform3D(Basis.from_scale(Vector3(w, h, 1.0)), pos))
@@ -810,7 +810,8 @@ func _put_unit(u: Unit, n: int, cam_right: Vector3, cam_back: Vector3) -> int:
 	if u.role == "soigneur":
 		var cr := SpriteAtlas.frame("cross")
 		var cuv: Rect2 = cr["uv"]
-		_units_mm.set_instance_transform(n, Transform3D(Basis.from_scale(Vector3(5.0 * TEXEL, 5.0 * TEXEL, 1.0)), pos + Vector3(0.0, h + 0.22, 0.0) + cam_back * 0.02))
+		var ch := SpriteAtlas.height_m("cross")
+		_units_mm.set_instance_transform(n, Transform3D(Basis.from_scale(Vector3(ch, ch, 1.0)), pos + Vector3(0.0, h + 0.22, 0.0) + cam_back * 0.02))
 		_units_mm.set_instance_color(n, Color(1.4, 1.4, 1.4))
 		_units_mm.set_instance_custom_data(n, Color(cuv.position.x, cuv.position.y, cuv.size.x, cuv.size.y))
 		n += 1
@@ -868,10 +869,13 @@ func _update_casters() -> void:
 		var fr := SpriteAtlas.frame(c.sprite, "", int(t * 5.0) if moving else 0)
 		var px: Rect2i = fr["px"]
 		s.region_rect = Rect2(px)
+		s.pixel_size = SpriteAtlas.height_m(c.sprite) / float(px.size.y)
 		s.offset = Vector2(0.0, float(px.size.y) * 0.5)
 		s.position = w3(Vector2(x, BattleSim.CASTER_Y), 0.0)
 		if i == 0:
-			var tip := s.position + cam_right * (5.5 * TEXEL * 1.25) + cam_up * (float(px.size.y) - 1.5) * TEXEL * 1.25
+			var wm := float(px.size.x) * s.pixel_size
+			var hm := float(px.size.y) * s.pixel_size
+			var tip := s.position + cam_right * (0.39 * wm) + cam_up * (0.93 * hm)
 			_staff_fx.position = tip
 			_staff_fx.emitting = c.firing
 			_staff_light.position = tip
