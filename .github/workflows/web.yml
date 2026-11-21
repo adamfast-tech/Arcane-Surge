@@ -7,6 +7,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: web-${{ github.ref }}
@@ -47,8 +49,14 @@ jobs:
           $RUNNER_TEMP/godot --headless --path . --export-release "Web" build/web/index.html
           test -f build/web/index.wasm
 
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+      # Copie de secours sur la branche gh-pages (utile si Pages est réglé sur « Deploy from a branch »).
       - name: Publier sur la branche gh-pages
         if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -63,3 +71,15 @@ jobs:
           if git diff --cached --quiet; then echo "Rien de nouveau à publier"; exit 0; fi
           git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "Version web ${GITHUB_SHA::7}"
           git push -q origin gh-pages
+
+  deploy:
+    needs: build
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

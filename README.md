@@ -61,7 +61,7 @@ Les sprites actuels sont générés par code. Pour en remplacer un, déposer `as
 
 ## Mise en ligne (GitHub Pages)
 
-Le workflow `.github/workflows/web.yml` importe le projet, lance les tests et exporte la version web. À chaque push sur la branche par défaut, il publie le résultat sur la branche `gh-pages`, servie par GitHub Pages.
+Le workflow `.github/workflows/web.yml` importe le projet, lance les tests et exporte la version web. À chaque push sur la branche par défaut, il déploie le résultat sur GitHub Pages (source « GitHub Actions ») et en garde une copie sur la branche `gh-pages`.
 
 ## Licences
 
