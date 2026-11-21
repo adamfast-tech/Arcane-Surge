@@ -124,9 +124,11 @@ iOS (iPhone 16 Pro Max, iPad), Android, PC (16:9, 16:10).
 - Contraste lisibilité : unités et projectiles plus saturés que le décor.
 - Chaque zone décline sa propre palette (zone 1 lumineuse/douce → zones finales sombres/saturées en violet-noir).
 
-## 13 bis. Décisions encore ouvertes
-1. Durée cible d'une partie (proposé : 2–4 min).
-2. Pseudo/profil commun avec les apps Académie ou profil de jeu séparé.
+## 13 bis. Durée & profil (validés)
+| Sujet | Choix |
+|---|---|
+| Durée de partie | **2–4 min** standard ; **5–6 min** boss de zone ; jusqu'à **10 min** boss extrêmes / défis |
+| Profil joueur | **Pseudo et profil communs** avec les apps Académie (`public.profiles`) ; données de jeu dans tables `arcane_` liées par `user_id` |
 
 ## 14. Feuille de route des étapes
 1. ✅ Vision (ce document)
