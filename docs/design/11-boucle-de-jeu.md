@@ -86,6 +86,9 @@ Jouer sans compte ───────────┴─> Havre-Aube ─┬─>
 - **En ligne** : connecté, la plus récente des deux versions l'emporte au démarrage. La progression est envoyée après chaque partie et chaque action de Forge.
 - **Session** : elle est mémorisée sur l'appareil, sous la forme d'un jeton de rafraîchissement.
 - **Clé du client** : clé publique « publishable ». La sécurité repose sur RLS.
+- **Saisie (version web)** : de vrais champs HTML sont posés sur les champs du jeu (`scripts/core/web_form.gd`).
+  - Ils permettent le collage, le trousseau iCloud et les gestionnaires de mots de passe (`autocomplete` « username » et « current-password »).
+  - Le formulaire est soumis vers une iframe muette, sans requête réseau : le navigateur peut proposer d'enregistrer le mot de passe. Le seul envoi reste celui vers Supabase.
 
 ## 5. Outils
 - `tools/sim_cli.gd` joue chaque niveau avec un personnage du niveau du lieu et donne la durée, la Barrière et la part restante de l'objectif.
