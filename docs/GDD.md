@@ -51,6 +51,8 @@ Combinaison Classe × Race = identité du personnage.
 - Difficulté et rareté corrélées à la zone.
 
 ## 7. Hub (avant/après partie)
+> Détail salles, équipement, runes, craft, loot : [`design/05-equipement-craft.md`](design/05-equipement-craft.md)
+
 ### Équipement
 | Salle | Fonction |
 |---|---|
@@ -142,7 +144,7 @@ iOS (iPhone 16 Pro Max, iPad), Android, PC (16:9, 16:10).
 2. ✅ Décisions techniques (moteur, style, économie)
 3. ✅ Combat détaillé : formules, portails, IA des bots
 4. ✅ Classes & races : stats, arbres de compétences (+ bible du lore)
-5. Équipement, runes, crafting, rareté
+5. ✅ Équipement, runes, crafting, rareté
 6. Monde : zones, niveaux, ennemis, boss
 7. Narration : lore, arbre de choix, « Changer le futur »
 8. UI/UX : écrans, formats d'écran
