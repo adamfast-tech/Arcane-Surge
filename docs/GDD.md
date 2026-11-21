@@ -27,6 +27,8 @@ autour : classes, races, équipement, runes, arbres de compétences, histoire à
 - **Jauge Arcane Surge** : se remplit en tuant → ultime de classe.
 
 ## 4. Classes (7)
+> Détail : [`design/04-classes-races.md`](design/04-classes-races.md)
+
 | Classe | Rôle | Invocations | Spécificité |
 |---|---|---|---|
 | Archer | DPS distance | Archers spectraux | Perce, tire à travers les portails |
@@ -96,6 +98,8 @@ Bêtes, Morts-vivants, Démons, Élémentaires, Créatures arcaniques, Humanoïd
 Dragons, Boss. Chaque catégorie a faiblesses/résistances élémentaires → stratégie de choix de sorts.
 
 ## 11. Narration
+> Canon : [`design/00-lore.md`](design/00-lore.md)
+
 - Lore principal : l'**Arcane Surge**, déferlement de magie brute qui fracture le monde.
 - Dialogues entre niveaux, PNJ dans le hub.
 - **Choix à conséquences** (effet papillon) : modifient niveaux, alliés, boss, fins.
@@ -130,14 +134,14 @@ iOS (iPhone 16 Pro Max, iPad), Android, PC (16:9, 16:10).
 ## 13 bis. Durée & profil (validés)
 | Sujet | Choix |
 |---|---|
-| Durée de partie | **2–4 min** standard ; **5–6 min** boss de zone ; jusqu'à **10 min** boss extrêmes / défis |
+| Durée de partie | Indicative : **2–4 min** standard, **5–6 min** boss de zone, **10 min et plus** boss extrêmes. **Aucune limite, aucune défaite liée au temps** |
 | Profil joueur | **Pseudo et profil communs** avec les apps Académie (`public.profiles`) ; données de jeu dans tables `arcane_` liées par `user_id` |
 
 ## 14. Feuille de route des étapes
 1. ✅ Vision (ce document)
 2. ✅ Décisions techniques (moteur, style, économie)
 3. ✅ Combat détaillé : formules, portails, IA des bots
-4. Classes & races : stats, arbres de compétences
+4. ✅ Classes & races : stats, arbres de compétences (+ bible du lore)
 5. Équipement, runes, crafting, rareté
 6. Monde : zones, niveaux, ennemis, boss
 7. Narration : lore, arbre de choix, « Changer le futur »

@@ -139,6 +139,7 @@ Archétypes communs à toutes les catégories (bêtes, morts-vivants…) ; seuls
 | Tireur | 3 | Attaque à distance (portée 3 m) |
 | Porte-bouclier | 4 | Bloque 80 % des dégâts venant de face |
 | Lanceur de sorts | 6 | Attaque de zone et pose des portails négatifs |
+| Soigneur | 5 | Soigne les unités ennemies et le **Nexus ennemi** |
 | Élite | ×3 coût | Stats ×3 + 1 affixe |
 
 **Affixes d'élite** :
@@ -242,6 +243,16 @@ Plus le bot monte de niveau, plus il réagit vite (de 0,6 à 0,2 s) et vise just
 | Défaite | Barrière à 0 PV (100 PV de base, améliorable) |
 | Abandon | Bouton pause → Quitter (aucune récompense) |
 
+### 10.1 Soins des Nexus
+Les deux camps peuvent soigner leur cœur. L'efficacité dépend du **lanceur**.
+- **Barrière (Nexus allié)** : soignée par les sorts de soin du joueur ou des bots, le Clerc et certaines races (Fée).
+  - `Soin = puissance_soin_lanceur × mult_classe × (1 + bonus%)`.
+  - `mult_classe` : Clerc ×1,5, Chevalier et Nécromancien ×0,75 (soin par sacrifice d'unités), autres ×1.
+- **Nexus ennemi** : soigné par les Soigneurs ennemis (§6.2) et certains boss.
+  - Les Soigneurs deviennent des cibles prioritaires, et les bots les visent en priorité.
+- **Flétrissure (anti-soin)** : effet Ombre, le Nécromancien et certains sorts. Réduit de 50 % les soins reçus pendant 5 s. Elle s'applique aussi au Nexus ennemi.
+- Sans limite de temps, une partie peut durer longtemps si l'ennemi soigne plus vite qu'on ne frappe. Le joueur dispose de trois contre-mesures : la Flétrissure, le focus des Soigneurs et les Échos.
+
 **Étoiles** :
 - ★ victoire ;
 - ★★ victoire avec la Barrière au-dessus de 50 % ;
@@ -253,8 +264,8 @@ Plus le bot monte de niveau, plus il réagit vite (de 0,6 à 0,2 s) et vise just
 - **Temps de référence** : 2 min 30 pour un niveau standard, 5 min 30 pour un boss de zone, 8 à 10 min pour un boss extrême.
 - PV du Nexus = `DPS_attendu × temps_de_référence`, avec `DPS_attendu` calculé pour la **puissance recommandée** du niveau.
 - Exemple, niveau 1 : 4 unités/s × multiplicateur moyen 2,5 × 50 % de survie × 10 ATQ = 50 DPS → **Nexus de 7 500 PV**.
-- **Fureur progressive** : au-delà de 1,5 × le temps de référence, les ennemis gagnent +5 % de stats toutes les 15 s, pour qu'une partie ne s'éternise pas.
-- **Limite absolue** : 10 min. Au-delà, le boss lance **Surge final** et c'est la défaite.
+- **Aucune limite de temps** et **aucune défaite liée au temps**. Une partie dure jusqu'à la victoire ou jusqu'à la chute de la Barrière.
+- Les étoiles (§10) restent la seule récompense de la vitesse.
 
 ### 11.2 Montée en difficulté
 ```
