@@ -5,6 +5,7 @@ extends Node2D
 
 var sim: BattleSim
 var font: Font
+var font_small: Font
 var ppm := 32
 var origin := Vector2.ZERO
 var vp_size := Vector2i(360, 640)
@@ -24,6 +25,7 @@ var _buckets: Array = []
 func setup(s: BattleSim, size: Vector2i, f: Font) -> void:
 	sim = s
 	font = f
+	font_small = UiTheme.font_small()
 	for i in range(36):
 		_buckets.append([])
 	resize(size)
@@ -92,6 +94,8 @@ func _draw() -> void:
 	_draw_towers()
 	_draw_nexus()
 	_draw_units()
+	for p in sim.portals:
+		_draw_portal_label(p)
 	_draw_casters()
 	_draw_fx()
 	_draw_aim()
@@ -145,22 +149,27 @@ func _draw_portal(p: Portal) -> void:
 			x += 5.0
 	else:
 		draw_rect(Rect2(c.x - half, c.y - h * 0.5, half * 2.0, h), col, false, 1.0)
-	var fs := clampi(int(ppm * 0.42), 8, 18)
-	var text := p.label()
-	var tw := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-	var tp := Vector2(roundf(c.x - tw * 0.5), roundf(c.y - h * 0.5 - 3.0))
-	draw_string_outline(font, tp, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 3, Color(0.05, 0.03, 0.1, 0.9))
-	draw_string(font, tp, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color.WHITE if not dim else Color(1, 1, 1, 0.5))
 	if p.is_seal and not p.purified:
 		var bw := half * 2.0
 		var by := c.y + h * 0.5 + 2.0
 		draw_rect(Rect2(c.x - half, by, bw, 2.0), Color(0.1, 0.05, 0.15, 0.9))
 		draw_rect(Rect2(c.x - half, by, bw * float(p.purity) / float(maxi(1, p.purity_needed)), 2.0), Color("fff6c8"))
 		var s := "SCEAU"
-		var sfs := clampi(int(ppm * 0.3), 8, 12)
-		var sw := font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, sfs).x
-		draw_string_outline(font, Vector2(roundf(c.x - sw * 0.5), by + 2.0 + sfs), s, HORIZONTAL_ALIGNMENT_LEFT, -1, sfs, 3, Color(0.05, 0.03, 0.1, 0.9))
-		draw_string(font, Vector2(roundf(c.x - sw * 0.5), by + 2.0 + sfs), s, HORIZONTAL_ALIGNMENT_LEFT, -1, sfs, Color("d93cf2"))
+		var sw := font_small.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x
+		draw_string(font_small, Vector2(roundf(c.x - sw * 0.5), by + 15.0), s, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("d93cf2"))
+
+
+func _draw_portal_label(p: Portal) -> void:
+	var c := to_px(Vector2(p.x, p.y)).round()
+	var h := maxf(3.0, roundf(ppm * 0.18))
+	var dim := (p.kind == "add" and not p.ready) or (p.kind == "sub" and p.charges <= 0)
+	var text := p.label()
+	var lf: Font = font if text.length() <= 4 else font_small
+	var fs := (20 if text.length() <= 4 else 15) if ppm >= 28 else (10 if text.length() <= 4 else 15)
+	var ts := lf.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs)
+	var base := Vector2(roundf(c.x - ts.x * 0.5), roundf(c.y - h * 0.5 - 4.0))
+	draw_rect(Rect2(base.x - 3.0, base.y - lf.get_ascent(fs) - 1.0, ts.x + 6.0, lf.get_ascent(fs) + 3.0), Color(0.05, 0.03, 0.1, 0.72))
+	draw_string(lf, base, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color.WHITE if not dim else Color(1, 1, 1, 0.5))
 
 
 func _draw_towers() -> void:
@@ -299,11 +308,11 @@ func _draw_fx() -> void:
 				draw_rect(Rect2(p + Vector2(-d, d - 4.0), Vector2(1, 1)), cc)
 				draw_rect(Rect2(p + Vector2(d, d - 4.0), Vector2(1, 1)), cc)
 			"text":
-				var fs := clampi(int(ppm * 0.4), 8, 16)
+				var fs := 20 if ppm >= 28 else 10
 				var s := str(e["text"])
 				var tw := font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 				var p := (to_px(e["pos"]) + Vector2(-tw * 0.5, -k * 14.0)).round()
-				draw_string_outline(font, p, s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 3, Color(0.05, 0.03, 0.1, 1.0 - k))
+				draw_string_outline(font, p, s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 4, Color(0.05, 0.03, 0.1, 1.0 - k))
 				draw_string(font, p, s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(col, 1.0 - k * k))
 
 

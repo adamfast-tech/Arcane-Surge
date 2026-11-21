@@ -30,7 +30,7 @@ func _ready() -> void:
 	v.custom_minimum_size = Vector2(minf(660.0, get_viewport_rect().size.x - 48.0), 0)
 	margin.add_child(v)
 
-	var title := UiTheme.label("ARCANE SURGE", 64, UiTheme.GOLD)
+	var title := UiTheme.title("ARCANE SURGE", 64, UiTheme.GOLD)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(title)
 	var sub := UiTheme.label("Prototype jouable · combat", 26, UiTheme.MUTED)

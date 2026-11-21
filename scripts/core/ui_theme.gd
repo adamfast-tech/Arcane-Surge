@@ -19,14 +19,37 @@ const VIOLET := Color("b07cff")
 const FIRE := Color("ff9b4a")
 
 static var _font: FontFile
+static var _font_small: FontFile
+static var _title_font: FontFile
 
 
+## Police de l'interface et des chiffres (Jersey 10 : chiffres nets, accents).
 static func font() -> FontFile:
 	if _font == null:
-		_font = load("res://assets/fonts/PixelifySans.ttf")
-		_font.antialiasing = TextServer.FONT_ANTIALIASING_NONE
-		_font.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_DISABLED
+		_font = _load("res://assets/fonts/Jersey10-Regular.ttf")
 	return _font
+
+
+## Police fine pour les libellés longs dans l'arène (Jersey 15).
+static func font_small() -> FontFile:
+	if _font_small == null:
+		_font_small = _load("res://assets/fonts/Jersey15-Regular.ttf")
+	return _font_small
+
+
+## Police des grands titres (Pixelify Sans).
+static func title_font() -> FontFile:
+	if _title_font == null:
+		_title_font = _load("res://assets/fonts/PixelifySans.ttf")
+	return _title_font
+
+
+static func _load(path: String) -> FontFile:
+	var f: FontFile = load(path)
+	f.antialiasing = TextServer.FONT_ANTIALIASING_GRAY
+	f.hinting = TextServer.HINTING_LIGHT
+	f.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_DISABLED
+	return f
 
 
 static func box(bg: Color, border: Color = Color(0, 0, 0, 0), radius: int = 12, border_w: int = 2, pad: int = 10) -> StyleBoxFlat:
@@ -95,6 +118,12 @@ static func bar(color: Color, height: int = 16) -> ProgressBar:
 	p.add_theme_stylebox_override("fill", box(color, Color(0, 0, 0, 0), 6, 0, 0))
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return p
+
+
+static func title(text: String, size: int = 40, color: Color = GOLD) -> Label:
+	var l := label(text, size, color)
+	l.add_theme_font_override("font", title_font())
+	return l
 
 
 static func spacer() -> Control:

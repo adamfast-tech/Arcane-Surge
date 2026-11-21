@@ -215,7 +215,7 @@ func _setup_casters(party: Dictionary) -> void:
 	effect_mult = float(cls.get("effect_mult", 1.0))
 	champion_kind = str(cls.get("champion", "champion_golem"))
 	ultimate_id = str(cls.get("ultimate", "meteore"))
-	barrier_max = 100.0 + float(pc.stats["vig"]) * 0.5
+	barrier_max = roundf(100.0 + float(pc.stats["vig"]) * 0.5)
 	barrier_hp = barrier_max
 	if autoplay:
 		pc.brain = BotBrain.new()

@@ -40,7 +40,11 @@
 | PV ennemis | Valeurs de l'étape 3 | **×2** (sbire 20, brute 120…) | Pour créer de la pression sur la Barrière |
 | Dryade | — | Soin du Nexus 70 × M / 2 s, en retrait près du Nexus, 3 maximum en vie | Au-delà, les soins bloquaient la partie |
 
-## 3. Calibrage (IA contre IA, `tools/sim_cli.gd`)
+## 3. Polices
+
+Le HUD et les chiffres passent de *Pixelify Sans* à *Jersey 10 / 15* (OFL). Dans Pixelify, « 5 » et « S » sont presque identiques, et « 2 » ressemble à un S inversé : c'est illisible sur des portails « +5 » ou « ×2 ». Pixelify Sans reste pour les grands titres.
+
+## 4. Calibrage (IA contre IA, `tools/sim_cli.gd`)
 
 | Niveau | PV Nexus | Durée moyenne (référence) | Victoires | Barrière moyenne |
 |---|---|---|---|---|
@@ -52,7 +56,12 @@ L'IA joue mieux qu'un débutant. Un joueur humain mettra plus longtemps et subir
 
 **Performances** : 0,15 à 0,6 ms par pas de simulation (natif), au pic d'environ 190 unités alliées.
 
-## 4. Hors périmètre (étapes suivantes)
+## 5. Captures
+
+![Portrait](../art/prototype-portrait.png)
+![Paysage](../art/prototype-paysage.png)
+
+## 6. Hors périmètre (étapes suivantes)
 - Hub, équipement, arbres de compétences, compte Supabase et sauvegarde.
 - Dialogues et choix narratifs ; boss de zone (Sylvarche).
 - Sons et musique ; sprites dessinés à la main.

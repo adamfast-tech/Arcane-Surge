@@ -29,6 +29,8 @@ Accès direct à un niveau : `…/Arcane-Surge/?level=z01_l08` (ajouter `&solo=1
 | Ordre aux bots | Toucher le bot | `Q` / `R` |
 | Pause | Bouton `II` | `Échap` |
 
+![Prototype en portrait](docs/art/prototype-portrait.png)
+
 L'interface s'adapte : **portrait** sur téléphone, **paysage** (panneaux latéraux) sur tablette et ordinateur.
 
 ## Développement
@@ -58,4 +60,4 @@ Le workflow `.github/workflows/web.yml` importe le projet, lance les tests, expo
 
 ## Licences
 
-Police *Pixelify Sans* : SIL Open Font License 1.1 (`assets/fonts/OFL.txt`).
+Polices *Jersey 10 / 15* et *Pixelify Sans* : SIL Open Font License 1.1 (`assets/fonts/OFL-*.txt`).

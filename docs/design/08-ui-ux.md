@@ -6,7 +6,10 @@
 - **Une seule main en portrait** : les actions fréquentes (sorts, Champion, Ultime) sont à portée du pouce, dans le tiers bas de l'écran. Les informations consultées (Nexus, Surge) sont en haut.
 - **Zones tactiles d'au moins 44 pt**. Le jeu respecte les zones sûres (encoche, Dynamic Island, barre d'accueil).
 - **Lisibilité avant tout** : le décor est désaturé, les unités, portails et sorts sont saturés. Les nombres importants (portails ×N, PV) sont en police pixel, en grand.
-- **Typographie** : *Pixelify Sans* pour les titres, les nombres et le HUD ; *Inter* pour les textes longs (dialogues, Codex, infobulles).
+- **Typographie** :
+  - *Pixelify Sans* pour les grands titres ;
+  - *Jersey 10 / 15* pour le HUD et les nombres. Le « 5 » de Pixelify ressemble trop à un « S », et le « 2 » à un S inversé ; constaté sur le prototype ;
+  - *Inter* pour les textes longs (dialogues, Codex, infobulles).
 - **Couleurs de l'interface** :
 
 | Rôle | Couleur |

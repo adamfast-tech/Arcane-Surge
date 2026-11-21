@@ -714,7 +714,7 @@ func _modal(title: String, subtitle: String, title_color: Color = UiTheme.GOLD) 
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 14)
 	panel.add_child(v)
-	var t := UiTheme.label(title, 40, title_color)
+	var t := UiTheme.title(title, 40, title_color)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(t)
 	if subtitle != "":
