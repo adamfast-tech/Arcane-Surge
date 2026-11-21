@@ -80,6 +80,8 @@ Apparence, couleurs, tenue, effets visuels des sorts ; même chose pour les 2 bo
 - Runes : emplacements selon rareté de l'objet ; combinaisons de runes = « mots runiques » à effet spécial.
 
 ## 9. Monde
+> Détail zones, bestiaire, boss, DA : [`design/06-monde.md`](design/06-monde.md)
+
 ~10 niveaux par zone, boss en fin de zone, mini-boss en milieu.
 
 | # | Zone | Niveaux | Ambiance |
@@ -145,7 +147,7 @@ iOS (iPhone 16 Pro Max, iPad), Android, PC (16:9, 16:10).
 3. ✅ Combat détaillé : formules, portails, IA des bots
 4. ✅ Classes & races : stats, arbres de compétences (+ bible du lore)
 5. ✅ Équipement, runes, crafting, rareté
-6. Monde : zones, niveaux, ennemis, boss
+6. ✅ Monde : zones, niveaux, ennemis, boss
 7. Narration : lore, arbre de choix, « Changer le futur »
 8. UI/UX : écrans, formats d'écran
 9. Prototype jouable (combat seul)
