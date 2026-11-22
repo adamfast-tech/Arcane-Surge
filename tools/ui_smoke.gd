@@ -50,6 +50,28 @@ func _run() -> void:
 		await _frames(1)
 		guard += 1
 	print("démarrage : ", _screen().get_script().get_global_name())
+	# Création du personnage : race, apparence ; Revenant verrouillé ; classes non jouables refusées.
+	main.call("_show_hub")
+	await _frames(3)
+	var cr: CreationScreen = _screen()
+	var rev := Profile.set_race("revenant")
+	var nain := Profile.set_race("nain")
+	var arch := Profile.set_class("archer")
+	Profile.set_look("head", "tresse")
+	Profile.set_look("hair", "roux")
+	Profile.set_look("outfit", "ocre")
+	cr._rebuild()
+	await _frames(2)
+	var cr_name: String = cr.get_script().get_global_name()
+	cr.done.emit()
+	await _frames(3)
+	var bo := Profile.battle_opts()
+	print("création : écran ", cr_name, " · Revenant ", rev, " · Nain ", nain, " · Archer ", arch, " · créé ", Profile.created(),
+		" · ", Profile.race(), " ", Profile.look()["head"], " · écran ", _screen().get_script().get_global_name(), " · sprite combat ", bo.has("look"))
+	if rev or not nain or arch or not Profile.created() or not (_screen() is HubScreen):
+		push_error("création du personnage incorrecte")
+		quit(1)
+		return
 	# Dialogues : prologue + intro de 1-1, lus jusqu'au bout (tap), avec l'historique.
 	main.call("_play", "z01_l01", false)
 	await _frames(5)
@@ -358,6 +380,12 @@ func _run() -> void:
 				quit(1)
 				return
 		bs.sim.debug_set_ratio(0.0)
+		if id == "z01_l05":
+			print("  héros : sprite ", bs.sim.player().sprite, " · race ", bs.sim.player().race_id, " · hauteur ", SpriteAtlas.height_m("player"))
+			if bs.sim.player().sprite != "player" or bs.sim.player().race_id != "nain":
+				push_error("sprite du héros incorrect")
+				quit(1)
+				return
 		if id.begins_with("z02"):
 			var ids: Array[String] = []
 			for cc in bs.sim.casters:

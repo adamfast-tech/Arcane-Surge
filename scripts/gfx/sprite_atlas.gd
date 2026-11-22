@@ -1531,6 +1531,10 @@ const DEFS := {
 }
 
 static var _texture: ImageTexture
+## Héros : apparence et race (création de personnage) ; « player » est généré à la volée.
+static var _player_look: Dictionary = {}
+static var _player_race := "elfe"
+static var _player_key := ""
 static var _frames: Dictionary = {} ## clé -> Array[Dictionary{uv: Rect2, px: Rect2i, w, h}]
 static var _singles: Dictionary = {}
 
@@ -1553,7 +1557,23 @@ static func frame(name: String, element: String = "", index: int = 0) -> Diction
 
 
 static func height_m(name: String) -> float:
+	if name == "player":
+		return float(PlayerLook.palette(_player_look, _player_race)["height"])
 	return float(HEIGHT_M.get(name, 0.7))
+
+
+## Apparence du héros pour le combat ; reconstruit l'atlas si elle a changé.
+static func set_player(look: Dictionary, race: String) -> void:
+	var k := PlayerLook.key(look, race)
+	if k == _player_key:
+		return
+	_player_key = k
+	_player_look = look.duplicate()
+	_player_race = race
+	_texture = null
+	for key in _singles.keys():
+		if str(key).begins_with("player#"):
+			_singles.erase(key)
 
 
 static func frame_count(name: String) -> int:
@@ -1574,6 +1594,8 @@ static func single(name: String, index: int = 0) -> ImageTexture:
 
 static func _build() -> void:
 	var entries: Array = [] # [key, Image]
+	for img in _images_for("player", ""):
+		entries.append(["player", img])
 	for name in DEFS.keys():
 		if RECOLOR.has(name):
 			for el in ELEM.keys():
@@ -1632,6 +1654,10 @@ static func _images_for(name: String, element: String) -> Array[Image]:
 				_tint_neutral(img, element)
 			out.append(img)
 		return out
+	if name == "player":
+		out.append(_gen_player(0))
+		out.append(_gen_player(1))
+		return out
 	var d: Dictionary = DEFS[name]
 	if bool(d.get("procedural", false)):
 		out.append(_gen_sylvarche(0))
@@ -1687,6 +1713,98 @@ static func _rasterize(rows: Array, pal: Dictionary) -> Image:
 			if ch == "." or ch == " " or not pal.has(ch):
 				continue
 			img.set_pixel(x, y, Color(str(pal[ch])))
+	return img
+
+
+## Héros vu de dos, aux couleurs de sa tenue, avec sa coiffe et les traits de sa race.
+static func _gen_player(frame: int) -> Image:
+	var pal := PlayerLook.palette(_player_look, _player_race)
+	var o: Array = pal["outfit"]
+	var hr: Array = pal["hair"]
+	var sk: Array = pal["skin"]
+	var eyes: Color = pal["eyes"]
+	var head := str(pal["head"])
+	var hooded := head == "capuche"
+	var rows: Array = [
+		"..............g.",
+		".............gwg",
+		"......ooo.....g.",
+		".....oHHHo....s.",
+		"....oHHhhHo...s.",
+		"....oHhhhhHo..s.",
+		"....ohhhhhho.os.",
+		"....ochhhhco.Cs.",
+		"...ocCchhcCCoCCo",
+		"...occCCCCCcCo..",
+		"..occCCtCCCCcco.",
+		"..occCCtCCCCcco.",
+		"..ocbbbbbbbbbco.",
+		"..occCCtCCCCcco.",
+		"..occCCtCCCCCcco",
+		"..occCCtCCCCCcco",
+		"...occCtCCCCCcco",
+		"...ocCctttttccco",
+	]
+	var legs_a := ["....okko.okko...", "....okko.okko...", "....oooo.oooo..."]
+	var legs_b := ["...okko...okko..", "...okko...okko..", "...oooo...oooo.."]
+	if int(pal["sil"]) == 1:
+		# Cape et tunique : la robe s'arrête plus haut, les jambes se voient.
+		rows[15] = "..occCCtCCCCCcco"
+		rows[16] = "...occtttttccco."
+		rows[17] = "....oLLo.oLLo..."
+	rows.append_array(legs_a if frame == 0 else legs_b)
+	var w := 18
+	var cmap := {
+		"o": Color("0e0a1c"), "C": o[2], "c": o[1], "t": eyes, "b": Color("6a4a2a"), "s": Color("8a5a2b"),
+		"g": eyes.lightened(0.4), "w": Color.WHITE, "k": Color("2a2030"), "L": o[0],
+		"H": o[3] if hooded else hr[2], "h": o[2] if hooded else hr[1],
+	}
+	var img := Image.create_empty(w, rows.size() + 2, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	for y in range(rows.size()):
+		var r := str(rows[y])
+		for x in range(r.length()):
+			var ch := r[x]
+			if cmap.has(ch):
+				img.set_pixel(x + 1, y + 2, cmap[ch])
+	var put := func(x: int, y: int, c: Color) -> void:
+		if x >= 0 and y >= 0 and x < w and y < img.get_height():
+			img.set_pixel(x, y, c)
+	# Cheveux longs ou tresse sur le dos.
+	if head == "longs":
+		for y in range(10, 15):
+			for x in range(7, 12):
+				put.call(x, y, hr[1] if (x + y) % 3 != 0 else hr[0])
+	elif head == "tresse":
+		for y in range(10, 18):
+			put.call(9, y, hr[1] if y % 2 == 0 else hr[0])
+			put.call(10, y, hr[0] if y % 2 == 0 else hr[1])
+	match str(pal["trait"]):
+		"ears":
+			for q in [Vector2i(4, 6), Vector2i(3, 5), Vector2i(12, 6), Vector2i(13, 5)]:
+				put.call(q.x, q.y, sk[1])
+		"horns", "ghost":
+			if str(pal["trait"]) == "horns":
+				for q in [Vector2i(6, 4), Vector2i(5, 3), Vector2i(5, 2), Vector2i(10, 4), Vector2i(11, 3), Vector2i(11, 2)]:
+					put.call(q.x, q.y, Color("e8dcc0"))
+				for q in [Vector2i(3, 19), Vector2i(2, 20), Vector2i(1, 21), Vector2i(1, 22), Vector2i(0, 22)]:
+					put.call(q.x, q.y, sk[1])
+			else:
+				# Revenant : ourlet effiloché.
+				for x in [4, 7, 11, 14]:
+					put.call(x, 19, Color(0, 0, 0, 0))
+		"tail":
+			for q in [Vector2i(3, 19), Vector2i(2, 20), Vector2i(1, 21), Vector2i(1, 22), Vector2i(0, 22), Vector2i(2, 21)]:
+				put.call(q.x, q.y, sk[1])
+		"wings":
+			for y in range(8, 16):
+				var span := 3 - absi(y - 11) / 2
+				for k in range(span):
+					put.call(2 - k, y, Color(0.85, 0.8, 1.0, 0.9) if k < span - 1 else Color("5a4a78"))
+					put.call(15 + k, y, Color(0.85, 0.8, 1.0, 0.9) if k < span - 1 else Color("5a4a78"))
+		"tusks":
+			for q in [Vector2i(2, 15), Vector2i(16, 15)]:
+				put.call(q.x, q.y, sk[1])
 	return img
 
 

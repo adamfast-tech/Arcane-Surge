@@ -11,6 +11,7 @@ signal open_skills
 signal open_library
 signal open_circle
 signal play_level(level_id: String)
+signal open_mirror
 
 var _status_icon: TextureRect
 var _status_label: Label
@@ -93,10 +94,20 @@ func _profile_card() -> PanelContainer:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 14)
 	v.add_child(row)
-	var frame := PanelContainer.new()
-	frame.add_theme_stylebox_override("panel", UiTheme.box(Color("0a1019"), Color(UiTheme.TEAL, 0.7), 10, 2, 4))
+	# Portrait : le toucher ouvre le Miroir (apparence du héros).
+	var frame := Button.new()
+	frame.focus_mode = Control.FOCUS_NONE
+	frame.tooltip_text = "Miroir : apparence du héros"
+	frame.add_theme_stylebox_override("normal", UiTheme.box(Color("0a1019"), Color(UiTheme.TEAL, 0.7), 10, 2, 4))
+	frame.add_theme_stylebox_override("hover", UiTheme.box(Color("0a1019"), UiTheme.TEAL, 10, 2, 4))
+	frame.add_theme_stylebox_override("pressed", UiTheme.box(Color("0a1019"), UiTheme.GOLD, 10, 2, 4))
+	frame.custom_minimum_size = Vector2(72, 72)
+	frame.pressed.connect(func() -> void: open_mirror.emit())
 	row.add_child(frame)
 	var pic := TextureRect.new()
+	pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pic.position = Vector2(4, 4)
+	pic.size = Vector2(64, 64)
 	pic.texture = PortraitArt.texture("porteur")
 	pic.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -112,7 +123,10 @@ func _profile_card() -> PanelContainer:
 	if Cloud.instance != null and Cloud.instance.username != "":
 		pname = Cloud.instance.username
 	who.add_child(UiTheme.label(pname, 28))
-	who.add_child(UiTheme.label("Mage elfe · niveau %d" % Profile.level(), 19, UiTheme.MUTED))
+	var party := GameData.party()
+	var cname := str((party["classes"] as Dictionary).get(Profile.player_class(), {}).get("name", "Mage"))
+	var rname := str((party["races"] as Dictionary).get(Profile.race(), {}).get("name", "")).to_lower()
+	who.add_child(UiTheme.label("%s %s · niveau %d" % [cname, rname, Profile.level()], 19, UiTheme.MUTED))
 	row.add_child(UiTheme.currencies())
 	var xp_row := HBoxContainer.new()
 	xp_row.add_theme_constant_override("separation", 12)

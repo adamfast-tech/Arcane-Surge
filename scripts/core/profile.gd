@@ -477,6 +477,7 @@ static func battle_opts() -> Dictionary:
 	return {"player_level": level(), "gear": gear_stats(), "weapon_element": weapon_element(), "bot_level": maxi(1, level() - 1),
 		"flags": Story.active_flags(), "healed": Story.has_flag("s1.sylvarche_purifiee"),
 		"mods": skill_mods(), "deck": deck() if spell_mode() == "deck" else drawer_spells(), "spell_mode": spell_mode(), "circle": circle(),
+		"player_race": race(), "look": look(),
 		"loyalty": {"brann": Story.loyalty("brann"), "sylwen": Story.loyalty("sylwen"), "krag": Story.loyalty("krag"), "nyx": Story.loyalty("nyx")},
 		"active": active_companions()}
 
@@ -647,6 +648,53 @@ static func deck() -> Array[String]:
 	if out.is_empty() and not known.is_empty():
 		out.append(known[0])
 	return out
+
+
+# ---------------------------------------------------------------- héros (création de personnage, Miroir)
+
+static func race() -> String:
+	return str(data["player"].get("race", "elfe"))
+
+
+static func player_class() -> String:
+	return str(data["player"].get("class", "mage"))
+
+
+static func look() -> Dictionary:
+	return PlayerLook.of(data["player"].get("look", {}))
+
+
+static func set_look(k: String, v: Variant) -> void:
+	var lk: Dictionary = data["player"].get("look", {})
+	lk[k] = v
+	data["player"]["look"] = lk
+
+
+## Choix de la race (création) : la teinte de peau revient à la 2e de la race.
+static func set_race(r: String) -> bool:
+	var ri: Dictionary = (GameData.party()["races"] as Dictionary).get(r, {})
+	if ri.is_empty() or ri.has("locked"):
+		return false
+	data["player"]["race"] = r
+	set_look("skin", 1)
+	return true
+
+
+static func set_class(c: String) -> bool:
+	var ci: Dictionary = (GameData.party()["classes"] as Dictionary).get(c, {})
+	if ci.is_empty() or not bool(ci.get("playable", false)):
+		return false
+	data["player"]["class"] = c
+	return true
+
+
+## Personnage créé (sinon l'écran de création s'affiche à l'arrivée à Havre-Aube).
+static func created() -> bool:
+	return bool(data["player"].get("created", false))
+
+
+static func set_created() -> void:
+	data["player"]["created"] = true
 
 
 ## Mode des sorts en combat : « deck » (7 sorts choisis) ou « drawer » (tiroir : tous les sorts connus,

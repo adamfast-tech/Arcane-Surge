@@ -135,6 +135,8 @@ func _ready() -> void:
 	arena = Arena3D.new()
 	vp.add_child(arena)
 	WorldArt.zone = int(_level.get("zone", 1))
+	if _opts.has("look"):
+		SpriteAtlas.set_player(_opts["look"], str(_opts.get("player_race", "elfe")))
 	arena.setup(sim, UiTheme.font(), bool(_opts.get("healed", false)))
 	if _mode == "drawer":
 		for id in sim.player().spells:

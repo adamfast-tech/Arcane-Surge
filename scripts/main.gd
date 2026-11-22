@@ -145,7 +145,12 @@ func _show_hub() -> void:
 		_offered[pend] = true
 		_show_dialogue([pend], _show_hub)
 		return
+	if not Profile.created():
+		# Création du personnage (une fois, y compris pour une partie déjà avancée).
+		_show_creation(false)
+		return
 	var h := HubScreen.new()
+	h.open_mirror.connect(_show_creation.bind(true))
 	h.open_map.connect(_show_map)
 	h.open_equipment.connect(_show_equipment)
 	h.open_login.connect(_show_login.bind(true))
@@ -155,6 +160,22 @@ func _show_hub() -> void:
 	h.open_circle.connect(_show_room.bind("circle"))
 	h.play_level.connect(func(id: String) -> void: _play(id, false, true))
 	_set_screen(h)
+
+
+## Création du personnage (première fois) ou Miroir (apparence seule).
+func _show_creation(mirror: bool) -> void:
+	var c := CreationScreen.new()
+	c.mirror = mirror
+	c.done.connect(func() -> void:
+		Profile.set_created()
+		Profile.save_local()
+		if cloud != null:
+			cloud.push()
+		_show_hub())
+	c.back.connect(func() -> void:
+		Profile.save_local()
+		_show_hub())
+	_set_screen(c)
 
 
 func _show_map() -> void:

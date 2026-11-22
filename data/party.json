@@ -12,18 +12,9 @@
       "familiar": "familiar_mage",
       "champion": "champion_golem",
       "ultimate": "meteore",
-      "effect_mult": 1.25
-    },
-    "chevalier": {
-      "name": "Chevalier",
-      "base": {
-        "pou": 10,
-        "vig": 18,
-        "esp": 8,
-        "cel": 6,
-        "des": 8
-      },
-      "familiar": "familiar_knight"
+      "effect_mult": 1.25,
+      "desc": "Le Surge maîtrisé : sorts élémentaires, familiers arcaniques, Golem de mana, Météore.",
+      "playable": true
     },
     "archer": {
       "name": "Archer",
@@ -34,18 +25,35 @@
         "cel": 14,
         "des": 8
       },
-      "familiar": "familiar_archer"
+      "familiar": "familiar_archer",
+      "desc": "Tirs précis et pièges : archers spectraux, critiques, Flèches astrales.",
+      "playable": false
     },
-    "berserker": {
-      "name": "Berserker",
+    "epeiste": {
+      "name": "Épéiste",
       "base": {
-        "pou": 16,
-        "vig": 12,
+        "pou": 13,
+        "vig": 10,
         "esp": 6,
-        "cel": 10,
-        "des": 6
+        "cel": 13,
+        "des": 8
       },
-      "familiar": "familiar_berserker"
+      "familiar": "familiar_knight",
+      "desc": "Lames rapides et foudre : duellistes, riposte, lames spectrales.",
+      "playable": false
+    },
+    "clerc": {
+      "name": "Clerc",
+      "base": {
+        "pou": 8,
+        "vig": 12,
+        "esp": 16,
+        "cel": 7,
+        "des": 7
+      },
+      "familiar": "familiar_mage",
+      "desc": "Lumière et soins : la Barrière tient, les portails sont purifiés.",
+      "playable": false
     },
     "necromancien": {
       "name": "Nécromancien",
@@ -56,10 +64,61 @@
         "cel": 8,
         "des": 8
       },
-      "familiar": "familiar_necro"
+      "familiar": "familiar_necro",
+      "desc": "Armées d'os et malédictions : squelettes, flétrissure, liche.",
+      "playable": false
+    },
+    "chevalier": {
+      "name": "Chevalier",
+      "base": {
+        "pou": 10,
+        "vig": 18,
+        "esp": 8,
+        "cel": 6,
+        "des": 8
+      },
+      "familiar": "familiar_knight",
+      "desc": "Rempart et charge : fantassins solides, Barrière renforcée.",
+      "playable": false
+    },
+    "berserker": {
+      "name": "Berserker",
+      "base": {
+        "pou": 16,
+        "vig": 12,
+        "esp": 6,
+        "cel": 10,
+        "des": 6
+      },
+      "familiar": "familiar_berserker",
+      "desc": "Fureur et vol de vie : guerriers enragés, totems, risque et récompense.",
+      "playable": false
     }
   },
   "races": {
+    "humain": {
+      "name": "Humain",
+      "pou": 1,
+      "vig": 1,
+      "esp": 1,
+      "cel": 1,
+      "des": 1,
+      "desc": "Adaptables, les Royaumes de l'Aube fournissent la plupart des Canalisateurs.",
+      "passives": [
+        "Polyvalence : +10 % d'XP, +1 point de compétence tous les 20 niveaux",
+        "Diplomatie : options de dialogue en plus, prix −5 %"
+      ],
+      "don": "Ralliement : ATQ +20 % pour toutes les unités alliées pendant 6 s",
+      "skins": [
+        "f0c8a8",
+        "e0aa88",
+        "c08a68",
+        "9a6a4a",
+        "6a4a32"
+      ],
+      "trait": "none",
+      "height": 1.5
+    },
     "elfe": {
       "name": "Elfe",
       "pou": 0,
@@ -67,7 +126,22 @@
       "esp": 0,
       "cel": 4,
       "des": 2,
-      "crit": 0.05
+      "crit": 0.05,
+      "desc": "Gardiens des Bois, liés aux Veines du monde.",
+      "passives": [
+        "Œil sylvestre : portée +10 %, critique +5 %",
+        "Lien des Veines : régénération de mana +10 %"
+      ],
+      "don": "Pas de brise : cadence +50 % pendant 5 s",
+      "skins": [
+        "f6d4b6",
+        "e0ae8e",
+        "c89878",
+        "a0785a",
+        "7a5a44"
+      ],
+      "trait": "ears",
+      "height": 1.5
     },
     "nain": {
       "name": "Nain",
@@ -75,23 +149,138 @@
       "vig": 4,
       "esp": 0,
       "cel": -1,
-      "des": 0
+      "des": 0,
+      "desc": "Forgerons des Pics, gardiens des Portes runiques.",
+      "passives": [
+        "Sang de pierre : DÉF des unités +15 %",
+        "Héritage runique : +1 emplacement de rune, Forge −10 %"
+      ],
+      "don": "Rempart runique : la Barrière gagne un bouclier de 20 PV",
+      "skins": [
+        "eab090",
+        "d08a6a",
+        "b07050",
+        "8a5a40",
+        "6a4430"
+      ],
+      "trait": "beard",
+      "height": 1.25
     },
     "orc": {
       "name": "Orc",
-      "pou": 3,
+      "pou": 4,
       "vig": 3,
       "esp": -2,
       "cel": 0,
-      "des": 0
+      "des": 0,
+      "desc": "Clans des steppes, guidés par l'Esprit de Fureur.",
+      "passives": [
+        "Peau épaisse : PV des unités +10 %",
+        "Cri de guerre : gain de Surge +10 %"
+      ],
+      "don": "Charge des clans : les unités repoussent les ennemis pendant 4 s",
+      "skins": [
+        "9ac870",
+        "7aaa5a",
+        "5a8a44",
+        "8a9a5a",
+        "6a7a6a"
+      ],
+      "trait": "tusks",
+      "height": 1.55
     },
     "fee": {
       "name": "Fée",
-      "pou": -1,
+      "pou": 0,
       "vig": -2,
       "esp": 4,
-      "cel": 3,
-      "des": 2
+      "cel": 0,
+      "des": 3,
+      "desc": "Petit peuple des Lucioles, à la magie vive.",
+      "passives": [
+        "Ailes : les unités ignorent le 1er portail négatif",
+        "Poussière d'étoiles : soins +20 %"
+      ],
+      "don": "Nuée féerique : 12 lucioles qui soignent et attaquent",
+      "skins": [
+        "e8dcf0",
+        "cbb8d4",
+        "f0d0e0",
+        "b8d0f0",
+        "c8e8d0"
+      ],
+      "trait": "wings",
+      "height": 1.1
+    },
+    "draconique": {
+      "name": "Draconique",
+      "pou": 3,
+      "vig": 0,
+      "esp": 2,
+      "cel": 0,
+      "des": 0,
+      "desc": "Descendants des dragons, au sang ardent.",
+      "passives": [
+        "Sang ardent : dégâts de Feu +20 %, résistance au Feu",
+        "Écailles : la Barrière subit −10 % de dégâts"
+      ],
+      "don": "Souffle : cône de feu",
+      "skins": [
+        "c8705a",
+        "a85040",
+        "d8a060",
+        "8a5a6a",
+        "b88a4a"
+      ],
+      "trait": "horns",
+      "height": 1.55
+    },
+    "reptilien": {
+      "name": "Reptilien",
+      "pou": 0,
+      "vig": 3,
+      "esp": 0,
+      "cel": 2,
+      "des": 0,
+      "desc": "Peuple de la Cité Engloutie, gardiens des Archives du Temps.",
+      "passives": [
+        "Régénération : unités +1 % PV/s, Barrière +0,2 PV/s",
+        "Venin : 10 % de chance d'empoisonner"
+      ],
+      "don": "Mue : purifie les effets négatifs, Barrière invulnérable 2 s",
+      "skins": [
+        "6a9a6a",
+        "5a8a7a",
+        "8aa860",
+        "4a7a6a",
+        "9a9a5a"
+      ],
+      "trait": "tail",
+      "height": 1.5
+    },
+    "revenant": {
+      "name": "Revenant",
+      "pou": 2,
+      "vig": 0,
+      "esp": 3,
+      "cel": 0,
+      "des": 0,
+      "desc": "Ceux qui sont revenus de l'autre côté de la Fracture.",
+      "passives": [
+        "Non-mort : immunité au poison, Ombre +15 %",
+        "Pacte : squelettes +20 % de stats"
+      ],
+      "don": "Retour : relève les 10 dernières unités alliées mortes",
+      "skins": [
+        "c8c8d0",
+        "a8aab8",
+        "b8b0c8",
+        "9aa0a8",
+        "d0c8c0"
+      ],
+      "trait": "ghost",
+      "height": 1.5,
+      "locked": "Débloqué par l'histoire (acte 6)"
     }
   },
   "player": {

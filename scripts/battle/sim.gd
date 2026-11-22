@@ -524,6 +524,11 @@ func _setup_casters(party: Dictionary, opts: Dictionary = {}) -> void:
 		pd["level"] = int(opts["player_level"])
 	if opts.has("weapon_element"):
 		pd["weapon_element"] = str(opts["weapon_element"])
+	if opts.has("player_race") and (races as Dictionary).has(str(opts["player_race"])):
+		pd["race"] = str(opts["player_race"])
+	if opts.has("look"):
+		# Sprite du héros dessiné selon son apparence (SpriteAtlas « player »).
+		pd["sprite"] = "player"
 	var pc := _make_caster(0, pd, classes, races, opts.get("gear", {}))
 	pc.min_x = 0.5
 	pc.max_x = W - 0.5

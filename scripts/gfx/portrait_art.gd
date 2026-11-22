@@ -14,6 +14,9 @@ static var _cache: Dictionary = {}
 
 static func texture(who: String, mood: String = "neutre") -> Texture2D:
 	var key := "%s|%s" % [who, mood]
+	if who == "porteur":
+		# Le héros change d'apparence (création, Miroir) : l'empreinte entre dans la clé du cache.
+		key += "|" + PlayerLook.key(Profile.look(), Profile.race())
 	if _cache.has(key):
 		return _cache[key]
 	for path in ["res://assets/portraits/%s-%s.png" % [who, mood], "res://assets/portraits/%s.png" % who]:
@@ -306,8 +309,103 @@ static func _mouth(img: Image, cx: int, my: int, mood: String, c: Color, open_c:
 
 # ---------------------------------------------------------------- personnages
 
-## Toi : capuche bleu nuit, visage dans l'ombre, regard cyan (personnage générique, quelle que soit la race).
+## Toi : selon ton apparence (Profile.look) et ta race. Capuche : visage dans l'ombre et regard lumineux ;
+## tête nue : visage éclairé, coiffure et couleur de cheveux. Traits de race : oreilles, crocs, cornes,
+## ailes, écailles, barbe.
 static func _porteur(img: Image, mood: String) -> void:
+	var pal := PlayerLook.palette(Profile.look(), Profile.race())
+	var o: Array = pal["outfit"]
+	var robe := _ramp([o[0].to_html(false), o[1].to_html(false), o[2].to_html(false)])
+	var hood := _ramp([o[0].to_html(false), o[1].to_html(false), o[2].to_html(false), o[3].to_html(false)])
+	var sk: Array = pal["skin"]
+	var skin := _ramp([sk[0].to_html(false), sk[1].to_html(false), sk[2].to_html(false)])
+	var hr: Array = pal["hair"]
+	var hair := _ramp([hr[0].darkened(0.2).to_html(false), hr[0].to_html(false), hr[1].to_html(false), hr[2].to_html(false)])
+	var eyes: Color = pal["eyes"]
+	var trait_ := str(pal["trait"])
+	var hooded := str(pal["head"]) == "capuche"
+	var face := int(pal["face"])
+	if trait_ == "wings":
+		var wing := _ramp(["4a4068", "8a7aa8", "c8b8e8", "eee6ff"])
+		_poly(img, PackedVector2Array([Vector2(26, 34), Vector2(8, 12), Vector2(2, 20), Vector2(4, 36), Vector2(12, 44), Vector2(24, 42)]), wing)
+		_poly(img, PackedVector2Array([Vector2(38, 34), Vector2(56, 12), Vector2(62, 20), Vector2(60, 36), Vector2(52, 44), Vector2(40, 42)]), wing)
+	if trait_ == "ghost":
+		_glow(img, 32, 30, 28, eyes, 0.12)
+	_poly(img, PackedVector2Array([Vector2(4, 64), Vector2(8, 52), Vector2(20, 45), Vector2(44, 45), Vector2(56, 52), Vector2(60, 64)]), robe)
+	if hooded:
+		_poly(img, PackedVector2Array([Vector2(12, 60), Vector2(13, 40), Vector2(16, 26), Vector2(22, 15), Vector2(32, 9), Vector2(42, 15), Vector2(48, 26), Vector2(51, 40), Vector2(52, 60), Vector2(42, 54), Vector2(22, 54)]), hood)
+		_ellipse(img, 32.0, 34.0, 11.0, 14.0, _ramp(["0c0a1c"]), 0.0, true)
+	elif str(pal["head"]) in ["longs", "tresse"]:
+		# Cheveux longs derrière les épaules.
+		_poly(img, PackedVector2Array([Vector2(19, 26), Vector2(17, 40), Vector2(16, 54), Vector2(24, 50), Vector2(40, 50), Vector2(48, 54), Vector2(47, 40), Vector2(45, 26)]), hair)
+	# Oreilles et cornes, derrière le visage.
+	if trait_ == "ears":
+		_poly(img, PackedVector2Array([Vector2(22, 30), Vector2(10, 21), Vector2(13, 26), Vector2(22, 36)]), skin, 0.1)
+		_poly(img, PackedVector2Array([Vector2(42, 30), Vector2(54, 21), Vector2(51, 26), Vector2(42, 36)]), skin, 0.1)
+	elif trait_ in ["tusks", "beard", "none", "ghost"] and not hooded:
+		_ellipse(img, 21.0, 33.0, 2.5, 3.5, skin)
+		_ellipse(img, 43.0, 33.0, 2.5, 3.5, skin)
+	if trait_ == "horns":
+		var horn := _ramp(["6a5a4a", "c8b890", "e8dcc0", "fff6e0"])
+		_poly(img, PackedVector2Array([Vector2(24, 20), Vector2(18, 14), Vector2(16, 5), Vector2(21, 11), Vector2(27, 16)]), horn)
+		_poly(img, PackedVector2Array([Vector2(40, 20), Vector2(46, 14), Vector2(48, 5), Vector2(43, 11), Vector2(37, 16)]), horn)
+	# Visage : dans l'ombre de la capuche, ou éclairé.
+	var fy := 37.0 if hooded else 33.0
+	var frx := 8.5 if hooded else (9.5 if face == 1 else 10.5)
+	var fry := 10.5 if hooded else 12.5
+	if hooded:
+		_ellipse(img, 32.0, fy, frx, fry, _ramp([sk[0].darkened(0.5).to_html(false), sk[0].darkened(0.3).to_html(false), sk[0].to_html(false)]))
+	else:
+		_ellipse(img, 32.0, fy, frx, fry, skin)
+		if face == 1:
+			_poly(img, PackedVector2Array([Vector2(24, 38), Vector2(32, 47), Vector2(40, 38)]), skin)
+	if trait_ in ["horns", "tail"]:
+		# Écailles sur les tempes.
+		for q in [Vector2i(24, 30), Vector2i(25, 33), Vector2i(39, 30), Vector2i(38, 33), Vector2i(23, 36), Vector2i(40, 36)]:
+			_px(img, q.x, q.y, sk[0])
+	if not hooded:
+		# Coiffure.
+		match str(pal["head"]):
+			"courts":
+				_poly(img, PackedVector2Array([Vector2(21, 31), Vector2(20, 22), Vector2(25, 16), Vector2(32, 14), Vector2(39, 16), Vector2(44, 22), Vector2(43, 31), Vector2(40, 24), Vector2(36, 26), Vector2(32, 22), Vector2(28, 26), Vector2(24, 24)]), hair)
+			"longs":
+				_poly(img, PackedVector2Array([Vector2(21, 34), Vector2(20, 22), Vector2(25, 15), Vector2(32, 13), Vector2(39, 15), Vector2(44, 22), Vector2(43, 34), Vector2(41, 25), Vector2(36, 25), Vector2(32, 21), Vector2(28, 25), Vector2(23, 25)]), hair)
+			"tresse":
+				_poly(img, PackedVector2Array([Vector2(21, 30), Vector2(21, 21), Vector2(26, 16), Vector2(32, 14), Vector2(38, 16), Vector2(43, 21), Vector2(43, 30), Vector2(39, 23), Vector2(32, 21), Vector2(25, 23)]), hair)
+				for i in range(6):
+					_ellipse(img, 44.0 + (0.8 if i % 2 == 0 else -0.8), 37.0 + float(i) * 3.6, 2.6, 2.2, hair)
+	if trait_ == "beard":
+		_poly(img, PackedVector2Array([Vector2(22, 37), Vector2(24, 48), Vector2(32, 54), Vector2(40, 48), Vector2(42, 37), Vector2(37, 42), Vector2(27, 42)]), hair)
+	# Yeux : lumineux sous la capuche (ou pour un Revenant), sinon iris à la couleur choisie.
+	if hooded or trait_ == "ghost":
+		_glow_eye(img, 26, int(fy) - 3, -1, mood, eyes.lightened(0.3), eyes)
+		_glow_eye(img, 35, int(fy) - 3, 1, mood, eyes.lightened(0.3), eyes)
+	else:
+		_brow(img, 26, int(fy) - 5, -1, mood, hr[0], 2 if face == 1 else 1)
+		_brow(img, 37, int(fy) - 5, 1, mood, hr[0], 2 if face == 1 else 1)
+		_eye(img, 25, int(fy) - 3, -1, mood, eyes, Color("2a2030"))
+		_eye(img, 36, int(fy) - 3, 1, mood, eyes, Color("2a2030"))
+	if face == 2:
+		_line(img, Vector2(37, fy - 7.0), Vector2(41, fy + 3.0), sk[0].darkened(0.25))
+	_mouth(img, 32, int(fy) + 5, mood, sk[0].darkened(0.4), Color("1a1428"))
+	if trait_ == "tusks":
+		for side in [-1, 1]:
+			var x: int = 32 + side * 4
+			for k in range(3):
+				_px(img, x, int(fy) + 6 - k, Color("e8dcc0"))
+	if hooded:
+		for a in range(200, 341, 4):
+			var r := deg_to_rad(float(a))
+			_px(img, 32 + int(round(cos(r) * 11.5)), 34 + int(round(sin(r) * 14.5)), o[2])
+	_rim(img, 4, 60, 8, 63, Color("cfd8ff"))
+	# Col runique et fermoir.
+	for x in range(21, 44):
+		if x % 3 != 0:
+			_px(img, x, 47 + (1 if x < 26 or x > 38 else 0), eyes)
+	_ellipse(img, 32.0, 49.0, 2.0, 2.0, _ramp(["a87a28", "f2c46b", "fff0b0"]))
+
+
+static func _porteur_ancien(img: Image, mood: String) -> void:
 	var robe := _ramp(["1f5a66", "2f8f9a", "4fb8c0"])
 	var hood := _ramp(["14204a", "1d2f5a", "2f4f8f", "4a6ab8"])
 	_poly(img, PackedVector2Array([Vector2(4, 64), Vector2(8, 52), Vector2(20, 45), Vector2(44, 45), Vector2(56, 52), Vector2(60, 64)]), robe)
