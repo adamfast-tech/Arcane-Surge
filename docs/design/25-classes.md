@@ -77,7 +77,7 @@ Commande : `tools/sim_cli.gd -- --level=X --runs=N --class=<classe>`.
 |---|---|---|---|---|---|---|---|
 | 1-5 | 6/6 · 108 s | 6/6 · 70 s | 6/6 · 105 s | 6/6 · 94 s | 6/6 · 98 s | 6/6 · 96 s | 6/6 · 98 s |
 | 1-10 | 6/6 | 6/6 | 6/6 | 6/6 | 6/6 | 6/6 | 6/6 |
-| 2-10 | 3/4 | | | | 4/4 | 4/4 | |
+| 2-10 (Gharok) | 3/4 | 4/4 | 3/4 | 4/4 | 4/4 | 4/4 | 4/4 |
 | 3-10 (Hydre, Brann et Sylwen) | 6/6 · 376 s | 6/6 · 587 s | 6/6 · 569 s | 6/6 · 543 s | 3/6 · 610 s | 2/3 · 700 s | 5/6 · 572 s |
 
 - L'Hydre et les créatures du marais sont de Nature : le Météore de Feu (×1,5) y reste la meilleure Ultime.
