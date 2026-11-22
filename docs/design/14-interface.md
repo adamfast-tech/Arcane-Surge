@@ -24,3 +24,10 @@
 | Équipement & Forge | Retour, monnaies, puissance et élément, 5 stats, objets équipés (icône, emplacement, nom à la couleur de la rareté, stats, Retirer), emplacements vides (un toucher filtre l'inventaire), inventaire avec Équiper, Améliorer, Recycler |
 | Carte | Même style ; bouton Jouer principal, cadenas sur les niveaux verrouillés, étoiles au trait |
 | Combat | Icône de chaque sort au-dessus de son nom, icônes de pause et d'Ultime, étoiles de fin au trait |
+
+## Défilement tactile
+
+- Dans toute liste défilante (Bibliothèque, Carte, Équipement, Entraînement, Cercle, Sauvegarde, historique des dialogues), on fait défiler en glissant le doigt n'importe où, y compris sur une carte ou un bouton (`scripts/core/touch_scroll.gd`).
+- Les boutons et les cadres d'une liste laissent passer les évènements vers le conteneur (`MOUSE_FILTER_PASS`).
+- Au-delà de 14 px de glissé, l'appui devient un défilement, et l'appui en cours sur un bouton est annulé : relâcher ne le déclenche pas.
+- Un écran reconstruit après un clic garde sa position de défilement.

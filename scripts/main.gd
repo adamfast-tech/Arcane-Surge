@@ -11,6 +11,7 @@ var _offered: Dictionary = {}
 func _ready() -> void:
 	RenderingServer.set_default_clear_color(UiTheme.BG)
 	theme = UiTheme.build()
+	TouchScroll.install(get_tree())
 	cloud = Cloud.new()
 	add_child(cloud)
 	Profile.load_local()

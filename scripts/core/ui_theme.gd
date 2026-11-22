@@ -205,10 +205,24 @@ static func backdrop(parent: Control, dim: float = 0.62, fade: float = 0.0) -> v
 
 ## Colonne centrée et défilante (largeur max 680 px) ; retourne le conteneur où ajouter le contenu.
 static func scroll_column(parent: Control, max_w: float = 680.0, top: float = 24.0, center_v: bool = false) -> VBoxContainer:
+	# Écran reconstruit (ex. après un clic) : on garde la position de défilement de l'ancienne liste.
+	var keep := 0
+	for ch in parent.get_children():
+		if ch is ScrollContainer and ch.is_queued_for_deletion():
+			keep = (ch as ScrollContainer).scroll_vertical
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	parent.add_child(scroll)
 	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	if keep > 0:
+		var bar := scroll.get_v_scroll_bar()
+		var apply := func() -> void:
+			if is_instance_valid(scroll):
+				scroll.scroll_vertical = keep
+		bar.changed.connect(apply)
+		scroll.get_tree().create_timer(0.6).timeout.connect(func() -> void:
+			if is_instance_valid(bar) and bar.changed.is_connected(apply):
+				bar.changed.disconnect(apply))
 	# Colonne centrée horizontalement, en haut de l'écran (ou au milieu si center_v).
 	var center := HBoxContainer.new()
 	center.alignment = BoxContainer.ALIGNMENT_CENTER
