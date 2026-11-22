@@ -18,7 +18,7 @@
 | 2-4 | Le Gué du Clan | Assaut | Gardes de clan et Ogres, vent |
 | 2-5 | Varg, chef pillard | Mini-boss | Charges en ligne, renforts, Cri de guerre |
 | 2-6 | Le Campement de l'orage | Assaut | Chamans d'orage, vent et pylône |
-| 2-7 | La Caravane | Escorte | Chariot de vivres (1 600 PV), embuscades de loups |
+| 2-7 | La Caravane | Escorte | Chariot de vivres (1 800 PV), embuscades de loups |
 | 2-8 | Le Rebouteux | Purification | 2 sceaux, Rebouteux qui soignent le Nexus |
 | 2-9 | Le Traité d'Ambre | Siège | 2 Nexus, tours |
 | 2-10 | Gharok | Boss | 3 Bannières de guerre, Totems d'orage, vent et pylône |
@@ -75,4 +75,4 @@
 | 2-9 | 3/3 | 173 s | 87 % |
 | 2-10 | 3/3 | 304 s | 46 % |
 
-Le chariot de 2-7 est passé de 1 400 à 1 600 PV après un résultat de 2 victoires sur 3.
+2-7 a été assoupli après plusieurs séries à 2 victoires sur 3 : chariot à 1 800 PV (au lieu de 1 400), arrivée à 13,0 hors de portée des tours, embuscades de 3 loups (au lieu de 4).
