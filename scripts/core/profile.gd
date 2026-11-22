@@ -13,18 +13,21 @@ static var data: Dictionary = {}
 
 ## Sorts connus au départ (et deck de départ) ; 7 sorts au plus en combat.
 const BASE_SPELLS := ["boule_de_feu", "pluie_de_givre", "racines", "eclair_chaine", "vortex_ombre", "onde_arcanique", "purifier"]
-## Rangs des sorts élémentaires, par ordre croissant (docs/design/18-rangs-des-sorts.md) : niveau requis,
-## prix à la Bibliothèque, Corruption gagnée en l'apprenant.
+## Rangs des sorts élémentaires, par ordre croissant (docs/design/18-rangs-des-sorts.md). Tout sort
+## s'achète à la Bibliothèque, à un prix proportionnel à sa puissance ; la magie interdite donne de la Corruption.
 const SPELL_RANKS := ["novice", "intermediaire", "apprenti", "mage", "maitre", "archimage", "interdit"]
 const RANK_INFO := {
-	"novice": {"name": "Novice", "level": 1, "gold": 50, "color": "C8D0E0"},
-	"intermediaire": {"name": "Intermédiaire", "level": 1, "gold": 120, "color": "8FD16A"},
-	"apprenti": {"name": "Apprenti", "level": 5, "gold": 250, "color": "6FDCCF"},
-	"mage": {"name": "Mage", "level": 10, "gold": 500, "color": "6FA8E8"},
-	"maitre": {"name": "Maître", "level": 16, "gold": 900, "color": "B07CFF"},
-	"archimage": {"name": "Archimage", "level": 24, "gold": 1500, "color": "F2C46B"},
-	"interdit": {"name": "Interdit", "level": 32, "gold": 2500, "color": "D93CF2", "corruption": 10},
+	"novice": {"name": "Novice", "color": "C8D0E0"},
+	"intermediaire": {"name": "Intermédiaire", "color": "8FD16A"},
+	"apprenti": {"name": "Apprenti", "color": "6FDCCF"},
+	"mage": {"name": "Mage", "color": "6FA8E8"},
+	"maitre": {"name": "Maître", "color": "B07CFF"},
+	"archimage": {"name": "Archimage", "color": "F2C46B"},
+	"interdit": {"name": "Interdit", "color": "D93CF2", "corruption": 10},
 }
+## Or par point de puissance, prix minimum.
+const SPELL_PRICE_PER_POWER := 1.5
+const SPELL_PRICE_MIN := 40
 const SCHOOLS := {"feu": "Feu", "givre": "Givre", "foudre": "Foudre", "nature": "Nature", "ombre": "Ombre", "arcane": "Arcane"}
 const DECK_MAX := 7
 ## Sorts que chaque compagnon peut emporter (Cercle).
@@ -657,13 +660,59 @@ static func toggle_deck(id: String) -> String:
 	return ""
 
 
-## Conditions d'apprentissage d'un sort (selon son rang) : {level, gold, corruption} ; vide s'il ne
-## s'apprend pas à la Bibliothèque.
+## Puissance d'un sort par lancer : dégâts × surface touchée, durée, rebonds, gel, ralentissement,
+## soin ou bouclier de la Barrière, part de dégâts au Nexus, Surge. Sert à fixer son prix.
+static func spell_power(id: String) -> int:
+	var sp: Dictionary = GameData.spells().get(id, {})
+	var area := func(r: float) -> float: return 0.5 + 0.5 * r * r
+	var dmg := float(sp.get("damage", 0))
+	var p := 0.0
+	match str(sp.get("type", "")):
+		"aoe":
+			var a: float = area.call(float(sp.get("radius", 1.0)))
+			p = dmg * a + float(sp.get("freeze", 0.0)) * 25.0 * a
+		"zone":
+			var a: float = area.call(float(sp.get("radius", 1.5)))
+			var d := float(sp.get("dur", 3.0))
+			p = float(sp.get("dps", 0)) * d * a + float(sp.get("slow", 0.0)) * d * 12.0 * a + float(sp.get("pull", 0.0)) * d * 8.0
+		"chain":
+			var f := float(sp.get("falloff", 0.8))
+			for k in range(int(sp.get("bounces", 5))):
+				p += float(sp.get("damage", 40)) * pow(f, k)
+		"column":
+			p = float(sp.get("damage", 30)) * float(sp.get("width", 0.8)) * 4.0
+		"barrage":
+			p = float(sp.get("count", 5)) * dmg * float(area.call(float(sp.get("radius", 1.0))))
+		"wave":
+			p = float(sp.get("damage", 20)) * float(area.call(float(sp.get("radius", 2.0)))) + float(sp.get("push", 2.0)) * 20.0
+		"barrier_heal", "barrier_shield":
+			p = float(sp.get("amount", 15)) * 12.0
+		"purify":
+			p = 100.0
+	p += dmg * float(sp.get("nexus_ratio", 0.0)) * 2.0 + float(sp.get("surge_gain", 0.0)) * 20.0
+	return int(round(p))
+
+
+## Prix d'un sort à la Bibliothèque : proportionnel à sa puissance (arrondi à 10 or, à 50 or au-delà de 1 000).
+static func spell_price(id: String) -> int:
+	var g := maxf(float(SPELL_PRICE_MIN), float(spell_power(id)) * SPELL_PRICE_PER_POWER)
+	var step := 50.0 if g >= 1000.0 else 10.0
+	return int(round(g / step) * step)
+
+
+## Conditions d'apprentissage d'un sort : {gold, corruption} (ou {level, gold} pour un sort qui
+## l'impose) ; vide s'il ne s'achète pas.
 static func learn_info(id: String) -> Dictionary:
 	var sp: Dictionary = GameData.spells().get(id, {})
 	if sp.has("learn"):
 		return sp["learn"]
-	return RANK_INFO.get(str(sp.get("rank", "")), {})
+	if not sp.has("rank"):
+		return {}
+	var out := {"gold": spell_price(id)}
+	var ri: Dictionary = RANK_INFO.get(str(sp["rank"]), {})
+	if ri.has("corruption"):
+		out["corruption"] = int(ri["corruption"])
+	return out
 
 
 static func learn_block(id: String) -> String:

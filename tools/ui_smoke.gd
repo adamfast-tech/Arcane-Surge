@@ -157,23 +157,25 @@ func _run() -> void:
 	var t1 := Profile.toggle_deck("onde_arcanique")
 	var deck_after := Profile.deck().size()
 	Profile.toggle_deck("onde_arcanique")
-	# Rangs des sorts : un Novice s'apprend ; un Interdit demande le niveau 32 et donne de la Corruption.
+	# Prix des sorts proportionnels à la puissance : un Novice s'achète tout de suite ; un Interdit
+	# s'achète à n'importe quel niveau avec assez d'or, et donne de la Corruption.
 	var g0 := Profile.gold()
+	var p_nov := Profile.spell_price("etincelle")
 	var nov := Profile.learn("etincelle")
 	var forb := Profile.learn_block("soleil_noir")
-	var lvl0 := int(Profile.data["player"]["level"])
 	var cor0 := Story.value("corruption")
-	Profile.data["player"]["level"] = 40
-	Profile.data["gold"] = 5000
+	var p_forb := Profile.spell_price("soleil_noir")
+	Profile.data["gold"] = p_forb
 	var forb_ok := Profile.learn("soleil_noir")
 	var cor1 := Story.value("corruption")
-	Profile.data["player"]["level"] = lvl0
-	Profile.data["gold"] = g0 - 50
+	Profile.data["gold"] = g0 - p_nov
 	(Profile.data["spells"]["known"] as Array).erase("soleil_noir")
 	Story.add_value("corruption", cor0 - cor1)
-	print("rangs : Étincelle apprise ", nov, " (", g0, " -> ", Profile.gold(), " or) · Soleil noir : ", forb, " · au niv. 40 ", forb_ok, " · Corruption ", cor0, " -> ", cor1,
-		" · catalogue ", LibraryScreen.catalogue().size())
-	if not nov or forb_ok == false or cor1 - cor0 != 10 or LibraryScreen.catalogue().size() != 43:
+	var ordered := Profile.spell_price("etincelle") < Profile.spell_price("boule_de_feu") and Profile.spell_price("boule_de_feu") < Profile.spell_price("comete") \
+		and Profile.spell_price("comete") < Profile.spell_price("soleil_noir")
+	print("prix : Étincelle ", p_nov, " or, apprise ", nov, " · Comète ", Profile.spell_price("comete"), " · Soleil noir ", p_forb, " (", forb, ") puis acheté ", forb_ok,
+		" · Corruption ", cor0, " -> ", cor1, " · croissants ", ordered, " · catalogue ", LibraryScreen.catalogue().size())
+	if not nov or not forb_ok or forb != "Or insuffisant" or cor1 - cor0 != 10 or not ordered or LibraryScreen.catalogue().size() != 43:
 		push_error("rangs des sorts : apprentissage incorrect")
 		quit(1)
 		return

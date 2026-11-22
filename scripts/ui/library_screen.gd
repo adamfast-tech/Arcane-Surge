@@ -46,7 +46,7 @@ func _rebuild() -> void:
 	tv.add_child(UiTheme.title("GRIMOIRE ET DECK", 22, UiTheme.TEXT))
 	var deck := Profile.deck()
 	var known := Profile.known_spells()
-	col.add_child(UiTheme.wrap("Deck : %d / %d sorts. Sorts connus : %d / %d. Chaque rang s'ouvre à un niveau ; la magie interdite se paie en Corruption et en Barrière." % [
+	col.add_child(UiTheme.wrap("Deck : %d / %d sorts. Sorts connus : %d / %d. Chaque sort s'achète en or, selon sa puissance ; la magie interdite se paie aussi en Corruption et en Barrière." % [
 		deck.size(), Profile.DECK_MAX, known.size(), catalogue().size()], 18, UiTheme.MUTED))
 	col.add_child(_deck_row(deck))
 	if _msg != "":
@@ -62,9 +62,12 @@ func _rebuild() -> void:
 		if ids.is_empty():
 			continue
 		var ri: Dictionary = Profile.RANK_INFO[rank]
-		var rc := Color(str(ri["color"]))
-		var lvl_ok := Profile.level() >= int(ri["level"])
-		col.add_child(UiTheme.section("%s · niveau %d%s" % [str(ri["name"]), int(ri["level"]), "" if lvl_ok else " · verrouillé"], rc if lvl_ok else UiTheme.MUTED))
+		var lo := 1 << 30
+		var hi := 0
+		for id in ids:
+			lo = mini(lo, Profile.spell_price(id))
+			hi = maxi(hi, Profile.spell_price(id))
+		col.add_child(UiTheme.section("%s · %s" % [str(ri["name"]), ("%d or" % lo) if lo == hi else "%d à %d or" % [lo, hi]], Color(str(ri["color"]))))
 		for id in ids:
 			col.add_child(_spell_card(id, known.has(id), deck.has(id)))
 	# Sorts hors école (Purifier).
@@ -148,10 +151,11 @@ func _spell_card(id: String, known: bool, in_deck: bool) -> PanelContainer:
 	var forbidden := rank == "interdit"
 	var block := "" if known else Profile.learn_block(id)
 	var level_locked := block.begins_with("Niveau")
+	var poor := block == "Or insuffisant"
 	var c: Array = UiTheme.card(Color(scol, 0.75) if in_deck else (Color("D93CF2", 0.6) if forbidden else UiTheme.BORDER), 12)
 	var pc: PanelContainer = c[0]
-	if level_locked:
-		pc.modulate = Color(1, 1, 1, 0.55)
+	if level_locked or poor:
+		pc.modulate = Color(1, 1, 1, 0.72 if poor else 0.55)
 	var h := HBoxContainer.new()
 	h.add_theme_constant_override("separation", 12)
 	(c[1] as VBoxContainer).add_child(h)
@@ -170,6 +174,8 @@ func _spell_card(id: String, known: bool, in_deck: bool) -> PanelContainer:
 		tags.append(str(ri["name"]))
 	if sp.has("school"):
 		tags.append(str(Profile.SCHOOLS.get(str(sp["school"]), "")))
+	if sp.has("rank"):
+		tags.append("puissance %d" % Profile.spell_power(id))
 	tags.append("%d mana" % int(sp.get("mana", 0)))
 	tags.append("recharge %d s" % int(sp.get("cd", 0)))
 	v.add_child(UiTheme.label(" · ".join(tags), 16, Color(str(ri.get("color", "8a9bb0"))) if not ri.is_empty() else UiTheme.MUTED))
@@ -208,9 +214,11 @@ func _spell_card(id: String, known: bool, in_deck: bool) -> PanelContainer:
 			_save()
 		_rebuild.call_deferred())
 	h.add_child(lb)
-	var req := "Niveau %d requis" % int(l.get("level", 1))
-	if block != "" and not level_locked and block != "Déjà appris":
-		req += " · " + block
+	var req := "Prix : %d or" % int(l.get("gold", 0))
+	if l.has("level"):
+		req = "Niveau %d requis · " % int(l["level"]) + req
+	if poor:
+		req += " · il te manque %d or" % (int(l.get("gold", 0)) - Profile.gold())
 	if int(l.get("corruption", 0)) > 0:
 		req += " · Corruption +%d" % int(l["corruption"])
 	v.add_child(UiTheme.label(req, 15, UiTheme.MUTED if block != "" else UiTheme.GOOD))

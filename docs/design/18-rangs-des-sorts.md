@@ -4,15 +4,38 @@
 
 ## Rangs (par ordre croissant)
 
-| Rang | Niveau requis | Prix à la Bibliothèque | Profil des sorts |
-|---|---|---|---|
-| Novice | 1 | 50 or | 15 mana, recharge 3–4 s : petits effets rapides |
-| Intermédiaire | 1 | 120 or | Sorts de départ (connus dès le début) |
-| Apprenti | 5 | 250 or | Effets spécialisés (gel, bouclier, soin…) |
-| Mage | 10 | 500 or | 40 mana : colonnes, barrages d'éclairs, vagues |
-| Maître | 16 | 900 or | 50 mana : grandes zones durables, comète |
-| Archimage | 24 | 1 500 or | 65 mana : effets de masse |
-| Interdit | 32 | 2 500 or | 80 mana, recharge 30 s, **Corruption +10** quand on l'apprend, **20 à 25 points de Barrière** à chaque lancer |
+| Rang | Profil des sorts |
+|---|---|
+| Novice | 15 mana, recharge 3–4 s : petits effets rapides |
+| Intermédiaire | Sorts de départ (connus dès le début) |
+| Apprenti | Effets spécialisés (gel, bouclier, soin…) |
+| Mage | 40 mana : colonnes, barrages d'éclairs, vagues |
+| Maître | 50 mana : grandes zones durables, comète |
+| Archimage | 65 mana : effets de masse |
+| Interdit | 80 mana, recharge 30 s, **Corruption +10** quand on l'apprend, **20 à 25 points de Barrière** à chaque lancer |
+
+### Prix en or, proportionnel à la puissance
+
+Tout sort s'achète à la Bibliothèque, sans niveau requis. Son prix suit sa puissance par lancer :
+
+`prix = max(40, puissance × 1,5)`, arrondi à 10 or (à 50 or au-delà de 1 000).
+
+La puissance (`Profile.spell_power`) se calcule à partir des caractéristiques du sort, avec `surface(r) = 0,5 + 0,5 r²` :
+
+| Type | Calcul |
+|---|---|
+| Zone d'impact | dégâts × surface(rayon), plus gel × 25 × surface |
+| Zone durable | dégâts par seconde × durée × surface, plus ralentissement × durée × 12 × surface, plus attraction × durée × 8 |
+| Chaîne | somme des dégâts de chaque rebond |
+| Colonne | dégâts × largeur × 4 |
+| Barrage | nombre d'impacts × dégâts × surface |
+| Vague | dégâts × surface, plus recul × 20 |
+| Soin ou bouclier de la Barrière | quantité × 12 |
+| Tous | plus dégâts au Nexus × 2, plus Surge × 20 |
+
+Exemples : Étincelle 40 or, Boule de feu 150, Comète 630, Soleil noir 3 750.
+
+Gain d'un combat gagné : 20 + 10 × niveau du lieu en or, multiplié par le bonus d'étoiles. Les sorts les plus chers demandent donc de nombreux combats.
 
 - La Barrière paie le prix d'un sort interdit directement : le bouclier ne la protège pas.
 - Un sort interdit est impossible à lancer si la Barrière ne peut pas payer son prix.
@@ -47,9 +70,9 @@
 ## Bibliothèque
 
 - Filtres par école : Tous, Feu, Givre, Foudre, Nature, Ombre, Arcane.
-- Une section par rang, avec son niveau ; « verrouillé » tant que le niveau n'est pas atteint.
+- Une section par rang, avec la fourchette de prix.
 - Le deck s'affiche en icônes : toucher une icône retire le sort.
-- Chaque carte indique le rang, l'école, le mana et la recharge.
+- Chaque carte indique le rang, l'école, la puissance, le mana, la recharge et le prix (ou l'or manquant).
 - Sur les sorts interdits, le prix en Corruption est affiché.
 
 ## Aperçu web
