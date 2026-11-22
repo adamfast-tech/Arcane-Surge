@@ -46,6 +46,7 @@ var poison_unit := 0.0
 var rooted_t := 0.0
 var wither_t := 0.0
 var shield := 0.0
+var zone_slow := 0.0 ## ralentissement des zones de sorts (Racines), recalculé à chaque pas
 
 # Rendu
 var flash_t := 0.0
@@ -55,4 +56,4 @@ var anim := 0.0
 func speed_factor() -> float:
 	if frozen_t > 0.0 or rooted_t > 0.0:
 		return 0.0
-	return maxf(0.25, 1.0 - 0.15 * float(slow_stacks))
+	return maxf(0.25, 1.0 - 0.15 * float(slow_stacks)) * (1.0 - zone_slow)

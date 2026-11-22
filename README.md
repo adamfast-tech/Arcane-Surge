@@ -12,6 +12,7 @@ Jeu de « foule contrôlée » en univers de fantasy magique : tu lances des flu
 - **Compte :** connexion avec ton **compte Académie** (même pseudo et même mot de passe), ou jeu sans compte, la progression restant alors sur l'appareil.
 - **Havre-Aube :** le hub, avec profil et progression, la carte de la zone 1 et l'équipement avec la Forge.
 - **Zone 1, Bois des Lucioles :** 10 niveaux, dont un mini-boss (le Grand Cerf), une escorte, un siège et le boss **la Sylvarche**.
+- **Sorts :** 7 sorts animés (Boule de feu, Pluie de givre, Racines, Éclair en chaîne, Vortex d'ombre, Onde arcanique, Purifier), plus le Champion et l'Ultime (Météore arcanique).
 - **Histoire :** prologue, dialogues avant et après chaque niveau avec portraits, choix qui changent la suite (les fées captives, le sort de la Sylvarche), loyauté de Brann et Sylwen, répliques des compagnons en combat.
 - **Progression :** XP, niveaux, or, butin par étoile, équipement à améliorer.
 - **Accès direct à un niveau :** `…/Arcane-Surge/?level=z01_l10` (ajouter `&solo=1` pour jouer sans bots).
@@ -22,7 +23,7 @@ Jeu de « foule contrôlée » en univers de fantasy magique : tu lances des flu
 |---|---|---|
 | Lancer le Flux | Maintenir sur l'arène | Clic gauche maintenu (`F` : tir automatique) |
 | Viser | Glisser | Souris ou `A` / `D` |
-| Sort | Toucher le sort puis l'arène | `1`–`4` (lancé au curseur) |
+| Sort | Toucher le sort puis l'arène | `1`–`7` (lancé au curseur) |
 | Champion | Bouton | `E` |
 | Ultime | Bouton puis l'arène | `Espace` |
 | Ordre aux bots | Toucher le bot | `Q` / `R` |

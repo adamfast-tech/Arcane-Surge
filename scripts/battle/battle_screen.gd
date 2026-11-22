@@ -7,7 +7,7 @@ signal exit_requested(dest: String)
 signal restart_requested
 
 const TOP_H := 150.0
-const BOTTOM_H := 330.0
+const BOTTOM_H := 350.0
 const TOP_H_LAND := 92.0
 
 var level_id := "z01_l08"
@@ -256,14 +256,18 @@ func _build_portrait() -> void:
 			r1.add_child(_bot_cycle_button(c))
 	bv.add_child(_barrier_row())
 	bv.add_child(_mana_row())
-	var r3 := HBoxContainer.new()
-	r3.add_theme_constant_override("separation", 6)
+	# Sorts sur deux rangées de quatre (7 sorts + Ultime).
+	var r3 := GridContainer.new()
+	r3.columns = 4
+	r3.add_theme_constant_override("h_separation", 6)
+	r3.add_theme_constant_override("v_separation", 6)
 	r3.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	bv.add_child(r3)
 	for i in range(sim.player().spells.size()):
 		var b := _spell_button(i)
 		r3.add_child(b)
 	ult_btn = _ult_button()
+	ult_btn.custom_minimum_size = Vector2(0, 78)
 	r3.add_child(ult_btn)
 
 
@@ -287,7 +291,7 @@ func _build_landscape() -> void:
 	var sp := Control.new()
 	sp.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	lv.add_child(sp)
-	lv.add_child(_wrap_label("Clic maintenu : Flux · 1-4 : sorts au curseur · E : Champion · Espace : Ultime · Q/R : ordres · F : tir auto · Échap : pause", 18, UiTheme.MUTED))
+	lv.add_child(_wrap_label("Clic maintenu : Flux · 1-7 : sorts au curseur · E : Champion · Espace : Ultime · Q/R : ordres · F : tir auto · Échap : pause", 18, UiTheme.MUTED))
 
 	var right := PanelContainer.new()
 	right.add_theme_stylebox_override("panel", UiTheme.box(Color(UiTheme.PANEL, 0.96), UiTheme.BORDER, 0, 0, 16))
@@ -304,7 +308,7 @@ func _build_landscape() -> void:
 	rv.add_child(grid)
 	for i in range(sim.player().spells.size()):
 		var b := _spell_button(i)
-		b.custom_minimum_size = Vector2(0, 96)
+		b.custom_minimum_size = Vector2(0, 82)
 		grid.add_child(b)
 	champ_btn = _action_button("CHAMPION", UiTheme.GOLD)
 	champ_btn.pressed.connect(_on_champion)
@@ -424,9 +428,14 @@ func _spell_button(i: int) -> Button:
 	var b := UiTheme.button("", 18)
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	b.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	b.custom_minimum_size = Vector2(0, 100)
+	b.custom_minimum_size = Vector2(0, 78)
 	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	b.clip_text = true
+	# Bordure à la couleur du sort, pour le reconnaître d'un coup d'œil.
+	var col := Color(str(sim.spells_db[sim.player().spells[i]].get("color", "4A3D7A")))
+	b.add_theme_stylebox_override("normal", UiTheme.box(UiTheme.PANEL2, Color(col, 0.85), 12, 2, 6))
+	b.add_theme_stylebox_override("hover", UiTheme.box(UiTheme.PANEL2.lightened(0.08), col, 12, 2, 6))
+	b.add_theme_stylebox_override("disabled", UiTheme.box(Color(UiTheme.PANEL2, 0.55), Color(col, 0.3), 12, 2, 6))
 	b.pressed.connect(_on_spell_pressed.bind(i))
 	spell_btns.append(b)
 	return b
@@ -780,7 +789,7 @@ func _unhandled_input(ev: InputEvent) -> void:
 	if paused or sim.state != "running":
 		return
 	match k:
-		KEY_1, KEY_2, KEY_3, KEY_4:
+		KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7:
 			var i := int(k - KEY_1)
 			if i < spell_btns.size():
 				_on_spell_pressed(i, _hover_in)
@@ -813,7 +822,13 @@ func _on_spell_pressed(i: int, quick: bool = false) -> void:
 		return
 	aiming = id
 	var sp: Dictionary = sim.spells_db[id]
-	arena.aim_radius = float(sp.get("radius", 1.0)) if str(sp["type"]) != "purify" else 0.9
+	match str(sp["type"]):
+		"purify":
+			arena.aim_radius = 0.9
+		"chain":
+			arena.aim_radius = 2.5
+		_:
+			arena.aim_radius = float(sp.get("radius", 1.0))
 	arena.aim_color = Color(str(sp.get("color", "FFFFFF")))
 	if quick:
 		_cast_aimed(_hover)
@@ -843,6 +858,8 @@ func _cast_aimed(at: Vector2) -> void:
 		aiming = ""
 	elif str(sim.spells_db[aiming]["type"]) == "purify":
 		_toast("Aucun portail négatif ici")
+	elif str(sim.spells_db[aiming]["type"]) == "chain":
+		_toast("Aucun ennemi à portée")
 	else:
 		aiming = ""
 
@@ -939,6 +956,22 @@ func _open_pause() -> void:
 	var v := _modal("PAUSE", "%s %s · %s" % [str(_level.get("number", "")), str(_level.get("name", "")), str(_level.get("type", ""))])
 	var desc := _wrap_label(str(_level.get("desc", "")), 20, UiTheme.TEXT)
 	v.add_child(desc)
+	# Rappel des sorts (nom à la couleur du sort, effet).
+	var sp_box := VBoxContainer.new()
+	sp_box.add_theme_constant_override("separation", 2)
+	v.add_child(sp_box)
+	for id in sim.player().spells:
+		var sd: Dictionary = sim.spells_db[id]
+		if not sd.has("desc"):
+			continue
+		var l := RichTextLabel.new()
+		l.bbcode_enabled = true
+		l.fit_content = true
+		l.scroll_active = false
+		l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		l.add_theme_font_size_override("normal_font_size", 17)
+		l.text = "[color=#%s]%s[/color] [color=#a99fd0]%s[/color]" % [str(sd.get("color", "ECE8FF")), str(sd["name"]), str(sd["desc"])]
+		sp_box.add_child(l)
 	var resume := UiTheme.button("Reprendre", 26)
 	resume.custom_minimum_size = Vector2(0, 72)
 	resume.pressed.connect(_on_resume)

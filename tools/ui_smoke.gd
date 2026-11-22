@@ -86,6 +86,23 @@ func _run() -> void:
 	b.sim.cycle_order(1)
 	await _frames(10)
 	print("réplique : ", b.bark_text.text if b.bark_panel.visible else "(aucune)")
+	# Tous les sorts du joueur, avec leurs animations (impacts différés, zones, chaîne, onde).
+	var pc := b.sim.player()
+	var cast := 0
+	for i in range(pc.spells.size()):
+		pc.mana = pc.mana_max
+		pc.spell_cd.clear()
+		var tgt := Vector2(4.5, 8.0)
+		var cl := b.sim.densest_enemy(2.0)
+		if int(cl["n"]) > 0:
+			tgt = cl["pos"]
+		b._on_spell_pressed(i, false)
+		b._cast_aimed(tgt)
+		cast += 1 if float(pc.spell_cd.get(pc.spells[i], 0.0)) > 0.0 else 0
+		await _frames(2)
+	print("sorts lancés : ", cast, "/", pc.spells.size(), " · zones ", b.sim.zones.size(), " · impacts en vol ", b.sim.pending_impacts.size())
+	await _frames(40)
+	print("après 40 images : zones ", b.sim.zones.size(), " · impacts ", b.sim.pending_impacts.size(), " · effets ", b.arena._spell_fx.get_child_count())
 	b.sim.debug_set_ratio(0.3)
 	await _frames(5)
 	print("2e Écho : ", b.sim.state, " · fenêtre : ", b._echo_open)

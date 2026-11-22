@@ -66,8 +66,11 @@
     "deck": [
       "boule_de_feu",
       "pluie_de_givre",
-      "purifier",
-      "racines"
+      "racines",
+      "eclair_chaine",
+      "vortex_ombre",
+      "onde_arcanique",
+      "purifier"
     ]
   },
   "bots": [

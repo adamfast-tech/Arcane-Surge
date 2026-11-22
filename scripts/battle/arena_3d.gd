@@ -37,6 +37,7 @@ var _fx_points: ImmediateMesh
 var _fx_mat: StandardMaterial3D
 var _fx_pt_mat: StandardMaterial3D
 var _fx: Array[Dictionary] = []
+var _spell_fx: SpellFx
 var _labels: Array[Label3D] = []
 var _label_next := 0
 var _portal_nodes: Array[Dictionary] = []
@@ -73,6 +74,8 @@ func setup(s: BattleSim, f: Font, forest_healed: bool = false) -> void:
 	_build_units()
 	_build_casters()
 	_build_fx()
+	_spell_fx = SpellFx.new()
+	add_child(_spell_fx)
 	cam = Camera3D.new()
 	cam.fov = FOV
 	cam.near = 0.5
@@ -697,16 +700,20 @@ func consume_events(events: Array[Dictionary]) -> void:
 		match str(e["t"]):
 			"barrier":
 				shake = 0.25
+			"shake":
+				shake = 0.45
 			"flash":
 				flash = 0.35
 			"text":
 				_spawn_label(e)
 			_:
-				var d := e.duplicate()
-				d["age"] = 0.0
-				if not d.has("dur"):
-					d["dur"] = 0.35
-				_fx.append(d)
+				# Animations de sorts (projectiles, zones, foudre…) : SpellFx ; le reste en traits.
+				if _spell_fx == null or not _spell_fx.handle(e):
+					var d := e.duplicate()
+					d["age"] = 0.0
+					if not d.has("dur"):
+						d["dur"] = 0.35
+					_fx.append(d)
 	while _fx.size() > 320:
 		_fx.remove_at(0)
 
@@ -913,7 +920,7 @@ func _tint(u: Unit) -> Color:
 		return Color(1.9, 0.75, 0.75) if u.team == 1 else Color(1.8, 1.8, 1.8)
 	if u.frozen_t > 0.0:
 		return Color(0.65, 0.9, 1.45)
-	if u.rooted_t > 0.0:
+	if u.rooted_t > 0.0 or u.zone_slow > 0.0:
 		return Color(0.85, 1.2, 0.6)
 	if u.burn_t > 0.0 and int(t * 10.0) % 2 == 0:
 		return Color(1.5, 0.95, 0.6)
@@ -1008,6 +1015,8 @@ func _draw_fx(delta: float) -> void:
 	if aim_active and aim_pos.x > -50.0:
 		_ring(lines, aim_pos, aim_radius, Color(aim_color, 0.95), 0.07)
 		_ring(lines, aim_pos, aim_radius * 0.15, Color(aim_color, 0.95), 0.07)
+	if _spell_fx != null:
+		_spell_fx.collect(lines, points)
 	if not lines.is_empty():
 		_fx_lines.surface_begin(Mesh.PRIMITIVE_LINES, _fx_mat)
 		for l in lines:

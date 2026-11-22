@@ -78,17 +78,39 @@ func _use_abilities(sim: BattleSim, c: BattleSim.Caster) -> void:
 				if int(col["n"]) >= 5 and sim.cast_spell(c, id, Vector2(float(col["x"]), 8.0)):
 					return
 			"aoe":
-				if sp.has("root"):
-					var cl := sim.densest_enemy(float(sp.get("radius", 1.5)), 6.0)
+				var hp := sim.healer_pos()
+				if hp.x >= 0.0 and sim.cast_spell(c, id, hp):
+					return
+				var cl := sim.densest_enemy(float(sp.get("radius", 1.5)), 12.0)
+				if int(cl["n"]) >= 5 and sim.cast_spell(c, id, cl["pos"]):
+					return
+			"zone":
+				var zr := float(sp.get("radius", 1.5))
+				if sp.has("slow"):
+					# Racines : retenir les ennemis qui approchent de la Barrière.
+					var cl := sim.densest_enemy(zr, 6.0)
 					if int(cl["n"]) >= 4 and sim.cast_spell(c, id, cl["pos"]):
 						return
-				else:
-					var hp := sim.healer_pos()
-					if hp.x >= 0.0 and sim.cast_spell(c, id, hp):
+				elif sp.has("pull"):
+					var cl := sim.densest_enemy(zr, 11.0)
+					if int(cl["n"]) >= 6 and sim.cast_spell(c, id, cl["pos"]):
 						return
-					var cl := sim.densest_enemy(float(sp.get("radius", 1.5)), 12.0)
+				else:
+					var cl := sim.densest_enemy(zr, 12.0)
 					if int(cl["n"]) >= 5 and sim.cast_spell(c, id, cl["pos"]):
 						return
+			"chain":
+				var hp := sim.healer_pos()
+				if hp.x >= 0.0 and sim.cast_spell(c, id, hp):
+					return
+				var cl := sim.densest_enemy(float(sp.get("range", 2.4)), 12.0)
+				if int(cl["n"]) >= 3 and sim.cast_spell(c, id, cl["pos"]):
+					return
+			"wave":
+				# Onde arcanique : repousser une masse arrivée près de la Barrière.
+				var cl := sim.densest_enemy(float(sp.get("radius", 2.0)), 4.5)
+				if int(cl["n"]) >= 4 and sim.cast_spell(c, id, cl["pos"]):
+					return
 			"purify":
 				var target := sim.purify_target()
 				if target.x >= 0.0 and sim.cast_spell(c, id, target):

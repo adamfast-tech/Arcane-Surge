@@ -154,6 +154,9 @@ var orbs: Array[Dictionary] = []
 var orb_cfg: Dictionary = {}
 var telegraphs: Array[Dictionary] = []
 var end_reason := ""
+## Sorts à impact différé (projectile, météore) et zones actives (pluie, racines, vortex).
+var pending_impacts: Array[Dictionary] = []
+var zones: Array[Dictionary] = []
 ## Effets des fils du destin appliqués à ce niveau (textes affichés au départ).
 var story_notes: Array[String] = []
 
@@ -390,6 +393,8 @@ func step() -> void:
 	_cross_portals()
 	_tick_status()
 	_build_grids()
+	_update_impacts()
+	_update_zones()
 	_resolve_contacts()
 	_ranged_attacks()
 	_towers_attack()
@@ -1608,44 +1613,29 @@ func cast_spell(c: Caster, id: String, at: Vector2) -> bool:
 
 func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 	var col := str(sp.get("color", "FFFFFF"))
+	var from := Vector2(c.x, CASTER_Y + 0.3)
 	match str(sp["type"]):
 		"aoe":
-			var r := float(sp.get("radius", 1.0))
-			var dmg := float(sp.get("damage", 0)) * c.atk_mult
-			var elem := str(sp.get("element", ""))
-			for e in _query(_grid_e, at, r + 0.3):
-				_damage(e, _calc(dmg, elem, c.crit, e, false), elem)
-				if not e.alive:
-					continue
-				_apply_status(e, elem)
-				if sp.has("root"):
-					e.rooted_t = maxf(e.rooted_t, float(sp["root"]))
-				if sp.has("slow_stacks"):
-					e.slow_stacks += int(sp["slow_stacks"])
-					e.slow_t = 3.0
-					if e.slow_stacks >= 3:
-						e.frozen_t = 1.5 * effect_mult
-						e.slow_stacks = 0
-			for t in towers:
-				if t["alive"] and at.distance_to(t["pos"]) <= r + 0.45:
-					t["hp"] = float(t["hp"]) - dmg
-					t["flash"] = 0.1
-					if float(t["hp"]) <= 0.0:
-						t["alive"] = false
-						surge = minf(100.0, surge + 10.0)
-						_log("Tour de garde détruite (+10 Surge)")
-			var nr := float(sp.get("nexus_ratio", 0.0))
-			if nr > 0.0 and not nexus_shielded():
-				for n in nexi:
-					if n["alive"] and at.distance_to(n["pos"]) <= r + NEXUS_R:
-						n["hp"] = float(n["hp"]) - dmg * nr
-						n["flash"] = 0.2
-						if float(n["hp"]) <= 0.0:
-							n["hp"] = 0.0
-							n["alive"] = false
-						_event({"t": "text", "pos": (n["pos"] as Vector2) + Vector2(0.0, -0.8), "text": "-%d" % int(dmg * nr), "color": "FFFFFF"})
-				_sync_nexus()
-			_event({"t": "ring", "pos": at, "r": r, "color": col, "dur": 0.45})
+			var delay := float(sp.get("delay", 0.0))
+			if delay > 0.0:
+				# Projectile (Boule de feu) ou chute (Météore) : l'impact suit l'animation.
+				pending_impacts.append({"t": delay, "c": c.idx, "sp": sp, "at": at})
+				_event({"t": str(sp.get("fx", "fireball")), "from": from, "to": at, "dur": delay, "r": float(sp.get("radius", 1.0)), "color": col})
+				return true
+			_resolve_aoe(c, sp, at)
+			return true
+		"zone":
+			var dur := float(sp.get("dur", 3.0))
+			var zr := float(sp.get("radius", 1.5))
+			zones.append({"pos": at, "r": zr, "t": dur, "dps": float(sp.get("dps", 0)) * c.atk_mult,
+				"elem": str(sp.get("element", "")), "slow": float(sp.get("slow", 0.0)), "pull": float(sp.get("pull", 0.0)),
+				"stack_every": float(sp.get("stack_every", 0.0)), "stack_acc": 0.0})
+			_event({"t": str(sp.get("fx", "rain")), "pos": at, "r": zr, "dur": dur, "color": col})
+			return true
+		"chain":
+			return _chain(c, sp, at, from)
+		"wave":
+			_wave(c, sp, at)
 			return true
 		"purify":
 			var best: Portal = null
@@ -1660,10 +1650,12 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 			if best == null:
 				return false
 			_purify(best)
+			_event({"t": "pillar", "pos": Vector2(best.x, best.y), "dur": 1.1, "color": col})
 			return true
 		"barrier_shield":
 			barrier_shield += float(sp.get("amount", 10))
 			_event({"t": "ring", "pos": Vector2(W * 0.5, BARRIER_Y), "r": 2.5, "color": col, "dur": 0.5})
+			_event({"t": "shield", "dur": 1.0, "color": col})
 			return true
 		"column":
 			var w := float(sp.get("width", 0.8))
@@ -1673,8 +1665,153 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 				if e.alive and absf(e.pos.x - at.x) <= w * 0.5 + e.radius:
 					_damage(e, _calc(dmg, elem, c.crit, e, false), elem)
 			_event({"t": "beam", "a": Vector2(at.x, BARRIER_Y), "b": Vector2(at.x, H - 0.4), "color": col, "dur": 0.3, "w": 3.0})
+			_event({"t": "arrow", "a": Vector2(at.x, BARRIER_Y), "b": Vector2(at.x, H - 0.4), "color": col, "dur": 0.3})
 			return true
 	return false
+
+
+## Impact d'un sort de zone instantané (ou à la fin de son projectile).
+func _resolve_aoe(c: Caster, sp: Dictionary, at: Vector2) -> void:
+	var col := str(sp.get("color", "FFFFFF"))
+	var r := float(sp.get("radius", 1.0))
+	var dmg := float(sp.get("damage", 0)) * c.atk_mult
+	var elem := str(sp.get("element", ""))
+	for e in _query(_grid_e, at, r + 0.3):
+		_damage(e, _calc(dmg, elem, c.crit, e, false), elem)
+		if not e.alive:
+			continue
+		_apply_status(e, elem)
+		if sp.has("root"):
+			e.rooted_t = maxf(e.rooted_t, float(sp["root"]))
+	for t in towers:
+		if t["alive"] and at.distance_to(t["pos"]) <= r + 0.45:
+			t["hp"] = float(t["hp"]) - dmg
+			t["flash"] = 0.1
+			if float(t["hp"]) <= 0.0:
+				t["alive"] = false
+				surge = minf(100.0, surge + 10.0)
+				_log("Tour de garde détruite (+10 Surge)")
+	var nr := float(sp.get("nexus_ratio", 0.0))
+	if nr > 0.0 and not nexus_shielded():
+		for n in nexi:
+			if n["alive"] and at.distance_to(n["pos"]) <= r + NEXUS_R:
+				n["hp"] = float(n["hp"]) - dmg * nr
+				n["flash"] = 0.2
+				if float(n["hp"]) <= 0.0:
+					n["hp"] = 0.0
+					n["alive"] = false
+				_event({"t": "text", "pos": (n["pos"] as Vector2) + Vector2(0.0, -0.8), "text": "-%d" % int(dmg * nr), "color": "FFFFFF"})
+		_sync_nexus()
+	var big := bool(sp.get("impact_flash", false))
+	_event({"t": "explosion", "pos": at, "r": r, "color": col, "dur": 0.8 if big else 0.6, "big": big})
+	if big:
+		_event({"t": "flash"})
+		_event({"t": "shake"})
+
+
+func _update_impacts() -> void:
+	var i := 0
+	while i < pending_impacts.size():
+		var p: Dictionary = pending_impacts[i]
+		p["t"] = float(p["t"]) - TICK
+		if float(p["t"]) <= 0.0:
+			pending_impacts.remove_at(i)
+			_resolve_aoe(casters[int(p["c"])], p["sp"], p["at"])
+		else:
+			i += 1
+
+
+## Zones actives : dégâts continus, ralentissement (Racines), attraction (Vortex), cumuls de givre.
+func _update_zones() -> void:
+	for e in enemies:
+		e.zone_slow = 0.0
+	var i := 0
+	while i < zones.size():
+		var z: Dictionary = zones[i]
+		z["t"] = float(z["t"]) - TICK
+		var pos: Vector2 = z["pos"]
+		var elem := str(z["elem"])
+		var slow := float(z["slow"])
+		var pull := float(z["pull"])
+		var dps := float(z["dps"])
+		var stack := false
+		if float(z["stack_every"]) > 0.0:
+			z["stack_acc"] = float(z["stack_acc"]) + TICK
+			if float(z["stack_acc"]) >= float(z["stack_every"]):
+				z["stack_acc"] = float(z["stack_acc"]) - float(z["stack_every"])
+				stack = true
+		for e in _query(_grid_e, pos, float(z["r"]) + 0.25):
+			if not e.alive:
+				continue
+			if slow > 0.0:
+				e.zone_slow = maxf(e.zone_slow, slow)
+			if pull > 0.0 and e.role != "boss" and e.hold_y <= 0.0:
+				var d: Vector2 = pos - e.pos
+				var dl: float = d.length()
+				if dl > 0.25:
+					e.pos += d / dl * minf(pull * TICK, dl - 0.25)
+			if dps > 0.0:
+				_damage(e, _calc(dps, elem, 0.0, e, false) * TICK, elem)
+			if stack and e.alive:
+				_apply_status(e, elem)
+		if float(z["t"]) <= 0.0:
+			zones.remove_at(i)
+		else:
+			i += 1
+
+
+## Éclair en chaîne : frappe l'ennemi le plus proche du point visé (2,5 m), puis rebondit.
+func _chain(c: Caster, sp: Dictionary, at: Vector2, from: Vector2) -> bool:
+	var tgt: Unit = null
+	var best := 2.5
+	for e in _query(_grid_e, at, 2.5):
+		var d0: float = e.pos.distance_to(at)
+		if e.alive and d0 < best:
+			best = d0
+			tgt = e
+	if tgt == null:
+		return false
+	var dmg := float(sp.get("damage", 40)) * c.atk_mult
+	var reach := float(sp.get("range", 2.4))
+	var elem := str(sp.get("element", "foudre"))
+	var pts: Array = [from]
+	var hit := {}
+	for k in range(int(sp.get("bounces", 5))):
+		pts.append(tgt.pos)
+		hit[tgt.id] = true
+		_damage(tgt, _calc(dmg, elem, c.crit, tgt, false), elem)
+		dmg *= float(sp.get("falloff", 0.8))
+		var next: Unit = null
+		var bd := reach
+		for e in _query(_grid_e, tgt.pos, reach):
+			if e.alive and not hit.has(e.id):
+				var d: float = e.pos.distance_to(tgt.pos)
+				if d < bd:
+					bd = d
+					next = e
+		if next == null:
+			break
+		tgt = next
+	_event({"t": "lightning", "pts": pts, "dur": 0.45, "color": str(sp.get("color", "F0D23C"))})
+	return true
+
+
+## Onde arcanique : dégâts et recul vers le fond de l'arène (les boss et les soigneurs fixes résistent).
+func _wave(c: Caster, sp: Dictionary, at: Vector2) -> void:
+	var r := float(sp.get("radius", 2.4))
+	var dmg := float(sp.get("damage", 20)) * c.atk_mult
+	var push := float(sp.get("push", 2.0))
+	var elem := str(sp.get("element", ""))
+	for e in _query(_grid_e, at, r + 0.3):
+		if not e.alive:
+			continue
+		_damage(e, _calc(dmg, elem, c.crit, e, false), elem)
+		if not e.alive or e.role == "boss" or e.hold_y > 0.0:
+			continue
+		var k := 1.0 - 0.5 * clampf(e.pos.distance_to(at) / r, 0.0, 1.0)
+		e.pos.y = minf(H - 0.6, e.pos.y + push * k)
+		e.pos.x = clampf(e.pos.x + signf(e.pos.x - at.x) * push * 0.25 * k, 0.3, W - 0.3)
+	_event({"t": "wave", "pos": at, "r": r, "dur": 0.7, "color": str(sp.get("color", "B07CFF"))})
 
 
 func summon_champion() -> bool:
@@ -1694,6 +1831,7 @@ func summon_champion() -> bool:
 		u.element = last_elem
 		_pending_allies.append(u)
 		_event({"t": "ring", "pos": u.pos, "r": 1.0, "color": "F2C46B", "dur": 0.5})
+		_event({"t": "summon", "pos": u.pos, "dur": 0.9, "color": "F2C46B"})
 	champion_charge = 0
 	_log("Champion invoqué : %s" % str(units_db[champion_kind]["name"]))
 	return true
@@ -1709,7 +1847,8 @@ func cast_ultimate(at: Vector2) -> bool:
 	var sp: Dictionary = spells_db[ultimate_id]
 	_apply_spell(casters[0], sp, at)
 	surge = 0.0
-	_event({"t": "flash"})
+	if not bool(sp.get("impact_flash", false)):
+		_event({"t": "flash"})
 	_log("ULTIME : %s" % str(sp["name"]))
 	return true
 
