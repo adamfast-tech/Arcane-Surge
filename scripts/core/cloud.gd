@@ -173,13 +173,33 @@ func sync_pull() -> void:
 	var rows: Array = r["data"] if r["data"] is Array else []
 	if not rows.is_empty() and rows[0].get("data") is Dictionary:
 		var remote: Dictionary = rows[0]["data"]
-		if float(remote.get("updated", 0.0)) > Profile.updated():
+		# La progression la plus avancée l'emporte (à égalité : la plus récente). L'autre est
+		# gardée en copie de secours, ici et dans l'historique du serveur.
+		var lp := Profile.progress_of(Profile.data)
+		var rp := Profile.progress_of(remote)
+		if prefer_remote(Profile.data, remote):
+			if lp > 0.0:
+				Profile.backup(Profile.data, "appareil")
 			Profile.replace_with(remote)
 			Profile.save_local()
 			message = "Progression récupérée depuis ton compte"
 			status_changed.emit()
 			return
+		if rp > 0.0:
+			Profile.backup(remote, "compte")
+		if lp > rp:
+			message = "Progression de cet appareil envoyée sur ton compte"
 	await push()
+
+
+## Vrai si la sauvegarde du compte doit remplacer celle de l'appareil : la plus avancée gagne,
+## la plus récente seulement à progression égale.
+static func prefer_remote(local: Dictionary, remote: Dictionary) -> bool:
+	var lp := Profile.progress_of(local)
+	var rp := Profile.progress_of(remote)
+	if not is_equal_approx(lp, rp):
+		return rp > lp
+	return float(remote.get("updated", 0.0)) > float(local.get("updated", 0.0))
 
 
 ## Envoie la progression locale (regroupe les envois rapprochés).

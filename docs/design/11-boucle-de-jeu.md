@@ -83,7 +83,7 @@ Jouer sans compte ───────────┴─> Havre-Aube ─┬─>
 
 **Synchronisation**
 - **Locale** : une sauvegarde est toujours écrite sur l'appareil.
-- **En ligne** : connecté, la plus récente des deux versions l'emporte au démarrage. La progression est envoyée après chaque partie et chaque action de Forge.
+- **En ligne** : connecté, la version **la plus avancée** (XP cumulée) l'emporte au démarrage et à la connexion. La plus récente ne l'emporte qu'à progression égale : une partie neuve ne peut plus écraser une progression. L'autre version est gardée en copie de secours sur l'appareil (`user://save_backup_appareil.json` / `_compte.json`). La progression est envoyée après chaque partie et chaque action de Forge.
 - **Session** : elle est mémorisée sur l'appareil, sous la forme d'un jeton de rafraîchissement.
 - **Clé du client** : clé publique « publishable ». La sécurité repose sur RLS.
 - **Saisie (version web)** : de vrais champs HTML sont posés sur les champs du jeu (`scripts/core/web_form.gd`).

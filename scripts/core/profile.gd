@@ -75,6 +75,26 @@ static func updated() -> float:
 	return float(data.get("updated", 0.0))
 
 
+## Progression totale d'une sauvegarde (XP cumulée, qui ne fait que croître) : sert à départager
+## la sauvegarde de l'appareil et celle du compte sans jamais écraser la plus avancée.
+static func progress_of(d: Dictionary) -> float:
+	var p: Variant = d.get("player", {})
+	if not (p is Dictionary):
+		return 0.0
+	var total := float((p as Dictionary).get("xp", 0))
+	for l in range(1, int((p as Dictionary).get("level", 1))):
+		total += float(xp_to_next(l))
+	return total
+
+
+## Copie de secours sur l'appareil (user://save_backup_<tag>.json) avant tout remplacement.
+static func backup(d: Dictionary, tag: String) -> void:
+	var f := FileAccess.open("user://save_backup_%s.json" % tag, FileAccess.WRITE)
+	if f != null:
+		f.store_string(JSON.stringify(d))
+		f.close()
+
+
 static func _give_starter() -> void:
 	var rng := RandomNumberGenerator.new()
 	for s in items_db()["starter"]:

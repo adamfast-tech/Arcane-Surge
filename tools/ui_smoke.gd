@@ -177,6 +177,16 @@ func _run() -> void:
 		bs.exit_requested.emit("map")
 		await _frames(3)
 		await _through_dialogues()
-	print("scènes vues : ", (Story.st()["seen"] as Dictionary).size(), " · forêt guérie : ", Profile.battle_opts()["healed"])
+	# Synchronisation : la progression la plus avancée n'est jamais écrasée par une plus récente.
+	var fresh := Profile.default_data()
+	fresh["updated"] = Profile.updated() + 1000.0
+	var advanced := Profile.data.duplicate(true)
+	print("sync : partie neuve plus récente remplace la progression ? ", Cloud.prefer_remote(advanced, fresh),
+		" · progression du compte remplace une partie neuve ? ", Cloud.prefer_remote(fresh, advanced))
+	if Cloud.prefer_remote(advanced, fresh) or not Cloud.prefer_remote(fresh, advanced):
+		push_error("synchronisation : la progression la plus avancée doit l'emporter")
+		quit(1)
+		return
+		print("scènes vues : ", (Story.st()["seen"] as Dictionary).size(), " · forêt guérie : ", Profile.battle_opts()["healed"])
 	print("OK smoke")
 	quit()
