@@ -37,6 +37,11 @@ func _ready() -> void:
 				if GameData.spells().has(sid):
 					dk.append(sid)
 			extra["deck"] = dk
+		if str(_query().get("mode", "")) == "drawer":
+			# Aperçu : mode Tiroir (« &mode=drawer »), avec les sorts de « &deck= » ou tous les sorts connus.
+			extra["spell_mode"] = "drawer"
+			if not extra.has("deck"):
+				extra["deck"] = Profile.drawer_spells()
 		if _url_flag("mana"):
 			# Aperçu : mana qui se recharge 20 fois plus vite (« &mana=1 »).
 			extra["debug_mana"] = true
@@ -148,7 +153,7 @@ func _show_hub() -> void:
 	h.open_skills.connect(_show_room.bind("skills"))
 	h.open_library.connect(_show_room.bind("library"))
 	h.open_circle.connect(_show_room.bind("circle"))
-	h.play_level.connect(func(id: String) -> void: _play(id, false))
+	h.play_level.connect(func(id: String) -> void: _play(id, false, true))
 	_set_screen(h)
 
 
@@ -194,7 +199,16 @@ func _show_dialogue(ids: Array, then: Callable) -> void:
 
 
 ## Avant un niveau : le prologue (toute première partie), puis l'intro du niveau si elle n'a jamais été vue.
-func _play(level_id: String, solo: bool) -> void:
+## Avant un combat : écran de préparation (Deck ou Tiroir), puis dialogues d'introduction et combat.
+func _play(level_id: String, solo: bool, from_hub: bool = false) -> void:
+	var p := PrepScreen.new()
+	p.level_id = level_id
+	p.back.connect(_show_hub if from_hub else _show_map)
+	p.start.connect(_launch.bind(level_id, solo))
+	_set_screen(p)
+
+
+func _launch(level_id: String, solo: bool) -> void:
 	var ids: Array[String] = []
 	if level_id == "z01_l01" and not Story.seen("prologue") and int(Profile.level_record("z01_l01")["clears"]) == 0:
 		ids.append("prologue")
@@ -236,7 +250,8 @@ func _go(dest: String, level_id: String, solo: bool) -> void:
 
 
 ## Web : « ?level=z01_l08 » ouvre directement un niveau (« &solo=1 » pour le mode solo, « &krag=1 »
-## pour emmener Krag, « &deck=orage,comete » pour imposer des sorts, « &mana=1 » pour un mana rapide).
+## pour emmener Krag, « &deck=orage,comete » pour imposer des sorts, « &mana=1 » pour un mana rapide,
+## « &mode=drawer » pour le tiroir de sorts).
 func _level_from_url() -> String:
 	var q := _query()
 	var id := str(q.get("level", ""))

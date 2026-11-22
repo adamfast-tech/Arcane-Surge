@@ -476,7 +476,7 @@ static func _roll(table: Dictionary, rng: RandomNumberGenerator) -> String:
 static func battle_opts() -> Dictionary:
 	return {"player_level": level(), "gear": gear_stats(), "weapon_element": weapon_element(), "bot_level": maxi(1, level() - 1),
 		"flags": Story.active_flags(), "healed": Story.has_flag("s1.sylvarche_purifiee"),
-		"mods": skill_mods(), "deck": deck(), "circle": circle(),
+		"mods": skill_mods(), "deck": deck() if spell_mode() == "deck" else drawer_spells(), "spell_mode": spell_mode(), "circle": circle(),
 		"loyalty": {"brann": Story.loyalty("brann"), "sylwen": Story.loyalty("sylwen"), "krag": Story.loyalty("krag")},
 		"active": active_companions()}
 
@@ -635,6 +635,26 @@ static func deck() -> Array[String]:
 			out.append(str(id))
 	if out.is_empty() and not known.is_empty():
 		out.append(known[0])
+	return out
+
+
+## Mode des sorts en combat : « deck » (7 sorts choisis) ou « drawer » (tiroir : tous les sorts connus,
+## rangés par école). Choisi à l'écran de préparation.
+static func spell_mode() -> String:
+	return "drawer" if str(data.get("spell_mode", "deck")) == "drawer" else "deck"
+
+
+static func set_spell_mode(m: String) -> void:
+	data["spell_mode"] = "drawer" if m == "drawer" else "deck"
+
+
+## Sorts du tiroir : tous les sorts connus du Mage, dans l'ordre du grimoire.
+static func drawer_spells() -> Array[String]:
+	var known := known_spells()
+	var out: Array[String] = []
+	for id in GameData.spells().keys():
+		if known.has(str(id)):
+			out.append(str(id))
 	return out
 
 

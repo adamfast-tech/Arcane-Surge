@@ -46,7 +46,7 @@ func _rebuild() -> void:
 	tv.add_child(UiTheme.title("GRIMOIRE ET DECK", 22, UiTheme.TEXT))
 	var deck := Profile.deck()
 	var known := Profile.known_spells()
-	col.add_child(UiTheme.wrap("Deck : %d / %d sorts. Sorts connus : %d / %d. Chaque sort s'achète en or, selon sa puissance ; la magie interdite se paie aussi en Corruption et en Barrière." % [
+	col.add_child(UiTheme.wrap("Deck : %d / %d sorts. Sorts connus : %d / %d. Chaque sort s'achète en or, selon sa puissance ; la magie interdite se paie aussi en Corruption et en Barrière. En mode Tiroir (choisi à la Préparation), tous les sorts connus sont emportés." % [
 		deck.size(), Profile.DECK_MAX, known.size(), catalogue().size()], 18, UiTheme.MUTED))
 	col.add_child(_deck_row(deck))
 	if _msg != "":

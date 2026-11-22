@@ -53,6 +53,11 @@ func _run() -> void:
 	# Dialogues : prologue + intro de 1-1, lus jusqu'au bout (tap), avec l'historique.
 	main.call("_play", "z01_l01", false)
 	await _frames(5)
+	# Écran de préparation : choix Deck / Tiroir, puis « Combattre ».
+	var prep: PrepScreen = _screen()
+	print("préparation : ", prep.level_id, " · mode ", Profile.spell_mode())
+	prep.start.emit()
+	await _frames(5)
 	var d: DialogueScreen = _screen()
 	print("dialogue : ", d.scenes)
 	d._open_history()
@@ -329,6 +334,33 @@ func _run() -> void:
 		push_error("décor : la zone doit revenir à 1 hors combat")
 		quit(1)
 		return
+	# Mode Tiroir : écoles -> sorts d'une école (appui), choix au relâcher, lancer, retour aux écoles.
+	Profile.set_spell_mode("drawer")
+	main.call("_start", "z02_l03", false)
+	await _frames(10)
+	var dt: BattleScreen = _screen()
+	var pl: BattleSim.Caster = dt.sim.player()
+	pl.mana = pl.mana_max
+	dt._on_cell_down(0)
+	await _frames(2)
+	var opened: String = dt._drawer
+	var rel := InputEventMouseButton.new()
+	rel.button_index = MOUSE_BUTTON_LEFT
+	rel.pressed = false
+	rel.position = dt.spell_btns[1].get_global_rect().get_center()
+	dt._input(rel)
+	var chosen: String = dt.aiming
+	dt._cast_aimed(Vector2(4.5, 9.0))
+	await _frames(2)
+	print("tiroir : ", pl.spells.size(), " sorts · écoles ", dt._by_school.keys(), " · ouvert ", opened, " · choisi ", chosen, " · revenu aux écoles ", dt._drawer == "", " · cases ", dt.spell_btns.size())
+	if opened != "feu" or chosen == "" or dt._drawer != "" or dt.aiming != "" or dt.spell_btns.size() != 8:
+		push_error("tiroir de sorts incorrect")
+		quit(1)
+		return
+	Profile.set_spell_mode("deck")
+	dt.exit_requested.emit("map")
+	await _frames(5)
+	await _through_dialogues()
 	# Synchronisation : la progression la plus avancée n'est jamais écrasée par une plus récente.
 	var fresh := Profile.default_data()
 	fresh["updated"] = Profile.updated() + 1000.0
