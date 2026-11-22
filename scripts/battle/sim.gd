@@ -156,6 +156,14 @@ var telegraphs: Array[Dictionary] = []
 var end_reason := ""
 ## Effets de l'arbre de compétences du joueur ({clé: valeur}, voir data/skill_trees).
 var mods: Dictionary = {}
+## Zone 2 : Vent des steppes (rafales annoncées qui poussent les unités) et pylônes d'ambre.
+var wind_cfg: Dictionary = {}
+var wind_state := "calm" ## calm, warn, blow
+var wind_t := 0.0
+var wind_dir := 1.0
+var pylons: Array[Dictionary] = []
+## Bannières de guerre : tant qu'il en reste, le boss est en armure (dégâts ÷ 5).
+var banners: Array[Unit] = []
 ## Sorts à impact différé (projectile, météore) et zones actives (pluie, racines, vortex).
 var pending_impacts: Array[Dictionary] = []
 var zones: Array[Dictionary] = []
@@ -189,6 +197,7 @@ func setup(level_data: Dictionary, party: Dictionary, seed_value: int, opts: Dic
 	_setup_objective()
 	_apply_story_mods(opts)
 	_setup_orbs()
+	_setup_zone_mechanics()
 	for e in level.get("initial_enemies", []):
 		_spawn_enemy(str(e["kind"]), Vector2(float(e["x"]), float(e["y"])))
 	wave_t = float(level["waves"].get("first", 3.0))
@@ -247,6 +256,69 @@ func _apply_story_mods(opts: Dictionary) -> void:
 		if m.has("log"):
 			_log(str(m["log"]))
 			story_notes.append(str(m["log"]))
+
+
+func _setup_zone_mechanics() -> void:
+	wind_cfg = level.get("wind", {})
+	if not wind_cfg.is_empty():
+		wind_t = float(wind_cfg.get("first", 8.0))
+	for pd in level.get("pylons", []):
+		pylons.append({"pos": Vector2(float(pd["x"]), float(pd["y"])), "portal": int(pd.get("portal", 0)),
+			"every": float(pd.get("every", 14.0)), "dur": float(pd.get("dur", 5.0)), "t": float(pd.get("first", 6.0))})
+
+
+## Vent des steppes : calme, puis rafale annoncée (l'herbe ploie), puis poussée latérale.
+func _update_wind() -> void:
+	if wind_cfg.is_empty():
+		return
+	wind_t -= TICK
+	if wind_t > 0.0:
+		return
+	match wind_state:
+		"calm":
+			wind_state = "warn"
+			wind_dir = -1.0 if rng.randf() < 0.5 else 1.0
+			wind_t = float(wind_cfg.get("warn", 1.6))
+			_event({"t": "wind", "dir": wind_dir, "phase": "warn", "dur": wind_t})
+			_log("Le vent se lève vers la %s…" % ("droite" if wind_dir > 0.0 else "gauche"))
+		"warn":
+			wind_state = "blow"
+			wind_t = float(wind_cfg.get("dur", 2.6))
+			_event({"t": "wind", "dir": wind_dir, "phase": "blow", "dur": wind_t})
+		_:
+			wind_state = "calm"
+			var ev: Array = wind_cfg.get("every", [10, 14])
+			wind_t = rng.randf_range(float(ev[0]), float(ev[1]))
+
+
+func _wind_push(u: Unit) -> float:
+	if wind_state != "blow" or u.hold_y > 0.0 or u.role in ["boss", "banniere", "escort"] or u.speed <= 0.0:
+		return 0.0
+	return wind_dir * float(wind_cfg.get("force", 1.1)) / maxf(1.0, u.weight * 0.7)
+
+
+## Pylônes d'ambre : chacun surcharge régulièrement son portail (Foudre et ×2 pendant quelques secondes).
+func _update_pylons() -> void:
+	for py in pylons:
+		py["t"] = float(py["t"]) - TICK
+		if float(py["t"]) <= 0.0:
+			py["t"] = float(py["every"])
+			var i := int(py["portal"])
+			if i >= 0 and i < portals.size():
+				portals[i].charged_t = float(py["dur"])
+				_event({"t": "beam", "a": py["pos"], "b": Vector2(portals[i].x, portals[i].y), "color": "F0D23C", "dur": 0.5, "w": 3.0})
+				_event({"t": "ring", "pos": Vector2(portals[i].x, portals[i].y), "r": 1.2, "color": "F0D23C", "dur": 0.5})
+				_log("Un pylône d'ambre surcharge un portail !")
+	for p in portals:
+		p.charged_t = maxf(0.0, p.charged_t - TICK)
+
+
+func banners_alive() -> int:
+	var n := 0
+	for b in banners:
+		if b.alive:
+			n += 1
+	return n
 
 
 func _setup_orbs() -> void:
@@ -410,6 +482,8 @@ func step() -> void:
 	_update_casters()
 	_update_portals()
 	_update_waves()
+	_update_wind()
+	_update_pylons()
 	_move_units()
 	_cross_portals()
 	_tick_status()
@@ -565,7 +639,7 @@ func _move_units() -> void:
 			continue
 		if u.pos.y > HOMING_Y:
 			u.vx = clampf((_homing_target_x(u) - u.pos.x) * 1.5, -1.8, 1.8)
-		u.pos.x = clampf(u.pos.x + u.vx * sf * TICK, 0.2, W - 0.2)
+		u.pos.x = clampf(u.pos.x + u.vx * sf * TICK + _wind_push(u) * TICK, 0.2, W - 0.2)
 		u.pos.y = minf(H - 0.2, u.pos.y + u.speed * sf * TICK)
 	for e in enemies:
 		e.prev_pos = e.pos
@@ -581,6 +655,7 @@ func _move_units() -> void:
 			# Les ennemis convergent vers la Lanterne de l'Aube.
 			e.pos.x = clampf(e.pos.x + clampf(escort.pos.x - e.pos.x, -0.9, 0.9) * sf_e * TICK, 0.3, W - 0.3)
 		e.pos.y -= e.speed * sf_e * TICK
+		e.pos.x = clampf(e.pos.x + _wind_push(e) * TICK, 0.3, W - 0.3)
 
 
 func _homing_target_x(u: Unit) -> float:
@@ -616,6 +691,9 @@ func _cross_portals() -> void:
 
 func _apply_portal(p: Portal, u: Unit) -> void:
 	p.flash_t = 0.2
+	if p.charged_t > 0.0 and not p.is_negative():
+		u.element = "foudre"
+		_add_ally(_clone(u, Vector2(rng.randf_range(-0.3, 0.3), -0.08)))
 	if p.is_negative() and u.element == "lumiere":
 		# La Lumière ignore les portails négatifs et affaiblit les sceaux.
 		if p.is_seal and not p.purified:
@@ -819,6 +897,7 @@ func _tick_status() -> void:
 			continue
 		u.atk_cd -= TICK
 		u.cast_cd -= TICK
+		u.enraged_t = maxf(0.0, u.enraged_t - TICK)
 		if u.flash_t > 0.0:
 			u.flash_t -= TICK
 		if u.burn_t > 0.0:
@@ -1025,7 +1104,7 @@ func _enemy_abilities() -> void:
 			e.cast_cd = e.cast_interval
 			var r := float(d.get("cast_radius", 1.0))
 			for a in _query(_grid_a, tgt.pos, r):
-				_damage(a, e.atk * affinity(e.element, a.element), "")
+				_damage(a, e.atk * (1.3 if e.enraged_t > 0.0 else 1.0) * affinity(e.element, a.element), "")
 			_event({"t": "ring", "pos": tgt.pos, "r": r, "color": "FFF2A8", "dur": 0.35})
 
 
@@ -1232,6 +1311,22 @@ func _boss_ability(ab: Dictionary) -> void:
 				var f := _spawn_enemy(kind, Vector2(clampf(x, 0.6, W - 0.6), boss.pos.y - 1.9))
 				f.hold_y = f.pos.y
 			_log("Des Fleurs-sèves éclosent : elles soignent %s !" % boss_name)
+		"banners":
+			# Bannières de guerre : tant qu'elles tiennent, le boss est en armure.
+			var xs: Array = ab.get("xs", [1.6, 4.5, 7.4])
+			for x in xs:
+				var bn := _spawn_enemy(str(ab.get("kind", "war_banner")), Vector2(float(x), float(ab.get("y", boss.pos.y - 2.4))))
+				bn.hold_y = bn.pos.y
+				banners.append(bn)
+			_log("Des bannières de guerre se dressent : %s est en armure !" % boss_name)
+			_event({"t": "ring", "pos": boss.pos, "r": 3.0, "color": "C8402A", "dur": 0.7})
+		"cry":
+			for e in enemies:
+				if e.alive:
+					e.enraged_t = float(ab.get("dur", 6.0))
+			_log("%s pousse un cri de guerre : les ennemis enragent !" % boss_name)
+			_event({"t": "ring", "pos": boss.pos, "r": 4.0, "color": "FF4A3A", "dur": 0.8})
+			_event({"t": "shake"})
 		"shield":
 			boss_shield_t = float(ab.get("dur", 8.0))
 			boss_shield_elem = str(ab.get("element", "feu"))
@@ -1357,6 +1452,8 @@ func _hurt_barrier(amount: float) -> void:
 
 
 func _hit(src: Unit, tgt: Unit, mult: float = 1.0) -> void:
+	if src.enraged_t > 0.0:
+		mult *= 1.3
 	var dmg := _calc(src.atk * mult, src.element, src.crit, tgt, src.team == 0)
 	_damage(tgt, dmg, src.element)
 	if src.team == 0:
@@ -1395,6 +1492,8 @@ func _damage(tgt: Unit, amount: float, elem: String) -> void:
 		return
 	if tgt == boss and boss_shield_t > 0.0 and elem != boss_shield_elem:
 		amount *= 0.1
+	if tgt == boss and banners_alive() > 0:
+		amount *= 0.2
 	if tgt.shield > 0.0:
 		var a := minf(tgt.shield, amount)
 		tgt.shield -= a
@@ -1461,7 +1560,7 @@ func _kill(u: Unit) -> void:
 	if u == boss:
 		_log("%s est %s !" % [boss_name, _defeated_word()])
 	if u == escort:
-		_log("La Lanterne s'est éteinte…")
+		_log("La Lanterne s'est éteinte…" if u.kind == "lantern" else "Le chariot est détruit…")
 	if u.team == 1 and u.burn_t > 0.0 and _mod("embrasement") > 0.0:
 		# Clé de voûte Embrasement : la brûlure se propage aux ennemis proches.
 		for e in _query(_grid_e, u.pos, 1.5):
@@ -1528,7 +1627,7 @@ func _check_end() -> void:
 			"boss":
 				end_reason = "%s est %s !" % [boss_name, _defeated_word()]
 			"escort":
-				end_reason = "La Lanterne de l'Aube purifie le Nexus !"
+				end_reason = "La Lanterne de l'Aube purifie le Nexus !" if escort.kind == "lantern" else "Le chariot de vivres est arrivé !"
 			_:
 				end_reason = "Le Nexus est détruit !" if nexi.size() <= 1 else "Les Nexus sont détruits !"
 		_log("Victoire !")
@@ -1538,7 +1637,10 @@ func _check_end() -> void:
 	if barrier_hp <= 0.0 or lost_escort:
 		barrier_hp = maxf(0.0, barrier_hp)
 		state = "defeat"
-		end_reason = "La Lanterne s'est éteinte…" if lost_escort else "La Barrière est tombée…"
+		if lost_escort:
+			end_reason = "La Lanterne s'est éteinte…" if escort.kind == "lantern" else "Le chariot est détruit…"
+		else:
+			end_reason = "La Barrière est tombée…"
 		_log(end_reason)
 		return
 	var ratio := objective_ratio()
@@ -2023,7 +2125,7 @@ func objective_title() -> String:
 		"boss":
 			return boss_name.to_upper()
 		"escort":
-			return "LANTERNE DE L'AUBE"
+			return str(units_db.get(escort.kind, {}).get("name", "Escorte")).to_upper() if escort != null else "ESCORTE"
 	return "NEXUS" if nexi.size() <= 1 else "%d NEXUS" % nexi.size()
 
 
@@ -2046,9 +2148,11 @@ func objective_info() -> String:
 				parts.append("phase %d/3" % (boss_phase + 1))
 				if boss_shield_t > 0.0:
 					parts.append("ÉCORCE : seul le %s blesse" % str(ELEM_NAMES.get(boss_shield_elem, boss_shield_elem)))
+				if banners_alive() > 0:
+					parts.append("ARMURE : %d bannière%s" % [banners_alive(), "s" if banners_alive() > 1 else ""])
 		"escort":
 			if escort != null:
-				parts.append("Lanterne %d / %d PV" % [int(ceil(maxf(0.0, escort.hp))), int(escort.max_hp)])
+				parts.append("%s %d / %d PV" % ["Lanterne" if escort.kind == "lantern" else "Chariot", int(ceil(maxf(0.0, escort.hp))), int(escort.max_hp)])
 				parts.append("trajet %d %%" % int((1.0 - objective_ratio()) * 100.0))
 		_:
 			parts.append("%d / %d" % [int(ceil(nexus_hp)), int(nexus_max)])

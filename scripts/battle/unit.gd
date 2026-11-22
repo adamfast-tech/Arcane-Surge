@@ -46,6 +46,7 @@ var poison_unit := 0.0
 var rooted_t := 0.0
 var wither_t := 0.0
 var shield := 0.0
+var enraged_t := 0.0 ## cri de guerre (Gharok, Varg) : +30 % de dégâts
 var zone_slow := 0.0 ## ralentissement des zones de sorts (Racines), recalculé à chaque pas
 
 # Rendu

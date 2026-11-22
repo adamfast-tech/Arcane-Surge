@@ -1,0 +1,109 @@
+{
+  "id": "z02_l07",
+  "name": "La Caravane",
+  "zone": 2,
+  "number": "2-7",
+  "global_level": 17,
+  "type": "Escorte",
+  "party": [
+    "brann",
+    "sylwen"
+  ],
+  "objective": "escort",
+  "desc": "Le chariot de vivres doit atteindre le village. Les chevaucheurs de loup l'attaquent sur les flancs : protège-le jusqu'au bout.",
+  "par_time": 170,
+  "nexus": {
+    "hp": 30000
+  },
+  "escort": {
+    "kind": "caravan",
+    "x": 4.5,
+    "y": 1.6,
+    "goal_y": 13.8,
+    "speed": 0.1,
+    "hp": 2000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 320
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 320
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "element": "foudre",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 4.5,
+      "y": 5.0,
+      "width": 1.8,
+      "motion": "slide",
+      "range": 1.2,
+      "speed": 0.5
+    },
+    {
+      "kind": "add",
+      "value": 5,
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 4.5,
+      "y": 10.4,
+      "width": 2.2,
+      "motion": "slide",
+      "range": 2.4,
+      "speed": 0.4
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 38,
+    "budget_per_level": 11,
+    "local_level": 7,
+    "growth": 0.04,
+    "spawn_y": 14.6,
+    "pool": {
+      "pillard": 6,
+      "wolf_rider": 3,
+      "clan_guard": 1,
+      "slinger": 1
+    }
+  },
+  "initial_enemies": [],
+  "ambush": {
+    "every": 17,
+    "count": 3,
+    "kind": "wolf_rider",
+    "ahead": 2.6
+  },
+  "wind": {
+    "first": 12,
+    "every": [
+      13,
+      17
+    ],
+    "warn": 1.6,
+    "dur": 2.2,
+    "force": 0.9
+  }
+}

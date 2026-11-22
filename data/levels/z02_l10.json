@@ -1,0 +1,202 @@
+{
+  "id": "z02_l10",
+  "name": "Gharok",
+  "zone": 2,
+  "number": "2-10",
+  "global_level": 20,
+  "type": "Boss",
+  "party": [
+    "brann",
+    "sylwen"
+  ],
+  "objective": "boss",
+  "desc": "Le seigneur de guerre possédé. Abats ses 3 bannières pour briser son armure, esquive ses charges, détruis ses totems d'orage. La Nature le blesse davantage.",
+  "par_time": 320,
+  "boss": {
+    "kind": "gharok",
+    "hp": 65000,
+    "x": 4.5,
+    "y": 14.3,
+    "phases": [
+      [
+        {
+          "type": "lane_strike",
+          "cd": 8,
+          "delay": 1.3,
+          "dmg": 60,
+          "width": 1.6
+        },
+        {
+          "type": "summon",
+          "cd": 12,
+          "kind": "pillard",
+          "count": 5
+        },
+        {
+          "type": "cry",
+          "cd": 22,
+          "dur": 6
+        }
+      ],
+      [
+        {
+          "type": "lane_strike",
+          "cd": 7,
+          "delay": 1.2,
+          "dmg": 65,
+          "width": 1.6,
+          "count": 2
+        },
+        {
+          "type": "summon",
+          "cd": 13,
+          "kind": "wolf_rider",
+          "count": 3
+        },
+        {
+          "type": "summon",
+          "cd": 28,
+          "kind": "ogre",
+          "count": 1
+        }
+      ],
+      [
+        {
+          "type": "row_sweep",
+          "cd": 7,
+          "delay": 1.3,
+          "dmg": 60,
+          "width": 1.4,
+          "count": 1
+        },
+        {
+          "type": "lane_strike",
+          "cd": 6,
+          "delay": 1.1,
+          "dmg": 65,
+          "width": 1.6
+        },
+        {
+          "type": "summon",
+          "cd": 11,
+          "kind": "pillard",
+          "count": 6
+        },
+        {
+          "type": "cry",
+          "cd": 20,
+          "dur": 6
+        }
+      ]
+    ],
+    "on_phase": [
+      [
+        {
+          "type": "banners",
+          "kind": "war_banner",
+          "xs": [
+            1.6,
+            4.5,
+            7.4
+          ]
+        }
+      ],
+      [
+        {
+          "type": "healers",
+          "kind": "storm_totem",
+          "count": 2
+        }
+      ],
+      [
+        {
+          "type": "banners",
+          "kind": "war_banner",
+          "xs": [
+            2.6,
+            6.4
+          ]
+        }
+      ]
+    ]
+  },
+  "towers": [],
+  "portals": [
+    {
+      "kind": "elem",
+      "element": "nature",
+      "x": 1.8,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "motion": "slide",
+      "range": 1.8,
+      "speed": 0.5
+    },
+    {
+      "kind": "elem",
+      "element": "nature",
+      "x": 7.2,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "add",
+      "value": 5,
+      "x": 2.4,
+      "y": 10.4,
+      "width": 2.0
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 6.6,
+      "y": 10.4,
+      "width": 2.0
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      9,
+      13
+    ],
+    "budget_base": 20,
+    "budget_per_level": 6,
+    "local_level": 10,
+    "growth": 0.02,
+    "spawn_y": 14.6,
+    "pool": {
+      "pillard": 6,
+      "wolf_rider": 3,
+      "slinger": 1
+    }
+  },
+  "initial_enemies": [],
+  "wind": {
+    "first": 14,
+    "every": [
+      14,
+      18
+    ],
+    "warn": 1.6,
+    "dur": 2.2,
+    "force": 0.9
+  },
+  "pylons": [
+    {
+      "x": 0.6,
+      "y": 6.4,
+      "portal": 1,
+      "every": 15,
+      "dur": 5,
+      "first": 8
+    }
+  ]
+}

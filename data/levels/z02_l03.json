@@ -1,0 +1,96 @@
+{
+  "id": "z02_l03",
+  "name": "Les Pylônes d'ambre",
+  "zone": 2,
+  "number": "2-3",
+  "global_level": 13,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen"
+  ],
+  "desc": "Les pylônes d'ambre surchargent un portail : pendant quelques secondes, il électrise ET double tes invocations.",
+  "par_time": 128,
+  "nexus": {
+    "hp": 33000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 300
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 300
+    }
+  ],
+  "portals": [
+    {
+      "kind": "add",
+      "value": 5,
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "elem",
+      "element": "foudre",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "elem",
+      "element": "foudre",
+      "x": 4.5,
+      "y": 10.4,
+      "width": 2.2
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 38,
+    "budget_per_level": 11,
+    "local_level": 3,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "pillard": 6,
+      "wolf_rider": 3,
+      "slinger": 1.2,
+      "ogre": 0.6
+    }
+  },
+  "initial_enemies": [],
+  "pylons": [
+    {
+      "x": 0.6,
+      "y": 6.4,
+      "portal": 1,
+      "every": 12,
+      "dur": 5,
+      "first": 5
+    },
+    {
+      "x": 8.4,
+      "y": 11.8,
+      "portal": 3,
+      "every": 14,
+      "dur": 5,
+      "first": 9
+    }
+  ]
+}

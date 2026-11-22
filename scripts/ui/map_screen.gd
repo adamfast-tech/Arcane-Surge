@@ -6,11 +6,28 @@ signal back
 signal play(level_id: String, solo: bool)
 
 var _solo: CheckBox
+## Zone affichée (onglets) : par défaut celle du prochain niveau.
+var zone := 0
+
+const ZONE_BLURB := {
+	1: "Niveaux 1 à 10 · le Surge frappe le village de Lysbourg.",
+	2: "Niveaux 11 à 20 · acte 2, les Alliances : pillards, clans orcs possédés et vent des steppes.",
+}
 
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	UiTheme.backdrop(self, 0.72)
+	if zone <= 0:
+		zone = int(GameData.level(Profile.next_level()).get("zone", 1))
+	_build()
+
+
+func _build() -> void:
+	var solo_on := _solo != null and _solo.button_pressed
+	for ch in get_children():
+		if ch is ScrollContainer:
+			ch.queue_free()
 	var col := UiTheme.scroll_column(self, 680.0, 20.0)
 	var head := HBoxContainer.new()
 	col.add_child(head)
@@ -19,20 +36,50 @@ func _ready() -> void:
 	head.add_child(b)
 	head.add_child(UiTheme.spacer())
 	var index := GameData.level_index()
-	var total := (index["levels"] as Array).size() * 3
+	var zd: Dictionary = {}
+	for z in index.get("zones", []):
+		if int(z["id"]) == zone:
+			zd = z
+	var ids: Array = zd.get("levels", [])
+	var stars := 0
+	for id in ids:
+		stars += int(Profile.level_record(str(id))["stars"])
 	head.add_child(UiTheme.icon_rect("star", 26, UiTheme.GOLD))
-	head.add_child(UiTheme.label("%d / %d" % [Profile.stars_total(), total], 24, UiTheme.GOLD))
-	var title := UiTheme.title("ZONE 1 · %s" % str(index["zone"]).to_upper(), 40, UiTheme.GOLD)
+	head.add_child(UiTheme.label("%d / %d" % [stars, ids.size() * 3], 24, UiTheme.GOLD))
+	# Onglets des zones.
+	var tabs := HBoxContainer.new()
+	tabs.add_theme_constant_override("separation", 8)
+	col.add_child(tabs)
+	for z in index.get("zones", []):
+		var zid := int(z["id"])
+		var first := str((z["levels"] as Array)[0])
+		var open := Profile.is_unlocked(first)
+		var t := UiTheme.button("Zone %d\n%s" % [zid, str(z["name"])], 18)
+		t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		t.custom_minimum_size = Vector2(0, 66)
+		t.disabled = not open
+		if not open:
+			t.icon = Icons.tex("lock", 36)
+			t.add_theme_constant_override("icon_max_width", 18)
+		if zid == zone:
+			t.add_theme_color_override("font_color", UiTheme.GOLD)
+			t.add_theme_stylebox_override("normal", UiTheme.box(Color(UiTheme.WARM, 0.94), Color(UiTheme.GOLD, 0.85), 12, 2, 8, UiTheme.GOLD))
+		t.pressed.connect(func() -> void:
+			zone = zid
+			_build.call_deferred())
+		tabs.add_child(t)
+	var title := UiTheme.title("ZONE %d · %s" % [zone, str(zd.get("name", "")).to_upper()], 40, UiTheme.GOLD)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	col.add_child(title)
-	col.add_child(UiTheme.wrap("Niveaux 1 à 10 · le Surge frappe le village de Lysbourg. Ta puissance : %d" % Profile.power(), 20, UiTheme.MUTED))
+	col.add_child(UiTheme.wrap("%s Ta puissance : %d" % [str(ZONE_BLURB.get(zone, "")), Profile.power()], 20, UiTheme.MUTED))
 	_solo = CheckBox.new()
+	_solo.button_pressed = solo_on
 	_solo.text = "Mode solo (sans bots) · +25 % d'XP"
 	_solo.focus_mode = Control.FOCUS_NONE
 	_solo.add_theme_font_size_override("font_size", 22)
 	col.add_child(_solo)
-	for id in index["levels"]:
+	for id in ids:
 		col.add_child(_level_card(str(id)))
 
 

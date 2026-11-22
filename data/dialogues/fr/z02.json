@@ -1,0 +1,232 @@
+{
+ "characters": {
+  "narrateur": {
+   "name": "",
+   "color": "A99FD0"
+  },
+  "porteur": {
+   "name": "{pseudo}",
+   "title": "Canalisateur",
+   "title_flag": {
+    "s1.sceau_echo": "Porteur d'Écho"
+   },
+   "color": "4FE3D2",
+   "portrait": "porteur"
+  },
+  "sylwen": {
+   "name": "Sylwen",
+   "title": "Vigiles Sylvestres",
+   "color": "8FD16A",
+   "portrait": "sylwen",
+   "loyalty": true
+  },
+  "brann": {
+   "name": "Brann",
+   "title": "Bastion d'Argent",
+   "color": "B8C6E8",
+   "portrait": "brann",
+   "loyalty": true
+  },
+  "ancien": {
+   "name": "Ancien Tobin",
+   "title": "Doyen de Lysbourg",
+   "color": "F2C46B",
+   "portrait": "ancien"
+  },
+  "cerf": {
+   "name": "Le Grand Cerf",
+   "title": "Gardien du Bois",
+   "color": "9FF0FF",
+   "portrait": "cerf"
+  },
+  "sylvarche": {
+   "name": "La Sylvarche",
+   "title": "Arbre-mère des elfes",
+   "color": "D97CF2",
+   "portrait": "sylvarche"
+  },
+  "fee": {
+   "name": "Fée captive",
+   "title": "Fées des Lucioles",
+   "color": "F7A8E0",
+   "portrait": "fee"
+  },
+  "voix": {
+   "name": "Voix inconnue",
+   "title": "???",
+   "color": "B07CFF",
+   "portrait": "voix"
+  }
+ },
+ "scenes": {},
+ "barks": {
+  "start": [
+   {
+    "who": "brann",
+    "text": "Bouclier levé ! Qu'ils viennent !"
+   },
+   {
+    "who": "brann",
+    "text": "Le Bastion ne recule pas !"
+   },
+   {
+    "who": "sylwen",
+    "text": "Je couvre la droite. Vise les portes !"
+   },
+   {
+    "who": "sylwen",
+    "text": "Le vent est avec nous."
+   },
+   {
+    "who": "sylwen",
+    "loy_min": {
+     "sylwen": 75
+    },
+    "text": "Avec toi à mes côtés, je n'ai pas peur."
+   },
+   {
+    "who": "brann",
+    "loy_min": {
+     "brann": 75
+    },
+    "text": "Ensemble, on est une forteresse !"
+   },
+   {
+    "who": "sylwen",
+    "loy_max": {
+     "sylwen": 30
+    },
+    "text": "Finissons-en. Je n'ai pas envie de parler."
+   },
+   {
+    "who": "brann",
+    "loy_max": {
+     "brann": 30
+    },
+    "text": "Je me bats. Ne m'en demande pas plus."
+   },
+   {
+    "who": "sylwen",
+    "if": "s1.sylvarche_purifiee",
+    "text": "La Sylvarche veille sur nous. Je le sens."
+   },
+   {
+    "who": "sylwen",
+    "if": "s1.sylvarche_abattue",
+    "text": "La forêt est si silencieuse, maintenant…"
+   },
+   {
+    "who": "sylwen",
+    "text": "Le vent tourne… attention aux rafales."
+   }
+  ],
+  "barrier_low": [
+   {
+    "who": "brann",
+    "text": "La Barrière cède ! Vise ceux qui passent !"
+   },
+   {
+    "who": "sylwen",
+    "text": "Ils sont trop près ! Tire sur les premiers rangs !"
+   },
+   {
+    "who": "brann",
+    "text": "Je tiens, je tiens… mais pas éternellement !"
+   }
+  ],
+  "half": [
+   {
+    "who": "sylwen",
+    "text": "Il faiblit ! Continue !"
+   },
+   {
+    "who": "brann",
+    "text": "À moitié fait ! Le plus dur, c'est l'autre moitié."
+   }
+  ],
+  "boss_phase": [
+   {
+    "who": "brann",
+    "text": "Il s'énerve ! Bon signe : on lui fait mal."
+   },
+   {
+    "who": "sylwen",
+    "text": "Attention, il change de rythme !"
+   }
+  ],
+  "echo": [
+   {
+    "who": "sylwen",
+    "text": "Ton Sceau brille… Qu'as-tu vu ?"
+   },
+   {
+    "who": "brann",
+    "text": "Encore cet air bizarre. Bah, tant que ça marche !"
+   }
+  ],
+  "ultimate": [
+   {
+    "who": "brann",
+    "text": "Par la barbe de mes ancêtres ! Quelle puissance !"
+   },
+   {
+    "who": "sylwen",
+    "text": "Magnifique…"
+   }
+  ],
+  "crowd": [
+   {
+    "who": "brann",
+    "text": "Regarde-moi cette armée !"
+   },
+   {
+    "who": "sylwen",
+    "text": "Ton flux est puissant ! Garde le rythme !"
+   }
+  ],
+  "escort_low": [
+   {
+    "who": "sylwen",
+    "text": "La Lanterne faiblit ! Protège-la !"
+   },
+   {
+    "who": "brann",
+    "text": "Personne ne touche à cette lanterne !"
+   }
+  ]
+ },
+ "barks_level": {
+  "z02_l05": {
+   "start": [
+    {
+     "who": "brann",
+     "text": "Varg ! Ce pillard me doit une barrique de bière."
+    }
+   ],
+   "boss_phase": [
+    {
+     "who": "sylwen",
+     "text": "Il appelle sa bande ! Vise les loups !"
+    }
+   ]
+  },
+  "z02_l10": {
+   "start": [
+    {
+     "who": "brann",
+     "text": "Ses bannières ! Abats-les, son armure tombera."
+    },
+    {
+     "who": "sylwen",
+     "text": "La Nature le blesse, utilise les Racines !"
+    }
+   ],
+   "boss_phase": [
+    {
+     "who": "brann",
+     "text": "Des totems d'orage ! Détruis-les avant qu'ils ne frappent !"
+    }
+   ]
+  }
+ }
+}

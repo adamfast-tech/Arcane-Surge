@@ -1,0 +1,102 @@
+{
+  "id": "z02_l06",
+  "name": "Le Campement de l'orage",
+  "zone": 2,
+  "number": "2-6",
+  "global_level": 16,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen"
+  ],
+  "desc": "Les Chamans d'orage foudroient tes invocations de loin. Les pylônes et le vent compliquent tout.",
+  "par_time": 146,
+  "nexus": {
+    "hp": 28000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 300
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 300
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "element": "foudre",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "motion": "slide",
+      "range": 1.4,
+      "speed": 0.5
+    },
+    {
+      "kind": "add",
+      "value": 5,
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "elem",
+      "element": "nature",
+      "x": 4.5,
+      "y": 10.4,
+      "width": 2.2
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 42,
+    "budget_per_level": 12,
+    "local_level": 6,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "pillard": 5,
+      "wolf_rider": 2,
+      "slinger": 1,
+      "clan_guard": 0.8,
+      "storm_shaman": 0.5
+    }
+  },
+  "initial_enemies": [],
+  "wind": {
+    "first": 8,
+    "every": [
+      11,
+      15
+    ],
+    "warn": 1.6,
+    "dur": 2.6,
+    "force": 1.1
+  },
+  "pylons": [
+    {
+      "x": 0.6,
+      "y": 6.4,
+      "portal": 0,
+      "every": 13,
+      "dur": 5,
+      "first": 6
+    }
+  ]
+}

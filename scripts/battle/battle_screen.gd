@@ -83,6 +83,10 @@ func configure(id: String, solo_mode: bool, opts: Dictionary = {}) -> void:
 	solo = solo_mode
 
 
+func _exit_tree() -> void:
+	WorldArt.zone = 1
+
+
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -102,6 +106,7 @@ func _ready() -> void:
 	add_child(vp)
 	arena = Arena3D.new()
 	vp.add_child(arena)
+	WorldArt.zone = int(_level.get("zone", 1))
 	arena.setup(sim, UiTheme.font(), bool(_opts.get("healed", false)))
 	for c in sim.casters:
 		if c.is_bot and c.id != "":
@@ -627,6 +632,8 @@ func _update_hud() -> void:
 		_set_text(journal_label, "\n".join(lines))
 	if aiming != "":
 		_set_text(hint_label, "Touche l'arène pour lancer — Échap / clic droit : annuler")
+	elif sim.wind_state != "calm":
+		_set_text(hint_label, "%s vers la %s !" % ["Rafale imminente" if sim.wind_state == "warn" else "Le vent pousse les troupes", "droite" if sim.wind_dir > 0.0 else "gauche"])
 	elif not auto_fire and sim.time < 6.0 and not sim.player().firing:
 		_set_text(hint_label, "Maintiens sur l'arène pour lancer le Flux, glisse pour viser")
 	else:

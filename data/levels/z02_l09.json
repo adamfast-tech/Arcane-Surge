@@ -1,0 +1,115 @@
+{
+  "id": "z02_l09",
+  "name": "Le Traité d'Ambre",
+  "zone": 2,
+  "number": "2-9",
+  "global_level": 19,
+  "type": "Siège",
+  "party": [
+    "brann",
+    "sylwen"
+  ],
+  "desc": "Le village humain et le campement orc sont assiégés par les clans possédés : deux Nexus et une tour à détruire.",
+  "par_time": 164,
+  "nexus": {
+    "hp": 20000
+  },
+  "towers": [
+    {
+      "x": 4.5,
+      "y": 14.0,
+      "hp": 520
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "element": "foudre",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "motion": "slide",
+      "range": 1.6,
+      "speed": 0.5
+    },
+    {
+      "kind": "add",
+      "value": 5,
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 2.4,
+      "y": 10.4,
+      "width": 2.0
+    },
+    {
+      "kind": "elem",
+      "element": "nature",
+      "x": 6.6,
+      "y": 10.4,
+      "width": 2.0
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 46,
+    "budget_per_level": 13,
+    "local_level": 9,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "pillard": 6,
+      "wolf_rider": 3,
+      "ogre": 1,
+      "clan_guard": 1,
+      "storm_shaman": 1,
+      "slinger": 1
+    }
+  },
+  "initial_enemies": [],
+  "nexi": [
+    {
+      "x": 2.4,
+      "y": 14.9
+    },
+    {
+      "x": 6.6,
+      "y": 14.9
+    }
+  ],
+  "pylons": [
+    {
+      "x": 8.4,
+      "y": 6.4,
+      "portal": 2,
+      "every": 13,
+      "dur": 5,
+      "first": 7
+    }
+  ],
+  "wind": {
+    "first": 10,
+    "every": [
+      12,
+      16
+    ],
+    "warn": 1.6,
+    "dur": 2.4,
+    "force": 1.0
+  }
+}

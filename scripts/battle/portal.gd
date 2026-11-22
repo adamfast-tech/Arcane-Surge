@@ -32,6 +32,8 @@ var ready := true
 var recharge_t := 0.0
 var counter := 0
 var flash_t := 0.0
+## Surcharge d'un pylône d'ambre (zone 2) : le portail double aussi les unités.
+var charged_t := 0.0
 
 
 func is_negative() -> bool:
@@ -39,6 +41,12 @@ func is_negative() -> bool:
 
 
 func label() -> String:
+	if charged_t > 0.0 and not is_negative():
+		return "FOUDRE ×2"
+	return base_label()
+
+
+func base_label() -> String:
 	match kind:
 		"add":
 			return "+%d" % value
@@ -66,6 +74,8 @@ func label() -> String:
 
 
 func color() -> Color:
+	if charged_t > 0.0 and not is_negative():
+		return Color("f0d23c")
 	match kind:
 		"add", "mult":
 			return Color("4fe3d2")

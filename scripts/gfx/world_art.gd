@@ -7,6 +7,26 @@ const PX_PER_M := 16
 ## Zone couverte par la texture du sol, en coordonnées logiques (x, y).
 const GROUND_MIN := Vector2(-1.0, -1.5)
 const GROUND_SIZE := Vector2(11.0, 19.0)
+## Zone du décor (1 : Bois des Lucioles, nuit ; 2 : Collines d'Ambre, plein jour).
+static var zone := 1
+
+
+## Zone 2 : décor de jour. Verts -> herbe sèche dorée, bleus et violets -> grès ocre, le tout éclairci.
+static func _warm(img: Image, grass_h: float = 0.115, lift: float = 1.0) -> void:
+	for y in range(img.get_height()):
+		for x in range(img.get_width()):
+			var c := img.get_pixel(x, y)
+			if c.a <= 0.0:
+				continue
+			var h := c.h
+			var out: Color
+			if c.s > 0.12 and h > 0.18 and h < 0.5:
+				out = Color.from_hsv(grass_h + (h - 0.18) * 0.12, clampf(c.s * 0.8 + 0.12, 0.0, 0.6), clampf(c.v * 1.2 * lift + 0.04, 0.0, 0.8), c.a)
+			elif h >= 0.5 and h < 0.9 or c.s <= 0.12:
+				out = Color.from_hsv(0.075 + 0.02 * c.v, clampf(c.s * 0.35 + 0.16, 0.0, 0.5), clampf(c.v * 1.15 * lift + 0.06, 0.0, 0.8), c.a)
+			else:
+				out = Color.from_hsv(h, c.s, clampf(c.v * 1.15, 0.0, 1.0), c.a)
+			img.set_pixel(x, y, out)
 
 
 static func _tex(img: Image, mipmaps: bool = false) -> ImageTexture:
@@ -103,6 +123,8 @@ static func ground_texture(healed: bool = false) -> ImageTexture:
 				_px(img, ex0 - 3 - k, y, Color("4f7a3a"))
 			if rng.randf() < 0.45:
 				_px(img, ex1 + 2 + k, y, Color("4f7a3a"))
+	if zone == 2:
+		_warm(img)
 	return _tex(img, true)
 
 
@@ -151,6 +173,8 @@ static func stone_texture() -> ImageTexture:
 		_px(img, x, y, Color("4f7a3a"))
 		if rng.randf() < 0.5:
 			_px(img, x, y + 1, Color("3f6a32"))
+	if zone == 2:
+		_warm(img)
 	return _tex(img, true)
 
 
@@ -166,6 +190,8 @@ static func rock_texture() -> ImageTexture:
 		_px(img, x, y, Color("2f3350") if rng.randf() < 0.6 else Color("1a1c2c"))
 	for i in range(60):
 		_px(img, rng.randi_range(0, 31), rng.randi_range(0, 31), Color("35553a"))
+	if zone == 2:
+		_warm(img, 0.115, 0.85)
 	return _tex(img, true)
 
 
@@ -179,6 +205,8 @@ static func moss_texture() -> ImageTexture:
 		_px(img, rng.randi_range(0, 31), rng.randi_range(0, 31), Color("2e5238") if rng.randf() < 0.6 else Color("1a3022"))
 	for i in range(8):
 		_px(img, rng.randi_range(0, 31), rng.randi_range(0, 31), Color("d8d4f8"))
+	if zone == 2:
+		_warm(img)
 	return _tex(img, true)
 
 
@@ -214,6 +242,8 @@ static func pine_texture() -> ImageTexture:
 						continue
 					_px(img, cx + x, y, c)
 		_px(img, cx, 1, lit[v])
+	if zone == 2:
+		_warm(img, 0.2, 0.9)
 	return _tex(img)
 
 
@@ -385,6 +415,8 @@ static func flame_texture() -> ImageTexture:
 ## Toile de fond peinte derrière la scène 3D (taille du SubViewport) : ciel étoilé, lune,
 ## montagnes, Tour du Croissant et son faisceau, nappes de brume vers le bas.
 static func backdrop(size: Vector2i) -> ImageTexture:
+	if zone == 2:
+		return _backdrop_day(size)
 	var w := maxi(8, size.x)
 	var h := maxi(8, size.y)
 	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
@@ -446,6 +478,68 @@ static func backdrop(size: Vector2i) -> ImageTexture:
 		var len := rng.randi_range(30, 90)
 		for sx in range(len):
 			_px(img, x + sx, y, Color(0.5, 0.5, 0.85, 0.12))
+	return _tex(img)
+
+
+## Collines d'Ambre : ciel de midi, soleil, nuages blancs, collines ocre et fort orc au loin.
+static func _backdrop_day(size: Vector2i) -> ImageTexture:
+	var w := maxi(8, size.x)
+	var h := maxi(8, size.y)
+	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 2207
+	var stops := [[0.0, Color("3f86c8")], [0.3, Color("6fb0e0")], [0.48, Color("b8d8e8")], [0.58, Color("f0d8a0")], [1.0, Color("c89858")]]
+	for y in range(h):
+		var k := float(y) / float(h - 1)
+		var c: Color = stops[0][1]
+		for i in range(stops.size() - 1):
+			var a: Array = stops[i]
+			var b: Array = stops[i + 1]
+			if k >= float(a[0]) and k <= float(b[0]):
+				c = (a[1] as Color).lerp(b[1], (k - float(a[0])) / (float(b[0]) - float(a[0])))
+		img.fill_rect(Rect2i(0, y, w, 1), c)
+	# Soleil et halo.
+	var sr := maxi(7, int(minf(w, h) * 0.05))
+	var sx := int(w * 0.24)
+	var sy := int(h * 0.1)
+	for r in range(sr * 4, sr, -1):
+		_disc(img, sx, sy, r, Color(1.0, 0.95, 0.75, 0.03))
+	_disc(img, sx, sy, sr, Color("fff2c0"))
+	_disc(img, sx, sy, int(sr * 0.7), Color("fffbe8"))
+	# Nuages blancs en bandes.
+	for i in range(maxi(3, int(w / 40.0))):
+		var cy := rng.randi_range(int(h * 0.06), int(h * 0.36))
+		var cx := rng.randi_range(-40, w)
+		var len := rng.randi_range(30, 90)
+		for k in range(3):
+			var yy := cy + k * 2
+			var off := k * 6
+			for dx in range(off, len - off):
+				_px(img, cx + dx, yy, Color(1.0, 1.0, 1.0, 0.55 - 0.12 * float(k)))
+		for dx in range(4, len - 4):
+			_px(img, cx + dx, cy + 6, Color(0.75, 0.8, 0.9, 0.25))
+	# Collines lointaines bleutées, puis collines d'ambre.
+	_ridge(img, rng, int(h * 0.42), int(h * 0.05), Color("8aa0b8"), Color("b0c4d4"))
+	# Fort orc : palissade et tour sur la crête.
+	var fx := int(w * 0.68)
+	var fy := int(h * 0.44)
+	var fort := Color("5a4838")
+	for k in range(-18, 19):
+		var ph := 6 + (3 if absi(k) % 3 == 0 else 0)
+		img.fill_rect(Rect2i(fx + k, fy - ph, 1, ph), fort)
+	img.fill_rect(Rect2i(fx - 4, fy - 20, 8, 20), fort)
+	img.fill_rect(Rect2i(fx - 6, fy - 22, 12, 3), fort)
+	img.fill_rect(Rect2i(fx, fy - 30, 1, 8), Color("3a2a20"))
+	img.fill_rect(Rect2i(fx + 1, fy - 30, 5, 3), Color("a82a2a"))
+	_ridge(img, rng, int(h * 0.5), int(h * 0.06), Color("b07a40"), Color("e8b060"))
+	_ridge(img, rng, int(h * 0.56), int(h * 0.05), Color("8a5a2a"), Color("c88a40"))
+	# Brume de chaleur au pied des collines.
+	for i in range(int(w * h / 1100.0)):
+		var y := rng.randi_range(int(h * 0.55), h - 1)
+		var x := rng.randi_range(-40, w)
+		var len := rng.randi_range(30, 90)
+		for dx in range(len):
+			_px(img, x + dx, y, Color(1.0, 0.9, 0.7, 0.1))
 	return _tex(img)
 
 

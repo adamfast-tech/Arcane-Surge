@@ -54,6 +54,8 @@ func handle(e: Dictionary) -> bool:
 			_burst(w3(e["pos"], 0.15), 32, [Color(1, 0.95, 0.8, 1), col, Color(col, 0.0)], 2.6, 0.12, 0.8, -3.0, 70.0)
 		"arrow":
 			_line_fx.append({"kind": "arrow", "a": e["a"], "b": e["b"], "age": 0.0, "dur": float(e.get("dur", 0.3)), "color": col})
+		"wind":
+			_wind(e)
 		_:
 			return false
 	return true
@@ -157,6 +159,46 @@ func _rain(e: Dictionary, col: Color) -> void:
 	_nodes.append({"kind": "emitter", "node": s, "age": 0.0, "stop": dur, "dur": dur + s.lifetime + 0.05})
 	_disc(pos, r, Color(0.6, 0.88, 1.0, 0.2), dur)
 	_line_fx.append({"kind": "zone", "pos": pos, "r": r, "age": 0.0, "dur": dur, "color": col})
+
+
+## Vent des steppes : traits d'air (annonce), puis rafale de poussière et d'herbe qui balaie l'arène.
+func _wind(e: Dictionary) -> void:
+	var dir := float(e.get("dir", 1.0))
+	var dur := float(e.get("dur", 2.0))
+	var blow := str(e.get("phase", "")) == "blow"
+	_line_fx.append({"kind": "wind", "dir": dir, "blow": blow, "age": 0.0, "dur": dur, "color": Color("fff4dc"), "seed": _rng.randf() * 10.0})
+	if not blow:
+		return
+	var p := CPUParticles3D.new()
+	p.amount = 90
+	p.lifetime = 0.8
+	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	p.emission_box_extents = Vector3(1.0, 0.5, 8.0)
+	p.direction = Vector3(dir, 0.04, 0.0)
+	p.spread = 5.0
+	p.initial_velocity_min = 9.0
+	p.initial_velocity_max = 13.0
+	p.gravity = Vector3.ZERO
+	p.mesh = _hstreak()
+	p.color_ramp = _ramp([Color(1, 0.96, 0.85, 0.0), Color(1, 0.96, 0.85, 0.75), Color(0.95, 0.85, 0.6, 0.0)])
+	p.position = w3(Vector2(4.5 - dir * 6.0, 8.0), 0.55)
+	add_child(p)
+	_nodes.append({"kind": "emitter", "node": p, "age": 0.0, "stop": dur, "dur": dur + p.lifetime + 0.05})
+	var d := CPUParticles3D.new()
+	d.amount = 40
+	d.lifetime = 1.0
+	d.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	d.emission_box_extents = Vector3(1.0, 0.3, 8.0)
+	d.direction = Vector3(dir, 0.25, 0.0)
+	d.spread = 20.0
+	d.initial_velocity_min = 6.0
+	d.initial_velocity_max = 9.0
+	d.gravity = Vector3(0, -1.5, 0)
+	d.mesh = _pm(0.07)
+	d.color_ramp = _ramp([Color("e8c070"), Color("b8a048"), Color(0.8, 0.6, 0.3, 0.0)])
+	d.position = w3(Vector2(4.5 - dir * 6.0, 8.0), 0.3)
+	add_child(d)
+	_nodes.append({"kind": "emitter", "node": d, "age": 0.0, "stop": dur, "dur": dur + d.lifetime + 0.05})
 
 
 func _roots(e: Dictionary, col: Color) -> void:
@@ -424,6 +466,16 @@ func _streak() -> QuadMesh:
 	return _pmesh["streak"]
 
 
+## Traits de vent : horizontaux.
+func _hstreak() -> QuadMesh:
+	if not _pmesh.has("hstreak"):
+		var q := QuadMesh.new()
+		q.size = Vector2(0.55, 0.035)
+		q.material = _particle_mat()
+		_pmesh["hstreak"] = q
+	return _pmesh["hstreak"]
+
+
 ## Matériau additif face caméra (halos, colonnes de lumière).
 func _add_mat(tex: Texture2D, col: Color) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
@@ -523,6 +575,8 @@ func collect(lines: Array, points: Array) -> void:
 				_wave_lines(lines, lf, col)
 			"lightning":
 				_lightning_lines(lines, lf, col, k)
+			"wind":
+				_wind_lines(lines, lf, age, dur)
 			"arrow":
 				var a: Vector2 = lf["a"]
 				var b: Vector2 = lf["b"]
@@ -530,6 +584,27 @@ func collect(lines: Array, points: Array) -> void:
 				var p1 := w3(a.lerp(b, clampf(k * 1.1, 0.0, 1.0)), 0.55)
 				lines.append([p0, p1, Color(1, 1, 1, 1.0 - k * 0.5)])
 				lines.append([p0 + Vector3(0, 0.04, 0), p1 + Vector3(0, 0.04, 0), Color(col, 1.0 - k * 0.5)])
+
+
+func _wind_lines(lines: Array, lf: Dictionary, age: float, dur: float) -> void:
+	var blow := bool(lf["blow"])
+	var dir := float(lf["dir"])
+	var fade := minf(1.0, age / 0.3) * clampf((dur - age) / 0.4, 0.0, 1.0)
+	var col: Color = lf["color"]
+	var n := 16 if blow else 10
+	var speed := 11.0 if blow else 3.0
+	var length := 1.3 if blow else 0.6
+	var alpha := (0.55 if blow else 0.3) * fade
+	for i in range(n):
+		var y := 0.6 + float(i) * 14.8 / float(n - 1)
+		var ph := fmod(float(lf["seed"]) * 7.3 + float(i) * 2.17, 1.0)
+		var span := 13.0
+		var x := fmod(ph * span + age * speed * (1.0 + 0.15 * float(i % 3)), span) - 2.0
+		if dir < 0.0:
+			x = 9.0 - x
+		var h := 0.25 + 0.12 * float(i % 4)
+		var wob := 0.06 * sin(t * 6.0 + float(i))
+		lines.append([w3(Vector2(x, y + wob), h), w3(Vector2(x - dir * length, y + wob), h), Color(col, alpha)])
 
 
 func _ring(lines: Array, center: Vector2, r: float, col: Color, h: float) -> void:

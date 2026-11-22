@@ -107,6 +107,26 @@ transparent background, no ground shadow, no text, single character
 - `wisp` : *a will-o'-the-wisp facing the viewer, golden light flame with two small dark eyes, soft glow*
 - `dryad` : *a withered tree spirit facing the viewer, slender dry bark body, branch arms, glowing bright green eyes, crown of twigs*
 
+### Ennemis de la zone 2 · Collines d'Ambre (vus de face, plein jour)
+
+Les sprites générés sont dans `scripts/gfx/sprite_atlas.gd`. Ils sont tous remplaçables par `assets/sprites/<nom>.png` et `<nom>-2.png`.
+
+| Fichier | Ennemi | Toile | Hauteur | Description |
+|---|---|---|---|---|
+| `pillard` | Pillard (sbire) | 14×14 | 0,62 m | Humain des steppes, capuche de fourrure fauve, foulard rouge, dague |
+| `wolf_rider` | Chevaucheur de loup (coureur) | 20×13 | 0,78 m | Gobelin vert sur un loup gris aux yeux rouges, lance |
+| `ogre` | Ogre d'ambre (brute) | 20×15 | 1,05 m | Ogre massif à la peau ocre, épaulières d'ambre, pagne de cuir |
+| `slinger` | Frondeur (tireur) | 14×14 | 0,6 m | Humain à capuche olive, fronde levée |
+| `clan_guard` | Garde de clan (porte-bouclier) | 16×15 | 0,72 m | Orc casqué derrière un grand pavois de bois cerclé d'or |
+| `storm_shaman` | Chaman d'orage (lanceur) | 16×15 | 0,85 m | Orc en peaux, coiffe d'os, yeux cyan, bâton surmonté d'un éclair |
+| `bonesetter` | Rebouteux possédé (soigneur) | 16×15 | 0,8 m | Robe violette, yeux magenta, bâton d'os |
+| `varg` | **Varg**, chef pillard (mini-boss) | 22×16 | 1,45 m | Casque à cornes, cape rouge, hache |
+| `gharok` | **Gharok**, seigneur de guerre (boss) | 28×22 | 2,7 m | Orc géant possédé : casque d'acier à grandes cornes, yeux magenta, cuirasse, grande hache |
+| `war_banner` | Bannière de guerre | 10×18 | 1,6 m | Étendard rouge et or sur une hampe plantée |
+| `storm_totem` | Totem d'orage | 9×16 | 1,2 m | Totem de bois sculpté, couronne d'éclairs |
+| `caravan` | Chariot de vivres (escorte) | 22×14 | 1,3 m | Chariot bâché crème, roues de bois |
+| `pylon` | Pylône d'ambre (décor) | 9×15 | 1,6 m | Cristal d'ambre sur un socle de pierre |
+
 ## 6. Après livraison
 - Je vérifie chaque sprite en jeu (taille, lisibilité, animation) et ajuste au besoin `HEIGHT_M` dans `scripts/gfx/sprite_atlas.gd`.
 - Si un sprite généré est plus détaillé que sa toile, je peux augmenter la résolution de rendu de l'arène pour en profiter.

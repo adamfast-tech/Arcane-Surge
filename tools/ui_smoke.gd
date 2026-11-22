@@ -193,7 +193,7 @@ func _run() -> void:
 		staff = staff or str(it["base"]) == "baton_seve"
 	print("1-10 : abattue ", Story.has_flag("s1.sylvarche_abattue"), " · Sylwen ", Story.loyalty("sylwen"), " · Bâton ", staff, " · objets ", items0, " -> ", (Profile.data["inventory"] as Array).size(), " · choix ", Story.choice("z01_l10"))
 	# Objectifs spéciaux : boss (avec l'aide des fées), escorte, siège, lucioles.
-	for id in ["z01_l05", "z01_l07", "z01_l09", "z01_l10", "z01_l02"]:
+	for id in ["z01_l05", "z01_l07", "z01_l09", "z01_l10", "z01_l02", "z02_l03", "z02_l07", "z02_l10"]:
 		main.call("_start", id, false)
 		await _frames(30)
 		var bs: BattleScreen = _screen()
@@ -203,7 +203,9 @@ func _run() -> void:
 		await _frames(90)
 		print(id, " · ", bs.sim.objective_title(), " · ", bs.sim.objective_info(), " · état ", bs.sim.state)
 		bs.sim.debug_set_ratio(0.0)
-		if id == "z01_l05" or id == "z01_l10":
+		if id.begins_with("z02"):
+			print("  zone 2 : décor ", WorldArt.zone, " · pylônes ", bs.sim.pylons.size(), " · vent ", not bs.sim.wind_cfg.is_empty(), " · bannières ", bs.sim.banners_alive())
+		if bs.sim.boss != null:
 			bs.sim.boss.hp = 0.0
 			bs.sim.boss.alive = false
 		await _frames(10)
@@ -211,6 +213,10 @@ func _run() -> void:
 		bs.exit_requested.emit("map")
 		await _frames(3)
 		await _through_dialogues()
+	if WorldArt.zone != 1:
+		push_error("décor : la zone doit revenir à 1 hors combat")
+		quit(1)
+		return
 	# Synchronisation : la progression la plus avancée n'est jamais écrasée par une plus récente.
 	var fresh := Profile.default_data()
 	fresh["updated"] = Profile.updated() + 1000.0

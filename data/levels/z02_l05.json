@@ -1,0 +1,133 @@
+{
+  "id": "z02_l05",
+  "name": "Varg, chef pillard",
+  "zone": 2,
+  "number": "2-5",
+  "global_level": 15,
+  "type": "Mini-boss",
+  "party": [
+    "brann",
+    "sylwen"
+  ],
+  "objective": "boss",
+  "desc": "Le chef des pillards charge en ligne (couloirs rouges), appelle sa bande et pousse des cris de guerre qui enragent ses hommes.",
+  "par_time": 160,
+  "boss": {
+    "kind": "varg",
+    "hp": 120000,
+    "x": 4.5,
+    "y": 13.6,
+    "phases": [
+      [
+        {
+          "type": "lane_strike",
+          "cd": 8,
+          "delay": 1.3,
+          "dmg": 55,
+          "width": 1.5
+        },
+        {
+          "type": "summon",
+          "cd": 13,
+          "kind": "pillard",
+          "count": 6
+        }
+      ],
+      [
+        {
+          "type": "lane_strike",
+          "cd": 6.5,
+          "delay": 1.2,
+          "dmg": 60,
+          "width": 1.6
+        },
+        {
+          "type": "summon",
+          "cd": 12,
+          "kind": "wolf_rider",
+          "count": 4
+        },
+        {
+          "type": "cry",
+          "cd": 16,
+          "dur": 6
+        }
+      ],
+      [
+        {
+          "type": "lane_strike",
+          "cd": 5,
+          "delay": 1.1,
+          "dmg": 65,
+          "width": 1.6,
+          "count": 2
+        },
+        {
+          "type": "summon",
+          "cd": 10,
+          "kind": "pillard",
+          "count": 7
+        },
+        {
+          "type": "cry",
+          "cd": 12,
+          "dur": 6
+        }
+      ]
+    ]
+  },
+  "towers": [],
+  "portals": [
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "motion": "slide",
+      "range": 2.2,
+      "speed": 0.5
+    },
+    {
+      "kind": "elem",
+      "element": "foudre",
+      "x": 1.8,
+      "y": 10.2,
+      "width": 2.0
+    },
+    {
+      "kind": "add",
+      "value": 5,
+      "x": 7.2,
+      "y": 10.2,
+      "width": 2.0
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      9,
+      12
+    ],
+    "budget_base": 18,
+    "budget_per_level": 6,
+    "local_level": 5,
+    "growth": 0.03,
+    "spawn_y": 14.6,
+    "pool": {
+      "pillard": 5,
+      "wolf_rider": 2
+    }
+  },
+  "initial_enemies": [],
+  "wind": {
+    "first": 10,
+    "every": [
+      13,
+      17
+    ],
+    "warn": 1.6,
+    "dur": 2.4,
+    "force": 1.0
+  }
+}

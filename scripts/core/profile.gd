@@ -402,7 +402,9 @@ static func apply_battle(level_id: String, victory: bool, stars: int, time: floa
 	rng.randomize()
 	var rec := level_record(level_id).duplicate()
 	var first := victory and int(rec["clears"]) == 0
-	var xp_gain := float(p["reward_xp"][0]) + float(p["reward_xp"][1]) * gl
+	# XP proportionnelle à l'XP du niveau du lieu : une 1re victoire vaut environ 0,8 niveau
+	# (le joueur suit ainsi le niveau des zones sans devoir trop rejouer).
+	var xp_gain := float(xp_to_next(gl)) * float(p.get("reward_xp_ratio", 0.33))
 	var gold_gain := float(p["reward_gold"][0]) + float(p["reward_gold"][1]) * gl
 	var items: Array = []
 	var mats := {}

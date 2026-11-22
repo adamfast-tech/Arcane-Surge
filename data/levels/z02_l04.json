@@ -1,0 +1,92 @@
+{
+  "id": "z02_l04",
+  "name": "Le Gué du Clan",
+  "zone": 2,
+  "number": "2-4",
+  "global_level": 14,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen"
+  ],
+  "desc": "Les Gardes de clan bloquent de face, les Ogres d'ambre encaissent. Un portail négatif garde le gué : purifie-le.",
+  "par_time": 134,
+  "nexus": {
+    "hp": 21000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 300
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 300
+    }
+  ],
+  "portals": [
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "elem",
+      "element": "foudre",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 1.8
+    },
+    {
+      "kind": "sub",
+      "value": 5,
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "add",
+      "value": 5,
+      "x": 4.5,
+      "y": 10.4,
+      "width": 2.2,
+      "motion": "slide",
+      "range": 2.4,
+      "speed": 0.45
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 40,
+    "budget_per_level": 12,
+    "local_level": 4,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "pillard": 5,
+      "wolf_rider": 2,
+      "slinger": 1.2,
+      "clan_guard": 0.8,
+      "ogre": 0.5
+    }
+  },
+  "initial_enemies": [],
+  "wind": {
+    "first": 9,
+    "every": [
+      11,
+      15
+    ],
+    "warn": 1.6,
+    "dur": 2.4,
+    "force": 1.1
+  }
+}

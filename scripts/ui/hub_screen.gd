@@ -47,7 +47,12 @@ func _ready() -> void:
 	col.add_child(grid)
 	var index := GameData.level_index()
 	var total := (index["levels"] as Array).size() * 3
-	grid.add_child(_tile("map", "CARTE DU MONDE", str(index["zone"]), "Zone 1 · %d / %d étoiles" % [Profile.stars_total(), total], func() -> void: open_map.emit()))
+	var zid := int(GameData.level(Profile.next_level()).get("zone", 1))
+	var zname := ""
+	for z in index.get("zones", []):
+		if int(z["id"]) == zid:
+			zname = str(z["name"])
+	grid.add_child(_tile("map", "CARTE DU MONDE", zname, "Zone %d · %d / %d étoiles" % [zid, Profile.stars_total(), total], func() -> void: open_map.emit()))
 	grid.add_child(_tile("baton_chene", "ÉQUIPEMENT", "Équipement & Forge", "Puissance %d · %d objets" % [Profile.power(), (Profile.data["inventory"] as Array).size()], func() -> void: open_equipment.emit()))
 	# Salles : Entraînement (arbre), Bibliothèque (deck), Cercle (compagnons).
 	var rooms := GridContainer.new()

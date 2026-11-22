@@ -1,0 +1,90 @@
+{
+  "id": "z02_l02",
+  "name": "Les Moulins",
+  "zone": 2,
+  "number": "2-2",
+  "global_level": 12,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen"
+  ],
+  "desc": "Vent des steppes : quand l'herbe ploie, une rafale va pousser toutes les unités sur le côté. Anticipe tes tirs.",
+  "par_time": 122,
+  "nexus": {
+    "hp": 26000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 300
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 300
+    }
+  ],
+  "portals": [
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "elem",
+      "element": "foudre",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 1.8
+    },
+    {
+      "kind": "add",
+      "value": 5,
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 4.5,
+      "y": 10.4,
+      "width": 2.2,
+      "motion": "slide",
+      "range": 2.4,
+      "speed": 0.4
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 36,
+    "budget_per_level": 11,
+    "local_level": 2,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "pillard": 6,
+      "wolf_rider": 3,
+      "slinger": 1.2
+    }
+  },
+  "initial_enemies": [],
+  "wind": {
+    "first": 7,
+    "every": [
+      10,
+      14
+    ],
+    "warn": 1.6,
+    "dur": 2.6,
+    "force": 1.1
+  }
+}

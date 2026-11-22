@@ -157,4 +157,7 @@ iOS (iPhone 16 Pro Max, iPad), Android, PC (16:9, 16:10).
     - 10.2 bis ✅ 7 sorts en combat (3 nouveaux), Pluie de givre et Racines sur la durée, Boule de feu élargie, animation de chaque sort et pouvoir — [`design/13-sorts.md`](design/13-sorts.md)
     - 10.2 ter ✅ refonte de l'interface (concept UI) : cadres à coins coupés, icônes au trait, une icône par objet et par sort — [`design/14-interface.md`](design/14-interface.md)
     - 10.3 ✅ Entraînement (arbre du Mage), Bibliothèque (deck et sorts à apprendre), Cercle (réglages de Brann et Sylwen) — [`design/15-competences-bibliotheque-cercle.md`](design/15-competences-bibliotheque-cercle.md)
-11. Saison 2 : zones 11–15, niveau max 150, L'Ourdisseur (fils semés en saison 1)
+11. Acte 2 :
+    - 11.1 ✅ zone 2 jouable, Collines d'Ambre : 10 niveaux (niveaux 11 à 20), bestiaire orc, Varg et Gharok, vent des steppes, pylônes d'ambre, décor de jour — [`design/16-zone2.md`](design/16-zone2.md)
+    - 11.2 narration de l'acte 2 (choix Traité d'Ambre, ✦ Gharok), Krag 3e compagnon
+12. Saison 2 : zones 11–15, niveau max 150, L'Ourdisseur (fils semés en saison 1)

@@ -1,0 +1,111 @@
+{
+  "id": "z02_l08",
+  "name": "Le Rebouteux",
+  "zone": 2,
+  "number": "2-8",
+  "global_level": 18,
+  "type": "Purification",
+  "party": [
+    "brann",
+    "sylwen"
+  ],
+  "desc": "Deux sceaux rendent le Nexus invulnérable : purifie-les. Les Rebouteux possédés soignent le Nexus : abats-les en priorité.",
+  "par_time": 158,
+  "nexus": {
+    "hp": 20000
+  },
+  "towers": [
+    {
+      "x": 1.4,
+      "y": 14.1,
+      "hp": 380
+    },
+    {
+      "x": 7.6,
+      "y": 14.1,
+      "hp": 380
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "element": "foudre",
+      "x": 1.7,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "motion": "slide",
+      "range": 1.4,
+      "speed": 0.5
+    },
+    {
+      "kind": "elem",
+      "element": "lumiere",
+      "x": 7.3,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "corrupt",
+      "x": 2.0,
+      "y": 10.4,
+      "width": 2.2,
+      "seal": true,
+      "purity": 10
+    },
+    {
+      "kind": "add",
+      "value": 5,
+      "x": 4.5,
+      "y": 10.4,
+      "width": 1.8
+    },
+    {
+      "kind": "sub",
+      "value": 5,
+      "x": 7.0,
+      "y": 10.4,
+      "width": 2.2,
+      "seal": true,
+      "purity": 10
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 32,
+    "budget_per_level": 9,
+    "local_level": 8,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "pillard": 6,
+      "wolf_rider": 3,
+      "ogre": 0.7,
+      "clan_guard": 0.8,
+      "bonesetter": 0.3
+    }
+  },
+  "initial_enemies": [
+    {
+      "kind": "bonesetter",
+      "x": 2.6,
+      "y": 13.3
+    },
+    {
+      "kind": "bonesetter",
+      "x": 6.4,
+      "y": 13.3
+    }
+  ],
+  "corrupt_spawn": "pillard"
+}

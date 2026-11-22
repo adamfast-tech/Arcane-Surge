@@ -50,6 +50,8 @@ var _casters: Array[Sprite3D] = []
 var _staff_fx: CPUParticles3D
 var _staff_light: OmniLight3D
 var _torch_lights: Array[OmniLight3D] = []
+var _pylon_nodes: Array[Dictionary] = []
+var day := false ## Zone 2 : Collines d'Ambre en plein jour.
 ## Forêt guérie (la Sylvarche a été purifiée) : sol plus vert, veines dorées, lucioles.
 var healed := false
 
@@ -62,11 +64,13 @@ func setup(s: BattleSim, f: Font, forest_healed: bool = false) -> void:
 	sim = s
 	font = f
 	healed = forest_healed
+	day = WorldArt.zone == 2
 	_billboard = load("res://shaders/billboard_atlas.gdshader")
 	_stone_mat = _triplanar(WorldArt.stone_texture(), 0.55)
 	_build_environment()
 	_build_terrain()
 	_build_props()
+	_build_pylons()
 	_build_portals()
 	_build_towers()
 	_build_nexus()
@@ -146,9 +150,14 @@ func _build_environment() -> void:
 	_env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	_env.ambient_light_color = Color("7890c0") if healed else Color("7078c0")
 	_env.ambient_light_energy = 1.0
+	if day:
+		_env.ambient_light_color = Color("e0c8a0")
+		_env.ambient_light_energy = 0.9
 	_env.fog_enabled = true
 	_env.fog_mode = Environment.FOG_MODE_DEPTH
 	_env.fog_light_color = Color("26405a") if healed else Color("2d2c5e")
+	if day:
+		_env.fog_light_color = Color("d8b880")
 	_env.fog_depth_begin = 40.0
 	_env.fog_depth_end = 80.0
 	_env.glow_enabled = true
@@ -159,7 +168,7 @@ func _build_environment() -> void:
 	we.environment = _env
 	add_child(we)
 	var moon := DirectionalLight3D.new()
-	moon.light_color = Color("b4c0ff")
+	moon.light_color = Color("fff0d0") if day else Color("b4c0ff")
 	moon.light_energy = 1.1
 	moon.rotation_degrees = Vector3(-55.0, -35.0, 0.0)
 	add_child(moon)
@@ -231,6 +240,8 @@ func _build_terrain() -> void:
 	var mist_shader: Shader = load("res://shaders/mist.gdshader")
 	var noise := WorldArt.mist_texture()
 	var layers := [[-1.4, Color("8a8ad0"), 0.45, Vector2(0.012, 0.004)], [-3.0, Color("6a6ab8"), 0.55, Vector2(-0.008, 0.006)]]
+	if day:
+		layers = [[-1.4, Color("f0d8a8"), 0.3, Vector2(0.02, 0.003)], [-3.0, Color("d8b888"), 0.4, Vector2(-0.012, 0.005)]]
 	for l in layers:
 		var mi := MeshInstance3D.new()
 		var mp := PlaneMesh.new()
@@ -294,7 +305,7 @@ func _trees_mm_instance() -> MultiMeshInstance3D:
 func _build_props() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 99
-	var moss_cap := _unshaded(Color("3f6a3a"))
+	var moss_cap := _unshaded(Color("a09048") if day else Color("3f6a3a"))
 	moss_cap.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
 	# Piliers en ruine le long de la chaussée.
 	for y in [1.8, 4.2, 7.8, 9.6, 12.2, 15.4]:
@@ -358,8 +369,51 @@ func _build_props() -> void:
 	ramp.set_color(1, Color(1.0, 0.95, 0.55, 0.0))
 	ramp.add_point(0.2, Color(1.0, 0.95, 0.6, 1.0))
 	ramp.add_point(0.8, Color(0.85, 1.0, 0.55, 1.0))
+	if day:
+		# Pollen et poussière dorée dans la lumière de midi.
+		ramp = Gradient.new()
+		ramp.set_color(0, Color(1.0, 0.9, 0.7, 0.0))
+		ramp.set_color(1, Color(1.0, 0.9, 0.7, 0.0))
+		ramp.add_point(0.5, Color(1.0, 0.92, 0.75, 0.75))
+		ff.initial_velocity_max = 0.5
+		ff.gravity = Vector3(0.12, 0.0, 0.0)
 	ff.color_ramp = ramp
 	add_child(ff)
+
+
+## Pylônes d'ambre (zone 2) : cristal sur socle, s'illumine avant de surcharger son portail.
+func _build_pylons() -> void:
+	for py in sim.pylons:
+		var fr := SpriteAtlas.frame("pylon")
+		var s := Sprite3D.new()
+		s.texture = SpriteAtlas.single("pylon")
+		s.pixel_size = SpriteAtlas.height_m("pylon") / float((fr["px"] as Rect2i).size.y)
+		s.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+		s.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		s.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+		s.shaded = false
+		s.centered = false
+		s.offset = Vector2(-float((fr["px"] as Rect2i).size.x) * 0.5, 0.0)
+		s.position = w3(py["pos"])
+		add_child(s)
+		var l := OmniLight3D.new()
+		l.light_color = Color("ffb84a")
+		l.light_energy = 0.6
+		l.omni_range = 2.4
+		l.position = w3(py["pos"], 1.2)
+		add_child(l)
+		_pylon_nodes.append({"py": py, "sprite": s, "light": l})
+
+
+func _update_pylons() -> void:
+	for pn in _pylon_nodes:
+		var py: Dictionary = pn["py"]
+		var left := float(py["t"])
+		var charge := clampf(1.0 - left / 2.0, 0.0, 1.0) # s'allume pendant les 2 dernières secondes
+		var pulse := 0.5 + 0.5 * sin(t * (4.0 + 14.0 * charge))
+		var k := 1.0 + charge * (0.6 + 0.6 * pulse)
+		(pn["sprite"] as Sprite3D).modulate = Color(k, k * 0.95, k * 0.8)
+		(pn["light"] as OmniLight3D).light_energy = 0.5 + 0.3 * sin(t * 2.0) + charge * 2.2 * pulse
 
 
 func _particle_mesh(size: float) -> QuadMesh:
@@ -740,6 +794,7 @@ func _process(delta: float) -> void:
 	if shake > 0.0:
 		cam.position += Vector3(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0), 0.0) * shake * 0.5
 	_update_portals()
+	_update_pylons()
 	_update_towers()
 	_update_nexus()
 	_update_barrier()
@@ -761,6 +816,8 @@ func _update_portals() -> void:
 		var a := 0.3 + 0.08 * sin(t * 4.0 + float(p.id))
 		if dim:
 			a = 0.1
+		if p.charged_t > 0.0 and not p.is_negative():
+			a = 0.55 + 0.2 * sin(t * 14.0)
 		if p.flash_t > 0.0:
 			a = 0.75
 		(pn["panel"] as StandardMaterial3D).albedo_color = Color(col, a)
@@ -775,6 +832,7 @@ func _update_portals() -> void:
 		if seal.visible:
 			seal.text = "SCEAU %d/%d" % [p.purity, p.purity_needed]
 		(pn["light"] as OmniLight3D).light_color = col
+		(pn["light"] as OmniLight3D).light_energy = 2.4 if p.charged_t > 0.0 and not p.is_negative() else 0.9
 
 
 func _update_towers() -> void:
