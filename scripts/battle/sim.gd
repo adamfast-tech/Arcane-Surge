@@ -25,6 +25,9 @@ const NEXUS_PULSE_DMG := 25.0
 const SURGE_PER_KILL := 0.5
 const ELEM_NAMES := {"feu": "Feu", "givre": "Givre", "foudre": "Foudre", "nature": "Nature", "lumiere": "Lumière", "ombre": "Ombre", "physique": "Physique"}
 const SURGE_PER_BIG := 3.0
+## Difficulté globale : Nexus et boss ont 20 % de PV en moins, les escortes 25 % de PV en plus.
+const OBJECTIVE_HP_MULT := 0.8
+const ESCORT_HP_MULT := 1.25
 
 
 class Caster:
@@ -221,7 +224,7 @@ func setup(level_data: Dictionary, party: Dictionary, seed_value: int, opts: Dic
 func _setup_nexi() -> void:
 	if objective == "boss":
 		return
-	var hp := float((level.get("nexus", {}) as Dictionary).get("hp", 10000))
+	var hp := float((level.get("nexus", {}) as Dictionary).get("hp", 10000)) * OBJECTIVE_HP_MULT
 	var spots: Array = level.get("nexi", [{"x": NEXUS_POS.x, "y": NEXUS_POS.y}])
 	for sp in spots:
 		nexi.append({"pos": Vector2(float(sp["x"]), float(sp["y"])), "hp": hp, "max": hp, "alive": true, "flash": 0.0, "wither": 0.0})
@@ -231,7 +234,7 @@ func _setup_objective() -> void:
 	if objective == "boss":
 		var bd: Dictionary = level["boss"]
 		boss = _make_unit(str(bd["kind"]), 1, Vector2(float(bd.get("x", 4.5)), float(bd.get("y", 14.4))))
-		boss.hp = float(bd["hp"])
+		boss.hp = float(bd["hp"]) * OBJECTIVE_HP_MULT
 		boss.max_hp = boss.hp
 		boss.hold_y = boss.pos.y
 		boss.elite = true
@@ -241,7 +244,7 @@ func _setup_objective() -> void:
 	elif objective == "escort":
 		var ed: Dictionary = level["escort"]
 		escort = _make_unit(str(ed.get("kind", "lantern")), 0, Vector2(float(ed.get("x", 4.5)), float(ed.get("y", 1.6))))
-		escort.hp = float(ed.get("hp", 300))
+		escort.hp = float(ed.get("hp", 300)) * ESCORT_HP_MULT
 		escort.max_hp = escort.hp
 		escort.speed = float(ed.get("speed", 0.1))
 		escort_start_y = escort.pos.y

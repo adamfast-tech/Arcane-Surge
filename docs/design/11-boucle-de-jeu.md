@@ -101,3 +101,11 @@ Jouer sans compte ───────────┴─> Havre-Aube ─┬─>
   - les écrans : combat, Échos, victoire, défaite, pause, Havre-Aube, carte, équipement, connexion ;
   - les objectifs : boss, escorte, siège, lucioles.
 - Débogage : `?level=<id>&nexus=0.5` démarre un niveau avec l'objectif entamé.
+
+## Difficulté globale
+
+Tous les niveaux sont 20 % plus faciles qu'au réglage d'origine (`BattleSim.OBJECTIVE_HP_MULT`, `ESCORT_HP_MULT`) :
+- les Nexus et les boss ont 20 % de PV en moins (×0,8), appliqué au chargement du niveau ;
+- les escortes (Lanterne, chariot, barque) ont 25 % de PV en plus (×1,25).
+
+Les PV écrits dans `data/levels/*.json` restent les valeurs d'origine. Les tableaux d'équilibrage des documents de zone ont été mesurés avant ce réglage.
