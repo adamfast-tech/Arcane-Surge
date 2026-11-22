@@ -44,7 +44,12 @@ func _run() -> void:
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(Profile.save_path))
 	main = load("res://scenes/main.tscn").instantiate()
 	root.add_child(main)
-	await _frames(5)
+	# Attendre la fin de l'écran de chargement (au moins 1,2 s).
+	var guard := 0
+	while not (_screen() is HubScreen or _screen() is LoginScreen) and guard < 5000:
+		await _frames(1)
+		guard += 1
+	print("démarrage : ", _screen().get_script().get_global_name())
 	# Dialogues : prologue + intro de 1-1, lus jusqu'au bout (tap), avec l'historique.
 	main.call("_play", "z01_l01", false)
 	await _frames(5)

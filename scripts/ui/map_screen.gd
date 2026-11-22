@@ -14,14 +14,13 @@ func _ready() -> void:
 	var col := UiTheme.scroll_column(self, 680.0, 20.0)
 	var head := HBoxContainer.new()
 	col.add_child(head)
-	var b := UiTheme.button("‹ Havre-Aube", 22)
-	b.custom_minimum_size = Vector2(0, 56)
+	var b := UiTheme.back_button("Havre-Aube")
 	b.pressed.connect(func() -> void: back.emit())
 	head.add_child(b)
 	head.add_child(UiTheme.spacer())
 	var index := GameData.level_index()
 	var total := (index["levels"] as Array).size() * 3
-	head.add_child(UiTheme.star_row(1, 26))
+	head.add_child(UiTheme.icon_rect("star", 26, UiTheme.GOLD))
 	head.add_child(UiTheme.label("%d / %d" % [Profile.stars_total(), total], 24, UiTheme.GOLD))
 	var title := UiTheme.title("ZONE 1 · %s" % str(index["zone"]).to_upper(), 40, UiTheme.GOLD)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -68,10 +67,15 @@ func _level_card(id: String) -> PanelContainer:
 	foot.add_child(pw)
 	if unlocked:
 		var b := UiTheme.button("JOUER" if int(rec["clears"]) == 0 else "REJOUER", 24)
+		b.icon = Icons.tex("play", 40)
+		b.add_theme_constant_override("icon_max_width", 18)
 		b.custom_minimum_size = Vector2(170, 58)
 		b.add_theme_color_override("font_color", UiTheme.GOLD)
+		b.add_theme_color_override("icon_normal_color", UiTheme.GOLD)
+		b.add_theme_stylebox_override("normal", UiTheme.box(Color(UiTheme.WARM, 0.94), Color(UiTheme.GOLD, 0.8), 12, 2, 8))
 		b.pressed.connect(func() -> void: play.emit(id, _solo.button_pressed))
 		foot.add_child(b)
 	else:
+		foot.add_child(UiTheme.icon_rect("lock", 20, UiTheme.MUTED))
 		foot.add_child(UiTheme.label("Verrouillé", 20, UiTheme.MUTED))
 	return pc

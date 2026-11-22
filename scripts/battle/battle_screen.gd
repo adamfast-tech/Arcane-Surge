@@ -373,7 +373,10 @@ func _wrap_label(text: String, fs: int, color: Color) -> Label:
 
 
 func _pause_button() -> Button:
-	var b := UiTheme.button("II", 28)
+	var b := UiTheme.button("", 28)
+	b.icon = Icons.tex("pause", 56)
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.add_theme_constant_override("icon_max_width", 28)
 	b.custom_minimum_size = Vector2(68, 68)
 	b.pressed.connect(_open_pause)
 	return b
@@ -432,7 +435,17 @@ func _spell_button(i: int) -> Button:
 	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	b.clip_text = true
 	# Bordure à la couleur du sort, pour le reconnaître d'un coup d'œil.
-	var col := Color(str(sim.spells_db[sim.player().spells[i]].get("color", "4A3D7A")))
+	var sid: String = sim.player().spells[i]
+	var col := Color(str(sim.spells_db[sid].get("color", "4A3D7A")))
+	# Icône au trait du sort, au-dessus du nom, à sa couleur.
+	b.icon = Icons.tex(sid, 56)
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	b.add_theme_constant_override("icon_max_width", 24)
+	b.add_theme_constant_override("h_separation", 2)
+	b.add_theme_color_override("icon_normal_color", col)
+	b.add_theme_color_override("icon_hover_color", col.lightened(0.3))
+	b.add_theme_color_override("icon_disabled_color", Color(col, 0.35))
 	b.add_theme_stylebox_override("normal", UiTheme.box(UiTheme.PANEL2, Color(col, 0.85), 12, 2, 6))
 	b.add_theme_stylebox_override("hover", UiTheme.box(UiTheme.PANEL2.lightened(0.08), col, 12, 2, 6))
 	b.add_theme_stylebox_override("disabled", UiTheme.box(Color(UiTheme.PANEL2, 0.55), Color(col, 0.3), 12, 2, 6))
@@ -443,6 +456,11 @@ func _spell_button(i: int) -> Button:
 
 func _ult_button() -> Button:
 	var b := UiTheme.button("ULTIME", 18)
+	b.icon = Icons.tex("meteore", 56)
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	b.add_theme_constant_override("icon_max_width", 24)
+	b.add_theme_color_override("icon_normal_color", UiTheme.CYAN)
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	b.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	b.custom_minimum_size = Vector2(0, 100)
@@ -1012,13 +1030,7 @@ func _open_end() -> void:
 		stars.alignment = BoxContainer.ALIGNMENT_CENTER
 		stars.add_theme_constant_override("separation", 16)
 		for i in range(3):
-			var tr := TextureRect.new()
-			tr.texture = SpriteAtlas.single("star" if i < sim.stars else "star_off")
-			tr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-			tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			tr.custom_minimum_size = Vector2(54, 54)
-			stars.add_child(tr)
+			stars.add_child(UiTheme.icon_rect("star", 54, UiTheme.GOLD if i < sim.stars else Color(UiTheme.MUTED, 0.35)))
 		v.add_child(stars)
 		var crit := _wrap_label("1 étoile : victoire · 2 : Barrière > 50 %% · 3 : et en moins de %s" % _fmt_time(sim.par_time), 17, UiTheme.MUTED)
 		crit.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

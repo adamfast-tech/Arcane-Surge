@@ -21,7 +21,7 @@ var _web_last := ""
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	UiTheme.backdrop(self, 0.55)
-	var col := UiTheme.scroll_column(self, 560.0, 60.0)
+	var col := UiTheme.scroll_column(self, 560.0, 60.0, true)
 	var title := UiTheme.title("ARCANE SURGE", 60, UiTheme.GOLD)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	col.add_child(title)

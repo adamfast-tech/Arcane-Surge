@@ -17,10 +17,10 @@ const JS := """
     var st = document.createElement('style');
     st.id = 'as-login-style';
     st.textContent = '#as-login-form input{position:fixed;box-sizing:border-box;margin:0;background:transparent;'
-      + 'border:2px solid transparent;outline:none;color:#ece8ff;caret-color:#4fe3d2;-webkit-appearance:none;'
+      + 'border:2px solid transparent;outline:none;color:#e8eef5;caret-color:#6fdccf;-webkit-appearance:none;'
       + 'appearance:none;font-family:ArcaneJersey,system-ui,sans-serif;z-index:20;}'
-      + '#as-login-form input:focus{border-color:#4fe3d2;}'
-      + '#as-login-form input::placeholder{color:rgba(169,159,208,0.7);}';
+      + '#as-login-form input:focus{border-color:#6fdccf;}'
+      + '#as-login-form input::placeholder{color:rgba(143,163,179,0.7);}';
     document.head.appendChild(st);
     var sink = document.createElement('iframe');
     sink.name = 'as-sink';

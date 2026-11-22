@@ -32,9 +32,15 @@ func _ready() -> void:
 
 func _boot() -> void:
 	_show_loading()
+	var t0 := Time.get_ticks_msec()
 	var resumed: bool = await cloud.resume()
 	if resumed:
 		await cloud.sync_pull()
+	# L'écran de chargement reste au moins 1,2 s (évite un simple éclair).
+	var wait := 1.2 - float(Time.get_ticks_msec() - t0) / 1000.0
+	if wait > 0.0:
+		await get_tree().create_timer(wait).timeout
+	if resumed:
 		_show_hub()
 	elif bool(Profile.data["settings"].get("guest", false)) or Profile.updated() > 0.0:
 		_show_hub()
@@ -52,13 +58,53 @@ func _set_screen(c: Control) -> void:
 func _show_loading() -> void:
 	var c := Control.new()
 	c.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	UiTheme.backdrop(c, 0.6)
-	var l := UiTheme.title("ARCANE SURGE", 56, UiTheme.GOLD)
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	c.add_child(l)
-	l.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	UiTheme.backdrop(c, 0.22)
+	# Titre « ARCANE / SURGE » et séparateur runique, en haut.
+	var top := VBoxContainer.new()
+	top.add_theme_constant_override("separation", 0)
+	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	c.add_child(top)
+	top.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	top.offset_top = get_viewport_rect().size.y * 0.1
+	for part in [["ARCANE", UiTheme.GOLD], ["SURGE", UiTheme.TEXT]]:
+		var l := UiTheme.title(str(part[0]), 92, part[1])
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		l.add_theme_color_override("font_outline_color", Color(0.03, 0.05, 0.08))
+		l.add_theme_constant_override("outline_size", 10)
+		top.add_child(l)
+	var div := HBoxContainer.new()
+	div.alignment = BoxContainer.ALIGNMENT_CENTER
+	div.add_theme_constant_override("separation", 14)
+	top.add_child(div)
+	for i in range(3):
+		if i == 1:
+			div.add_child(UiTheme.icon_rect("rune", 30, UiTheme.TEAL))
+		else:
+			var r := UiTheme.rule(Color(UiTheme.GOLD, 0.7))
+			r.custom_minimum_size = Vector2(150, 2)
+			r.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			div.add_child(r)
+	# « Éveil des runes » et barre de chargement, en bas.
+	var bot := VBoxContainer.new()
+	bot.add_theme_constant_override("separation", 8)
+	bot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	c.add_child(bot)
+	bot.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	bot.offset_top = -170.0
+	bot.offset_bottom = -60.0
+	var cap := UiTheme.title("ÉVEIL DES RUNES", 20, UiTheme.GOLD)
+	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	bot.add_child(cap)
+	var bar := UiTheme.bar(UiTheme.TEAL, 6)
+	bar.custom_minimum_size = Vector2(320, 6)
+	bar.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	bot.add_child(bar)
+	var sub := UiTheme.label("Chargement…", 18, UiTheme.MUTED)
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	bot.add_child(sub)
 	_set_screen(c)
+	var tw := c.create_tween()
+	tw.tween_property(bar, "value", 100.0, 1.2)
 
 
 func _show_login(from_hub: bool) -> void:

@@ -2,12 +2,16 @@ class_name UiTheme
 extends RefCounted
 ## Palette, police et thème de l'interface (voir docs/design/08-ui-ux.md).
 
-const BG := Color("120e22")
-const PANEL := Color("1e1838")
-const PANEL2 := Color("2a2150")
-const BORDER := Color("4a3d7a")
-const TEXT := Color("ece8ff")
-const MUTED := Color("a99fd0")
+const BG := Color("0b111a")
+const PANEL := Color("101a26")
+const PANEL2 := Color("162333")
+const BORDER := Color("2b4153")
+const TEXT := Color("e8eef5")
+const MUTED := Color("8fa3b3")
+## Icônes au trait et bordures actives (concept UI).
+const TEAL := Color("6fdccf")
+## Fond chaud des boutons principaux (bordure or).
+const WARM := Color("1e1a12")
 const GOLD := Color("f2c46b")
 const CYAN := Color("4fe3d2")
 const MANA := Color("5aa9ff")
@@ -37,10 +41,10 @@ static func font_small() -> FontFile:
 	return _font_small
 
 
-## Police des grands titres (Pixelify Sans).
+## Police des grands titres (Jersey 15 : en Pixelify Sans, « B » et « G » se confondaient).
 static func title_font() -> FontFile:
 	if _title_font == null:
-		_title_font = _load("res://assets/fonts/PixelifySans.ttf")
+		_title_font = _load("res://assets/fonts/Jersey15-Regular.ttf")
 	return _title_font
 
 
@@ -52,7 +56,20 @@ static func _load(path: String) -> FontFile:
 	return f
 
 
-static func box(bg: Color, border: Color = Color(0, 0, 0, 0), radius: int = 12, border_w: int = 2, pad: int = 10) -> StyleBoxFlat:
+## Cadre à coins coupés (RuneBox) : « radius » donne la taille du biseau.
+static func box(bg: Color, border: Color = Color(0, 0, 0, 0), radius: int = 12, border_w: int = 2, pad: int = 10, accent: Color = Color(0, 0, 0, 0)) -> StyleBox:
+	var s := RuneBox.new()
+	s.bg = bg
+	s.border = border
+	s.border_w = float(border_w) if border.a > 0.0 else 0.0
+	s.cut = float(radius) * 0.75
+	s.accent = accent
+	s.set_content_margin_all(pad)
+	return s
+
+
+## Cadre rectangulaire simple (jauges).
+static func flat(bg: Color, border: Color = Color(0, 0, 0, 0), radius: int = 4, border_w: int = 1, pad: int = 0) -> StyleBoxFlat:
 	var s := StyleBoxFlat.new()
 	s.bg_color = bg
 	s.border_color = border
@@ -67,11 +84,18 @@ static func build() -> Theme:
 	t.default_font = font()
 	t.default_font_size = 26
 	t.set_color("font_color", "Label", TEXT)
-	t.set_stylebox("normal", "Button", box(PANEL2, BORDER, 12, 2, 8))
-	t.set_stylebox("hover", "Button", box(PANEL2.lightened(0.08), CYAN, 12, 2, 8))
-	t.set_stylebox("pressed", "Button", box(PANEL2.darkened(0.25), GOLD, 12, 2, 8))
-	t.set_stylebox("hover_pressed", "Button", box(PANEL2.darkened(0.25), GOLD, 12, 2, 8))
-	t.set_stylebox("disabled", "Button", box(Color(PANEL2, 0.55), Color(BORDER, 0.6), 12, 2, 8))
+	t.set_stylebox("normal", "Button", box(Color(PANEL2, 0.94), BORDER, 12, 2, 8))
+	t.set_stylebox("hover", "Button", box(Color(PANEL2.lightened(0.06), 0.96), TEAL, 12, 2, 8))
+	t.set_stylebox("pressed", "Button", box(Color(PANEL2.darkened(0.3), 0.96), GOLD, 12, 2, 8))
+	t.set_stylebox("hover_pressed", "Button", box(Color(PANEL2.darkened(0.3), 0.96), GOLD, 12, 2, 8))
+	t.set_stylebox("disabled", "Button", box(Color(PANEL2, 0.5), Color(BORDER, 0.55), 12, 2, 8))
+	t.set_color("icon_normal_color", "Button", TEAL)
+	t.set_color("icon_hover_color", "Button", Color("b8fff6"))
+	t.set_color("icon_pressed_color", "Button", GOLD)
+	t.set_color("icon_hover_pressed_color", "Button", GOLD)
+	t.set_color("icon_focus_color", "Button", TEAL)
+	t.set_color("icon_disabled_color", "Button", Color(MUTED, 0.45))
+	t.set_constant("h_separation", "Button", 10)
 	t.set_stylebox("focus", "Button", StyleBoxEmpty.new())
 	t.set_color("font_color", "Button", TEXT)
 	t.set_color("font_hover_color", "Button", TEXT)
@@ -79,17 +103,17 @@ static func build() -> Theme:
 	t.set_color("font_hover_pressed_color", "Button", GOLD)
 	t.set_color("font_focus_color", "Button", TEXT)
 	t.set_color("font_disabled_color", "Button", Color(MUTED, 0.7))
-	t.set_stylebox("panel", "PanelContainer", box(Color(PANEL, 0.95), BORDER, 14, 2, 14))
-	t.set_stylebox("panel", "Panel", box(Color(PANEL, 0.95), BORDER, 14, 2, 14))
-	t.set_stylebox("background", "ProgressBar", box(PANEL2, BORDER, 6, 1, 0))
-	t.set_stylebox("fill", "ProgressBar", box(CYAN, Color(0, 0, 0, 0), 6, 0, 0))
+	t.set_stylebox("panel", "PanelContainer", box(Color(PANEL, 0.92), BORDER, 14, 2, 14))
+	t.set_stylebox("panel", "Panel", box(Color(PANEL, 0.92), BORDER, 14, 2, 14))
+	t.set_stylebox("background", "ProgressBar", flat(Color("0a1019"), BORDER, 2, 1, 0))
+	t.set_stylebox("fill", "ProgressBar", flat(TEAL, Color(0, 0, 0, 0), 2, 0, 0))
 	t.set_color("font_color", "CheckBox", TEXT)
 	t.set_color("font_hover_color", "CheckBox", TEXT)
 	t.set_color("font_pressed_color", "CheckBox", GOLD)
 	t.set_stylebox("focus", "CheckBox", StyleBoxEmpty.new())
-	t.set_stylebox("normal", "LineEdit", box(Color("16122a"), BORDER, 10, 2, 12))
-	t.set_stylebox("focus", "LineEdit", box(Color("16122a"), CYAN, 10, 2, 12))
-	t.set_stylebox("read_only", "LineEdit", box(Color("16122a"), BORDER, 10, 2, 12))
+	t.set_stylebox("normal", "LineEdit", box(Color("0a1019"), BORDER, 10, 2, 12))
+	t.set_stylebox("focus", "LineEdit", box(Color("0a1019"), TEAL, 10, 2, 12))
+	t.set_stylebox("read_only", "LineEdit", box(Color("0a1019"), BORDER, 10, 2, 12))
 	t.set_color("font_color", "LineEdit", TEXT)
 	t.set_color("font_placeholder_color", "LineEdit", Color(MUTED, 0.7))
 	t.set_color("caret_color", "LineEdit", CYAN)
@@ -122,7 +146,7 @@ static func bar(color: Color, height: int = 16) -> ProgressBar:
 	p.custom_minimum_size = Vector2(0, height)
 	p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	p.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	p.add_theme_stylebox_override("fill", box(color, Color(0, 0, 0, 0), 6, 0, 0))
+	p.add_theme_stylebox_override("fill", flat(color, Color(0, 0, 0, 0), 2, 0, 0))
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return p
 
@@ -141,7 +165,8 @@ static func spacer() -> Control:
 
 
 ## Fond commun des écrans hors combat : illustration de la direction artistique, assombrie.
-static func backdrop(parent: Control, dim: float = 0.62) -> void:
+## fade > 0 : le bas de l'écran s'assombrit en dégradé (lisibilité des textes sur l'illustration).
+static func backdrop(parent: Control, dim: float = 0.62, fade: float = 0.0) -> void:
 	var bg := ColorRect.new()
 	bg.color = BG
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -155,19 +180,38 @@ static func backdrop(parent: Control, dim: float = 0.62) -> void:
 	parent.add_child(art)
 	art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var shade := ColorRect.new()
-	shade.color = Color(0.05, 0.04, 0.12, dim)
+	shade.color = Color(BG, dim)
 	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	parent.add_child(shade)
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	if fade > 0.0:
+		var g := Gradient.new()
+		g.offsets = PackedFloat32Array([0.0, 0.5, 0.78, 1.0])
+		g.colors = PackedColorArray([Color(BG, 0.0), Color(BG, 0.0), Color(BG, fade * 0.85), Color(BG, fade)])
+		var gt := GradientTexture2D.new()
+		gt.gradient = g
+		gt.fill_from = Vector2(0, 0)
+		gt.fill_to = Vector2(0, 1)
+		gt.width = 4
+		gt.height = 256
+		var fr := TextureRect.new()
+		fr.texture = gt
+		fr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		fr.stretch_mode = TextureRect.STRETCH_SCALE
+		fr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		parent.add_child(fr)
+		fr.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 
 ## Colonne centrée et défilante (largeur max 680 px) ; retourne le conteneur où ajouter le contenu.
-static func scroll_column(parent: Control, max_w: float = 680.0, top: float = 24.0) -> VBoxContainer:
+static func scroll_column(parent: Control, max_w: float = 680.0, top: float = 24.0, center_v: bool = false) -> VBoxContainer:
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	parent.add_child(scroll)
 	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var center := CenterContainer.new()
+	# Colonne centrée horizontalement, en haut de l'écran (ou au milieu si center_v).
+	var center := HBoxContainer.new()
+	center.alignment = BoxContainer.ALIGNMENT_CENTER
 	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.add_child(center)
@@ -176,6 +220,7 @@ static func scroll_column(parent: Control, max_w: float = 680.0, top: float = 24
 	margin.add_theme_constant_override("margin_right", 18)
 	margin.add_theme_constant_override("margin_top", int(top))
 	margin.add_theme_constant_override("margin_bottom", 32)
+	margin.size_flags_vertical = Control.SIZE_SHRINK_CENTER if center_v else Control.SIZE_SHRINK_BEGIN
 	center.add_child(margin)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 14)
@@ -204,12 +249,97 @@ static func star_row(n: int, size: int = 26) -> HBoxContainer:
 	var h := HBoxContainer.new()
 	h.add_theme_constant_override("separation", 4)
 	for i in range(3):
-		var tr := TextureRect.new()
-		tr.texture = SpriteAtlas.single("star" if i < n else "star_off")
-		tr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		tr.custom_minimum_size = Vector2(size, size)
-		tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		h.add_child(tr)
+		h.add_child(icon_rect("star", size, GOLD if i < n else Color(MUTED, 0.35)))
 	return h
+
+
+# ---------------------------------------------------------------- briques du concept UI
+
+## Icône au trait, teintée.
+static func icon_rect(name: String, px: int, color: Color = TEAL) -> TextureRect:
+	var r := TextureRect.new()
+	r.texture = Icons.tex(name, px * 2)
+	r.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	r.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	r.custom_minimum_size = Vector2(px, px)
+	r.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	r.modulate = color
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return r
+
+
+## Bouton à contenu libre : retourne [Button, HBoxContainer] (mettre le contenu dans la boîte).
+## style : « primary » (fond chaud, bordure or), « tile » (bordure sarcelle au survol), « plain ».
+static func rich_button(min_h: float, style: String = "tile") -> Array:
+	var b := Button.new()
+	b.focus_mode = Control.FOCUS_NONE
+	b.custom_minimum_size = Vector2(0, min_h)
+	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var bg := Color(PANEL, 0.9)
+	var bd := BORDER
+	var hov := TEAL
+	var acc := Color(0, 0, 0, 0)
+	if style == "primary":
+		bg = Color(WARM, 0.94)
+		bd = Color(GOLD, 0.85)
+		hov = GOLD
+		acc = GOLD
+	b.add_theme_stylebox_override("normal", box(bg, bd, 14, 2, 0, acc))
+	b.add_theme_stylebox_override("hover", box(bg.lightened(0.05), hov, 14, 2, 0, acc))
+	b.add_theme_stylebox_override("pressed", box(bg.darkened(0.3), GOLD, 14, 2, 0, acc))
+	b.add_theme_stylebox_override("hover_pressed", box(bg.darkened(0.3), GOLD, 14, 2, 0, acc))
+	b.add_theme_stylebox_override("disabled", box(Color(bg, 0.5), Color(bd, 0.5), 14, 2, 0))
+	var m := MarginContainer.new()
+	m.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for side in ["left", "right"]:
+		m.add_theme_constant_override("margin_" + side, 20)
+	for side in ["top", "bottom"]:
+		m.add_theme_constant_override("margin_" + side, 12)
+	b.add_child(m)
+	m.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var h := HBoxContainer.new()
+	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	h.add_theme_constant_override("separation", 14)
+	m.add_child(h)
+	return [b, h]
+
+
+## Bouton « ‹ Havre-Aube » (retour).
+static func back_button(text: String) -> Button:
+	var b := button(text, 22)
+	b.icon = Icons.tex("back", 40)
+	b.expand_icon = false
+	b.add_theme_constant_override("icon_max_width", 20)
+	b.custom_minimum_size = Vector2(0, 56)
+	return b
+
+
+## Titre de section discret (« PROCHAINEMENT », « ÉQUIPÉ · 3 OBJETS »).
+static func section(text: String, color: Color = MUTED) -> Label:
+	var l := label(text.to_upper(), 18, color)
+	return l
+
+
+## Or et poussière, alignés à droite.
+static func currencies() -> VBoxContainer:
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 0)
+	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var g := label("%d or" % Profile.gold(), 22, GOLD)
+	g.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	v.add_child(g)
+	var d := label("%d poussière" % Profile.dust(), 18, MUTED)
+	d.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	v.add_child(d)
+	return v
+
+
+## Fine ligne horizontale.
+static func rule(color: Color = BORDER) -> ColorRect:
+	var r := ColorRect.new()
+	r.color = color
+	r.custom_minimum_size = Vector2(10, 2)
+	r.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	r.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return r
