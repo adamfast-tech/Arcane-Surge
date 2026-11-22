@@ -1,7 +1,7 @@
 class_name CircleScreen
 extends Control
-## Le Cercle : réglages de Brann et Sylwen pour les prochaines parties (ordre par défaut, sort
-## emporté, côtés), loyauté et bonus d'amitié (+5 % de stats à partir de 75).
+## Le Cercle : réglages des compagnons pour les prochaines parties (les 2 emmenés en combat,
+## ordre par défaut, sort emporté, côtés), loyauté et bonus d'amitié (+5 % de stats à partir de 75).
 
 signal back
 
@@ -28,11 +28,20 @@ func _rebuild() -> void:
 	col.add_child(tv)
 	tv.add_child(UiTheme.title("LE CERCLE", 46, UiTheme.GOLD))
 	tv.add_child(UiTheme.title("TES COMPAGNONS", 22, UiTheme.TEXT))
-	col.add_child(UiTheme.wrap("Réglages des prochaines parties. Les compagnons ont ton niveau − 1. En combat, toucher un compagnon change encore son ordre.", 18, UiTheme.MUTED))
+	var avail := Profile.companions_available()
+	var active := Profile.active_companions()
+	var intro := "Réglages des prochaines parties. Les compagnons ont ton niveau − 1. En combat, toucher un compagnon change encore son ordre."
+	if avail.size() > Profile.ACTIVE_MAX:
+		intro = "Tu emmènes %d compagnons en combat ; les autres restent à Havre-Aube. " % Profile.ACTIVE_MAX + intro
+	col.add_child(UiTheme.wrap(intro, 18, UiTheme.MUTED))
 	var party := GameData.party()
 	var circ := Profile.circle()
 	for bd in party["bots"]:
-		col.add_child(_companion_card(bd, circ))
+		if avail.has(str(bd["id"])) and active.has(str(bd["id"])):
+			col.add_child(_companion_card(bd, circ, true))
+	for bd in party["bots"]:
+		if avail.has(str(bd["id"])) and not active.has(str(bd["id"])):
+			col.add_child(_companion_card(bd, circ, false))
 	var sw := UiTheme.button("Échanger les côtés", 20)
 	sw.icon = Icons.tex("onde_arcanique", 40)
 	sw.add_theme_constant_override("icon_max_width", 20)
@@ -44,12 +53,27 @@ func _rebuild() -> void:
 	col.add_child(sw)
 
 
-func _companion_card(bd: Dictionary, circ: Dictionary) -> PanelContainer:
+## Côté du compagnon en combat : à deux, le premier (ordre du groupe) à gauche, le second à droite.
+func _side_of(who: String, bd: Dictionary, circ: Dictionary) -> String:
+	var side := str(bd.get("side", "left"))
+	var act := Profile.active_companions()
+	if act.size() == 2:
+		var order: Array[String] = []
+		for b in GameData.party()["bots"]:
+			if act.has(str(b["id"])):
+				order.append(str(b["id"]))
+		side = "left" if order.find(who) == 0 else "right"
+	if bool(circ.get("swap", false)):
+		side = "right" if side == "left" else "left"
+	return side
+
+
+func _companion_card(bd: Dictionary, circ: Dictionary, is_active: bool = true) -> PanelContainer:
 	var who := str(bd.get("id", ""))
 	var mine: Dictionary = circ.get(who, {})
 	var col := Dialogues.color(who)
 	var party := GameData.party()
-	var c: Array = UiTheme.card(Color(col, 0.6), 16)
+	var c: Array = UiTheme.card(Color(col, 0.6) if is_active else UiTheme.BORDER, 16)
 	var v: VBoxContainer = c[1]
 	v.add_theme_constant_override("separation", 10)
 	var h := HBoxContainer.new()
@@ -69,11 +93,11 @@ func _companion_card(bd: Dictionary, circ: Dictionary) -> PanelContainer:
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	h.add_child(info)
 	info.add_child(UiTheme.title(str(bd.get("name", who)).to_upper(), 28, col))
-	var side := str(bd.get("side", "left"))
-	if bool(circ.get("swap", false)):
-		side = "right" if side == "left" else "left"
+	var side := _side_of(who, bd, circ)
 	info.add_child(UiTheme.label("%s · %s · niveau %d · %s" % [str(party["races"].get(str(bd["race"]), {}).get("name", "")), str(party["classes"].get(str(bd["class"]), {}).get("name", "")),
-		maxi(1, Profile.level() - 1), "à gauche" if side == "left" else "à droite"], 18, UiTheme.MUTED))
+		maxi(1, Profile.level() - 1), ("à gauche" if side == "left" else "à droite") if is_active else "reste à Havre-Aube"], 18, UiTheme.MUTED))
+	if bd.has("role"):
+		info.add_child(UiTheme.wrap(str(bd["role"]), 16, UiTheme.TEXT))
 	var loy := Story.loyalty(who)
 	var lr := HBoxContainer.new()
 	lr.add_theme_constant_override("separation", 10)
@@ -84,6 +108,22 @@ func _companion_card(bd: Dictionary, circ: Dictionary) -> PanelContainer:
 	bar.value = loy
 	lr.add_child(bar)
 	info.add_child(UiTheme.label("Amitié active : +5 % de stats" if loy >= 75 else "Amitié à 75 de loyauté : +5 % de stats", 16, UiTheme.GOOD if loy >= 75 else UiTheme.MUTED))
+	if not is_active:
+		# Remplacer un des compagnons emmenés.
+		var rg := HBoxContainer.new()
+		rg.add_theme_constant_override("separation", 8)
+		v.add_child(rg)
+		for other in Profile.active_companions():
+			var rb := UiTheme.button("Remplacer %s" % Dialogues.display_name(other), 18)
+			rb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			rb.custom_minimum_size = Vector2(0, 54)
+			rb.add_theme_color_override("font_color", col)
+			var replaced := other
+			rb.pressed.connect(func() -> void:
+				Profile.swap_active(who, replaced)
+				_save()
+				_rebuild.call_deferred())
+			rg.add_child(rb)
 	# Ordre par défaut.
 	v.add_child(UiTheme.section("Ordre par défaut"))
 	var og := GridContainer.new()

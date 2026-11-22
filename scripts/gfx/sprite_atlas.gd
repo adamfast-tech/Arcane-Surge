@@ -16,7 +16,7 @@ const ELEM := {
 }
 ## Hauteur en jeu (mètres) : un sprite remplacé, quelle que soit sa résolution, garde cette taille.
 const HEIGHT_M := {
-	"mage": 1.5, "brann": 1.25, "sylwen": 1.45,
+	"mage": 1.5, "brann": 1.25, "sylwen": 1.45, "krag": 1.55, "berserker": 0.74,
 	"familiar": 0.64, "knight": 0.75, "archer": 0.75, "skeleton": 0.7, "golem": 1.0, "fusion": 0.66,
 	"mushroom": 0.58, "rabbit": 0.62, "bear": 0.9, "pixie": 0.52, "turtle": 0.58, "wisp": 0.7, "dryad": 1.05,
 	"cross": 0.29, "px": 1.0,
@@ -24,7 +24,7 @@ const HEIGHT_M := {
 	"pillard": 0.62, "slinger": 0.6, "wolf_rider": 0.78, "ogre": 1.05, "clan_guard": 0.72, "storm_shaman": 0.85, "bonesetter": 0.8, "varg": 1.45, "gharok": 2.7, "war_banner": 1.6, "storm_totem": 1.2, "caravan": 1.3, "pylon": 1.6,
 }
 ## Sprites dont les lettres o/d/m/l prennent les couleurs de l'élément.
-const RECOLOR := ["familiar", "knight", "archer", "golem", "fusion"]
+const RECOLOR := ["familiar", "knight", "archer", "golem", "fusion", "berserker"]
 
 const DEFS := {
 	"familiar": {"pal": {"w": "ffffff"}, "frames": [[
@@ -643,6 +643,68 @@ const DEFS := {
 		"..aa.aa..",
 		".aa...aa.",
 		".a.....a.",
+	]]},
+	"krag": {"pal": {"o": "120e1a", "g": "4f7a3e", "G": "74a058", "h": "1a1418", "H": "3a2e2a", "f": "8a6a3a", "F": "b08a50", "l": "4a3a2a", "a": "c8d0e0", "A": "7a849c", "w": "6a4a2a", "r": "a83a2a"}, "frames": [[
+		"......oooo......",
+		".....oHHHHo.....",
+		".....ohhhho.....",
+		"....oggGGggo....",
+		"....ogGGGGgo....",
+		".aa.oogggggoo.aa",
+		"aAAoFFfgggfFFoAa",
+		".wwFFFfgggfFFFw.",
+		"..wogGgggggGgow.",
+		"..wogggggggggow.",
+		"..woggrrrrrggow.",
+		"...ollllllllo...",
+		"...olllolllo....",
+		"...oggo.oggo....",
+		"...ollo.ollo....",
+		"...oooo.oooo....",
+	], [
+		"......oooo......",
+		".....oHHHHo.....",
+		".....ohhhho.....",
+		"....oggGGggo....",
+		"....ogGGGGgo....",
+		".aa.oogggggoo.aa",
+		"aAAoFFfgggfFFoAa",
+		".wwFFFfgggfFFFw.",
+		"..wogGgggggGgow.",
+		"..wogggggggggow.",
+		"..woggrrrrrggow.",
+		"...ollllllllo...",
+		"...olllolllo....",
+		"..oggo...oggo...",
+		"..ollo...ollo...",
+		"..oooo...oooo...",
+	]]},
+	"berserker": {"pal": {"g": "4f7a3e", "G": "74a058", "a": "c8d0e0", "w": "6a4a2a"}, "frames": [[
+		"...oooo...",
+		"..oggggo..",
+		"..ogGGgo..",
+		"...oggo...",
+		"a.oddmdo..",
+		"aoddmmmdo.",
+		"wodmmmmdo.",
+		"wodmmlmdo.",
+		".odmmmmdo.",
+		"..oddddo..",
+		"..ogo.ogo.",
+		"..ooo.ooo.",
+	], [
+		"...oooo...",
+		"..oggggo..",
+		"..ogGGgo..",
+		"...oggo...",
+		"a.oddmdo..",
+		"aoddmmmdo.",
+		"wodmmmmdo.",
+		"wodmmlmdo.",
+		".odmmmmdo.",
+		"..oddddo..",
+		".ogo..ogo.",
+		".ooo..ooo.",
 	]]},
 	# Zone 2 · Collines d'Ambre.
 	"pillard": {"pal": {"o": "1a120c", "h": "7a5230", "H": "a8743a", "s": "e0a882", "e": "2a1a1a", "r": "b83a2a", "t": "5a4a3a", "b": "2a1e16", "d": "c8d0e0", "l": "4a3a2a"}, "frames": [[

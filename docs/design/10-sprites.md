@@ -126,6 +126,8 @@ Les sprites générés sont dans `scripts/gfx/sprite_atlas.gd`. Ils sont tous re
 | `storm_totem` | Totem d'orage | 9×16 | 1,2 m | Totem de bois sculpté, couronne d'éclairs |
 | `caravan` | Chariot de vivres (escorte) | 22×14 | 1,3 m | Chariot bâché crème, roues de bois |
 | `pylon` | Pylône d'ambre (décor) | 9×15 | 1,6 m | Cristal d'ambre sur un socle de pierre |
+| `krag` | **Krag** (héros, vu de dos) | 16×16 | 1,55 m | Orc vert, chignon noir, cape de fourrure, deux haches aux hanches |
+| `berserker` | Lanceur de haches (familier de Krag, recoloré par élément) | 10×12 | 0,74 m | Petit orc à la hache, corps en gris neutre |
 
 ## 6. Après livraison
 - Je vérifie chaque sprite en jeu (taille, lisibilité, animation) et ajuste au besoin `HEIGHT_M` dans `scripts/gfx/sprite_atlas.gd`.
@@ -144,6 +146,7 @@ Les portraits actuels sont générés par code (`scripts/gfx/portrait_art.gd`). 
 | Lumière, contour, palette | Comme les sprites (§1 et §2) : lune en haut à droite, contour `#120e1a` de 1 px |
 | Expressions | `neutre`, `joie`, `colere`, `triste`, `surpris` |
 | Personnages | `porteur` (toi : capuche bleu nuit, visage dans l'ombre, regard cyan), `sylwen`, `brann`, `ancien` (Ancien Tobin, doyen de Lysbourg), `cerf` (Grand Cerf purifié, bois lumineux), `sylvarche` (visage d'écorce ; `joie` = purifiée), `fee`, `voix` (silhouette couronnée, regard violet) |
+| Acte 2 | `krag` (chignon noir, peintures de guerre, crocs), `gharok` (possédé : yeux magenta ; `joie` et `triste` = libéré), `prevote` (Maëlle d'Ambreval), `varg` |
 
 **Prompt** (après le prompt de style, en remplaçant « full body » par « bust portrait, facing the viewer, 64x64 ») :
 - `sylwen` : *portrait of a young elf archer, green hood, long pointed ears, blonde braid over the right shoulder, green eyes, leather quiver strap*

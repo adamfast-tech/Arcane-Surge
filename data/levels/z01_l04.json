@@ -81,8 +81,5 @@
     }
   },
   "initial_enemies": [],
-  "party": [
-    "brann",
-    "sylwen"
-  ]
+  "party": ["brann", "sylwen", "krag"]
 }

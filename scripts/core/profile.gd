@@ -15,7 +15,9 @@ static var data: Dictionary = {}
 const BASE_SPELLS := ["boule_de_feu", "pluie_de_givre", "racines", "eclair_chaine", "vortex_ombre", "onde_arcanique", "purifier"]
 const DECK_MAX := 7
 ## Sorts que chaque compagnon peut emporter (Cercle).
-const COMPANION_SPELLS := {"brann": ["bouclier_leve", "charge_bastion"], "sylwen": ["tir_precision", "volee_fleches"]}
+const COMPANION_SPELLS := {"brann": ["bouclier_leve", "charge_bastion"], "sylwen": ["tir_precision", "volee_fleches"], "krag": ["hache_tournoyante", "bond_furieux"]}
+## Compagnons emmenés en combat : 2 au plus.
+const ACTIVE_MAX := 2
 
 
 static func items_db() -> Dictionary:
@@ -459,7 +461,8 @@ static func battle_opts() -> Dictionary:
 	return {"player_level": level(), "gear": gear_stats(), "weapon_element": weapon_element(), "bot_level": maxi(1, level() - 1),
 		"flags": Story.active_flags(), "healed": Story.has_flag("s1.sylvarche_purifiee"),
 		"mods": skill_mods(), "deck": deck(), "circle": circle(),
-		"loyalty": {"brann": Story.loyalty("brann"), "sylwen": Story.loyalty("sylwen")}}
+		"loyalty": {"brann": Story.loyalty("brann"), "sylwen": Story.loyalty("sylwen"), "krag": Story.loyalty("krag")},
+		"active": active_companions()}
 
 
 # ---------------------------------------------------------------- arbre de compétences (Entraînement)
@@ -666,7 +669,43 @@ static func learn(id: String) -> bool:
 # ---------------------------------------------------------------- Cercle (compagnons)
 
 static func default_circle() -> Dictionary:
-	return {"swap": false, "brann": {"order": "defends", "spell": "bouclier_leve"}, "sylwen": {"order": "focus_nexus", "spell": "tir_precision"}}
+	return {"swap": false, "active": ["brann", "sylwen"], "brann": {"order": "defends", "spell": "bouclier_leve"},
+		"sylwen": {"order": "focus_nexus", "spell": "tir_precision"}, "krag": {"order": "defends", "spell": "hache_tournoyante"}}
+
+
+## Compagnons qui ont rejoint le groupe (Krag : selon les choix de l'acte 2).
+static func companions_available() -> Array[String]:
+	var out: Array[String] = []
+	for bd in GameData.party()["bots"]:
+		var req := str(bd.get("requires", ""))
+		if req == "" or Story.has_flag(req):
+			out.append(str(bd["id"]))
+	return out
+
+
+## Compagnons emmenés en combat (choisis au Cercle), complétés si besoin jusqu'à 2.
+static func active_companions() -> Array[String]:
+	var avail := companions_available()
+	var out: Array[String] = []
+	for id in circle().get("active", []):
+		if avail.has(str(id)) and not out.has(str(id)) and out.size() < ACTIVE_MAX:
+			out.append(str(id))
+	for id in avail:
+		if out.size() >= ACTIVE_MAX:
+			break
+		if not out.has(id):
+			out.append(id)
+	return out
+
+
+## Emmène « who » à la place de « replaced ».
+static func swap_active(who: String, replaced: String) -> void:
+	var act := active_companions()
+	var i := act.find(replaced)
+	if i < 0 or act.has(who) or not companions_available().has(who):
+		return
+	act[i] = who
+	circle()["active"] = act
 
 
 static func circle() -> Dictionary:

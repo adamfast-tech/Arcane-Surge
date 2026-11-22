@@ -192,6 +192,46 @@ func _run() -> void:
 	for it in Profile.data["inventory"]:
 		staff = staff or str(it["base"]) == "baton_seve"
 	print("1-10 : abattue ", Story.has_flag("s1.sylvarche_abattue"), " · Sylwen ", Story.loyalty("sylwen"), " · Bâton ", staff, " · objets ", items0, " -> ", (Profile.data["inventory"] as Array).size(), " · choix ", Story.choice("z01_l10"))
+	# Acte 2 : 2-9 (l'option [Humain / Clerc] est masquée pour un Mage elfe), puis ✦ 2-10 « Achever ».
+	var c9: Dictionary = (Dialogues.scene("z02_l09_outro")["lines"] as Array).back()
+	var vis := 0
+	for o in c9["options"]:
+		if Story.check(o):
+			vis += 1
+	main.call("_show_dialogue", ["z02_l09_outro"], Callable(main, "_show_map"))
+	await _frames(3)
+	await _through_dialogues(1)
+	main.call("_show_dialogue", ["z02_l10_outro"], Callable(main, "_show_map"))
+	await _frames(3)
+	await _through_dialogues(1)
+	var croc := false
+	for it in Profile.data["inventory"]:
+		croc = croc or str(it["base"]) == "croc_gharok"
+	print("2-9 : options visibles ", vis, " · choix ", Story.choice("z02_l09"), " · 2-10 : ", Story.choice("z02_l10"), " · Krag allié ", Story.has_flag("s1.krag_allie"),
+		" · loyauté ", Story.loyalty("krag"), " · Croc ", croc, " · disponibles ", Profile.companions_available())
+	if vis != 2 or not Story.has_flag("s1.krag_allie") or Story.loyalty("krag") != 20 or not croc:
+		push_error("acte 2 : choix 2-9 / 2-10 incorrects")
+		quit(1)
+		return
+	# Autre fil : Ambreval défendu en 2-9 puis Gharok achevé -> Krag part.
+	var saved: Dictionary = (Story.st() as Dictionary).duplicate(true)
+	Story.st()["choices"]["z02_l09"] = {"opt": "A", "t": 0}
+	Story.set_flag("s1.krag_allie", false)
+	var c10: Dictionary = {}
+	for l in Dialogues.scene("z02_l10_outro")["lines"]:
+		if (l as Dictionary).has("choice"):
+			c10 = l
+	Story.apply(c10["options"][1]["effects"])
+	print("  fil A puis B : Krag parti ", Story.has_flag("s1.krag_parti"), " · allié ", Story.has_flag("s1.krag_allie"))
+	if not Story.has_flag("s1.krag_parti") or Story.has_flag("s1.krag_allie"):
+		push_error("acte 2 : Krag doit partir si Ambreval a été défendu puis Gharok achevé")
+		quit(1)
+		return
+	Profile.data["story"] = saved
+	main.call("_show_room", "circle")
+	await _frames(5)
+	Profile.swap_active("krag", "brann")
+	print("Cercle : actifs ", Profile.active_companions())
 	# Objectifs spéciaux : boss (avec l'aide des fées), escorte, siège, lucioles.
 	for id in ["z01_l05", "z01_l07", "z01_l09", "z01_l10", "z01_l02", "z02_l03", "z02_l07", "z02_l10"]:
 		main.call("_start", id, false)
@@ -204,6 +244,10 @@ func _run() -> void:
 		print(id, " · ", bs.sim.objective_title(), " · ", bs.sim.objective_info(), " · état ", bs.sim.state)
 		bs.sim.debug_set_ratio(0.0)
 		if id.begins_with("z02"):
+			var ids: Array[String] = []
+			for cc in bs.sim.casters:
+				ids.append("%s@%s" % [cc.id, cc.side])
+			print("  équipe ", ids)
 			print("  zone 2 : décor ", WorldArt.zone, " · pylônes ", bs.sim.pylons.size(), " · vent ", not bs.sim.wind_cfg.is_empty(), " · bannières ", bs.sim.banners_alive())
 		if bs.sim.boss != null:
 			bs.sim.boss.hp = 0.0

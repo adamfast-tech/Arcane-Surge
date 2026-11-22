@@ -367,7 +367,10 @@ func _show_choice(l: Dictionary) -> void:
 	for opt in l.get("options", []):
 		if not Story.check(opt):
 			continue
-		var b := UiTheme.button(Dialogues.fmt(str(opt.get("text", ""))), 26)
+		var label := Dialogues.fmt(str(opt.get("text", "")))
+		if opt.has("tag"):
+			label = "[%s] %s" % [str(opt["tag"]), label]
+		var b := UiTheme.button(label, 26)
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		b.custom_minimum_size = Vector2(0, 66)

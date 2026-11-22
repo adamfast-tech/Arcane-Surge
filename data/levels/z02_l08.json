@@ -5,10 +5,7 @@
   "number": "2-8",
   "global_level": 18,
   "type": "Purification",
-  "party": [
-    "brann",
-    "sylwen"
-  ],
+  "party": ["brann", "sylwen", "krag"],
   "desc": "Deux sceaux rendent le Nexus invulnérable : purifie-les. Les Rebouteux possédés soignent le Nexus : abats-les en priorité.",
   "par_time": 158,
   "nexus": {

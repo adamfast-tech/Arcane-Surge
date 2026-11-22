@@ -5,10 +5,7 @@
   "number": "2-9",
   "global_level": 19,
   "type": "Siège",
-  "party": [
-    "brann",
-    "sylwen"
-  ],
+  "party": ["brann", "sylwen", "krag"],
   "desc": "Le village humain et le campement orc sont assiégés par les clans possédés : deux Nexus et une tour à détruire.",
   "par_time": 164,
   "nexus": {

@@ -402,9 +402,29 @@ func _setup_casters(party: Dictionary, opts: Dictionary = {}) -> void:
 	if solo:
 		return
 	var allowed: Variant = level.get("party", null)
+	var active: Array = opts.get("active", [])
+	var flags: Array = opts.get("flags", [])
+	# Candidats : autorisés par le niveau et déjà recrutés. Au-delà de 2, ceux choisis au Cercle.
+	var cands: Array[Dictionary] = []
 	for bd in party["bots"]:
-		if allowed is Array and not (allowed as Array).has(str(bd.get("id", ""))):
+		var bid := str(bd.get("id", ""))
+		if allowed is Array and not (allowed as Array).has(bid):
 			continue
+		if str(bd.get("requires", "")) != "" and not flags.has(str(bd["requires"])):
+			continue
+		cands.append(bd)
+	var chosen: Array[Dictionary] = []
+	for bd in cands:
+		if cands.size() <= 2 or active.is_empty() or active.has(str(bd.get("id", ""))):
+			chosen.append(bd)
+	for bd in cands:
+		if chosen.size() >= 2:
+			break
+		if not chosen.has(bd):
+			chosen.append(bd)
+	chosen.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return cands.find(x) < cands.find(y))
+	for bi in range(chosen.size()):
+		var bd: Dictionary = chosen[bi]
 		var bdd: Dictionary = (bd as Dictionary).duplicate()
 		if opts.has("bot_level"):
 			bdd["level"] = int(opts["bot_level"])
@@ -418,6 +438,8 @@ func _setup_casters(party: Dictionary, opts: Dictionary = {}) -> void:
 		var c := _make_caster(casters.size(), bdd, classes, races)
 		c.is_bot = true
 		c.side = str(bd.get("side", "left"))
+		if chosen.size() == 2:
+			c.side = "left" if bi == 0 else "right"
 		if bool(circ.get("swap", false)):
 			c.side = "right" if c.side == "left" else "left"
 		if int((opts.get("loyalty", {}) as Dictionary).get(c.id, 50)) >= 75:

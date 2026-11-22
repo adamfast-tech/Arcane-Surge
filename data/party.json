@@ -35,6 +35,17 @@
         "des": 8
       },
       "familiar": "familiar_archer"
+    },
+    "berserker": {
+      "name": "Berserker",
+      "base": {
+        "pou": 16,
+        "vig": 12,
+        "esp": 6,
+        "cel": 10,
+        "des": 6
+      },
+      "familiar": "familiar_berserker"
     }
   },
   "races": {
@@ -53,6 +64,14 @@
       "vig": 4,
       "esp": 0,
       "cel": -1,
+      "des": 0
+    },
+    "orc": {
+      "name": "Orc",
+      "pou": 3,
+      "vig": 3,
+      "esp": -2,
+      "cel": 0,
       "des": 0
     }
   },
@@ -89,7 +108,8 @@
       "think": 0.4,
       "aim_error": 0.35,
       "cadence_mult": 0.8,
-      "id": "brann"
+      "id": "brann",
+      "role": "Protecteur : seul à pouvoir renforcer la Barrière (Bouclier levé)"
     },
     {
       "name": "Sylwen",
@@ -106,7 +126,27 @@
       "think": 0.4,
       "aim_error": 0.35,
       "cadence_mult": 0.8,
-      "id": "sylwen"
+      "id": "sylwen",
+      "role": "Tireuse : ses archers frappent de loin, idéal contre les boss"
+    },
+    {
+      "name": "Krag",
+      "class": "berserker",
+      "race": "orc",
+      "level": 7,
+      "side": "left",
+      "sprite": "krag",
+      "personality": "equilibre",
+      "order": "defends",
+      "spells": [
+        "hache_tournoyante"
+      ],
+      "think": 0.4,
+      "aim_error": 0.35,
+      "cadence_mult": 0.8,
+      "id": "krag",
+      "requires": "s1.krag_allie",
+      "role": "Assaut : ses lanceurs de haches frappent par-dessus la mêlée"
     }
   ]
 }

@@ -24,6 +24,8 @@ static func plate(kind: String, size: Vector2i) -> ImageTexture:
 			_collines(img, rng)
 		"tour":
 			_tour(img, rng)
+		"steppe", "moulins", "campement", "orage", "traite", "fort":
+			_ambre(img, rng, kind)
 		_:
 			_forest(img, rng, kind)
 	var tex := ImageTexture.create_from_image(img)
@@ -371,6 +373,181 @@ static func _collines(img: Image, rng: RandomNumberGenerator) -> void:
 			p += Vector2(rng.randf_range(-0.5, 0.8), -1.0)
 	for i in range(w):
 		_px(img, rng.randi_range(0, w - 1), rng.randi_range(int(h * 0.82), h - 1), Color("f6e6a0"))
+
+
+# ---------------------------------------------------------------- acte 2 · Collines d'Ambre
+
+## Collines d'Ambre et variantes : steppe, moulins, campement (crépuscule), orage, traite (village et
+## campement face à face), fort (palissade de Gharok sous l'orage).
+static func _ambre(img: Image, rng: RandomNumberGenerator, kind: String) -> void:
+	var w := img.get_width()
+	var h := img.get_height()
+	var storm := kind in ["orage", "fort"]
+	if storm:
+		_sky(img, rng, [[0.0, Color("140f22")], [0.4, Color("33264a")], [0.62, Color("5e4258")], [1.0, Color("7a5034")]], 0.0)
+	elif kind == "campement":
+		_sky(img, rng, [[0.0, Color("232454")], [0.42, Color("7a4458")], [0.62, Color("e0844a")], [1.0, Color("c8703a")]], 0.3)
+	else:
+		_sky(img, rng, [[0.0, Color("3f86c8")], [0.42, Color("8ec4e8")], [0.6, Color("f0d8a0")], [1.0, Color("c89858")]], 0.0)
+	if storm:
+		# Nuages bas et éclairs.
+		for i in range(int(w / 14.0)):
+			var cy := rng.randi_range(0, int(h * 0.3))
+			var cx := rng.randi_range(-30, w)
+			for dx in range(rng.randi_range(30, 80)):
+				_px(img, cx + dx, cy + int(sin(float(dx) * 0.2) * 2.0), Color(0.1, 0.08, 0.16, 0.55))
+		for bolt in range(3):
+			var p := Vector2(rng.randf_range(w * 0.15, w * 0.85), 0.0)
+			while p.y < h * 0.55:
+				_px(img, int(p.x), int(p.y), Color("fff6a8"))
+				_px(img, int(p.x) + 1, int(p.y), Color(0.95, 0.85, 0.3, 0.5))
+				p += Vector2(rng.randf_range(-1.6, 1.6), 1.0)
+	elif kind != "campement":
+		var sr := maxi(5, int(minf(w, h) * 0.06))
+		var sx := int(w * 0.78)
+		var sy := int(h * 0.14)
+		for r in range(sr * 3, sr, -1):
+			_disc(img, sx, sy, r, Color(1.0, 0.95, 0.75, 0.04))
+		_disc(img, sx, sy, sr, Color("fff6d8"))
+		for i in range(int(w / 40.0) + 2):
+			var cy := rng.randi_range(int(h * 0.05), int(h * 0.32))
+			var cx := rng.randi_range(-30, w)
+			var len := rng.randi_range(24, 70)
+			for k in range(3):
+				for dx in range(k * 5, len - k * 5):
+					_px(img, cx + dx, cy + k * 2, Color(1, 1, 1, 0.55 - 0.12 * float(k)))
+	else:
+		_disc(img, int(w * 0.3), int(h * 0.6), int(minf(w, h) * 0.07), Color("ffb070"))
+	var far := Color("4a3a5a") if storm else (Color("6a4a6a") if kind == "campement" else Color("8aa0b8"))
+	var mid := Color("6a4a2a") if storm else Color("b07a40")
+	var near := Color("4a3420") if storm else Color("8a5a2a")
+	_ridge(img, rng, int(h * 0.42), int(h * 0.05), far, far.lightened(0.2))
+	_ridge(img, rng, int(h * 0.52), int(h * 0.05), mid, mid.lightened(0.3))
+	var mid_y := int(h * 0.52)
+	match kind:
+		"moulins":
+			for k in range(3):
+				_windmill(img, int(w * (0.2 + 0.3 * float(k))), mid_y - 2 + k * 3, int(h * (0.14 + 0.03 * float(k))), rng.randf() * PI)
+		"campement":
+			for k in range(6):
+				_tent(img, int(w * (0.1 + 0.16 * float(k))) + rng.randi_range(-6, 6), mid_y + rng.randi_range(2, 10), rng.randi_range(10, 16))
+			_fire(img, rng, int(w * 0.52), mid_y + 14)
+		"orage":
+			for k in range(4):
+				_totem(img, int(w * (0.18 + 0.22 * float(k))), mid_y + rng.randi_range(0, 8), int(h * 0.12))
+		"traite":
+			var x := int(w * 0.04)
+			while x < int(w * 0.42):
+				var hw := rng.randi_range(10, 16)
+				var hh := rng.randi_range(8, 12)
+				img.fill_rect(Rect2i(x, mid_y + 6 - hh, hw, hh), Color("d8c8a8"))
+				for r in range(hh / 2 + 2):
+					img.fill_rect(Rect2i(x - 1 + r, mid_y + 6 - hh - r, maxi(1, hw + 2 - r * 2), 1), Color("a8462a"))
+				img.fill_rect(Rect2i(x + hw / 2 - 1, mid_y + 6 - hh / 2, 3, 3), Color("f2c46b"))
+				x += hw + rng.randi_range(4, 8)
+			_banner(img, int(w * 0.44), mid_y + 6, int(h * 0.16), Color("2f4f8f"))
+			for k in range(4):
+				_tent(img, int(w * (0.62 + 0.1 * float(k))), mid_y + 6, rng.randi_range(10, 14))
+			_banner(img, int(w * 0.56), mid_y + 6, int(h * 0.16), Color("a82a2a"))
+			for side in [0.24, 0.76]:
+				var p := Vector2(w * side, float(mid_y - 6))
+				for st in range(int(h * 0.25)):
+					_px(img, int(p.x), int(p.y), Color(0.35, 0.3, 0.3, 0.4))
+					p += Vector2(rng.randf_range(-0.5, 0.9), -1.0)
+		"fort":
+			var top := mid_y - int(h * 0.1)
+			for x in range(int(w * 0.12), int(w * 0.88)):
+				var ph := int(h * 0.1) + (2 if x % 5 == 0 else 0)
+				img.fill_rect(Rect2i(x, mid_y + 4 - ph, 1, ph), Color("3a2a1e") if x % 5 != 0 else Color("2a1e16"))
+			img.fill_rect(Rect2i(int(w * 0.46), top - int(h * 0.1), int(w * 0.08), int(h * 0.2) + 4), Color("2a1e16"))
+			for k in range(3):
+				_banner(img, int(w * (0.25 + 0.25 * float(k))), top + 2, int(h * 0.14), Color("a82a2a"))
+			_glow_px(img, int(w * 0.5), top - int(h * 0.06), 6, Color("d93cf2"), 0.25)
+		"steppe":
+			for k in range(3):
+				var cx := int(w * (0.15 + 0.35 * float(k))) + rng.randi_range(-8, 8)
+				var cy := mid_y + rng.randi_range(0, 6)
+				for y in range(10):
+					var half := 3 - absi(y - 4) / 2
+					for dx in range(-half, half + 1):
+						_px(img, cx + dx, cy - 10 + y, Color("ffd070") if dx > 0 else Color("e8a33d"))
+				_glow_px(img, cx, cy - 6, 6, Color("ffd070"), 0.2)
+	_ridge(img, rng, int(h * 0.66), int(h * 0.03), near, near.lightened(0.35))
+	# Herbe haute au premier plan.
+	var grass := [Color("e8c870"), Color("c8a048"), Color("a88a3a")]
+	if storm:
+		grass = [Color("8a7a4a"), Color("6a5a3a"), Color("5a4a2a")]
+	for i in range(w * 2):
+		var x := rng.randi_range(0, w - 1)
+		var base := rng.randi_range(int(h * 0.72), h + 2)
+		var len := rng.randi_range(3, 9)
+		var lean := rng.randf_range(0.2, 0.6)
+		for k in range(len):
+			_px(img, x + int(float(k) * lean), base - k, grass[i % 3])
+
+
+static func _glow_px(img: Image, cx: int, cy: int, r: int, c: Color, a: float) -> void:
+	for y in range(-r, r + 1):
+		for x in range(-r, r + 1):
+			var d := Vector2(x, y).length()
+			if d <= float(r):
+				_px(img, cx + x, cy + y, Color(c, a * (1.0 - d / float(r + 1))))
+
+
+static func _windmill(img: Image, x: int, base: int, hgt: int, rot: float) -> void:
+	for y in range(hgt):
+		var half := 2 + int(float(y) * 0.18)
+		img.fill_rect(Rect2i(x - half, base - hgt + y, half * 2 + 1, 1), Color("d8c8a8") if y % 6 != 0 else Color("b8a888"))
+	var hub := Vector2(x, base - hgt)
+	for k in range(4):
+		var a := rot + float(k) * PI * 0.5
+		var tip := hub + Vector2(cos(a), sin(a)) * float(hgt) * 0.75
+		var n := int(hub.distance_to(tip))
+		for i in range(n):
+			var p := hub.lerp(tip, float(i) / float(maxi(1, n)))
+			_px(img, int(p.x), int(p.y), Color("5a4030"))
+			if i > n / 3:
+				_px(img, int(p.x + cos(a + PI * 0.5) * 2.0), int(p.y + sin(a + PI * 0.5) * 2.0), Color("e8dcc0"))
+	_px(img, x, base - hgt, Color("2a1e16"))
+
+
+static func _tent(img: Image, x: int, base: int, hw: int) -> void:
+	for y in range(hw):
+		var half := int(float(y + 1) * 0.9)
+		for dx in range(-half, half + 1):
+			_px(img, x + dx, base - hw + y, Color("8a6a3a") if dx < 0 else Color("b08a50"))
+	img.fill_rect(Rect2i(x - 1, base - 4, 3, 4), Color("2a1e16"))
+	_px(img, x, base - hw - 1, Color("4a3420"))
+	_px(img, x - 1, base - hw - 2, Color("4a3420"))
+	_px(img, x + 1, base - hw - 2, Color("4a3420"))
+
+
+static func _banner(img: Image, x: int, base: int, hgt: int, col: Color) -> void:
+	img.fill_rect(Rect2i(x, base - hgt, 1, hgt), Color("4a3420"))
+	img.fill_rect(Rect2i(x + 1, base - hgt + 1, 6, 8), col)
+	_px(img, x + 3, base - hgt + 4, Color("f2c46b"))
+	_px(img, x + 4, base - hgt + 4, Color("f2c46b"))
+
+
+static func _totem(img: Image, x: int, base: int, hgt: int) -> void:
+	img.fill_rect(Rect2i(x - 2, base - hgt, 5, hgt), Color("5a3e24"))
+	for y in range(base - hgt + 2, base, 5):
+		_px(img, x - 1, y, Color("9ff0ff"))
+		_px(img, x + 1, y, Color("9ff0ff"))
+	_glow_px(img, x, base - hgt - 2, 5, Color("f0d23c"), 0.4)
+	_px(img, x, base - hgt - 2, Color("fff6a8"))
+
+
+static func _fire(img: Image, rng: RandomNumberGenerator, x: int, y: int) -> void:
+	_glow_px(img, x, y - 3, 10, Color("ff9b4a"), 0.3)
+	for i in range(30):
+		var dx := rng.randi_range(-3, 3)
+		var dy := rng.randi_range(0, 7 - absi(dx))
+		_px(img, x + dx, y - dy, Color("ffd070") if dy < 3 else Color("ff8a3a"))
+	var p := Vector2(x, y - 8)
+	for st in range(40):
+		_px(img, int(p.x), int(p.y), Color(0.3, 0.25, 0.3, 0.35))
+		p += Vector2(rng.randf_range(-0.6, 0.8), -1.0)
 
 
 # ---------------------------------------------------------------- icônes (glyphes absents des polices)

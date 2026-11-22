@@ -5,10 +5,7 @@
   "number": "2-7",
   "global_level": 17,
   "type": "Escorte",
-  "party": [
-    "brann",
-    "sylwen"
-  ],
+  "party": ["brann", "sylwen", "krag"],
   "objective": "escort",
   "desc": "Le chariot de vivres doit atteindre le village. Les chevaucheurs de loup l'attaquent sur les flancs : protège-le jusqu'au bout.",
   "par_time": 170,

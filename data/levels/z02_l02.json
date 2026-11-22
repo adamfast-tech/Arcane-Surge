@@ -5,10 +5,7 @@
   "number": "2-2",
   "global_level": 12,
   "type": "Assaut",
-  "party": [
-    "brann",
-    "sylwen"
-  ],
+  "party": ["brann", "sylwen", "krag"],
   "desc": "Vent des steppes : quand l'herbe ploie, une rafale va pousser toutes les unités sur le côté. Anticipe tes tirs.",
   "par_time": 122,
   "nexus": {

@@ -5,10 +5,7 @@
   "number": "1-9",
   "global_level": 9,
   "type": "Siège",
-  "party": [
-    "brann",
-    "sylwen"
-  ],
+  "party": ["brann", "sylwen", "krag"],
   "desc": "Deux Nexus jumeaux gardent le cœur de la forêt, protégés par une tour. Détruis les deux.",
   "par_time": 160,
   "nexi": [

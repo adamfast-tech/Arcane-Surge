@@ -24,8 +24,19 @@ static func has_scene(id: String) -> bool:
 	return not scene(id).is_empty()
 
 
+## Fiche d'un personnage : cherchée dans la zone indiquée, puis dans toutes les zones.
 static func character(who: String, zone: int = 1) -> Dictionary:
-	return (db(zone).get("characters", {}) as Dictionary).get(who, {"name": who.capitalize(), "color": "ECE8FF"})
+	var c: Dictionary = (db(zone).get("characters", {}) as Dictionary)
+	if c.has(who):
+		return c[who]
+	for z in range(1, 11):
+		var path := "res://data/dialogues/%s/z%02d.json" % [LANG, z]
+		if not FileAccess.file_exists(path):
+			break
+		var cz: Dictionary = (db(z).get("characters", {}) as Dictionary)
+		if cz.has(who):
+			return cz[who]
+	return {"name": who.capitalize(), "color": "ECE8FF"}
 
 
 static func fmt(text: String) -> String:
@@ -44,7 +55,7 @@ static func subtitle(who: String) -> String:
 	for f in tf.keys():
 		if Story.has_flag(str(f)):
 			t = str(tf[f])
-	if bool(c.get("loyalty", false)):
+	if bool(c.get("loyalty", false)) and (not c.has("loyalty_if") or Story.has_flag(str(c["loyalty_if"]))):
 		t += (" · " if t != "" else "") + "loyauté %d" % Story.loyalty(who)
 	return t
 

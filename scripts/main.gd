@@ -21,7 +21,14 @@ func _ready() -> void:
 		return
 	var direct := _level_from_url()
 	if direct != "":
-		_start(direct, _url_flag("solo"), {"healed": true} if _url_flag("healed") else {})
+		var extra := {"healed": true} if _url_flag("healed") else {}
+		if _url_flag("krag"):
+			# Aperçu : Krag dans l'équipe (« &krag=1 »).
+			var fl := Story.active_flags()
+			fl.append("s1.krag_allie")
+			extra["flags"] = fl
+			extra["active"] = ["sylwen", "krag"]
+		_start(direct, _url_flag("solo"), extra)
 		var hp := float(str(_query().get("nexus", "0")))
 		if hp > 0.0 and hp < 1.0:
 			# Débogage : démarre avec l'objectif entamé (ex. « &nexus=0.67 »).
@@ -216,7 +223,8 @@ func _go(dest: String, level_id: String, solo: bool) -> void:
 			_show_map()
 
 
-## Web : « ?level=z01_l08 » ouvre directement un niveau (« &solo=1 » pour le mode solo).
+## Web : « ?level=z01_l08 » ouvre directement un niveau (« &solo=1 » pour le mode solo, « &krag=1 »
+## pour emmener Krag).
 func _level_from_url() -> String:
 	var q := _query()
 	var id := str(q.get("level", ""))

@@ -7,7 +7,7 @@ extends RefCounted
 ## Clés de valeur : « loy.<compagnon> » (0 à 100), « rep.<faction> » (−100 à 100), « corruption » (0 à 100).
 ## Drapeaux rangés par saison : « s1.fees_liberees », « s1.sylvarche_purifiee »…
 
-const COMPANIONS := {"brann": "Brann", "sylwen": "Sylwen"}
+const COMPANIONS := {"brann": "Brann", "sylwen": "Sylwen", "krag": "Krag"}
 const FACTIONS := {
 	"elfes": "Elfes", "orcs": "Clans orcs", "humains": "Royaumes humains", "nains": "Nains",
 	"cendres": "Cercle des Cendres", "aube": "Ordre de l'Aube", "dragons": "Dragons", "archivistes": "Archivistes",
@@ -127,7 +127,8 @@ static func value_label(key: String) -> String:
 # ---------------------------------------------------------------- conditions et effets
 
 ## Conditions : « if » / « if_not » (drapeau ou liste), « loy_min » / « loy_max » ({compagnon: seuil}),
-## « chose » ({id: option}).
+## « chose » ({id: option ou liste d'options}), « only » ({race: [...], class: [...]} : option réservée
+## à une race OU à une classe du joueur, ex. [Humain/Clerc]).
 static func check(cond: Dictionary) -> bool:
 	for f in _as_list(cond.get("if", [])):
 		if not has_flag(f):
@@ -145,7 +146,12 @@ static func check(cond: Dictionary) -> bool:
 			return false
 	var ch: Dictionary = cond.get("chose", {})
 	for id in ch.keys():
-		if choice(str(id)) != str(ch[id]):
+		if not _as_list(ch[id]).has(choice(str(id))):
+			return false
+	var only: Dictionary = cond.get("only", {})
+	if not only.is_empty():
+		var pl: Dictionary = Profile.data.get("player", {})
+		if not (_as_list(only.get("race", [])).has(str(pl.get("race", ""))) or _as_list(only.get("class", [])).has(str(pl.get("class", "")))):
 			return false
 	return true
 

@@ -5,10 +5,7 @@
   "number": "2-10",
   "global_level": 20,
   "type": "Boss",
-  "party": [
-    "brann",
-    "sylwen"
-  ],
+  "party": ["brann", "sylwen", "krag"],
   "objective": "boss",
   "desc": "Le seigneur de guerre possédé. Abats ses 3 bannières pour briser son armure, esquive ses charges, détruis ses totems d'orage. La Nature le blesse davantage.",
   "par_time": 320,
@@ -198,5 +195,6 @@
       "dur": 5,
       "first": 8
     }
-  ]
+  ],
+  "story_mods": [{"if": "s1.traite_ambreval", "barrier_shield": 25, "log": "Les miliciens d'Ambreval tiennent les flancs : Barrière +25."}, {"if": "s1.traite_campement", "boss_hp": 0.9, "log": "Les chamans du clan affaiblissent Gharok : il commence à 90 %."}, {"if": "s1.traite_negocie", "barrier_shield": 25, "boss_hp": 0.9, "log": "Humains et orcs combattent ensemble : Barrière +25, Gharok à 90 %."}]
 }

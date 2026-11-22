@@ -5,10 +5,7 @@
   "number": "2-4",
   "global_level": 14,
   "type": "Assaut",
-  "party": [
-    "brann",
-    "sylwen"
-  ],
+  "party": ["brann", "sylwen", "krag"],
   "desc": "Les Gardes de clan bloquent de face, les Ogres d'ambre encaissent. Un portail négatif garde le gué : purifie-le.",
   "par_time": 134,
   "nexus": {

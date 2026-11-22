@@ -38,6 +38,7 @@ const SHAPES := {
 	"amulette_mousse": "<path d=\"M6.5 3l5.5 7 5.5-7\"/><circle cx=\"12\" cy=\"15\" r=\"5\"/><circle cx=\"12\" cy=\"15\" r=\"1.8\"/>",
 	"anneau_cuivre": "<circle cx=\"12\" cy=\"15\" r=\"6\"/><path d=\"M9.5 6.2L12 2.8l2.5 3.4L12 9z\"/>",
 	"charme_luciole": "<path d=\"M10 3h4M10.5 3v4.2L7 13a5 5 0 0 0 4.3 7.5h1.4A5 5 0 0 0 17 13l-3.5-5.8V3\"/><circle cx=\"12\" cy=\"15\" r=\"1.6\"/><path d=\"M8.5 12.5h7\"/>",
+	"croc_gharok": "<path d=\"M9 3h6l-1 3h-4z\"/><path d=\"M10 6c-2 4-2 9 2 15 4-6 4-11 2-15\"/><path d=\"M12 9l-1.5 3h3L12 16\"/>",
 	# Sorts et pouvoirs
 	"boule_de_feu": "<path d=\"M12 21c-4 0-7-2.8-7-6.5 0-3.5 3-5.5 4-9 2 1.5 3 3.5 3 5.5 1-1 1.5-2.2 1.5-3.5 2.5 2 4.5 4.5 4.5 7.5 0 3.5-2.5 6-6 6z\"/><path d=\"M12 21c-1.8 0-3-1.2-3-2.8 0-1.8 1.5-2.7 2-4.2 1.8 1.2 4 2.4 4 4.4 0 1.5-1.3 2.6-3 2.6z\"/>",
 	"pluie_de_givre": "<path d=\"M7 13.5h10a3.5 3.5 0 0 0 .3-7 5 5 0 0 0-9.6 1A3 3 0 0 0 7 13.5z\"/><path d=\"M8 16.5l-1 3.5M12 16.5l-1 3.5M16 16.5l-1 3.5\"/>",
@@ -55,6 +56,8 @@ const SHAPES := {
 	"nuee_lucioles": "<circle cx=\"7\" cy=\"8\" r=\"1.6\"/><circle cx=\"16\" cy=\"6\" r=\"1.3\"/><circle cx=\"12\" cy=\"13\" r=\"2\"/><circle cx=\"18\" cy=\"15\" r=\"1.3\"/><circle cx=\"6\" cy=\"17\" r=\"1.3\"/><path d=\"M4 22h16\"/>",
 	"charge_bastion": "<path d=\"M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z\"/><path d=\"M12 7v10M9 14l3 3 3-3\"/>",
 	"volee_fleches": "<path d=\"M5 19L15 9M8 21l10-10M3 15l10-10\"/><path d=\"M12 5h3v3M15 9h3v3M10 3h3v3\"/>",
+	"hache_tournoyante": "<path d=\"M6 18L16 8\"/><path d=\"M13 5c3-1 6 0 7 2-1 3-3 4-6 4z\"/><path d=\"M4 9a8 8 0 0 1 4-5M20 15a8 8 0 0 1-4 5\"/>",
+	"bond_furieux": "<path d=\"M4 20c3-8 7-12 13-14\"/><path d=\"M13 5h5v5\"/><path d=\"M6 13l-2-2M9 9L8 6\"/>",
 	"bouclier_leve": "<path d=\"M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z\"/>",
 	"tir_precision": "<path d=\"M4 20L18 6\"/><path d=\"M14 5h5v5\"/><path d=\"M4 20l1-4 3 3z\"/>",
 }

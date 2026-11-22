@@ -23,6 +23,8 @@
     "amulette_mousse": {"name": "Médaillon de mousse", "slot": "amulet", "stats": {"esp": 3}},
     "anneau_cuivre":   {"name": "Anneau de cuivre", "slot": "ring", "stats": {"des": 2, "pou": 1}},
     "charme_luciole":  {"name": "Charme de luciole", "slot": "charm", "stats": {"des": 2, "esp": 1}},
+    "croc_gharok":     {"name": "Croc de Gharok", "slot": "charm", "stats": {"pou": 7, "cel": 5}, "unique": true,
+                        "lore": "Arraché au seigneur de guerre des Collines d'Ambre. La foudre y gronde encore."},
     "baton_seve":      {"name": "Bâton de la Première Sève", "slot": "weapon", "stats": {"pou": 8, "esp": 4}, "element": "nature", "unique": true,
                         "lore": "Taillé dans la première branche tombée de la Sylvarche."}
   },

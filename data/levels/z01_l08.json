@@ -106,8 +106,5 @@
       "y": 13.3
     }
   ],
-  "party": [
-    "brann",
-    "sylwen"
-  ]
+  "party": ["brann", "sylwen", "krag"]
 }

@@ -283,20 +283,25 @@
       {"who": "sylwen", "loy_max": {"sylwen": 30}, "text": "Finissons-en. Je n'ai pas envie de parler."},
       {"who": "brann", "loy_max": {"brann": 30}, "text": "Je me bats. Ne m'en demande pas plus."},
       {"who": "sylwen", "if": "s1.sylvarche_purifiee", "text": "La Sylvarche veille sur nous. Je le sens."},
-      {"who": "sylwen", "if": "s1.sylvarche_abattue", "text": "La forêt est si silencieuse, maintenant…"}
+      {"who": "sylwen", "if": "s1.sylvarche_abattue", "text": "La forêt est si silencieuse, maintenant…"},
+      {"who": "krag", "text": "Pour Croc-Tonnerre !"},
+      {"who": "krag", "text": "Ces bois sentent la mousse et la peur. J'aime pas ça."}
     ],
     "barrier_low": [
       {"who": "brann", "text": "La Barrière cède ! Vise ceux qui passent !"},
       {"who": "sylwen", "text": "Ils sont trop près ! Tire sur les premiers rangs !"},
-      {"who": "brann", "text": "Je tiens, je tiens… mais pas éternellement !"}
+      {"who": "brann", "text": "Je tiens, je tiens… mais pas éternellement !"},
+      {"who": "krag", "text": "Ils passent ! Je les arrête à la hache !"}
     ],
     "half": [
       {"who": "sylwen", "text": "Il faiblit ! Continue !"},
-      {"who": "brann", "text": "À moitié fait ! Le plus dur, c'est l'autre moitié."}
+      {"who": "brann", "text": "À moitié fait ! Le plus dur, c'est l'autre moitié."},
+      {"who": "krag", "text": "Ça saigne ! Encore !"}
     ],
     "boss_phase": [
       {"who": "brann", "text": "Il s'énerve ! Bon signe : on lui fait mal."},
-      {"who": "sylwen", "text": "Attention, il change de rythme !"}
+      {"who": "sylwen", "text": "Attention, il change de rythme !"},
+      {"who": "krag", "text": "Il enrage ? Moi aussi !"}
     ],
     "echo": [
       {"who": "sylwen", "text": "Ton Sceau brille… Qu'as-tu vu ?"},
