@@ -51,6 +51,12 @@ var zone_slow := 0.0 ## ralentissement des zones de sorts (Racines), recalculé 
 var exposed_t := 0.0 ## dans le Miasme : +30 % de dégâts subis
 var fogged := false ## caché dans la brume (zone 3) : -20 % de dégâts subis
 var wings := false ## Fée (passif Ailes) : ignore le 1er portail négatif
+var heal_aura := 0.0 ## PV rendus chaque seconde aux alliés proches (Acolyte, Gardien de lumière)
+var aura_t := 0.0
+var lifesteal := 0.0 ## part des dégâts infligés rendue en PV (Enragé, Seigneur de guerre)
+var crit_mult := 1.5 ## multiplicateur des coups critiques (Œil du faucon : ×2,5)
+var frenzy_t := 0.0 ## Déchaînement (Berserker) : +40 % de dégâts, vol de vie
+var marked_t := 0.0 ## Marque du chasseur (Archer, Pisteur) : dégâts subis accrus
 
 # Rendu
 var flash_t := 0.0

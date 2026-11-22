@@ -1,6 +1,6 @@
 class_name LibraryScreen
 extends Control
-## Bibliothèque : grimoire du Mage. Choix des 7 sorts emportés en combat (le deck) et sorts à
+## Bibliothèque : grimoire du héros. Choix des 7 sorts emportés en combat (le deck) et sorts à
 ## apprendre contre de l'or, rangés par école (Feu, Givre, Foudre, Nature, Ombre, Arcane, Terre) et par rang,
 ## de Novice à Interdit (docs/design/18-rangs-des-sorts.md).
 
@@ -16,13 +16,18 @@ func _ready() -> void:
 	_rebuild()
 
 
-## Sorts du Mage (hors sorts des compagnons et Ultime).
+## Sorts du grimoire (hors sorts des compagnons et Ultimes). Les sorts d'arbre sans rang
+## n'apparaissent que pour leur classe (ou une fois connus).
 static func catalogue() -> Array[String]:
 	var out: Array[String] = []
+	var known := Profile.known_spells()
 	for id in GameData.spells().keys():
 		var sp: Dictionary = GameData.spells()[id]
-		if Profile.BASE_SPELLS.has(id) or sp.has("learn") or sp.has("source") or sp.has("rank"):
-			out.append(str(id))
+		if not (Profile.BASE_SPELLS.has(id) or sp.has("learn") or sp.has("source") or sp.has("rank")):
+			continue
+		if sp.has("tree_class") and not sp.has("rank") and str(sp["tree_class"]) != Profile.player_class() and not known.has(str(id)):
+			continue
+		out.append(str(id))
 	return out
 
 

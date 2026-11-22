@@ -142,6 +142,15 @@ func _use_abilities(sim: BattleSim, c: BattleSim.Caster) -> void:
 				var cl := sim.densest_enemy(float(sp.get("radius", 2.0)), 4.5)
 				if int(cl["n"]) >= 4 and sim.cast_spell(c, id, cl["pos"]):
 					return
+			"army":
+				# Horde : des squelettes entre la Barrière et la masse ennemie.
+				var cl := sim.densest_enemy(2.0, 8.0)
+				if int(cl["n"]) >= 4 and sim.cast_spell(c, id, (cl["pos"] as Vector2) - Vector2(0.0, 1.2)):
+					return
+			"frenzy":
+				# Hurlement : quand beaucoup d'invocations sont au contact.
+				if sim.allies.size() >= 14 and sim.total_threat() > 6.0 and sim.cast_spell(c, id, Vector2(c.x, 4.0)):
+					return
 			"purify":
 				var target := sim.purify_target()
 				if target.x >= 0.0 and sim.cast_spell(c, id, target):

@@ -175,6 +175,7 @@ var fog: Array[Dictionary] = [] ## {pos, r, density, vx}
 var fog_cfg: Dictionary = {}
 var heads: Array[Unit] = []
 var stumps: Array[Dictionary] = [] ## {pos, t}
+var ult_wards: Array[Dictionary] = [] ## {pos, r, t} : zones d'Ultime qui cautérisent les moignons
 # Don racial (étape 13.2) : {id, name, cd, power} ; effets temporaires.
 var don: Dictionary = {}
 var don_t := 0.0
@@ -183,6 +184,12 @@ var breeze_t := 0.0
 var charge_t := 0.0
 var barrier_invuln_t := 0.0
 var _fallen: Array[Dictionary] = []
+var _miracle_used := false ## Clé de voûte Miracle (Clerc) : une seule fois par partie
+var _dance_budget := 1.0 ## Danse parfaite : secondes de recharge rendues au plus par seconde
+var _thirst_budget := 2.0 ## Soif : PV de Barrière rendus au plus par seconde
+var _wrath_acc := 0.0 ## Courroux céleste : soins en excès à convertir en dégâts
+var _legion_count := 0 ## Légion : squelettes invoqués depuis le dernier Colosse
+var _last_crit := false
 ## Sorts à impact différé (projectile, météore) et zones actives (pluie, racines, vortex).
 var pending_impacts: Array[Dictionary] = []
 var terrain := BattleTerrain.new() ## sols, piliers, murs (scripts/battle/terrain.gd)
@@ -423,6 +430,9 @@ func clear_fog(at: Vector2, r: float) -> bool:
 
 ## Plaies de l'Hydre : brûlées (Feu) dans les 5 s, elles se referment ; sinon deux têtes repoussent.
 func _update_stumps() -> void:
+	for w in ult_wards:
+		w["t"] = float(w["t"]) - TICK
+	ult_wards = ult_wards.filter(func(w: Dictionary) -> bool: return float(w["t"]) > 0.0)
 	var i := 0
 	while i < stumps.size():
 		var st: Dictionary = stumps[i]
@@ -432,6 +442,9 @@ func _update_stumps() -> void:
 			if a.alive and a.element == "feu":
 				st["t"] = -99.0
 				break
+		for w in ult_wards:
+			if (w["pos"] as Vector2).distance_to(st["pos"]) <= float(w["r"]) + 0.4:
+				st["t"] = -99.0
 		# Un sol de braises sur la plaie la cautérise aussi.
 		for s in terrain.surfaces:
 			if str(s["kind"]) == "braises" and (s["pos"] as Vector2).distance_to(st["pos"]) <= float(s["r"]) + 0.4:
@@ -539,6 +552,8 @@ func _setup_casters(party: Dictionary, opts: Dictionary = {}) -> void:
 	if opts.has("look"):
 		# Sprite du héros dessiné selon son apparence (SpriteAtlas « player »).
 		pd["sprite"] = "player"
+	if opts.has("player_class") and classes.has(str(opts["player_class"])) and bool((classes[str(opts["player_class"])] as Dictionary).get("playable", false)):
+		pd["class"] = str(opts["player_class"])
 	var pc := _make_caster(0, pd, classes, races, opts.get("gear", {}))
 	pc.min_x = 0.5
 	pc.max_x = W - 0.5
@@ -553,11 +568,13 @@ func _setup_casters(party: Dictionary, opts: Dictionary = {}) -> void:
 	if bool(opts.get("debug_mana", false)):
 		pc.mana_regen *= 20.0
 	spell_cost_mult *= 1.0 - _mod("spell_cost")
+	pc.cadence *= 1.0 + _mod("cadence")
 	var cls: Dictionary = classes[pc.class_id]
+	pc.familiar = str(cls.get("player_familiar", pc.familiar))
 	effect_mult = float(cls.get("effect_mult", 1.0))
 	champion_kind = str(cls.get("champion", "champion_golem"))
 	ultimate_id = str(cls.get("ultimate", "meteore"))
-	barrier_max = roundf(100.0 + float(pc.stats["vig"]) * 0.5)
+	barrier_max = roundf((100.0 + float(pc.stats["vig"]) * 0.5) * (1.0 + _mod("barrier_max")))
 	barrier_hp = barrier_max
 	if autoplay:
 		pc.brain = BotBrain.new()
@@ -610,6 +627,10 @@ func _setup_casters(party: Dictionary, opts: Dictionary = {}) -> void:
 		if int((opts.get("loyalty", {}) as Dictionary).get(c.id, 50)) >= 75:
 			c.atk_mult *= 1.05
 			c.hp_mult *= 1.05
+		# Totem (Berserker) : Cri de guerre, Clé de voûte Chef de clan (+30 %).
+		var clan := 1.0 + _mod("bot_atk") + (0.3 if _mod("clan_chief") > 0.0 else 0.0)
+		c.atk_mult *= clan
+		c.hp_mult *= 1.0 + (0.3 if _mod("clan_chief") > 0.0 else 0.0)
 		if c.side == "left":
 			c.min_x = 0.5
 			c.max_x = 4.6
@@ -1010,6 +1031,8 @@ func _make_unit(kind: String, team: int, p: Vector2) -> Unit:
 	u.siege = bool(d.get("siege", false))
 	u.hold_y = float(d.get("hold_y", -1.0))
 	u.elite = u.role == "elite"
+	u.heal_aura = float(d.get("heal_aura", 0.0))
+	u.lifesteal = float(d.get("lifesteal", 0.0))
 	u.anim = rng.randf() * 10.0
 	return u
 
@@ -1042,6 +1065,22 @@ func _player_unit_mods(u: Unit) -> void:
 	if u.kind in ["skeleton", "familiar_necro"] and _mod("skeleton_bonus") > 0.0:
 		u.atk *= 1.0 + _mod("skeleton_bonus")
 		u.hp *= 1.0 + _mod("skeleton_bonus")
+	u.lifesteal += _mod("lifesteal")
+	if u.heal_aura > 0.0:
+		u.heal_aura *= 1.0 + _mod("aura_heal")
+	if u.kind in ["skeleton", "familiar_necro"] and _mod("legion") > 0.0:
+		# Clé de voûte Légion : tous les 20 squelettes, un Colosse d'os se lève.
+		_legion_count += 1
+		if _legion_count >= 20:
+			_legion_count = 0
+			var g := _make_unit("champion_bone", 0, u.pos)
+			g.owner_idx = 0
+			g.atk *= casters[0].atk_mult if not casters.is_empty() else 1.0
+			g.hp *= casters[0].hp_mult if not casters.is_empty() else 1.0
+			g.max_hp = g.hp
+			_pending_allies.append(g)
+			_event({"t": "summon", "pos": g.pos, "dur": 0.9, "color": "B8B0C8"})
+			_log("Légion : un Colosse d'os se lève !")
 
 
 func _clone(u: Unit, off: Vector2) -> Unit:
@@ -1070,6 +1109,10 @@ func _clone(u: Unit, off: Vector2) -> Unit:
 	c.elite = u.elite
 	c.owner_idx = u.owner_idx
 	c.shield = u.shield
+	c.heal_aura = u.heal_aura
+	c.lifesteal = u.lifesteal
+	c.crit_mult = u.crit_mult
+	c.wings = u.wings
 	c.crossed = u.crossed.duplicate()
 	c.anim = rng.randf() * 10.0
 	summoned += 1
@@ -1135,11 +1178,28 @@ func _tick_status() -> void:
 		u.frozen_t = maxf(0.0, u.frozen_t - TICK)
 		u.rooted_t = maxf(0.0, u.rooted_t - TICK)
 		u.wither_t = maxf(0.0, u.wither_t - TICK)
+		u.marked_t = maxf(0.0, u.marked_t - TICK)
 	var regen := _mod("unit_regen")
+	_dance_budget = minf(1.0, _dance_budget + TICK)
+	_thirst_budget = minf(2.0, _thirst_budget + 2.0 * TICK)
 	for u in allies:
 		if not u.alive:
 			continue
 		u.atk_cd -= TICK
+		u.frenzy_t = maxf(0.0, u.frenzy_t - TICK)
+		if u.heal_aura > 0.0:
+			u.aura_t -= TICK
+			if u.aura_t <= 0.0 and not _grid_a.is_empty():
+				# Aura de soin : chaque seconde, les alliés proches regagnent des PV.
+				u.aura_t = 1.0
+				var amt := u.heal_aura * (1.0 + _mod("heal_bonus"))
+				for a: Unit in _query(_grid_a, u.pos, 1.6):
+					if a.alive:
+						var miss: float = a.max_hp - a.hp
+						a.hp = minf(a.max_hp, a.hp + amt)
+						healed_total += minf(miss, amt)
+						if amt > miss:
+							_wrath_acc += amt - miss
 		if regen > 0.0 and u.owner_idx == 0 and u.hp < u.max_hp:
 			u.hp = minf(u.max_hp, u.hp + u.max_hp * regen * TICK)
 		if u.flash_t > 0.0:
@@ -1151,6 +1211,9 @@ func _tick_status() -> void:
 	for n in nexi:
 		n["flash"] = maxf(0.0, float(n["flash"]) - TICK)
 		n["wither"] = maxf(0.0, float(n["wither"]) - TICK)
+	if _wrath_acc >= 20.0:
+		_wrath(_wrath_acc)
+		_wrath_acc = 0.0
 	barrier_flash = maxf(0.0, barrier_flash - TICK)
 	_heal_log_t = maxf(0.0, _heal_log_t - TICK)
 	_shield_fx_t = maxf(0.0, _shield_fx_t - TICK)
@@ -1689,6 +1752,9 @@ func _hurt_barrier(amount: float) -> void:
 	if barrier_invuln_t > 0.0:
 		return
 	amount *= 1.0 - clampf(_mod("barrier_dr"), 0.0, 0.6)
+	if _mod("barrier_cap") > 0.0:
+		# Clé de voûte Inébranlable : la Barrière perd au plus 5 PV par coup.
+		amount = minf(amount, _mod("barrier_cap"))
 	if barrier_shield > 0.0:
 		var a := minf(barrier_shield, amount)
 		barrier_shield -= a
@@ -1707,16 +1773,62 @@ func _hit(src: Unit, tgt: Unit, mult: float = 1.0) -> void:
 		mult *= 1.2
 	if src.team == 0 and charge_t > 0.0 and tgt.role not in ["boss", "banniere", "tete"] and tgt.hold_y <= 0.0:
 		tgt.pos.y = minf(H - 0.6, tgt.pos.y + 0.12)
-	var dmg := _calc(src.atk * mult, src.element, src.crit, tgt, src.team == 0)
+	if src.frenzy_t > 0.0:
+		mult *= 1.4
+	var dmg := _calc(src.atk * mult, src.element, src.crit, tgt, src.team == 0, src.crit_mult)
+	var crit := _last_crit
 	_damage(tgt, dmg, src.element)
 	if src.team == 0:
 		_on_hit_effects(src, tgt, dmg, src.element)
+		_class_on_hit(src, tgt, dmg, crit)
+	elif tgt.owner_idx == 0 and _mod("riposte") > 0.0 and src.alive:
+		# Riposte (Épéiste) : les invocations du joueur renvoient une part des coups reçus.
+		_damage(src, dmg * _mod("riposte"), "physique")
 
 
-func _calc(atk: float, elem: String, crit: float, tgt: Unit, frontal: bool) -> float:
+## Effets des arbres de classe sur un coup porté par une invocation (étape 13.3).
+func _class_on_hit(src: Unit, tgt: Unit, dmg: float, crit: bool) -> void:
+	var steal := src.lifesteal + (0.1 if src.frenzy_t > 0.0 else 0.0)
+	if steal > 0.0 and src.alive:
+		var h := dmg * steal
+		src.hp = minf(src.max_hp, src.hp + h)
+		if _mod("thirst") > 0.0 and src.owner_idx == 0 and _thirst_budget > 0.0 and barrier_hp < barrier_max:
+			# Clé de voûte Soif : le vol de vie soigne aussi la Barrière.
+			var b := minf(_thirst_budget, maxf(0.05, dmg * 0.01))
+			_thirst_budget -= b
+			barrier_hp = minf(barrier_max, barrier_hp + b)
+	if src.owner_idx != 0:
+		return
+	if _mod("hunt_mark") > 0.0 and tgt.alive and rng.randf() < _mod("hunt_mark"):
+		tgt.marked_t = 4.0
+	if crit and _mod("perfect_dance") > 0.0 and _dance_budget > 0.0:
+		# Clé de voûte Danse parfaite : chaque critique réduit les recharges de 0,2 s.
+		var cut := minf(_dance_budget, 0.2)
+		_dance_budget -= cut
+		var pc := casters[0]
+		for k in pc.spell_cd.keys():
+			pc.spell_cd[k] = maxf(0.0, float(pc.spell_cd[k]) - cut)
+
+
+## Courroux céleste (Clerc) : les soins en excès frappent les ennemis les plus proches de la Barrière.
+func _wrath(amount: float) -> void:
+	if _mod("wrath") <= 0.0:
+		return
+	var n := 0
+	for e in enemies:
+		if e.alive and e.pos.y < BARRIER_Y + 4.0:
+			_damage(e, amount * 0.5, "lumiere")
+			_event({"t": "beam", "a": Vector2(e.pos.x, BARRIER_Y), "b": e.pos, "color": "FFF0A0", "dur": 0.15})
+			n += 1
+			if n >= 3:
+				break
+
+
+func _calc(atk: float, elem: String, crit: float, tgt: Unit, frontal: bool, crit_mult: float = 1.5) -> float:
 	var d := atk * affinity(elem, tgt.element)
-	if rng.randf() < crit:
-		d *= 1.5
+	_last_crit = rng.randf() < crit
+	if _last_crit:
+		d *= crit_mult
 	d *= 100.0 / (100.0 + maxf(0.0, tgt.defense))
 	if tgt.team == 1:
 		if tgt.frozen_t > 0.0:
@@ -1727,6 +1839,8 @@ func _calc(atk: float, elem: String, crit: float, tgt: Unit, frontal: bool) -> f
 			d *= BattleTerrain.EXPOSE_MULT
 		if tgt.fogged:
 			d *= FOG_CONCEAL
+		if tgt.marked_t > 0.0:
+			d *= 1.15 + _mod("mark_vuln")
 	if frontal and tgt.front_block > 0.0:
 		d *= 1.0 - tgt.front_block
 	return d
@@ -1788,7 +1902,7 @@ func _apply_status(tgt: Unit, elem: String) -> void:
 		"nature":
 			tgt.poison_stacks = mini(5, tgt.poison_stacks + 1)
 			tgt.poison_t = 4.0
-			tgt.poison_unit = 0.02 * _dot_base(tgt) * effect_mult
+			tgt.poison_unit = 0.02 * _dot_base(tgt) * effect_mult * (1.0 + _mod("poison_dmg"))
 		"ombre":
 			tgt.wither_t = 5.0
 
@@ -1830,6 +1944,21 @@ func _kill(u: Unit) -> void:
 			if e != u and e.alive:
 				_apply_status(e, "feu")
 		_event({"t": "ring", "pos": u.pos, "r": 1.5, "color": "FF6A3A", "dur": 0.35})
+	if u.team == 1 and u.marked_t > 0.0 and _mod("thorn_burst") > 0.0:
+		# Clé de voûte Maître de la traque : la proie marquée explose en épines.
+		for e in _query(_grid_e, u.pos, 1.4):
+			if e != u and e.alive:
+				_damage(e, u.max_hp * 0.25 + 20.0 * enemy_mult, "nature")
+				_apply_status(e, "nature")
+				e.marked_t = 4.0
+		_event({"t": "ring", "pos": u.pos, "r": 1.4, "color": "8FD16A", "dur": 0.35})
+	if u.team == 1 and u.wither_t > 0.0 and _mod("pandemic") > 0.0:
+		# Clé de voûte Pandémie : la Flétrissure se propage.
+		for e in _query(_grid_e, u.pos, 1.6):
+			if e != u and e.alive:
+				_apply_status(e, "ombre")
+				_apply_status(e, "nature")
+		_event({"t": "ring", "pos": u.pos, "r": 1.6, "color": "8E62E0", "dur": 0.35})
 	if u.team == 1:
 		var dp := float((units_db.get(u.kind, {}) as Dictionary).get("death_pool", 0.0))
 		if dp > 0.0:
@@ -1848,7 +1977,7 @@ func _kill(u: Unit) -> void:
 		_event({"t": "puff", "pos": u.pos, "color": "FF6B8A"})
 		if u.role == "soigneur":
 			_log("Soigneur ennemi abattu")
-		if u.last_elem == "ombre" and rng.randf() < 0.05:
+		if u.last_elem == "ombre" and rng.randf() < 0.05 + _mod("skeleton_chance"):
 			var s := _make_unit("skeleton", 0, u.pos)
 			s.owner_idx = 0
 			_player_unit_mods(s)
@@ -1913,6 +2042,16 @@ func _check_end() -> void:
 		_event({"t": "ring", "pos": objective_pos(), "r": 4.0, "color": "F2C46B", "dur": 1.2})
 		return
 	var lost_escort := escort != null and not escort.alive
+	if barrier_hp <= 0.0 and not lost_escort and _mod("miracle") > 0.0 and not _miracle_used:
+		# Clé de voûte Miracle : une fois par partie, la Barrière tombée remonte à 50 %.
+		_miracle_used = true
+		barrier_hp = barrier_max * 0.5
+		barrier_invuln_t = 2.0
+		_event({"t": "shield", "dur": 1.6, "color": "FFF0A0"})
+		_event({"t": "text", "pos": Vector2(W * 0.5, BARRIER_Y + 0.8), "text": "MIRACLE !", "color": "FFF0A0"})
+		_event({"t": "flash"})
+		_log("Miracle : la Barrière se relève !")
+		return
 	if barrier_hp <= 0.0 or lost_escort:
 		barrier_hp = maxf(0.0, barrier_hp)
 		state = "defeat"
@@ -2081,12 +2220,58 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 		"barrier_heal":
 			if barrier_hp >= barrier_max:
 				return false
-			barrier_hp = minf(barrier_max, barrier_hp + float(sp.get("amount", 15)) * (1.0 + _mod("heal_bonus")))
+			var heal := float(sp.get("amount", 15)) * (1.0 + _mod("heal_bonus"))
+			if barrier_hp + heal > barrier_max:
+				_wrath_acc += barrier_hp + heal - barrier_max
+			barrier_hp = minf(barrier_max, barrier_hp + heal)
 			_event({"t": "shield", "dur": 1.0, "color": col})
 			_event({"t": "text", "pos": Vector2(W * 0.5, BARRIER_Y + 0.6), "text": "+%d Barrière" % int(sp.get("amount", 15)), "color": "F2E28B"})
 			return true
 		"wave":
 			_wave(c, sp, at)
+			if float(sp.get("shield", 0.0)) > 0.0:
+				# Rempart sacré : la Barrière gagne un bouclier, les invocations aussi.
+				barrier_shield += float(sp["shield"])
+				for a in allies:
+					if a.alive and a.owner_idx == 0:
+						a.shield = maxf(a.shield, a.max_hp * 0.3)
+				_event({"t": "shield", "dur": 1.2, "color": col})
+			return true
+		"army":
+			# Armée des morts, Horde : des squelettes surgissent autour du point visé.
+			var ar := float(sp.get("radius", 2.0))
+			if float(sp.get("damage", 0.0)) > 0.0:
+				var hit := sp.duplicate()
+				hit["type"] = "aoe"
+				_resolve_aoe(c, hit, at)
+			for k in range(int(sp.get("count", 6)) + int(_mod("army_count")) * (1 if c.idx == 0 else 0)):
+				var p := at + Vector2.from_angle(rng.randf() * TAU) * sqrt(rng.randf()) * ar
+				p = Vector2(clampf(p.x, 0.4, W - 0.4), clampf(p.y, BARRIER_Y + 0.6, H - 1.0))
+				var sk := _make_unit(str(sp.get("kind", "skeleton")), 0, p)
+				sk.owner_idx = c.idx
+				sk.atk *= c.atk_mult
+				sk.hp *= c.hp_mult
+				if c.idx == 0:
+					_player_unit_mods(sk)
+				sk.max_hp = sk.hp
+				sk.crit = c.crit
+				summoned += 1
+				_add_ally(sk)
+				_event({"t": "puff", "pos": p, "color": col})
+			_event({"t": "ring", "pos": at, "r": ar, "color": col, "dur": 0.6})
+			return true
+		"frenzy":
+			# Déchaînement, Hurlement : un choc, puis toutes les invocations entrent en frénésie.
+			if float(sp.get("damage", 0.0)) > 0.0:
+				var hit2 := sp.duplicate()
+				hit2["type"] = "aoe"
+				_resolve_aoe(c, hit2, at)
+			var fd := float(sp.get("dur", 6.0)) + (_mod("frenzy_dur") if c.idx == 0 else 0.0)
+			for a in allies:
+				if a.alive:
+					a.frenzy_t = maxf(a.frenzy_t, fd)
+			_event({"t": "ring", "pos": Vector2(W * 0.5, CASTER_Y + 2.0), "r": 4.0, "color": col, "dur": 0.7})
+			_event({"t": "text", "pos": Vector2(W * 0.5, CASTER_Y + 2.4), "text": "FRÉNÉSIE !", "color": col})
 			return true
 		"purify":
 			var cleared := clear_fog(at, float(sp.get("radius", 2.5)))
@@ -2177,6 +2362,16 @@ func _resolve_aoe(c: Caster, sp: Dictionary, at: Vector2) -> void:
 				_event({"t": "text", "pos": (n["pos"] as Vector2) + Vector2(0.0, -0.8), "text": "-%d" % int(dmg * nr), "color": "FFFFFF"})
 		_sync_nexus()
 	terrain.on_impact(c, sp, at, r, dmg)
+	if float(sp.get("barrier_heal", 0.0)) > 0.0:
+		var bh := float(sp["barrier_heal"]) * (1.0 + _mod("heal_bonus"))
+		if barrier_hp + bh > barrier_max:
+			_wrath_acc += barrier_hp + bh - barrier_max
+		barrier_hp = minf(barrier_max, barrier_hp + bh)
+		_event({"t": "shield", "dur": 1.0, "color": col})
+	if bool(sp.get("chain_bolt", false)):
+		# Orage d'acier : chaque impact de Mille lames lance un arc de foudre.
+		var bolt := {"damage": dmg * 0.4 / maxf(0.01, c.atk_mult), "bounces": 3, "range": 2.2, "element": "foudre", "color": "FFE45C"}
+		_chain(c, bolt, at, at)
 	if float(sp.get("surge_gain", 0.0)) > 0.0 and c.idx == 0:
 		surge = minf(100.0, surge + float(sp["surge_gain"]))
 	var big := bool(sp.get("impact_flash", false))
@@ -2259,7 +2454,7 @@ func _chain(c: Caster, sp: Dictionary, at: Vector2, from: Vector2) -> bool:
 	var elem := str(sp.get("element", "foudre"))
 	var pts: Array = [from]
 	var hit := {}
-	for k in range(int(sp.get("bounces", 5))):
+	for k in range(int(sp.get("bounces", 5)) + (int(_mod("chain_bonus")) if c.idx == 0 else 0)):
 		pts.append(tgt.pos)
 		hit[tgt.id] = true
 		_damage(tgt, _calc(dmg, elem, c.crit, tgt, false), elem)
@@ -2290,7 +2485,7 @@ func _wave(c: Caster, sp: Dictionary, at: Vector2) -> void:
 		if not e.alive:
 			continue
 		_damage(e, _calc(dmg, elem, c.crit, e, false), elem)
-		if not e.alive or e.role == "boss" or e.hold_y > 0.0:
+		if not e.alive or e.role in ["boss", "tete", "banniere"] or e.hold_y > 0.0:
 			continue
 		var k := 1.0 - 0.5 * clampf(e.pos.distance_to(at) / r, 0.0, 1.0)
 		e.pos.y = minf(H - 0.6, e.pos.y + push * k)
@@ -2399,12 +2594,34 @@ func summon_champion() -> bool:
 		u.max_hp = u.hp
 		u.crit = c.crit
 		u.element = "givre" if _mod("champ_givre") > 0.0 else last_elem
+		u.atk *= 1.0 + _mod("champ_atk")
+		if _mod("hawk_eye") > 0.0:
+			# Clé de voûte Œil du faucon : critiques fréquents et dévastateurs.
+			u.crit += 0.25
+			u.crit_mult = 2.5
+			u.attack_range = maxf(u.attack_range, 4.2) * 1.2
+		if _mod("vanguard") > 0.0:
+			# Clé de voûte Avant-garde : le Champion charge en ligne droite à son apparition.
+			_charge_line(u)
 		_pending_allies.append(u)
 		_event({"t": "ring", "pos": u.pos, "r": 1.0, "color": "F2C46B", "dur": 0.5})
 		_event({"t": "summon", "pos": u.pos, "dur": 0.9, "color": "F2C46B"})
 	champion_charge = 0
 	_log("Champion invoqué : %s" % str(units_db[champion_kind]["name"]))
 	return true
+
+
+func _charge_line(u: Unit) -> void:
+	var dmg := u.atk * 3.0
+	for e in enemies:
+		if e.alive and absf(e.pos.x - u.pos.x) <= 0.8 + e.radius:
+			_damage(e, _calc(dmg, "lumiere", 0.0, e, false), "lumiere")
+			if e.alive and e.role not in ["boss", "tete", "banniere"] and e.hold_y <= 0.0:
+				e.pos.y = minf(H - 0.6, e.pos.y + 2.0)
+	u.pos.y = minf(H * 0.6, u.pos.y + 4.0)
+	u.prev_pos = u.pos
+	_event({"t": "column", "fx": "beam", "x": u.pos.x, "w": 1.6, "y0": CASTER_Y + 0.7, "y1": H - 0.4, "color": "F2D48B"})
+	_event({"t": "shake"})
 
 
 func ultimate_ready() -> bool:
@@ -2417,7 +2634,15 @@ func cast_ultimate(at: Vector2) -> bool:
 	var sp: Dictionary = (spells_db[ultimate_id] as Dictionary).duplicate()
 	sp["radius"] = float(sp.get("radius", 3.0)) * (1.0 + _mod("ult_radius"))
 	sp["damage"] = float(sp.get("damage", 200)) * (1.0 + _mod("ult_dmg"))
+	if sp.has("count"):
+		sp["count"] = int(sp["count"]) + int(_mod("ult_count"))
+	if sp.has("dur"):
+		sp["dur"] = float(sp["dur"]) + _mod("ult_dur")
+	if _mod("ult_chain") > 0.0:
+		sp["chain_bolt"] = true
 	_apply_spell(casters[0], sp, at)
+	# Toute Ultime cautérise les moignons de l'hydre pendant 6 s dans sa zone (comme les braises du Météore).
+	ult_wards.append({"pos": at, "r": maxf(float(sp["radius"]), float(sp.get("spread", 0.0)) + 0.5), "t": 6.0})
 	surge = 0.0
 	if not bool(sp.get("impact_flash", false)):
 		_event({"t": "flash"})

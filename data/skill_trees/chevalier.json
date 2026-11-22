@@ -1,0 +1,275 @@
+{
+ "class": "chevalier",
+ "keystone_limit": 2,
+ "branches": [
+  {
+   "id": "rempart",
+   "name": "Rempart",
+   "theme": "DÉF, Barrière",
+   "color": "4FE3D2",
+   "icon": "bouclier_leve",
+   "tiers": [
+    {
+     "req": 0,
+     "nodes": [
+      {
+       "id": "armure_lourde",
+       "name": "Armure lourde",
+       "max": 5,
+       "desc": "Invocations : +1,2 de défense par rang.",
+       "mods": {
+        "unit_def": 0.06
+       }
+      },
+      {
+       "id": "garde",
+       "name": "Garde",
+       "max": 5,
+       "desc": "Barrière : −2 % de dégâts subis par rang.",
+       "mods": {
+        "barrier_dr": 0.02
+       }
+      }
+     ]
+    },
+    {
+     "req": 5,
+     "nodes": [
+      {
+       "id": "bastion",
+       "name": "Bastion",
+       "max": 5,
+       "desc": "Barrière : +3 % de PV max par rang.",
+       "mods": {
+        "barrier_max": 0.03
+       }
+      },
+      {
+       "id": "endurance",
+       "name": "Endurance",
+       "max": 5,
+       "desc": "Invocations : +4 % de PV par rang.",
+       "mods": {
+        "unit_hp": 0.04
+       }
+      },
+      {
+       "id": "bouclier_leve_t",
+       "name": "Bouclier levé",
+       "max": 1,
+       "desc": "Nouveau sort : un bouclier absorbe 15 dégâts subis par la Barrière.",
+       "kind": "spell",
+       "unlock": "bouclier_leve"
+      }
+     ]
+    },
+    {
+     "req": 10,
+     "nodes": [
+      {
+       "id": "muraille",
+       "name": "Muraille",
+       "max": 5,
+       "desc": "Barrière : −2 % de dégâts subis par rang.",
+       "mods": {
+        "barrier_dr": 0.02
+       }
+      },
+      {
+       "id": "tenacite",
+       "name": "Ténacité",
+       "max": 5,
+       "desc": "La Barrière se répare de 0,03 PV/s par rang.",
+       "mods": {
+        "barrier_regen": 0.03
+       }
+      },
+      {
+       "id": "discipline",
+       "name": "Discipline",
+       "max": 5,
+       "desc": "Sorts : −2 % de coût en mana par rang.",
+       "mods": {
+        "spell_cost": 0.02
+       }
+      }
+     ]
+    },
+    {
+     "req": 20,
+     "nodes": [
+      {
+       "id": "forteresse",
+       "name": "Forteresse",
+       "max": 3,
+       "desc": "Barrière : +4 % de PV max par rang.",
+       "mods": {
+        "barrier_max": 0.04
+       }
+      },
+      {
+       "id": "paladin_aguerri",
+       "name": "Paladin aguerri",
+       "max": 1,
+       "desc": "Évolution : Champion +40 % de PV.",
+       "kind": "evolution",
+       "mods": {
+        "champ_hp": 0.4
+       }
+      }
+     ]
+    },
+    {
+     "req": 30,
+     "nodes": [
+      {
+       "id": "inebranlable",
+       "name": "Inébranlable",
+       "max": 1,
+       "desc": "Clé de voûte : la Barrière perd au maximum 5 PV par coup.",
+       "kind": "keystone",
+       "mods": {
+        "barrier_cap": 5
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "croise",
+   "name": "Croisé",
+   "theme": "Lumière, charge",
+   "color": "F2D48B",
+   "icon": "charge_bastion",
+   "tiers": [
+    {
+     "req": 0,
+     "nodes": [
+      {
+       "id": "ferveur_k",
+       "name": "Ferveur",
+       "max": 5,
+       "desc": "Invocations : +4 % d'attaque par rang.",
+       "mods": {
+        "unit_atk": 0.04
+       }
+      },
+      {
+       "id": "elan_sacre",
+       "name": "Élan sacré",
+       "max": 5,
+       "desc": "Sorts de Lumière : +6 % de dégâts par rang.",
+       "mods": {
+        "elem_dmg.lumiere": 0.06
+       }
+      }
+     ]
+    },
+    {
+     "req": 5,
+     "nodes": [
+      {
+       "id": "foi",
+       "name": "Foi",
+       "max": 5,
+       "desc": "+4 % de régénération de mana par rang.",
+       "mods": {
+        "mana_regen": 0.04
+       }
+      },
+      {
+       "id": "etendard",
+       "name": "Étendard",
+       "max": 5,
+       "desc": "Invocations : +3 % de cadence par rang.",
+       "mods": {
+        "cadence": 0.03
+       }
+      },
+      {
+       "id": "charge_bastion_t",
+       "name": "Charge",
+       "max": 1,
+       "desc": "Nouveau sort : une charge renverse tout sur une colonne.",
+       "kind": "spell",
+       "unlock": "charge_bastion"
+      }
+     ]
+    },
+    {
+     "req": 10,
+     "nodes": [
+      {
+       "id": "croisade",
+       "name": "Croisade",
+       "max": 5,
+       "desc": "Champion : +6 % d'attaque par rang.",
+       "mods": {
+        "champ_atk": 0.06
+       }
+      },
+      {
+       "id": "zele_k",
+       "name": "Zèle",
+       "max": 5,
+       "desc": "+1 % de chances de critique par rang.",
+       "mods": {
+        "crit": 0.01
+       }
+      },
+      {
+       "id": "voeu",
+       "name": "Vœu",
+       "max": 5,
+       "desc": "Jauge Surge : +4 % de gain par rang.",
+       "mods": {
+        "surge_gain": 0.04
+       }
+      }
+     ]
+    },
+    {
+     "req": 20,
+     "nodes": [
+      {
+       "id": "champion_aube",
+       "name": "Champion de l'Aube",
+       "max": 3,
+       "desc": "Invocations : +4 % d'attaque par rang.",
+       "mods": {
+        "unit_atk": 0.04
+       }
+      },
+      {
+       "id": "rempart_plus",
+       "name": "Rempart sacré+",
+       "max": 1,
+       "desc": "Évolution : +25 % de rayon, +25 % de dégâts.",
+       "kind": "evolution",
+       "mods": {
+        "ult_radius": 0.25,
+        "ult_dmg": 0.25
+       }
+      }
+     ]
+    },
+    {
+     "req": 30,
+     "nodes": [
+      {
+       "id": "avant_garde",
+       "name": "Avant-garde",
+       "max": 1,
+       "desc": "Clé de voûte : le Champion charge en ligne droite à son apparition et renverse tout sur son passage.",
+       "kind": "keystone",
+       "mods": {
+        "vanguard": 1
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

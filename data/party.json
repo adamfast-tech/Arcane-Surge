@@ -27,7 +27,10 @@
       },
       "familiar": "familiar_archer",
       "desc": "Tirs précis et pièges : archers spectraux, critiques, Flèches astrales.",
-      "playable": false
+      "playable": true,
+      "champion": "champion_ranger",
+      "ultimate": "pluie_etoiles",
+      "effect_mult": 1.0
     },
     "epeiste": {
       "name": "Épéiste",
@@ -38,9 +41,12 @@
         "cel": 13,
         "des": 8
       },
-      "familiar": "familiar_knight",
+      "familiar": "familiar_duelist",
       "desc": "Lames rapides et foudre : duellistes, riposte, lames spectrales.",
-      "playable": false
+      "playable": true,
+      "champion": "champion_blademaster",
+      "ultimate": "mille_lames",
+      "effect_mult": 1.0
     },
     "clerc": {
       "name": "Clerc",
@@ -51,9 +57,12 @@
         "cel": 7,
         "des": 7
       },
-      "familiar": "familiar_mage",
+      "familiar": "familiar_acolyte",
       "desc": "Lumière et soins : la Barrière tient, les portails sont purifiés.",
-      "playable": false
+      "playable": true,
+      "champion": "champion_guardian",
+      "ultimate": "jugement_solaire",
+      "effect_mult": 1.1
     },
     "necromancien": {
       "name": "Nécromancien",
@@ -66,7 +75,10 @@
       },
       "familiar": "familiar_necro",
       "desc": "Armées d'os et malédictions : squelettes, flétrissure, liche.",
-      "playable": false
+      "playable": true,
+      "champion": "champion_bone",
+      "ultimate": "armee_des_morts",
+      "effect_mult": 1.1
     },
     "chevalier": {
       "name": "Chevalier",
@@ -79,7 +91,11 @@
       },
       "familiar": "familiar_knight",
       "desc": "Rempart et charge : fantassins solides, Barrière renforcée.",
-      "playable": false
+      "playable": true,
+      "champion": "champion_paladin",
+      "ultimate": "rempart_sacre",
+      "effect_mult": 1.0,
+      "player_familiar": "familiar_templar"
     },
     "berserker": {
       "name": "Berserker",
@@ -92,7 +108,11 @@
       },
       "familiar": "familiar_berserker",
       "desc": "Fureur et vol de vie : guerriers enragés, totems, risque et récompense.",
-      "playable": false
+      "playable": true,
+      "player_familiar": "familiar_rager",
+      "champion": "champion_warlord",
+      "ultimate": "dechainement",
+      "effect_mult": 1.0
     }
   },
   "races": {

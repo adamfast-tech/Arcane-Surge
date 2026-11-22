@@ -41,5 +41,15 @@
   "croc_lich": {"name": "Crocodile-liche", "role": "boss", "sprite": "croc_lich", "element": "ombre", "hp": 1, "atk": 36, "def": 18, "speed": 0.0, "radius": 0.95, "weight": 25, "atk_interval": 0.3},
   "hydra": {"name": "Hydre des brumes", "role": "boss", "sprite": "hydra", "element": "nature", "hp": 1, "atk": 40, "def": 14, "speed": 0.0, "radius": 1.1, "fem": true, "weight": 40, "atk_interval": 0.3},
   "hydra_head": {"name": "Tête de l'Hydre", "role": "tete", "sprite": "hydra_head", "element": "nature", "hp": 700, "atk": 26, "def": 8, "speed": 0.0, "radius": 0.4, "weight": 0, "atk_interval": 0.7, "range": 2.2, "cost": 99},
-  "barge": {"name": "Barque des passeurs", "role": "escort", "sprite": "barge", "element": "lumiere", "hp": 1, "atk": 4, "def": 10, "speed": 0.1, "radius": 0.45, "weight": 0, "atk_interval": 1.0}
+  "barge": {"name": "Barque des passeurs", "role": "escort", "sprite": "barge", "element": "lumiere", "hp": 1, "atk": 4, "def": 10, "speed": 0.1, "radius": 0.45, "weight": 0, "atk_interval": 1.0},
+  "familiar_duelist": {"name": "Duelliste spectral", "role": "familier", "sprite": "duelist", "hp": 12, "atk": 11, "def": 1, "speed": 2.7, "radius": 0.22, "weight": 1, "atk_interval": 0.42},
+  "familiar_acolyte": {"name": "Acolyte de lumière", "role": "familier", "sprite": "familiar", "element": "lumiere", "hp": 11, "atk": 8, "def": 1, "speed": 2.4, "radius": 0.22, "weight": 1, "atk_interval": 0.6, "range": 1.8, "heal_aura": 0.6},
+  "familiar_rager": {"name": "Enragé", "role": "familier", "sprite": "berserker", "hp": 14, "atk": 12, "def": 1, "speed": 2.6, "radius": 0.23, "weight": 1, "atk_interval": 0.5, "lifesteal": 0.1},
+  "champion_ranger": {"name": "Rôdeur géant", "role": "champion", "sprite": "champion_ranger", "hp": 120, "atk": 34, "def": 8, "speed": 1.6, "radius": 0.42, "weight": 12, "atk_interval": 0.9, "range": 4.2, "siege": true},
+  "champion_blademaster": {"name": "Maître-lame", "role": "champion", "sprite": "champion_blademaster", "hp": 130, "atk": 26, "def": 12, "speed": 2.3, "radius": 0.42, "weight": 12, "atk_interval": 0.4, "siege": true},
+  "champion_guardian": {"name": "Gardien de lumière", "role": "champion", "sprite": "champion_guardian", "element": "lumiere", "hp": 180, "atk": 24, "def": 16, "speed": 1.6, "radius": 0.45, "weight": 14, "atk_interval": 1.0, "siege": true, "heal_aura": 4.0},
+  "champion_bone": {"name": "Colosse d'os", "role": "champion", "sprite": "champion_bone", "element": "ombre", "hp": 200, "atk": 38, "def": 14, "speed": 1.5, "radius": 0.5, "weight": 16, "atk_interval": 1.2, "siege": true},
+  "champion_paladin": {"name": "Paladin colosse", "role": "champion", "sprite": "champion_paladin", "hp": 240, "atk": 40, "def": 30, "speed": 1.6, "radius": 0.48, "weight": 18, "atk_interval": 1.1, "siege": true},
+  "champion_warlord": {"name": "Seigneur de guerre", "role": "champion", "sprite": "champion_warlord", "hp": 170, "atk": 48, "def": 12, "speed": 1.9, "radius": 0.48, "weight": 16, "atk_interval": 0.8, "siege": true, "lifesteal": 0.15},
+  "familiar_templar": {"name": "Templier", "role": "familier", "sprite": "knight", "element": "lumiere", "hp": 13, "atk": 11, "def": 4, "speed": 2.4, "radius": 0.23, "weight": 1, "atk_interval": 0.5}
 }

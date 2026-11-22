@@ -42,6 +42,10 @@ func _ready() -> void:
 			extra["spell_mode"] = "drawer"
 			if not extra.has("deck"):
 				extra["deck"] = Profile.drawer_spells()
+		var qc := str(_query().get("class", ""))
+		if qc != "":
+			# Aperçu : classe du héros (« &class=chevalier »).
+			extra["player_class"] = qc
 		if _url_flag("mana"):
 			# Aperçu : mana qui se recharge 20 fois plus vite (« &mana=1 »).
 			extra["debug_mana"] = true

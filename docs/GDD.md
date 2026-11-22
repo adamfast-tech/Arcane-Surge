@@ -169,6 +169,7 @@ iOS (iPhone 16 Pro Max, iPad), Android, PC (16:9, 16:10).
 13. Héros, races et classes (rattrapage de l'ébauche, étape 4) :
     - 13.1 ✅ création du personnage et Miroir : race, classe, apparence, portrait et sprite générés — [`design/23-creation-personnage.md`](design/23-creation-personnage.md)
     - 13.2 ✅ races : passifs, Don racial en combat (bouton DON), arbre d'héritage et points d'héritage — [`design/24-races.md`](design/24-races.md)
-    - 13.3 classes jouables : Flux, Champion, Ultime et arbres des 6 autres classes
+    - 13.3a ✅ 7 classes jouables : invocation, Champion, Ultime, arme du héros, 2 branches d'arbre et Clés de voûte par classe — [`design/25-classes.md`](design/25-classes.md)
+    - 13.3b Voies du Surge des 6 nouvelles classes
     - 13.4 changement de classe, Salle de méditation, compagnons améliorés
 14. Saison 2 : zones 11–15, niveau max 150, L'Ourdisseur (fils semés en saison 1)

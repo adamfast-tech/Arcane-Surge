@@ -54,6 +54,7 @@ func _rebuild() -> void:
 		col.add_child(cg)
 		for cid in party["classes"].keys():
 			cg.add_child(_class_card(str(cid), party["classes"][cid]))
+		col.add_child(_class_details(party["classes"].get(Profile.player_class(), {})))
 	col.add_child(UiTheme.section("Apparence"))
 	var lk := Profile.look()
 	col.add_child(_choice_row("Silhouette", PlayerLook.SILHOUETTES, int(lk["sil"]), func(i: int) -> void: Profile.set_look("sil", i)))
@@ -91,7 +92,7 @@ func _preview(party: Dictionary) -> PanelContainer:
 	pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	pic.custom_minimum_size = Vector2(128, 128)
 	pf.add_child(pic)
-	SpriteAtlas.set_player(Profile.look(), Profile.race())
+	SpriteAtlas.set_player(Profile.look(), Profile.race(), Profile.player_class())
 	var sp := TextureRect.new()
 	sp.texture = SpriteAtlas.single("player")
 	sp.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -184,6 +185,28 @@ func _class_card(cid: String, cl: Dictionary) -> Button:
 		if Profile.set_class(cid):
 			_rebuild.call_deferred())
 	return bt
+
+
+## Fiche de la classe choisie : invocation, Champion, Ultime et branches de l'arbre.
+func _class_details(cl: Dictionary) -> PanelContainer:
+	var c: Array = UiTheme.card(UiTheme.BORDER, 12)
+	var v: VBoxContainer = c[1]
+	v.add_theme_constant_override("separation", 2)
+	var units := GameData.units()
+	var spells := GameData.spells()
+	var fam := str(cl.get("player_familiar", cl.get("familiar", "")))
+	v.add_child(UiTheme.wrap("Invocation : %s" % str((units.get(fam, {}) as Dictionary).get("name", fam)), 16, UiTheme.TEXT))
+	v.add_child(UiTheme.wrap("Champion : %s" % str((units.get(str(cl.get("champion", "")), {}) as Dictionary).get("name", "")), 16, UiTheme.TEXT))
+	var ult: Dictionary = spells.get(str(cl.get("ultimate", "")), {})
+	v.add_child(UiTheme.wrap("Ultime : %s" % str(ult.get("name", "")), 16, UiTheme.GOLD))
+	var tree: Dictionary = GameData.load_json("res://data/skill_trees/%s.json" % Profile.player_class())
+	var names: Array[String] = []
+	for br in tree.get("branches", []):
+		names.append("%s (%s)" % [str(br.get("name", "")), str(br.get("theme", ""))])
+	if not names.is_empty():
+		v.add_child(UiTheme.wrap("Arbre : " + " · ".join(names), 15, UiTheme.MUTED))
+	v.add_child(UiTheme.wrap("Le grimoire (Bibliothèque) est commun à toutes les classes ; chaque classe a son propre arbre.", 14, Color(UiTheme.MUTED, 0.8)))
+	return c[0]
 
 
 func _choice_row(title: String, labels: Array, current: int, apply: Callable) -> VBoxContainer:

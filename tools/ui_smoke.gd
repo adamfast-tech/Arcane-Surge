@@ -38,6 +38,79 @@ func _through_dialogues(pick: int = 0) -> int:
 	return n
 
 
+## Classes jouables (étape 13.3) : invocation, Champion, Ultime et Clés de voûte, en simulation pure.
+func _classes_ok() -> bool:
+	var classes: Dictionary = GameData.party()["classes"]
+	var lv := GameData.level("z01_l05")
+	var out: Array[String] = []
+	for cls in ["archer", "epeiste", "clerc", "necromancien", "chevalier", "berserker"]:
+		var cd: Dictionary = classes[cls]
+		var s := BattleSim.new()
+		s.setup(lv, GameData.party(), 7, {"player_class": cls, "solo": true})
+		var pc := s.player()
+		var fam := s._spawn_familiar(pc, Vector2(4.5, 3.0))
+		s._flush()
+		s._build_grids()
+		for k in range(12):
+			var e := s._spawn_enemy("mushroom", Vector2(3.5 + float(k % 4) * 0.6, 8.0 + float(k / 4) * 0.5))
+			e.hp = 9999.0
+			e.max_hp = 9999.0
+		s._flush()
+		s._build_grids()
+		var n0 := s.allies.size()
+		var sh0 := s.barrier_shield
+		s.surge = 100.0
+		var ult := s.cast_ultimate(Vector2(4.5, 8.5))
+		for k in range(40):
+			s.step()
+		var effect := true
+		match cls:
+			"necromancien":
+				effect = s.allies.size() >= n0 + 15
+			"berserker":
+				effect = fam.frenzy_t > 0.0
+			"chevalier":
+				effect = s.barrier_shield > sh0
+		var want_fam := str(cd.get("player_familiar", cd["familiar"]))
+		var ok: bool = pc.class_id == cls and fam.kind == want_fam and s.champion_kind == str(cd["champion"]) and s.ultimate_id == str(cd["ultimate"]) and ult and effect
+		out.append("%s %s/%s/%s %s" % [cls, fam.kind, s.champion_kind, s.ultimate_id, "ok" if ok else "ÉCHEC"])
+		s.terrain.sim = null
+		if not ok:
+			print("  classes : ", out)
+			push_error("classe %s incorrecte" % cls)
+			return false
+	# Clés de voûte : Miracle, Inébranlable, Légion, Avant-garde, Danse parfaite.
+	var k2 := BattleSim.new()
+	k2.setup(lv, GameData.party(), 9, {"player_class": "clerc", "solo": true, "mods": {"miracle": 1.0, "barrier_cap": 5.0, "legion": 1.0, "vanguard": 1.0}})
+	var b0 := k2.barrier_hp
+	k2._hurt_barrier(40.0)
+	var capped := b0 - k2.barrier_hp
+	k2.barrier_hp = 0.0
+	k2._check_end()
+	var miracle := k2.state == "running" and k2.barrier_hp >= k2.barrier_max * 0.49
+	k2.surge = 0.0
+	var arm := {"type": "army", "count": 20, "kind": "skeleton", "radius": 1.5, "damage": 0}
+	k2._apply_spell(k2.player(), arm, Vector2(4.5, 6.0))
+	var colossus := false
+	for u in k2._pending_allies:
+		if u.kind == "champion_bone":
+			colossus = true
+	k2._flush()
+	k2.champion_charge = k2.champion_need
+	var y0 := BattleSim.CASTER_Y + 0.7
+	k2.summon_champion()
+	var charged := false
+	for u in k2._pending_allies:
+		if u.role == "champion" and u.pos.y > y0 + 2.0:
+			charged = true
+	k2.terrain.sim = null
+	print("  classes : ", out, " · Clés : Inébranlable -", int(capped), " · Miracle ", miracle, " · Légion ", colossus, " · Avant-garde ", charged)
+	if capped > 5.01 or not miracle or not colossus or not charged:
+		push_error("Clés de voûte de classe incorrectes")
+		return false
+	return true
+
+
 func _run() -> void:
 	Profile.save_path = "user://smoke_save.json"
 	if FileAccess.file_exists(Profile.save_path):
@@ -57,6 +130,8 @@ func _run() -> void:
 	var rev := Profile.set_race("revenant")
 	var nain := Profile.set_race("nain")
 	var arch := Profile.set_class("archer")
+	var archer_tree := (Profile.tree_db().get("branches", []) as Array).size()
+	Profile.set_class("mage")
 	Profile.set_look("head", "tresse")
 	Profile.set_look("hair", "roux")
 	Profile.set_look("outfit", "ocre")
@@ -75,10 +150,13 @@ func _run() -> void:
 		quit(1)
 		return
 	var bo := Profile.battle_opts()
-	print("création : écran ", cr_name, " · Revenant ", rev, " · Nain ", nain, " · Archer ", arch, " · créé ", Profile.created(),
+	print("création : écran ", cr_name, " · Revenant ", rev, " · Nain ", nain, " · Archer ", arch, " (arbre ", archer_tree, " branches) · créé ", Profile.created(),
 		" · ", Profile.race(), " ", Profile.look()["head"], " · écran ", _screen().get_script().get_global_name(), " · sprite combat ", bo.has("look"))
-	if rev or not nain or arch or not Profile.created() or not (_screen() is HubScreen):
+	if rev or not nain or not arch or archer_tree < 2 or Profile.player_class() != "mage" or not Profile.created() or not (_screen() is HubScreen):
 		push_error("création du personnage incorrecte")
+		quit(1)
+		return
+	if not _classes_ok():
 		quit(1)
 		return
 	# Dialogues : prologue + intro de 1-1, lus jusqu'au bout (tap), avec l'historique.

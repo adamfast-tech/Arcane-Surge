@@ -37,7 +37,7 @@ Les 8 races de l'ébauche, avec leurs modificateurs de stats, appliqués en comb
 ## Classe
 
 - Les 7 classes sont présentées. Seul le **Mage** est jouable pour l'instant.
-- Les autres affichent « Bientôt jouable » ; elles arrivent à l'étape 13.3 (Classes).
+- Depuis l'étape 13.3a, les 7 classes sont jouables (voir [`25-classes.md`](25-classes.md)).
 
 ## Apparence
 

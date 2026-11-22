@@ -1,0 +1,276 @@
+{
+ "class": "epeiste",
+ "keystone_limit": 2,
+ "branches": [
+  {
+   "id": "duelliste",
+   "name": "Duelliste",
+   "theme": "Critique, vitesse",
+   "color": "E8EEF8",
+   "icon": "fente",
+   "tiers": [
+    {
+     "req": 0,
+     "nodes": [
+      {
+       "id": "estoc",
+       "name": "Estoc",
+       "max": 5,
+       "desc": "+1 % de chances de critique par rang.",
+       "mods": {
+        "crit": 0.01
+       }
+      },
+      {
+       "id": "elan",
+       "name": "Élan",
+       "max": 5,
+       "desc": "Invocations : +3 % de cadence par rang.",
+       "mods": {
+        "cadence": 0.03
+       }
+      }
+     ]
+    },
+    {
+     "req": 5,
+     "nodes": [
+      {
+       "id": "riposte",
+       "name": "Riposte",
+       "max": 5,
+       "desc": "Invocations : renvoient 6 % des coups reçus par rang.",
+       "mods": {
+        "riposte": 0.06
+       }
+      },
+      {
+       "id": "lame_affutee",
+       "name": "Lame affûtée",
+       "max": 5,
+       "desc": "Invocations : +4 % d'attaque par rang.",
+       "mods": {
+        "unit_atk": 0.04
+       }
+      },
+      {
+       "id": "fente_t",
+       "name": "Fente",
+       "max": 1,
+       "desc": "Nouveau sort : une estocade traverse toute une colonne.",
+       "kind": "spell",
+       "unlock": "fente"
+      }
+     ]
+    },
+    {
+     "req": 10,
+     "nodes": [
+      {
+       "id": "garde_haute",
+       "name": "Garde haute",
+       "max": 5,
+       "desc": "Invocations : +1 de défense par rang.",
+       "mods": {
+        "unit_def": 0.05
+       }
+      },
+      {
+       "id": "pas_chasse",
+       "name": "Pas chassé",
+       "max": 5,
+       "desc": "Invocations : +4 % de PV par rang.",
+       "mods": {
+        "unit_hp": 0.04
+       }
+      },
+      {
+       "id": "souffle_e",
+       "name": "Souffle",
+       "max": 5,
+       "desc": "Sorts : −2 % de coût en mana par rang.",
+       "mods": {
+        "spell_cost": 0.02
+       }
+      }
+     ]
+    },
+    {
+     "req": 20,
+     "nodes": [
+      {
+       "id": "maitrise",
+       "name": "Maîtrise",
+       "max": 3,
+       "desc": "+1 % de chances de critique par rang.",
+       "mods": {
+        "crit": 0.01
+       }
+      },
+      {
+       "id": "maitre_lame",
+       "name": "Maître-lame aguerri",
+       "max": 1,
+       "desc": "Évolution : Champion +30 % de PV, +25 % d'attaque.",
+       "kind": "evolution",
+       "mods": {
+        "champ_hp": 0.3,
+        "champ_atk": 0.25
+       }
+      }
+     ]
+    },
+    {
+     "req": 30,
+     "nodes": [
+      {
+       "id": "danse_parfaite",
+       "name": "Danse parfaite",
+       "max": 1,
+       "desc": "Clé de voûte : chaque critique d'une invocation réduit les recharges des sorts de 0,2 s (1 s par seconde au plus).",
+       "kind": "keystone",
+       "mods": {
+        "perfect_dance": 1
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lame_tempete",
+   "name": "Lame-tempête",
+   "theme": "Foudre, chaînes",
+   "color": "FFE45C",
+   "icon": "tranche_orage",
+   "tiers": [
+    {
+     "req": 0,
+     "nodes": [
+      {
+       "id": "acier_charge",
+       "name": "Acier chargé",
+       "max": 5,
+       "desc": "Sorts de Foudre : +6 % de dégâts par rang.",
+       "mods": {
+        "elem_dmg.foudre": 0.06
+       }
+      },
+      {
+       "id": "influx",
+       "name": "Influx",
+       "max": 5,
+       "desc": "+4 % de régénération de mana par rang.",
+       "mods": {
+        "mana_regen": 0.04
+       }
+      }
+     ]
+    },
+    {
+     "req": 5,
+     "nodes": [
+      {
+       "id": "rebond",
+       "name": "Rebond",
+       "max": 2,
+       "desc": "Chaînes d'éclairs : +1 rebond par rang.",
+       "mods": {
+        "chain_bonus": 1
+       }
+      },
+      {
+       "id": "tension",
+       "name": "Tension",
+       "max": 5,
+       "desc": "Jauge Surge : +4 % de gain par rang.",
+       "mods": {
+        "surge_gain": 0.04
+       }
+      },
+      {
+       "id": "tranche_orage_t",
+       "name": "Tranche-orage",
+       "max": 1,
+       "desc": "Nouveau sort : une lame de foudre bondit d'ennemi en ennemi.",
+       "kind": "spell",
+       "unlock": "tranche_orage"
+      }
+     ]
+    },
+    {
+     "req": 10,
+     "nodes": [
+      {
+       "id": "orage_interieur",
+       "name": "Orage intérieur",
+       "max": 5,
+       "desc": "Sorts de Foudre : +4 % de dégâts par rang.",
+       "mods": {
+        "elem_dmg.foudre": 0.04
+       }
+      },
+      {
+       "id": "vivacite",
+       "name": "Vivacité",
+       "max": 5,
+       "desc": "Invocations : +3 % de cadence par rang.",
+       "mods": {
+        "cadence": 0.03
+       }
+      },
+      {
+       "id": "sobriete",
+       "name": "Sobriété",
+       "max": 5,
+       "desc": "Sorts : −2 % de coût en mana par rang.",
+       "mods": {
+        "spell_cost": 0.02
+       }
+      }
+     ]
+    },
+    {
+     "req": 20,
+     "nodes": [
+      {
+       "id": "coeur_orage",
+       "name": "Cœur d'orage",
+       "max": 3,
+       "desc": "Sorts de Foudre : +5 % de dégâts par rang.",
+       "mods": {
+        "elem_dmg.foudre": 0.05
+       }
+      },
+      {
+       "id": "mille_lames_plus",
+       "name": "Mille lames+",
+       "max": 1,
+       "desc": "Évolution : 4 lames de plus, +20 % de dégâts.",
+       "kind": "evolution",
+       "mods": {
+        "ult_count": 4,
+        "ult_dmg": 0.2
+       }
+      }
+     ]
+    },
+    {
+     "req": 30,
+     "nodes": [
+      {
+       "id": "orage_acier",
+       "name": "Orage d'acier",
+       "max": 1,
+       "desc": "Clé de voûte : chaque lame de l'Ultime lance une chaîne de foudre.",
+       "kind": "keystone",
+       "mods": {
+        "ult_chain": 1
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

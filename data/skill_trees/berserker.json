@@ -1,0 +1,276 @@
+{
+ "class": "berserker",
+ "keystone_limit": 2,
+ "branches": [
+  {
+   "id": "carnage",
+   "name": "Carnage",
+   "theme": "ATQ, vol de vie",
+   "color": "E8703A",
+   "icon": "hache_tournoyante",
+   "tiers": [
+    {
+     "req": 0,
+     "nodes": [
+      {
+       "id": "soif_sang",
+       "name": "Soif de sang",
+       "max": 5,
+       "desc": "Invocations : +2 % de vol de vie par rang.",
+       "mods": {
+        "lifesteal": 0.02
+       }
+      },
+      {
+       "id": "brutalite",
+       "name": "Brutalité",
+       "max": 5,
+       "desc": "Invocations : +4 % d'attaque par rang.",
+       "mods": {
+        "unit_atk": 0.04
+       }
+      }
+     ]
+    },
+    {
+     "req": 5,
+     "nodes": [
+      {
+       "id": "frenesie",
+       "name": "Frénésie",
+       "max": 5,
+       "desc": "Frénésie : +0,4 s par rang.",
+       "mods": {
+        "frenzy_dur": 0.4
+       }
+      },
+      {
+       "id": "peau_dure",
+       "name": "Peau dure",
+       "max": 5,
+       "desc": "Invocations : +4 % de PV par rang.",
+       "mods": {
+        "unit_hp": 0.04
+       }
+      },
+      {
+       "id": "hache_tournoyante_t",
+       "name": "Tourbillon",
+       "max": 1,
+       "desc": "Nouveau sort : une hache tournoyante fauche une zone.",
+       "kind": "spell",
+       "unlock": "hache_tournoyante"
+      }
+     ]
+    },
+    {
+     "req": 10,
+     "nodes": [
+      {
+       "id": "carnage_n",
+       "name": "Carnage",
+       "max": 5,
+       "desc": "+1 % de chances de critique par rang.",
+       "mods": {
+        "crit": 0.01
+       }
+      },
+      {
+       "id": "rage_n",
+       "name": "Rage",
+       "max": 5,
+       "desc": "Invocations : +3 % de cadence par rang.",
+       "mods": {
+        "cadence": 0.03
+       }
+      },
+      {
+       "id": "sang_chaud",
+       "name": "Sang chaud",
+       "max": 5,
+       "desc": "+4 % de régénération de mana par rang.",
+       "mods": {
+        "mana_regen": 0.04
+       }
+      }
+     ]
+    },
+    {
+     "req": 20,
+     "nodes": [
+      {
+       "id": "boucher",
+       "name": "Boucher",
+       "max": 3,
+       "desc": "Invocations : +5 % d'attaque par rang.",
+       "mods": {
+        "unit_atk": 0.05
+       }
+      },
+      {
+       "id": "dechainement_plus",
+       "name": "Déchaînement+",
+       "max": 1,
+       "desc": "Évolution : +3 s de frénésie, +25 % de dégâts.",
+       "kind": "evolution",
+       "mods": {
+        "ult_dur": 3,
+        "ult_dmg": 0.25
+       }
+      }
+     ]
+    },
+    {
+     "req": 30,
+     "nodes": [
+      {
+       "id": "soif",
+       "name": "Soif",
+       "max": 1,
+       "desc": "Clé de voûte : le vol de vie des invocations soigne aussi la Barrière (1 % des dégâts, 2 PV/s au plus).",
+       "kind": "keystone",
+       "mods": {
+        "thirst": 1
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "totem",
+   "name": "Totem",
+   "theme": "Cris, renfort des alliés",
+   "color": "F2B040",
+   "icon": "hurlement",
+   "tiers": [
+    {
+     "req": 0,
+     "nodes": [
+      {
+       "id": "cri_guerre",
+       "name": "Cri de guerre",
+       "max": 5,
+       "desc": "Compagnons : +4 % d'attaque par rang.",
+       "mods": {
+        "bot_atk": 0.04
+       }
+      },
+      {
+       "id": "totem_rage",
+       "name": "Totem de rage",
+       "max": 5,
+       "desc": "Invocations : +3 % d'attaque par rang.",
+       "mods": {
+        "unit_atk": 0.03
+       }
+      }
+     ]
+    },
+    {
+     "req": 5,
+     "nodes": [
+      {
+       "id": "tambours",
+       "name": "Tambours",
+       "max": 5,
+       "desc": "Jauge Surge : +4 % de gain par rang.",
+       "mods": {
+        "surge_gain": 0.04
+       }
+      },
+      {
+       "id": "clameur",
+       "name": "Clameur",
+       "max": 5,
+       "desc": "Frénésie : +0,3 s par rang.",
+       "mods": {
+        "frenzy_dur": 0.3
+       }
+      },
+      {
+       "id": "hurlement_t",
+       "name": "Hurlement",
+       "max": 1,
+       "desc": "Nouveau sort : toutes les invocations entrent en frénésie 4 s.",
+       "kind": "spell",
+       "unlock": "hurlement"
+      }
+     ]
+    },
+    {
+     "req": 10,
+     "nodes": [
+      {
+       "id": "meute",
+       "name": "Meute",
+       "max": 5,
+       "desc": "Invocations : +4 % de PV par rang.",
+       "mods": {
+        "unit_hp": 0.04
+       }
+      },
+      {
+       "id": "ancetres",
+       "name": "Ancêtres",
+       "max": 5,
+       "desc": "Barrière : +3 % de PV max par rang.",
+       "mods": {
+        "barrier_max": 0.03
+       }
+      },
+      {
+       "id": "transe",
+       "name": "Transe",
+       "max": 5,
+       "desc": "Sorts : −2 % de coût en mana par rang.",
+       "mods": {
+        "spell_cost": 0.02
+       }
+      }
+     ]
+    },
+    {
+     "req": 20,
+     "nodes": [
+      {
+       "id": "chant_clans",
+       "name": "Chant des clans",
+       "max": 3,
+       "desc": "Compagnons : +5 % d'attaque par rang.",
+       "mods": {
+        "bot_atk": 0.05
+       }
+      },
+      {
+       "id": "seigneur_aguerri",
+       "name": "Seigneur aguerri",
+       "max": 1,
+       "desc": "Évolution : Champion +30 % de PV, +25 % d'attaque.",
+       "kind": "evolution",
+       "mods": {
+        "champ_hp": 0.3,
+        "champ_atk": 0.25
+       }
+      }
+     ]
+    },
+    {
+     "req": 30,
+     "nodes": [
+      {
+       "id": "chef_clan",
+       "name": "Chef de clan",
+       "max": 1,
+       "desc": "Clé de voûte : les compagnons gagnent +30 % d'attaque et de PV.",
+       "kind": "keystone",
+       "mods": {
+        "clan_chief": 1
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

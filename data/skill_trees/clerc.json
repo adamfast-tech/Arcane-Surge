@@ -1,0 +1,275 @@
+{
+ "class": "clerc",
+ "keystone_limit": 2,
+ "branches": [
+  {
+   "id": "sanctification",
+   "name": "Sanctification",
+   "theme": "Soins",
+   "color": "F2E28B",
+   "icon": "priere",
+   "tiers": [
+    {
+     "req": 0,
+     "nodes": [
+      {
+       "id": "mains_benies",
+       "name": "Mains bénies",
+       "max": 5,
+       "desc": "Soins : +6 % par rang.",
+       "mods": {
+        "heal_bonus": 0.06
+       }
+      },
+      {
+       "id": "priere_continue",
+       "name": "Prière continue",
+       "max": 5,
+       "desc": "La Barrière se répare de 0,04 PV/s par rang.",
+       "mods": {
+        "barrier_regen": 0.04
+       }
+      }
+     ]
+    },
+    {
+     "req": 5,
+     "nodes": [
+      {
+       "id": "aura_apaisante",
+       "name": "Aura apaisante",
+       "max": 5,
+       "desc": "Auras de soin : +8 % par rang.",
+       "mods": {
+        "aura_heal": 0.08
+       }
+      },
+      {
+       "id": "ferveur_c",
+       "name": "Ferveur",
+       "max": 5,
+       "desc": "+4 % de régénération de mana par rang.",
+       "mods": {
+        "mana_regen": 0.04
+       }
+      },
+      {
+       "id": "priere_t",
+       "name": "Prière",
+       "max": 1,
+       "desc": "Nouveau sort : rend 25 PV à la Barrière.",
+       "kind": "spell",
+       "unlock": "priere"
+      }
+     ]
+    },
+    {
+     "req": 10,
+     "nodes": [
+      {
+       "id": "benediction",
+       "name": "Bénédiction",
+       "max": 5,
+       "desc": "Invocations : +4 % de PV par rang.",
+       "mods": {
+        "unit_hp": 0.04
+       }
+      },
+      {
+       "id": "sanctuaire",
+       "name": "Sanctuaire",
+       "max": 5,
+       "desc": "Barrière : +3 % de PV max par rang.",
+       "mods": {
+        "barrier_max": 0.03
+       }
+      },
+      {
+       "id": "grace",
+       "name": "Grâce",
+       "max": 5,
+       "desc": "Sorts : −2 % de coût en mana par rang.",
+       "mods": {
+        "spell_cost": 0.02
+       }
+      }
+     ]
+    },
+    {
+     "req": 20,
+     "nodes": [
+      {
+       "id": "lumiere_bienveillante",
+       "name": "Lumière bienveillante",
+       "max": 3,
+       "desc": "Soins : +6 % par rang.",
+       "mods": {
+        "heal_bonus": 0.06
+       }
+      },
+      {
+       "id": "gardien_eternel",
+       "name": "Gardien éternel",
+       "max": 1,
+       "desc": "Évolution : Champion +40 % de PV.",
+       "kind": "evolution",
+       "mods": {
+        "champ_hp": 0.4
+       }
+      }
+     ]
+    },
+    {
+     "req": 30,
+     "nodes": [
+      {
+       "id": "miracle",
+       "name": "Miracle",
+       "max": 1,
+       "desc": "Clé de voûte : une fois par partie, une Barrière tombée à 0 remonte à 50 %.",
+       "kind": "keystone",
+       "mods": {
+        "miracle": 1
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "jugement",
+   "name": "Jugement",
+   "theme": "Lumière offensive",
+   "color": "FFF0A0",
+   "icon": "lance_solaire",
+   "tiers": [
+    {
+     "req": 0,
+     "nodes": [
+      {
+       "id": "chatiment",
+       "name": "Châtiment",
+       "max": 5,
+       "desc": "Sorts de Lumière : +6 % de dégâts par rang.",
+       "mods": {
+        "elem_dmg.lumiere": 0.06
+       }
+      },
+      {
+       "id": "zele_c",
+       "name": "Zèle",
+       "max": 5,
+       "desc": "Invocations : +3 % d'attaque par rang.",
+       "mods": {
+        "unit_atk": 0.03
+       }
+      }
+     ]
+    },
+    {
+     "req": 5,
+     "nodes": [
+      {
+       "id": "aura_radieuse",
+       "name": "Aura radieuse",
+       "max": 5,
+       "desc": "+1 % de chances de critique par rang.",
+       "mods": {
+        "crit": 0.01
+       }
+      },
+      {
+       "id": "eclat_c",
+       "name": "Éclat",
+       "max": 5,
+       "desc": "Jauge Surge : +4 % de gain par rang.",
+       "mods": {
+        "surge_gain": 0.04
+       }
+      },
+      {
+       "id": "lance_solaire_t",
+       "name": "Lance solaire",
+       "max": 1,
+       "desc": "Nouveau sort : une lance de lumière traverse une colonne.",
+       "kind": "spell",
+       "unlock": "lance_solaire"
+      }
+     ]
+    },
+    {
+     "req": 10,
+     "nodes": [
+      {
+       "id": "rayonnement",
+       "name": "Rayonnement",
+       "max": 5,
+       "desc": "Sorts de Lumière : +4 % de dégâts par rang.",
+       "mods": {
+        "elem_dmg.lumiere": 0.04
+       }
+      },
+      {
+       "id": "vigilance",
+       "name": "Vigilance",
+       "max": 5,
+       "desc": "Invocations : +1 de défense par rang.",
+       "mods": {
+        "unit_def": 0.05
+       }
+      },
+      {
+       "id": "inspiration",
+       "name": "Inspiration",
+       "max": 5,
+       "desc": "+4 % de régénération de mana par rang.",
+       "mods": {
+        "mana_regen": 0.04
+       }
+      }
+     ]
+    },
+    {
+     "req": 20,
+     "nodes": [
+      {
+       "id": "soleil_interieur",
+       "name": "Soleil intérieur",
+       "max": 3,
+       "desc": "Sorts de Lumière : +5 % de dégâts par rang.",
+       "mods": {
+        "elem_dmg.lumiere": 0.05
+       }
+      },
+      {
+       "id": "jugement_plus",
+       "name": "Jugement solaire+",
+       "max": 1,
+       "desc": "Évolution : +25 % de rayon, +25 % de dégâts.",
+       "kind": "evolution",
+       "mods": {
+        "ult_radius": 0.25,
+        "ult_dmg": 0.25
+       }
+      }
+     ]
+    },
+    {
+     "req": 30,
+     "nodes": [
+      {
+       "id": "courroux",
+       "name": "Courroux céleste",
+       "max": 1,
+       "desc": "Clé de voûte : les soins en excès deviennent des dégâts de Lumière sur les ennemis proches de la Barrière.",
+       "kind": "keystone",
+       "mods": {
+        "wrath": 1
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

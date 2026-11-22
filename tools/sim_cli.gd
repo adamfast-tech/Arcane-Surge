@@ -3,6 +3,7 @@ extends SceneTree
 ## Le joueur et les bots sont pilotés par l'IA. Exemple :
 ##   godot --headless --path . --script res://tools/sim_cli.gd -- --level=z01_l08 --runs=20
 ## « --krag » : Krag recruté et emmené avec Sylwen (au lieu de Brann) ; « --active=brann,krag » pour choisir.
+## « --class=chevalier » : classe du héros ; « --mods=barrier_cap:5,miracle:1 » : effets d'arbre forcés.
 
 
 func _init() -> void:
@@ -11,6 +12,8 @@ func _init() -> void:
 	var solo := false
 	var krag := false
 	var active: Array = ["sylwen", "krag"]
+	var cls := "mage"
+	var mods := {}
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--level="):
 			level_id = a.trim_prefix("--level=")
@@ -18,6 +21,13 @@ func _init() -> void:
 			runs = int(a.trim_prefix("--runs="))
 		elif a == "--solo":
 			solo = true
+		elif a.begins_with("--class="):
+			cls = a.trim_prefix("--class=")
+		elif a.begins_with("--mods="):
+			for kv in a.trim_prefix("--mods=").split(","):
+				var p := kv.split(":")
+				if p.size() == 2:
+					mods[p[0]] = float(p[1])
 		elif a == "--krag":
 			krag = true
 		elif a.begins_with("--active="):
@@ -32,13 +42,13 @@ func _init() -> void:
 	var total_us := 0
 	var total_steps := 0
 	var peak := 0
-	print("Simulation %s (%s), %d parties%s%s" % [level_id, str(lv.get("name", "")), runs, " en solo" if solo else "", " avec Krag" if krag else ""])
+	print("Simulation %s (%s), %d parties%s%s, classe %s" % [level_id, str(lv.get("name", "")), runs, " en solo" if solo else "", " avec Krag" if krag else "", cls])
 	for i in range(runs):
 		var s := BattleSim.new()
 		var gl := int(lv.get("global_level", 1))
 		var k := 1.0 + 0.12 * float(gl - 1)
 		var gear := {"pou": roundf(4.0 * k), "esp": roundf(4.0 * k), "vig": roundf(3.0 * k), "cel": roundf(2.0 * k), "des": roundf(1.0 * k)}
-		var o := {"autoplay": true, "solo": solo, "player_level": gl, "bot_level": maxi(1, gl - 1), "gear": gear}
+		var o := {"autoplay": true, "solo": solo, "player_level": gl, "bot_level": maxi(1, gl - 1), "gear": gear, "player_class": cls, "mods": mods}
 		if krag:
 			o["flags"] = ["s1.krag_allie"]
 			o["active"] = active

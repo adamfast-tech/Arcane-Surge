@@ -1,0 +1,276 @@
+{
+ "class": "necromancien",
+ "keystone_limit": 2,
+ "branches": [
+  {
+   "id": "ossuaire",
+   "name": "Ossuaire",
+   "theme": "Squelettes, nombre",
+   "color": "B8B0C8",
+   "icon": "horde",
+   "tiers": [
+    {
+     "req": 0,
+     "nodes": [
+      {
+       "id": "os_renforces",
+       "name": "Os renforcés",
+       "max": 5,
+       "desc": "Squelettes : +6 % d'attaque et de PV par rang.",
+       "mods": {
+        "skeleton_bonus": 0.06
+       }
+      },
+      {
+       "id": "reveil_rapide",
+       "name": "Réveil rapide",
+       "max": 5,
+       "desc": "Ennemis tués par l'Ombre : +1 % de chances par rang de se relever en squelette.",
+       "mods": {
+        "skeleton_chance": 0.01
+       }
+      }
+     ]
+    },
+    {
+     "req": 5,
+     "nodes": [
+      {
+       "id": "moelle_noire",
+       "name": "Moelle noire",
+       "max": 5,
+       "desc": "Invocations : +4 % de PV par rang.",
+       "mods": {
+        "unit_hp": 0.04
+       }
+      },
+      {
+       "id": "ossature",
+       "name": "Ossature",
+       "max": 5,
+       "desc": "Invocations : +1 de défense par rang.",
+       "mods": {
+        "unit_def": 0.05
+       }
+      },
+      {
+       "id": "horde_t",
+       "name": "Horde",
+       "max": 1,
+       "desc": "Nouveau sort : sept squelettes surgissent au point visé.",
+       "kind": "spell",
+       "unlock": "horde"
+      }
+     ]
+    },
+    {
+     "req": 10,
+     "nodes": [
+      {
+       "id": "nuee_os",
+       "name": "Nuée d'os",
+       "max": 5,
+       "desc": "Horde et Armée des morts : +1 squelette par rang.",
+       "mods": {
+        "army_count": 1
+       }
+      },
+      {
+       "id": "rituel",
+       "name": "Rituel",
+       "max": 5,
+       "desc": "+4 % de régénération de mana par rang.",
+       "mods": {
+        "mana_regen": 0.04
+       }
+      },
+      {
+       "id": "os_tailles",
+       "name": "Os taillés",
+       "max": 5,
+       "desc": "Invocations : +3 % d'attaque par rang.",
+       "mods": {
+        "unit_atk": 0.03
+       }
+      }
+     ]
+    },
+    {
+     "req": 20,
+     "nodes": [
+      {
+       "id": "maitre_os",
+       "name": "Maître des os",
+       "max": 3,
+       "desc": "Squelettes : +6 % d'attaque et de PV par rang.",
+       "mods": {
+        "skeleton_bonus": 0.06
+       }
+      },
+      {
+       "id": "armee_plus",
+       "name": "Armée des morts+",
+       "max": 1,
+       "desc": "Évolution : 8 squelettes de plus, +20 % de dégâts.",
+       "kind": "evolution",
+       "mods": {
+        "ult_count": 8,
+        "ult_dmg": 0.2
+       }
+      }
+     ]
+    },
+    {
+     "req": 30,
+     "nodes": [
+      {
+       "id": "legion",
+       "name": "Légion",
+       "max": 1,
+       "desc": "Clé de voûte : tous les 20 squelettes invoqués, un Colosse d'os se lève.",
+       "kind": "keystone",
+       "mods": {
+        "legion": 1
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "maledictions",
+   "name": "Malédictions",
+   "theme": "Flétrissure, poison",
+   "color": "8E62E0",
+   "icon": "malediction_masse",
+   "tiers": [
+    {
+     "req": 0,
+     "nodes": [
+      {
+       "id": "fleau",
+       "name": "Fléau",
+       "max": 5,
+       "desc": "Sorts d'Ombre : +6 % de dégâts par rang.",
+       "mods": {
+        "elem_dmg.ombre": 0.06
+       }
+      },
+      {
+       "id": "peste",
+       "name": "Peste",
+       "max": 5,
+       "desc": "Poison : +8 % de dégâts par rang.",
+       "mods": {
+        "poison_dmg": 0.08
+       }
+      }
+     ]
+    },
+    {
+     "req": 5,
+     "nodes": [
+      {
+       "id": "contagion",
+       "name": "Contagion",
+       "max": 5,
+       "desc": "3 % de chances par rang d'empoisonner.",
+       "mods": {
+        "venom": 0.03
+       }
+      },
+      {
+       "id": "siphon",
+       "name": "Siphon",
+       "max": 5,
+       "desc": "Chaque ennemi abattu rend 0,2 mana par rang.",
+       "mods": {
+        "kill_mana": 0.2
+       }
+      },
+      {
+       "id": "malediction_masse_t",
+       "name": "Malédiction de masse",
+       "max": 1,
+       "desc": "Nouveau sort : flétrit tous les ennemis d'une large zone.",
+       "kind": "spell",
+       "unlock": "malediction_masse"
+      }
+     ]
+    },
+    {
+     "req": 10,
+     "nodes": [
+      {
+       "id": "ombre_rampante",
+       "name": "Ombre rampante",
+       "max": 5,
+       "desc": "Sorts d'Ombre : +4 % de dégâts par rang.",
+       "mods": {
+        "elem_dmg.ombre": 0.04
+       }
+      },
+      {
+       "id": "necrose",
+       "name": "Nécrose",
+       "max": 5,
+       "desc": "Poison : +6 % de dégâts par rang.",
+       "mods": {
+        "poison_dmg": 0.06
+       }
+      },
+      {
+       "id": "economie",
+       "name": "Économie",
+       "max": 5,
+       "desc": "Sorts : −2 % de coût en mana par rang.",
+       "mods": {
+        "spell_cost": 0.02
+       }
+      }
+     ]
+    },
+    {
+     "req": 20,
+     "nodes": [
+      {
+       "id": "coeur_noir",
+       "name": "Cœur noir",
+       "max": 3,
+       "desc": "Sorts d'Ombre : +5 % de dégâts par rang.",
+       "mods": {
+        "elem_dmg.ombre": 0.05
+       }
+      },
+      {
+       "id": "colosse_maudit",
+       "name": "Colosse maudit",
+       "max": 1,
+       "desc": "Évolution : Champion +30 % de PV, +20 % d'attaque.",
+       "kind": "evolution",
+       "mods": {
+        "champ_hp": 0.3,
+        "champ_atk": 0.2
+       }
+      }
+     ]
+    },
+    {
+     "req": 30,
+     "nodes": [
+      {
+       "id": "pandemie",
+       "name": "Pandémie",
+       "max": 1,
+       "desc": "Clé de voûte : un ennemi flétri qui meurt propage la Flétrissure et le poison à ses voisins.",
+       "kind": "keystone",
+       "mods": {
+        "pandemic": 1
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -137,7 +137,7 @@ func _ready() -> void:
 	vp.add_child(arena)
 	WorldArt.zone = int(_level.get("zone", 1))
 	if _opts.has("look"):
-		SpriteAtlas.set_player(_opts["look"], str(_opts.get("player_race", "elfe")))
+		SpriteAtlas.set_player(_opts["look"], str(_opts.get("player_race", "elfe")), str(_opts.get("player_class", "mage")))
 	arena.setup(sim, UiTheme.font(), bool(_opts.get("healed", false)))
 	if _mode == "drawer":
 		for id in sim.player().spells:
@@ -734,7 +734,7 @@ func _on_don() -> void:
 
 func _ult_button() -> Button:
 	var b := UiTheme.button("ULTIME", 18)
-	b.icon = Icons.tex("meteore", 56)
+	b.icon = Icons.tex(sim.ultimate_id if sim != null else "meteore", 56)
 	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
 	b.add_theme_constant_override("icon_max_width", 24)

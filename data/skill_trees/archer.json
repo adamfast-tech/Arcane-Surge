@@ -1,0 +1,276 @@
+{
+ "class": "archer",
+ "keystone_limit": 2,
+ "branches": [
+  {
+   "id": "tireur",
+   "name": "Tireur d'élite",
+   "theme": "Critique, perforation",
+   "color": "C8F5A0",
+   "icon": "tir_precision",
+   "tiers": [
+    {
+     "req": 0,
+     "nodes": [
+      {
+       "id": "point_faible",
+       "name": "Point faible",
+       "max": 5,
+       "desc": "+1,5 % de chances de critique par rang.",
+       "mods": {
+        "crit": 0.015
+       }
+      },
+      {
+       "id": "perforation",
+       "name": "Perforation",
+       "max": 5,
+       "desc": "Archers : +5 % de portée par rang.",
+       "mods": {
+        "unit_range": 0.05
+       }
+      }
+     ]
+    },
+    {
+     "req": 5,
+     "nodes": [
+      {
+       "id": "tir_appuye",
+       "name": "Tir appuyé",
+       "max": 5,
+       "desc": "Invocations : +4 % d'attaque par rang.",
+       "mods": {
+        "unit_atk": 0.04
+       }
+      },
+      {
+       "id": "cadence_arc",
+       "name": "Cadence",
+       "max": 5,
+       "desc": "Invocations : +3 % de cadence par rang.",
+       "mods": {
+        "cadence": 0.03
+       }
+      },
+      {
+       "id": "tir_precision_t",
+       "name": "Tir de précision",
+       "max": 1,
+       "desc": "Nouveau sort : une flèche perce toute une colonne.",
+       "kind": "spell",
+       "unlock": "tir_precision"
+      }
+     ]
+    },
+    {
+     "req": 10,
+     "nodes": [
+      {
+       "id": "fleches_lestees",
+       "name": "Flèches lestées",
+       "max": 5,
+       "desc": "Champion : +6 % d'attaque par rang.",
+       "mods": {
+        "champ_atk": 0.06
+       }
+      },
+      {
+       "id": "concentration_a",
+       "name": "Concentration",
+       "max": 5,
+       "desc": "Sorts : −2 % de coût en mana par rang.",
+       "mods": {
+        "spell_cost": 0.02
+       }
+      },
+      {
+       "id": "souffle_calme",
+       "name": "Souffle calme",
+       "max": 5,
+       "desc": "+4 % de régénération de mana par rang.",
+       "mods": {
+        "mana_regen": 0.04
+       }
+      }
+     ]
+    },
+    {
+     "req": 20,
+     "nodes": [
+      {
+       "id": "maitre_archer",
+       "name": "Maître archer",
+       "max": 3,
+       "desc": "Invocations : +5 % d'attaque par rang.",
+       "mods": {
+        "unit_atk": 0.05
+       }
+      },
+      {
+       "id": "etoiles_plus",
+       "name": "Pluie d'étoiles+",
+       "max": 1,
+       "desc": "Évolution : l'Ultime tombe en 6 étoiles de plus, +20 % de dégâts.",
+       "kind": "evolution",
+       "mods": {
+        "ult_count": 6,
+        "ult_dmg": 0.2
+       }
+      }
+     ]
+    },
+    {
+     "req": 30,
+     "nodes": [
+      {
+       "id": "oeil_faucon",
+       "name": "Œil du faucon",
+       "max": 1,
+       "desc": "Clé de voûte : le Champion gagne +25 % de critique, des critiques ×2,5 et +20 % de portée.",
+       "kind": "keystone",
+       "mods": {
+        "hawk_eye": 1
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pisteur",
+   "name": "Pisteur",
+   "theme": "Pièges, Nature",
+   "color": "8FD16A",
+   "icon": "volee_fleches",
+   "tiers": [
+    {
+     "req": 0,
+     "nodes": [
+      {
+       "id": "marque",
+       "name": "Marque du chasseur",
+       "max": 5,
+       "desc": "4 % de chances par rang qu'un coup marque la cible 4 s (+15 % de dégâts subis).",
+       "mods": {
+        "hunt_mark": 0.04
+       }
+      },
+      {
+       "id": "pointes",
+       "name": "Pointes empoisonnées",
+       "max": 5,
+       "desc": "3 % de chances par rang d'empoisonner.",
+       "mods": {
+        "venom": 0.03
+       }
+      }
+     ]
+    },
+    {
+     "req": 5,
+     "nodes": [
+      {
+       "id": "proie",
+       "name": "Proie affaiblie",
+       "max": 5,
+       "desc": "Ennemis marqués : +3 % de dégâts subis par rang.",
+       "mods": {
+        "mark_vuln": 0.03
+       }
+      },
+      {
+       "id": "ronces",
+       "name": "Pièges à ronces",
+       "max": 5,
+       "desc": "Zones de sorts : +4 % de ralentissement par rang.",
+       "mods": {
+        "zone_slow": 0.04
+       }
+      },
+      {
+       "id": "volee_fleches_t",
+       "name": "Volée de flèches",
+       "max": 1,
+       "desc": "Nouveau sort : une volée s'abat sur une zone.",
+       "kind": "spell",
+       "unlock": "volee_fleches"
+      }
+     ]
+    },
+    {
+     "req": 10,
+     "nodes": [
+      {
+       "id": "venin",
+       "name": "Venin concentré",
+       "max": 5,
+       "desc": "Poison : +8 % de dégâts par rang.",
+       "mods": {
+        "poison_dmg": 0.08
+       }
+      },
+      {
+       "id": "pas_de_loup",
+       "name": "Pas de loup",
+       "max": 5,
+       "desc": "Invocations : +4 % de PV par rang.",
+       "mods": {
+        "unit_hp": 0.04
+       }
+      },
+      {
+       "id": "affut",
+       "name": "Affût",
+       "max": 5,
+       "desc": "+4 % de régénération de mana par rang.",
+       "mods": {
+        "mana_regen": 0.04
+       }
+      }
+     ]
+    },
+    {
+     "req": 20,
+     "nodes": [
+      {
+       "id": "traque",
+       "name": "Traque",
+       "max": 3,
+       "desc": "Ennemis marqués : +5 % de dégâts subis par rang.",
+       "mods": {
+        "mark_vuln": 0.05
+       }
+      },
+      {
+       "id": "rodeur_aguerri",
+       "name": "Rôdeur aguerri",
+       "max": 1,
+       "desc": "Évolution : Champion +30 % de PV, +20 % d'attaque.",
+       "kind": "evolution",
+       "mods": {
+        "champ_hp": 0.3,
+        "champ_atk": 0.2
+       }
+      }
+     ]
+    },
+    {
+     "req": 30,
+     "nodes": [
+      {
+       "id": "maitre_traque",
+       "name": "Maître de la traque",
+       "max": 1,
+       "desc": "Clé de voûte : un ennemi marqué explose en épines à sa mort et marque ses voisins.",
+       "kind": "keystone",
+       "mods": {
+        "thorn_burst": 1
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -22,10 +22,11 @@ const HEIGHT_M := {
 	"cross": 0.29, "px": 1.0,
 	"stag": 1.7, "sylvarche": 3.6, "flower": 0.6, "lantern": 1.25, "orb": 0.3,
 	"pillard": 0.62, "slinger": 0.6, "wolf_rider": 0.78, "ogre": 1.05, "clan_guard": 0.72, "storm_shaman": 0.85, "bonesetter": 0.8, "varg": 1.45, "gharok": 2.7, "war_banner": 1.6, "storm_totem": 1.2, "caravan": 1.3, "pylon": 1.6,
+	"champion_ranger": 1.6, "champion_blademaster": 1.55, "champion_guardian": 1.6, "champion_bone": 1.7, "champion_paladin": 1.6, "champion_warlord": 1.75, "duelist": 0.72,
 	"bog_zombie": 0.72, "plague_rat": 0.42, "slime_abomination": 1.0, "spitting_toad": 0.5, "shield_skeleton": 0.74, "renegade_adept": 0.82, "mist_witch": 0.86, "croc_lich": 1.4, "hydra": 2.9, "hydra_head": 1.2, "barge": 1.2,
 }
 ## Sprites dont les lettres o/d/m/l prennent les couleurs de l'élément.
-const RECOLOR := ["familiar", "knight", "archer", "golem", "fusion", "berserker"]
+const RECOLOR := ["familiar", "knight", "archer", "golem", "fusion", "berserker", "champion_ranger", "champion_blademaster", "champion_guardian", "champion_bone", "champion_paladin", "champion_warlord", "duelist"]
 
 const DEFS := {
 	"familiar": {"pal": {"w": "ffffff"}, "frames": [[
@@ -1520,6 +1521,262 @@ const DEFS := {
 		"..oooooooooooooooooo..",
 		".BbBbBbBbBbBbBbBbBbBb.",
 	]]},
+	# Champions et familiers des classes (étape 13.3).
+	"champion_ranger": {"pal": {"w": "8a5a2b", "b": "6a4a2a", "k": "2a2030"}, "frames": [[
+		".......oooo.......",
+		"......oddddo..w...",
+		".....oddmmddo.w...",
+		".....odmmmmdo..w..",
+		"..ooooddmmddoooow.",
+		".oddmmmmmmmmmmddow",
+		".odmmllmmmmllmmdow",
+		"odmmmllmmmmllmmmdw",
+		"odmmmmmmmmmmmmmmow",
+		"odmmbbbbbbbbbbmmw.",
+		".odmmmmmmmmmmmmdw.",
+		".odmmmmmmmmmmmdow.",
+		"..odmmmmmmmmmdo.w.",
+		"..oddmmmmmmmddo...",
+		"...odddddddddo....",
+		"...okko...okko....",
+		"...okko...okko....",
+		"...oooo...oooo....",
+	], [
+		".......oooo.......",
+		"......oddddo..w...",
+		".....oddmmddo.w...",
+		".....odmmmmdo..w..",
+		"..ooooddmmddoooow.",
+		".oddmmmmmmmmmmddow",
+		".odmmllmmmmllmmdow",
+		"odmmmllmmmmllmmmdw",
+		"odmmmmmmmmmmmmmmow",
+		"odmmbbbbbbbbbbmmw.",
+		".odmmmmmmmmmmmmdw.",
+		".odmmmmmmmmmmmdow.",
+		"..odmmmmmmmmmdo.w.",
+		"..oddmmmmmmmddo...",
+		"...odddddddddo....",
+		"..okko.....okko...",
+		"..okko.....okko...",
+		"..oooo.....oooo...",
+	]]},
+	"champion_blademaster": {"pal": {"s": "e8eef8", "S": "7a849c", "b": "6a4a2a", "k": "2a2030"}, "frames": [[
+		"..s.....oooo.....s.",
+		"..s....oSSSSo....s.",
+		"..s...oSSssSSo...s.",
+		"..s...oSssssSo...s.",
+		"..s..oooSSSSooo..s.",
+		".ooooddmmmmmmddoooo",
+		"oddmmmmmmmmmmmmmmdo",
+		"odmmmllmmmmmmllmmdo",
+		"odmmmmmmmmmmmmmmmdo",
+		".odmmbbbbbbbbbbmdo.",
+		"..odmmmmmmmmmmmdo..",
+		"..odmmmmmmmmmmmdo..",
+		"...odmmmmmmmmmdo...",
+		"...oddddddddddo....",
+		"....okko...okko....",
+		"....okko...okko....",
+		"....oooo...oooo....",
+	], [
+		"..s.....oooo.....s.",
+		"..s....oSSSSo....s.",
+		"..s...oSSssSSo...s.",
+		"..s...oSssssSo...s.",
+		"..s..oooSSSSooo..s.",
+		".ooooddmmmmmmddoooo",
+		"oddmmmmmmmmmmmmmmdo",
+		"odmmmllmmmmmmllmmdo",
+		"odmmmmmmmmmmmmmmmdo",
+		".odmmbbbbbbbbbbmdo.",
+		"..odmmmmmmmmmmmdo..",
+		"..odmmmmmmmmmmmdo..",
+		"...odmmmmmmmmmdo...",
+		"...oddddddddddo....",
+		"...okko.....okko...",
+		"...okko.....okko...",
+		"...oooo.....oooo...",
+	]]},
+	"champion_guardian": {"pal": {"y": "fff0a0", "g": "d8b048", "k": "2a2030"}, "frames": [[
+		"......yyyyyy......",
+		".....y......y.....",
+		"......oooooo......",
+		".....oddddddo.....",
+		"....oddmmmmddo....",
+		"....odmmmmmmdo..g.",
+		"..ooodmmmmmmdooog.",
+		".oddmmmmmmmmmmddog",
+		"odmmmmmmmmmmmmmmdg",
+		"odmmmllllllllmmmdo",
+		"odmmmmmmmmmmmmmmdo",
+		"odmmmmmmmmmmmmmmdo",
+		".odmmmmmmmmmmmmdo.",
+		".odmmmmmmmmmmmmdo.",
+		"..odmmmmmmmmmmdo..",
+		"..oddddddddddddo..",
+		"...okko....okko...",
+		"...oooo....oooo...",
+	], [
+		"......yyyyyy......",
+		".....y......y.....",
+		"......oooooo......",
+		".....oddddddo.....",
+		"....oddmmmmddo....",
+		"....odmmmmmmdo..g.",
+		"..ooodmmmmmmdooog.",
+		".oddmmmmmmmmmmddog",
+		"odmmmmmmmmmmmmmmdg",
+		"odmmmllllllllmmmdo",
+		"odmmmmmmmmmmmmmmdo",
+		"odmmmmmmmmmmmmmmdo",
+		".odmmmmmmmmmmmmdo.",
+		".odmmmmmmmmmmmmdo.",
+		"..odmmmmmmmmmmdo..",
+		"..oddddddddddddo..",
+		"..okko......okko..",
+		"..oooo......oooo..",
+	]]},
+	"champion_bone": {"pal": {"b": "d8d4c8", "B": "f4f0e8"}, "frames": [[
+		".......oooooo.......",
+		"......obbbbbbo......",
+		".....obbBBBBbbo.....",
+		".....obbbbbbbbo.....",
+		"......obbbbbbo......",
+		"...oooobobbobooooo..",
+		"..obbbbbbbbbbbbbbo..",
+		".obbobbbobbobbbobbo.",
+		".obo.obbbbbbbbo.obo.",
+		".obo.obobbbbobo.obo.",
+		".obo.obbbbbbbbo.obo.",
+		".obo.obobbbbobo.obo.",
+		"..o..obbbbbbbbo..o..",
+		"......obbmmbbo......",
+		"......obo..obo......",
+		".....obbo..obbo.....",
+		".....obbo..obbo.....",
+		".....oooo..oooo.....",
+	], [
+		".......oooooo.......",
+		"......obbbbbbo......",
+		".....obbBBBBbbo.....",
+		".....obbbbbbbbo.....",
+		"......obbbbbbo......",
+		"...oooobobbobooooo..",
+		"..obbbbbbbbbbbbbbo..",
+		".obbobbbobbobbbobbo.",
+		".obo.obbbbbbbbo.obo.",
+		".obo.obobbbbobo.obo.",
+		".obo.obbbbbbbbo.obo.",
+		".obo.obobbbbobo.obo.",
+		"..o..obbbbbbbbo..o..",
+		"......obbmmbbo......",
+		"......obo..obo......",
+		"....obbo....obbo....",
+		"....obbo....obbo....",
+		"....oooo....oooo....",
+	]]},
+	"champion_paladin": {"pal": {"S": "8a90a0", "s": "c8d0e0", "b": "d8b048"}, "frames": [[
+		"......oooooo......",
+		".....oSSSSSSo.....",
+		".....oSssssSo.....",
+		".....oSSSSSSo.....",
+		"..oooooSSSSooooooo",
+		".oSSSSmmmmmmSSSSSo",
+		"oSSmmmmmmmmmmmmSSo",
+		"oSmmmllmmmmllmmmSo",
+		"oSmmmmmmmmmmmmmmSo",
+		"oSmmmbbbbbbbbmmmSo",
+		"oSmmmmmmmmmmmmmmSo",
+		".oSmmmmmmmmmmmmSo.",
+		".oSSmmmmmmmmmmSSo.",
+		"..oSSSSSSSSSSSSo..",
+		"...oSSo....oSSo...",
+		"...oSSo....oSSo...",
+		"...oooo....oooo...",
+	], [
+		"......oooooo......",
+		".....oSSSSSSo.....",
+		".....oSssssSo.....",
+		".....oSSSSSSo.....",
+		"..oooooSSSSooooooo",
+		".oSSSSmmmmmmSSSSSo",
+		"oSSmmmmmmmmmmmmSSo",
+		"oSmmmllmmmmllmmmSo",
+		"oSmmmmmmmmmmmmmmSo",
+		"oSmmmbbbbbbbbmmmSo",
+		"oSmmmmmmmmmmmmmmSo",
+		".oSmmmmmmmmmmmmSo.",
+		".oSSmmmmmmmmmmSSo.",
+		"..oSSSSSSSSSSSSo..",
+		"..oSSo......oSSo..",
+		"..oSSo......oSSo..",
+		"..oooo......oooo..",
+	]]},
+	"champion_warlord": {"pal": {"a": "c8d0e0", "w": "6a4a2a", "g": "4f7a3e", "G": "74a058", "b": "6a4a2a", "k": "2a2030"}, "frames": [[
+		"a..................a",
+		"aa.....oooooo.....aa",
+		".aa...oggggggo...aa.",
+		"..w..oggGGGGggo..w..",
+		"..w..oggggggggo..w..",
+		"..w.ooooggggoooo.w..",
+		"..woddmmmmmmmmddow..",
+		"..odmmmmmmmmmmmmdo..",
+		".odmmmllmmmmllmmmdo.",
+		".odmmmmmmmmmmmmmmdo.",
+		".ogdmmbbbbbbbbmmdgo.",
+		".ogodmmmmmmmmmmdogo.",
+		"..o.odmmmmmmmmdo.o..",
+		"....oddddddddddo....",
+		"....okkko..okkko....",
+		"....okkko..okkko....",
+		"....ooooo..ooooo....",
+	], [
+		"a..................a",
+		"aa.....oooooo.....aa",
+		".aa...oggggggo...aa.",
+		"..w..oggGGGGggo..w..",
+		"..w..oggggggggo..w..",
+		"..w.ooooggggoooo.w..",
+		"..woddmmmmmmmmddow..",
+		"..odmmmmmmmmmmmmdo..",
+		".odmmmllmmmmllmmmdo.",
+		".odmmmmmmmmmmmmmmdo.",
+		".ogdmmbbbbbbbbmmdgo.",
+		".ogodmmmmmmmmmmdogo.",
+		"..o.odmmmmmmmmdo.o..",
+		"....oddddddddddo....",
+		"...okkko....okkko...",
+		"...okkko....okkko...",
+		"...ooooo....ooooo...",
+	]]},
+	"duelist": {"pal": {"S": "7a849c", "s": "e8eef8", "k": "2a2030"}, "frames": [[
+		"...oooo...",
+		"..oSSSSo.s",
+		"..oSssSo.s",
+		"...oSSo..s",
+		"..oddmdo.s",
+		".odmmmmdos",
+		".odmmmmdo.",
+		".odmlmmdo.",
+		".odmmmmdo.",
+		"..oddddo..",
+		"..oko.oko.",
+		"..ooo.ooo.",
+	], [
+		"...oooo...",
+		"..oSSSSo.s",
+		"..oSssSo.s",
+		"...oSSo..s",
+		"..oddmdo.s",
+		".odmmmmdos",
+		".odmmmmdo.",
+		".odmlmmdo.",
+		".odmmmmdo.",
+		"..oddddo..",
+		".oko..oko.",
+		".ooo..ooo.",
+	]]},
 	"cross": {"pal": {"g": "6fe39a", "o": "0f2a18"}, "frames": [[
 		".ooo.",
 		"oggo.",
@@ -1535,6 +1792,7 @@ static var _texture: ImageTexture
 static var _player_look: Dictionary = {}
 static var _player_race := "elfe"
 static var _player_key := ""
+static var _player_class := "mage"
 static var _frames: Dictionary = {} ## clé -> Array[Dictionary{uv: Rect2, px: Rect2i, w, h}]
 static var _singles: Dictionary = {}
 
@@ -1563,13 +1821,14 @@ static func height_m(name: String) -> float:
 
 
 ## Apparence du héros pour le combat ; reconstruit l'atlas si elle a changé.
-static func set_player(look: Dictionary, race: String) -> void:
-	var k := PlayerLook.key(look, race)
+static func set_player(look: Dictionary, race: String, cls: String = "mage") -> void:
+	var k := PlayerLook.key(look, race) + "|" + cls
 	if k == _player_key:
 		return
 	_player_key = k
 	_player_look = look.duplicate()
 	_player_race = race
+	_player_class = cls
 	_texture = null
 	for key in _singles.keys():
 		if str(key).begins_with("player#"):
@@ -1753,6 +2012,10 @@ static func _gen_player(frame: int) -> Image:
 		rows[16] = "...occtttttccco."
 		rows[17] = "....oLLo.oLLo..."
 	rows.append_array(legs_a if frame == 0 else legs_b)
+	if _player_class != "mage":
+		# Le bâton du Mage cède la place à l'arme de la classe (dessinée plus bas).
+		for y in range(0, 8):
+			rows[y] = str(rows[y]).replace("g", ".").replace("w", ".").replace("s", ".")
 	var w := 18
 	var cmap := {
 		"o": Color("0e0a1c"), "C": o[2], "c": o[1], "t": eyes, "b": Color("6a4a2a"), "s": Color("8a5a2b"),
@@ -1805,7 +2068,69 @@ static func _gen_player(frame: int) -> Image:
 		"tusks":
 			for q in [Vector2i(2, 15), Vector2i(16, 15)]:
 				put.call(q.x, q.y, sk[1])
+	_draw_weapon(put, _player_class, o, eyes)
 	return img
+
+
+## Arme du héros selon sa classe (étape 13.3), tenue dans la main droite (vers x 15, y 9).
+static func _draw_weapon(put: Callable, cls: String, o: Array, eyes: Color) -> void:
+	var wood := Color("8a5a2b")
+	var steel := Color("d8dce8")
+	var steel_d := Color("8a90a0")
+	var gold := Color("e0b850")
+	match cls:
+		"archer":
+			for q in [Vector2i(15, 1), Vector2i(16, 2), Vector2i(17, 3), Vector2i(17, 4), Vector2i(17, 5), Vector2i(17, 6), Vector2i(17, 7),
+					Vector2i(17, 8), Vector2i(17, 9), Vector2i(17, 10), Vector2i(16, 11), Vector2i(15, 12)]:
+				put.call(q.x, q.y, wood)
+			for y in range(2, 12):
+				put.call(15, y, Color(0.92, 0.92, 0.96, 0.85))
+			put.call(14, 6, steel)
+			put.call(13, 6, steel_d)
+		"epeiste":
+			for y in range(1, 9):
+				put.call(16, y, steel if y > 1 else Color.WHITE)
+				if y > 2:
+					put.call(17, y, steel_d)
+			for x in range(14, 18):
+				put.call(x, 9, gold)
+			put.call(16, 10, Color("5a3a22"))
+			put.call(16, 11, gold)
+		"clerc":
+			for y in range(4, 14):
+				put.call(16, y, Color("b08a40"))
+			for q in [Vector2i(15, 1), Vector2i(16, 1), Vector2i(17, 1), Vector2i(15, 3), Vector2i(17, 3), Vector2i(15, 2), Vector2i(17, 2)]:
+				put.call(q.x, q.y, gold)
+			put.call(16, 2, Color("fff6c8"))
+			put.call(16, 0, Color(1.0, 0.95, 0.7, 0.8))
+			put.call(14, 2, Color(1.0, 0.95, 0.7, 0.6))
+		"necromancien":
+			for y in range(3, 14):
+				put.call(16, y, Color("3a2a3a"))
+			for q in [Vector2i(15, 1), Vector2i(16, 1), Vector2i(17, 1), Vector2i(15, 2), Vector2i(17, 2), Vector2i(16, 3)]:
+				put.call(q.x, q.y, Color("e8dcc0"))
+			put.call(16, 2, Color("8e62e0"))
+			for q in [Vector2i(14, 0), Vector2i(13, 1), Vector2i(12, 2)]:
+				put.call(q.x, q.y, steel_d)
+		"chevalier":
+			for y in range(7, 15):
+				for x in range(13, 18):
+					var edge := x == 13 or x == 17 or y == 7 or y == 14
+					put.call(x, y, Color("a8b0c0") if edge else o[2])
+			for y in range(8, 14):
+				put.call(15, y, gold)
+			for x in range(14, 17):
+				put.call(x, 10, gold)
+			for y in range(1, 7):
+				put.call(17, y, steel)
+		"berserker":
+			for y in range(2, 14):
+				put.call(16, y, Color("6a4a2a"))
+			for q in [Vector2i(13, 2), Vector2i(14, 2), Vector2i(15, 2), Vector2i(12, 3), Vector2i(13, 3), Vector2i(14, 3), Vector2i(15, 3),
+					Vector2i(12, 4), Vector2i(13, 4), Vector2i(14, 4), Vector2i(15, 4), Vector2i(13, 5), Vector2i(14, 5), Vector2i(15, 5)]:
+				put.call(q.x, q.y, steel if q.x > 12 else Color.WHITE)
+			put.call(17, 3, steel_d)
+			put.call(17, 4, steel_d)
 
 
 ## Boss de la zone 1, dessiné par code : canopée corrompue, tronc à visage, bras-branches, racines.

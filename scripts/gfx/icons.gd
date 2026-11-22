@@ -106,6 +106,20 @@ const SHAPES := {
 	"bond_furieux": "<path d=\"M4 20c3-8 7-12 13-14\"/><path d=\"M13 5h5v5\"/><path d=\"M6 13l-2-2M9 9L8 6\"/>",
 	"bouclier_leve": "<path d=\"M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z\"/>",
 	"tir_precision": "<path d=\"M4 20L18 6\"/><path d=\"M14 5h5v5\"/><path d=\"M4 20l1-4 3 3z\"/>",
+	# Classes (étape 13.3)
+	"fente": "<path d=\"M4 20L17 7\"/><path d=\"M15 4l5 5\"/><path d=\"M4 20l2.5-1L5 17.5z\"/><path d=\"M19 15l2 2M17 18l1.5 1.5\"/>",
+	"tranche_orage": "<path d=\"M5 19L16 8\"/><path d=\"M14 6l4 4\"/><path d=\"M13 3l-2 4h3l-2 4\"/><path d=\"M20 12l-2 3h2.5l-2 3\"/>",
+	"priere": "<path d=\"M12 21V11\"/><path d=\"M8 13c0-4 2-7 4-9 2 2 4 5 4 9\"/><path d=\"M5 21h14\"/><path d=\"M4 9l2 1M20 9l-2 1M12 1v1\"/>",
+	"horde": "<circle cx=\"7\" cy=\"9\" r=\"2.6\"/><circle cx=\"17\" cy=\"9\" r=\"2.6\"/><circle cx=\"12\" cy=\"6\" r=\"2.6\"/><path d=\"M4 20c0-3 1.4-5 3-5s3 2 3 5M14 20c0-3 1.4-5 3-5s3 2 3 5M9 17c0-2.4 1.4-4 3-4s3 1.6 3 4\"/>",
+	"malediction_masse": "<circle cx=\"12\" cy=\"12\" r=\"8\"/><path d=\"M8.5 10.5l2 1.5-2 1.5M15.5 10.5l-2 1.5 2 1.5\"/><path d=\"M12 4v2M12 18v2M4 12h2M18 12h2\"/>",
+	"hurlement": "<path d=\"M6 9v6l5 4V5z\"/><path d=\"M14 9c1 1 1 5 0 6M17 7c2.4 2.4 2.4 7.6 0 10M20 5c3.4 3.4 3.4 10.6 0 14\"/>",
+	"lance_solaire": "<path d=\"M12 22V6\"/><path d=\"M9 9l3-7 3 7\"/><circle cx=\"12\" cy=\"14\" r=\"3\"/><path d=\"M6 14H4M20 14h-2M7.8 9.8l-1.4-1.4M16.2 9.8l1.4-1.4\"/>",
+	"pluie_etoiles": "<path d=\"M8 3l1 2.4 2.4 1-2.4 1L8 9.8 7 7.4 4.6 6.4 7 5.4z\"/><path d=\"M17 8l.8 1.8 1.8.8-1.8.8-.8 1.8-.8-1.8-1.8-.8 1.8-.8z\"/><path d=\"M10 21l4-8M15 21l3-6M5 20l3-6\"/>",
+	"mille_lames": "<path d=\"M4 20L14 10M8 20l9-9M12 20l8-8\"/><path d=\"M12 8l2 2M15 9l2 2M18 10l2 2\"/><path d=\"M3 4l5 5\"/>",
+	"jugement_solaire": "<circle cx=\"12\" cy=\"9\" r=\"4\"/><path d=\"M12 1v2M12 15v2M4 9H2M22 9h-2M6.3 3.3l1.4 1.4M16.3 13.3l1.4 1.4M17.7 3.3l-1.4 1.4M7.7 13.3l-1.4 1.4\"/><path d=\"M5 22c2-2 4-3 7-3s5 1 7 3\"/>",
+	"armee_des_morts": "<path d=\"M8 10a4 4 0 1 1 8 0v3h-8z\"/><circle cx=\"10.3\" cy=\"9.5\" r=\".9\"/><circle cx=\"13.7\" cy=\"9.5\" r=\".9\"/><path d=\"M10 13v2M12 13v2M14 13v2\"/><path d=\"M3 21l3-4M21 21l-3-4M12 21v-3\"/>",
+	"rempart_sacre": "<path d=\"M12 3l7 3v5c0 5-3 8.5-7 10-4-1.5-7-5-7-10V6z\"/><path d=\"M12 7v9M8.5 10.5h7\"/>",
+	"dechainement": "<path d=\"M12 3c2 3 5 4 5 9a5 5 0 0 1-10 0c0-3 1.5-4 2-6 1 1 1.5 2 1.5 3 1-2 1.5-4 1.5-6z\"/><path d=\"M3 9l2 1M21 9l-2 1M4 16l2-.5M20 16l-2-.5\"/>",
 }
 
 ## Emplacement d'équipement → icône (silhouette des emplacements vides).
