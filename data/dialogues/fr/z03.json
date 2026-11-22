@@ -1,0 +1,128 @@
+{
+ "characters": {
+  "narrateur": {
+   "name": "",
+   "color": "A99FD0"
+  },
+  "porteur": {
+   "name": "{pseudo}",
+   "title": "Canalisateur",
+   "title_flag": {
+    "s1.sceau_echo": "Porteur d'Écho"
+   },
+   "color": "4FE3D2",
+   "portrait": "porteur"
+  },
+  "sylwen": {
+   "name": "Sylwen",
+   "title": "Vigiles Sylvestres",
+   "color": "8FD16A",
+   "portrait": "sylwen",
+   "loyalty": true
+  },
+  "brann": {
+   "name": "Brann",
+   "title": "Bastion d'Argent",
+   "color": "B8C6E8",
+   "portrait": "brann",
+   "loyalty": true
+  },
+  "krag": {
+   "name": "Krag",
+   "title": "Enfants de la Fureur",
+   "color": "E8703A",
+   "portrait": "krag",
+   "loyalty": true,
+   "loyalty_if": "s1.krag_allie"
+  }
+ },
+ "scenes": {},
+ "barks": {
+  "start": [
+   {
+    "who": "brann",
+    "text": "Des marais. Évidemment. Mes bottes n'y survivront pas."
+   },
+   {
+    "who": "sylwen",
+    "text": "La brume murmure… Ne t'y fie pas."
+   },
+   {
+    "who": "krag",
+    "text": "Ça pue la mort. Bien. Les morts tombent comme les vivants."
+   }
+  ],
+  "barrier_low": [
+   {
+    "who": "brann",
+    "text": "La Barrière cède ! Vise ceux qui passent !"
+   },
+   {
+    "who": "sylwen",
+    "text": "Ils sortent de la brume ! Tire !"
+   },
+   {
+    "who": "krag",
+    "text": "Ils passent ! Je les arrête à la hache !"
+   }
+  ],
+  "half": [
+   {
+    "who": "sylwen",
+    "text": "Il faiblit ! Continue !"
+   },
+   {
+    "who": "brann",
+    "text": "À moitié fait ! Le plus dur, c'est l'autre moitié."
+   }
+  ],
+  "boss_phase": [
+   {
+    "who": "sylwen",
+    "text": "Brûle les plaies ! Sinon les têtes repoussent !"
+   },
+   {
+    "who": "brann",
+    "text": "Il change de rythme. Reste concentré."
+   },
+   {
+    "who": "krag",
+    "text": "Il enrage ? Moi aussi !"
+   }
+  ],
+  "echo": [
+   {
+    "who": "sylwen",
+    "text": "Le Sceau répond… choisis bien."
+   }
+  ],
+  "ultimate": [
+   {
+    "who": "brann",
+    "text": "Ça, c'était quelque chose !"
+   }
+  ],
+  "crowd": [
+   {
+    "who": "sylwen",
+    "text": "Ils se cachent dans la brume ! Fais passer tes troupes par la Lumière !"
+   }
+  ],
+  "escort_low": [
+   {
+    "who": "brann",
+    "text": "La barque ! Protège la barque !"
+   }
+  ]
+ },
+ "barks_level": {
+  "z03_l10": {
+   "start": [
+    {
+     "who": "sylwen",
+     "text": "Une hydre… Le feu, {pseudo}. Seul le feu referme ses plaies."
+    }
+   ]
+  }
+ }
+}

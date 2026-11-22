@@ -1,0 +1,94 @@
+{
+  "id": "z03_l04",
+  "name": "Le Gué des Morts",
+  "zone": 3,
+  "number": "3-4",
+  "global_level": 24,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag"
+  ],
+  "desc": "Les Squelettes à pavois bloquent de face, les Abominations de vase encaissent et laissent une mare en mourant.",
+  "par_time": 140,
+  "nexus": {
+    "hp": 17850
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 300
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 300
+    }
+  ],
+  "portals": [
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "elem",
+      "element": "feu",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 1.8
+    },
+    {
+      "kind": "sub",
+      "value": 5,
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "add",
+      "value": 5,
+      "x": 4.5,
+      "y": 10.4,
+      "width": 2.2,
+      "motion": "slide",
+      "range": 2.4,
+      "speed": 0.45
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 40,
+    "budget_per_level": 12,
+    "local_level": 4,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "bog_zombie": 5,
+      "plague_rat": 2,
+      "shield_skeleton": 0.9,
+      "slime_abomination": 0.6
+    }
+  },
+  "initial_enemies": [],
+  "pools": [
+    {
+      "x": 3.0,
+      "y": 9.0,
+      "r": 1.1
+    },
+    {
+      "x": 6.4,
+      "y": 10.8,
+      "r": 1.1
+    }
+  ]
+}

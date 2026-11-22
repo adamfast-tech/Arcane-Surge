@@ -49,6 +49,7 @@ var shield := 0.0
 var enraged_t := 0.0 ## cri de guerre (Gharok, Varg) : +30 % de dégâts
 var zone_slow := 0.0 ## ralentissement des zones de sorts (Racines), recalculé à chaque pas
 var exposed_t := 0.0 ## dans le Miasme : +30 % de dégâts subis
+var fogged := false ## caché dans la brume (zone 3) : -20 % de dégâts subis
 
 # Rendu
 var flash_t := 0.0

@@ -1,0 +1,107 @@
+{
+  "id": "z03_l07",
+  "name": "La Barque des passeurs",
+  "zone": 3,
+  "number": "3-7",
+  "global_level": 27,
+  "type": "Escorte",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag"
+  ],
+  "objective": "escort",
+  "desc": "La barque des passeurs doit traverser le marais. Les rats de peste l'attaquent par les flancs ; la brume cache les embuscades.",
+  "par_time": 170,
+  "nexus": {
+    "hp": 30000
+  },
+  "escort": {
+    "kind": "barge",
+    "x": 4.5,
+    "y": 1.6,
+    "goal_y": 13.0,
+    "speed": 0.1,
+    "hp": 2400
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 320
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 320
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "element": "lumiere",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 4.5,
+      "y": 5.0,
+      "width": 1.8,
+      "motion": "slide",
+      "range": 1.2,
+      "speed": 0.5
+    },
+    {
+      "kind": "add",
+      "value": 5,
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 4.5,
+      "y": 10.4,
+      "width": 2.2,
+      "motion": "slide",
+      "range": 2.4,
+      "speed": 0.4
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 38,
+    "budget_per_level": 11,
+    "local_level": 7,
+    "growth": 0.04,
+    "spawn_y": 14.6,
+    "pool": {
+      "bog_zombie": 6,
+      "plague_rat": 3,
+      "shield_skeleton": 1,
+      "spitting_toad": 1
+    }
+  },
+  "initial_enemies": [],
+  "ambush": {
+    "every": 17,
+    "count": 3,
+    "kind": "plague_rat",
+    "ahead": 2.6
+  },
+  "fog": {
+    "count": 1,
+    "r": 2.0,
+    "speed": 0.2,
+    "y_min": 8,
+    "y_max": 11
+  }
+}

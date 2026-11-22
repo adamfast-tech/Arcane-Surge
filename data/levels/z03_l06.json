@@ -1,0 +1,97 @@
+{
+  "id": "z03_l06",
+  "name": "Le Cercle de Saules",
+  "zone": 3,
+  "number": "3-6",
+  "global_level": 26,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag"
+  ],
+  "desc": "Des Adeptes renégats lancent des sorts d'ombre depuis les saules. La brume les protège ; leurs mares ralentissent tes troupes.",
+  "par_time": 180,
+  "nexus": {
+    "hp": 25200
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 300
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 300
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "element": "feu",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "motion": "slide",
+      "range": 1.4,
+      "speed": 0.5
+    },
+    {
+      "kind": "add",
+      "value": 5,
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "elem",
+      "element": "lumiere",
+      "x": 4.5,
+      "y": 10.4,
+      "width": 2.2
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 42,
+    "budget_per_level": 12,
+    "local_level": 6,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "bog_zombie": 5,
+      "plague_rat": 2,
+      "spitting_toad": 1,
+      "shield_skeleton": 0.8,
+      "renegade_adept": 0.5
+    }
+  },
+  "initial_enemies": [],
+  "fog": {
+    "count": 2,
+    "r": 2.1,
+    "speed": 0.25,
+    "y_min": 7,
+    "y_max": 12
+  },
+  "pools": [
+    {
+      "x": 4.5,
+      "y": 8.6,
+      "r": 1.0
+    }
+  ]
+}

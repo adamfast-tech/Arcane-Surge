@@ -145,6 +145,9 @@ static func ground(kind: String) -> ImageTexture:
 		"faille":
 			base = Color("0e0a08")
 			alpha = 0.95
+		"poison":
+			base = Color("4a7a2a")
+			alpha = 0.75
 	# Disque aux bords irréguliers (sauf runes, gravats et fissures, dessinés à part).
 	if not kind in ["rune", "gravats", "fissure"]:
 		for y in range(n):
@@ -162,6 +165,8 @@ static func ground(kind: String) -> ImageTexture:
 					a = clampf((1.0 - d) * 6.0, 0.0, 1.0) * alpha
 				elif kind == "eau" and int(d * 9.0) % 3 == 0:
 					col = base.lightened(0.25)
+				elif kind == "poison" and rng.randf() < 0.06:
+					col = Color("a8d050")
 				img.set_pixel(x, y, Color(col, a))
 	match kind:
 		"braises":

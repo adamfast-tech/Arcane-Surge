@@ -1,0 +1,129 @@
+{
+  "id": "z03_l05",
+  "name": "Le Crocodile-liche",
+  "zone": 3,
+  "number": "3-5",
+  "global_level": 25,
+  "type": "Mini-boss",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag"
+  ],
+  "objective": "boss",
+  "desc": "La liche-crocodile charge en ligne, crache son venin (couloirs de poison) et relève les morts du marais.",
+  "par_time": 160,
+  "boss": {
+    "kind": "croc_lich",
+    "hp": 125000,
+    "x": 4.5,
+    "y": 13.6,
+    "phases": [
+      [
+        {
+          "type": "lane_strike",
+          "cd": 8,
+          "delay": 1.3,
+          "dmg": 55,
+          "width": 1.5
+        },
+        {
+          "type": "summon",
+          "cd": 13,
+          "kind": "bog_zombie",
+          "count": 6
+        }
+      ],
+      [
+        {
+          "type": "venom",
+          "cd": 9,
+          "delay": 1.3,
+          "dmg": 50,
+          "width": 1.4
+        },
+        {
+          "type": "summon",
+          "cd": 12,
+          "kind": "plague_rat",
+          "count": 5
+        }
+      ],
+      [
+        {
+          "type": "venom",
+          "cd": 7,
+          "delay": 1.2,
+          "dmg": 55,
+          "width": 1.4,
+          "count": 2
+        },
+        {
+          "type": "summon",
+          "cd": 10,
+          "kind": "bog_zombie",
+          "count": 7
+        },
+        {
+          "type": "fog",
+          "cd": 18,
+          "count": 1
+        }
+      ]
+    ]
+  },
+  "towers": [],
+  "portals": [
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "motion": "slide",
+      "range": 2.2,
+      "speed": 0.5
+    },
+    {
+      "kind": "elem",
+      "element": "lumiere",
+      "x": 1.8,
+      "y": 10.2,
+      "width": 2.0
+    },
+    {
+      "kind": "add",
+      "value": 5,
+      "x": 7.2,
+      "y": 10.2,
+      "width": 2.0
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      9,
+      12
+    ],
+    "budget_base": 18,
+    "budget_per_level": 6,
+    "local_level": 5,
+    "growth": 0.03,
+    "spawn_y": 14.6,
+    "pool": {
+      "bog_zombie": 5,
+      "plague_rat": 2
+    }
+  },
+  "initial_enemies": [],
+  "wind": {
+    "first": 10,
+    "every": [
+      13,
+      17
+    ],
+    "warn": 1.6,
+    "dur": 2.4,
+    "force": 1.0
+  }
+}

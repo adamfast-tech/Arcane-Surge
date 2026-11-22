@@ -1,0 +1,91 @@
+{
+  "id": "z03_l01",
+  "name": "Les Pilotis",
+  "zone": 3,
+  "number": "3-1",
+  "global_level": 21,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag"
+  ],
+  "desc": "Les Marais Murmurants. Zombies des tourbières et rats de peste montent des pilotis. Un banc de brume cache les ennemis : fais passer tes invocations par le portail de Lumière pour le dissiper.",
+  "par_time": 116,
+  "nexus": {
+    "hp": 30000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 300
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 300
+    }
+  ],
+  "portals": [
+    {
+      "kind": "add",
+      "value": 5,
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "motion": "slide",
+      "range": 1.6,
+      "speed": 0.5
+    },
+    {
+      "kind": "elem",
+      "element": "lumiere",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 4.5,
+      "y": 10.4,
+      "width": 2.2,
+      "motion": "slide",
+      "range": 2.2,
+      "speed": 0.45
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 34,
+    "budget_per_level": 10,
+    "local_level": 1,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "bog_zombie": 5,
+      "plague_rat": 2.5,
+      "spitting_toad": 0.6
+    }
+  },
+  "initial_enemies": [],
+  "fog": {
+    "count": 1,
+    "r": 2.2,
+    "speed": 0.25,
+    "y_min": 7,
+    "y_max": 11
+  }
+}

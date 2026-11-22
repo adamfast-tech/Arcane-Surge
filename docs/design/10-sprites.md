@@ -129,6 +129,22 @@ Les sprites générés sont dans `scripts/gfx/sprite_atlas.gd`. Ils sont tous re
 | `krag` | **Krag** (héros, vu de dos) | 16×16 | 1,55 m | Orc vert, chignon noir, cape de fourrure, deux haches aux hanches |
 | `berserker` | Lanceur de haches (familier de Krag, recoloré par élément) | 10×12 | 0,74 m | Petit orc à la hache, corps en gris neutre |
 
+### Ennemis de la zone 3 · Marais Murmurants (vus de face, crépuscule)
+
+| Fichier | Ennemi | Toile | Hauteur | Description |
+|---|---|---|---|---|
+| `bog_zombie` | Zombie des tourbières (sbire) | 12×14 | 0,72 m | Peau vert-gris, yeux magenta, haillons |
+| `plague_rat` | Rat de peste (coureur) | 14×10 | 0,42 m | Rat galeux aux yeux jaunes |
+| `slime_abomination` | Abomination de vase (brute) | 18×14 | 1,0 m | Masse de vase verte, gueule pâle |
+| `spitting_toad` | Crapaud cracheur (tireur) | 14×10 | 0,5 m | Crapaud vert, gorge claire, yeux orange |
+| `shield_skeleton` | Squelette à pavois (bouclier) | 15×15 | 0,74 m | Crâne aux yeux magenta derrière un pavois runique |
+| `renegade_adept` | Adepte renégat (lanceur) | 14×15 | 0,82 m | Robe violette, regard violet, cristal |
+| `mist_witch` | Sorcière des brumes (soigneuse) | 14×16 | 0,86 m | Chapeau pointu, robe gris-bleu, lanterne |
+| `croc_lich` | **Crocodile-liche** (mini-boss) | 28×15 | 1,4 m | Crocodile mort-vivant, crocs, runes violettes |
+| `hydra` | **Hydre des brumes** (boss) | 28×19 | 2,9 m | Corps massif vert, cou central |
+| `hydra_head` | Tête de l'Hydre | 12×12 | 1,2 m | Tête à crocs, yeux jaunes |
+| `barge` | Barque des passeurs (escorte) | 22×12 | 1,2 m | Barque de bois, lanterne |
+
 ## 6. Après livraison
 - Je vérifie chaque sprite en jeu (taille, lisibilité, animation) et ajuste au besoin `HEIGHT_M` dans `scripts/gfx/sprite_atlas.gd`.
 - Si un sprite généré est plus détaillé que sa toile, je peux augmenter la résolution de rendu de l'arène pour en profiter.

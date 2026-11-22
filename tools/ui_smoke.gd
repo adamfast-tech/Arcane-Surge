@@ -260,7 +260,7 @@ func _run() -> void:
 	Profile.swap_active("krag", "brann")
 	print("Cercle : actifs ", Profile.active_companions())
 	# Objectifs spéciaux : boss (avec l'aide des fées), escorte, siège, lucioles.
-	for id in ["z01_l05", "z01_l07", "z01_l09", "z01_l10", "z01_l02", "z02_l03", "z02_l07", "z02_l10"]:
+	for id in ["z01_l05", "z01_l07", "z01_l09", "z01_l10", "z01_l02", "z02_l03", "z02_l07", "z02_l10", "z03_l03", "z03_l10"]:
 		main.call("_start", id, false)
 		await _frames(30)
 		var bs: BattleScreen = _screen()
@@ -269,6 +269,31 @@ func _run() -> void:
 		bs.sim.set_player_firing(true)
 		await _frames(90)
 		print(id, " · ", bs.sim.objective_title(), " · ", bs.sim.objective_info(), " · état ", bs.sim.state)
+		if id == "z03_l03":
+			var f0 := bs.sim.fog.size()
+			var cleared := bs.sim.clear_fog(bs.sim.fog[0]["pos"], 1.0)
+			print("  brume : ", f0, " bancs · Purifier dissipe ", cleared, " (densité ", bs.sim.fog[0]["density"], ")")
+			if f0 < 1 or not cleared:
+				push_error("brume incorrecte")
+				quit(1)
+				return
+		if id == "z03_l10":
+			# Tête tranchée -> plaie ; Boule de feu sur la plaie -> cautérisée, pas de repousse.
+			var h0 := bs.sim.heads_alive()
+			var hd: Unit = bs.sim.heads[0]
+			bs.sim._damage(hd, hd.hp + 1.0, "physique")
+			var st_n := bs.sim.stumps.size()
+			var hp := bs.sim.player()
+			hp.mana = hp.mana_max
+			hp.spell_cd.clear()
+			var burned := bs.sim.cast_spell(hp, "boule_de_feu", bs.sim.stumps[0]["pos"])
+			for k in range(30):
+				bs.sim.step()
+			print("  Hydre : têtes ", h0, " -> plaie ", st_n, " · Boule de feu ", burned, " · plaies restantes ", bs.sim.stumps.size(), " · têtes ", bs.sim.heads_alive())
+			if h0 != 3 or st_n != 1 or not bs.sim.stumps.is_empty() or bs.sim.heads_alive() != 2:
+				push_error("têtes de l'Hydre incorrectes")
+				quit(1)
+				return
 		if id == "z02_l03":
 			# Barrage (Orage) et magie interdite (Soleil noir, -20 Barrière).
 			var pcs: BattleSim.Caster = bs.sim.player()

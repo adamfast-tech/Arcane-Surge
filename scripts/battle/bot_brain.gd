@@ -60,6 +60,13 @@ func _choose_position(sim: BattleSim, c: BattleSim.Caster) -> void:
 
 
 func _use_abilities(sim: BattleSim, c: BattleSim.Caster) -> void:
+	# Plaie de l'Hydre : la brûler avec un sort de Feu avant qu'elle ne repousse.
+	if not sim.stumps.is_empty():
+		for id in c.spells:
+			var fs: Dictionary = sim.spells_db[id]
+			if str(fs.get("element", "")) == "feu" and str(fs["type"]) in ["aoe", "zone", "barrage", "ground"] and sim.spell_ready(c, id):
+				if sim.cast_spell(c, id, sim.stumps[0]["pos"]):
+					return
 	for id in c.spells:
 		if not sim.spell_ready(c, id):
 			continue

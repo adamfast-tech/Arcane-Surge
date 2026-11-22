@@ -1,0 +1,86 @@
+{
+  "id": "z03_l03",
+  "name": "La Brume",
+  "zone": 3,
+  "number": "3-3",
+  "global_level": 23,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag"
+  ],
+  "desc": "Trois bancs de brume dérivent sur le marais. Les Sorcières des brumes soignent le Nexus. La Lumière et Purifier dissipent la brume.",
+  "par_time": 190,
+  "nexus": {
+    "hp": 22000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 300
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 300
+    }
+  ],
+  "portals": [
+    {
+      "kind": "add",
+      "value": 5,
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "elem",
+      "element": "lumiere",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "elem",
+      "element": "feu",
+      "x": 4.5,
+      "y": 10.4,
+      "width": 2.2
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 38,
+    "budget_per_level": 11,
+    "local_level": 3,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "bog_zombie": 5,
+      "plague_rat": 2,
+      "spitting_toad": 1,
+      "mist_witch": 0.15
+    }
+  },
+  "initial_enemies": [],
+  "fog": {
+    "count": 2,
+    "r": 2.0,
+    "speed": 0.3,
+    "y_min": 5,
+    "y_max": 12
+  }
+}

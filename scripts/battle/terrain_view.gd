@@ -229,6 +229,8 @@ func _make_surface(s: Dictionary) -> Dictionary:
 			pc = [Color.WHITE, Color("c8a8ff"), Color(0.6, 0.4, 1.0, 0.0)]
 		"eau":
 			pc = [Color(0.8, 0.9, 1.0, 0.6), Color("5aa0c8"), Color(0.3, 0.5, 0.8, 0.0)]
+		"poison":
+			pc = [Color(0.8, 1.0, 0.5, 0.8), Color("7ab040"), Color(0.3, 0.5, 0.15, 0.0)]
 	if not pc.is_empty():
 		parts = CPUParticles3D.new()
 		var area := r * r

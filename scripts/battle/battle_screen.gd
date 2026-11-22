@@ -972,6 +972,11 @@ func _place_bark() -> void:
 	bark_panel.custom_minimum_size = Vector2(w, 0)
 	bark_panel.size = Vector2(w, 0)
 	bark_panel.reset_size()
+	# Hauteur calculée d'après le texte : jamais plus haute que nécessaire (le cadre s'étirait parfois).
+	var pad := bark_panel.get_theme_stylebox("panel").get_minimum_size().y if bark_panel.has_theme_stylebox("panel") else 24.0
+	var want := maxf(64.0, bark_name.get_minimum_size().y + bark_text.get_minimum_size().y) + pad
+	if bark_panel.size.y > want + 4.0:
+		bark_panel.size = Vector2(w, want)
 	bark_panel.position = Vector2(x0 if _bark_side != "right" else x1 - w, bottom - bark_panel.size.y)
 
 

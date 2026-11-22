@@ -7,7 +7,7 @@ const PX_PER_M := 16
 ## Zone couverte par la texture du sol, en coordonnées logiques (x, y).
 const GROUND_MIN := Vector2(-1.0, -1.5)
 const GROUND_SIZE := Vector2(11.0, 19.0)
-## Zone du décor (1 : Bois des Lucioles, nuit ; 2 : Collines d'Ambre, plein jour).
+## Zone du décor (1 : Bois des Lucioles, nuit ; 2 : Collines d'Ambre, plein jour ; 3 : Marais Murmurants, crépuscule).
 static var zone := 1
 
 
@@ -26,6 +26,24 @@ static func _warm(img: Image, grass_h: float = 0.115, lift: float = 1.0) -> void
 				out = Color.from_hsv(0.075 + 0.02 * c.v, clampf(c.s * 0.35 + 0.16, 0.0, 0.5), clampf(c.v * 1.15 * lift + 0.06, 0.0, 0.8), c.a)
 			else:
 				out = Color.from_hsv(h, c.s, clampf(c.v * 1.15, 0.0, 1.0), c.a)
+			img.set_pixel(x, y, out)
+
+
+## Zone 3 : marais au crépuscule. Herbe -> vert-gris, pierre -> gris violacé, teintes rabattues.
+static func _swamp(img: Image, lift: float = 1.0) -> void:
+	for y in range(img.get_height()):
+		for x in range(img.get_width()):
+			var c := img.get_pixel(x, y)
+			if c.a <= 0.0:
+				continue
+			var h := c.h
+			var out: Color
+			if c.s > 0.12 and h > 0.18 and h < 0.5:
+				out = Color.from_hsv(0.28 + (h - 0.18) * 0.1, clampf(c.s * 0.45 + 0.05, 0.0, 0.4), clampf(c.v * 1.05 * lift + 0.04, 0.0, 0.7), c.a)
+			elif h >= 0.5 and h < 0.9 or c.s <= 0.12:
+				out = Color.from_hsv(0.78, clampf(c.s * 0.35 + 0.06, 0.0, 0.3), clampf(c.v * 1.0 * lift + 0.05, 0.0, 0.7), c.a)
+			else:
+				out = Color.from_hsv(h, c.s * 0.7, c.v, c.a)
 			img.set_pixel(x, y, out)
 
 
@@ -125,6 +143,8 @@ static func ground_texture(healed: bool = false) -> ImageTexture:
 				_px(img, ex1 + 2 + k, y, Color("4f7a3a"))
 	if zone == 2:
 		_warm(img)
+	if zone == 3:
+		_swamp(img)
 	return _tex(img, true)
 
 
@@ -175,6 +195,8 @@ static func stone_texture() -> ImageTexture:
 			_px(img, x, y + 1, Color("3f6a32"))
 	if zone == 2:
 		_warm(img)
+	if zone == 3:
+		_swamp(img)
 	return _tex(img, true)
 
 
@@ -192,6 +214,8 @@ static func rock_texture() -> ImageTexture:
 		_px(img, rng.randi_range(0, 31), rng.randi_range(0, 31), Color("35553a"))
 	if zone == 2:
 		_warm(img, 0.115, 0.85)
+	if zone == 3:
+		_swamp(img)
 	return _tex(img, true)
 
 
@@ -207,6 +231,8 @@ static func moss_texture() -> ImageTexture:
 		_px(img, rng.randi_range(0, 31), rng.randi_range(0, 31), Color("d8d4f8"))
 	if zone == 2:
 		_warm(img)
+	if zone == 3:
+		_swamp(img)
 	return _tex(img, true)
 
 
@@ -244,6 +270,8 @@ static func pine_texture() -> ImageTexture:
 		_px(img, cx, 1, lit[v])
 	if zone == 2:
 		_warm(img, 0.2, 0.9)
+	if zone == 3:
+		_swamp(img)
 	return _tex(img)
 
 
@@ -417,6 +445,8 @@ static func flame_texture() -> ImageTexture:
 static func backdrop(size: Vector2i) -> ImageTexture:
 	if zone == 2:
 		return _backdrop_day(size)
+	if zone == 3:
+		return _backdrop_swamp(size)
 	var w := maxi(8, size.x)
 	var h := maxi(8, size.y)
 	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
@@ -540,6 +570,69 @@ static func _backdrop_day(size: Vector2i) -> ImageTexture:
 		var len := rng.randi_range(30, 90)
 		for dx in range(len):
 			_px(img, x + dx, y, Color(1.0, 0.9, 0.7, 0.1))
+	return _tex(img)
+
+
+## Marais Murmurants : ciel de crépuscule violet pâle, saules en silhouette, maisons sur pilotis
+## et lanternes, brume au ras de l'eau.
+static func _backdrop_swamp(size: Vector2i) -> ImageTexture:
+	var w := maxi(8, size.x)
+	var h := maxi(8, size.y)
+	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 3303
+	var stops := [[0.0, Color("1e1a2e")], [0.3, Color("4a3e62")], [0.5, Color("9c8ab4")], [0.62, Color("c9d1c4")], [1.0, Color("2f3a33")]]
+	for y in range(h):
+		var k := float(y) / float(h - 1)
+		var c: Color = stops[0][1]
+		for i in range(stops.size() - 1):
+			var a: Array = stops[i]
+			var b: Array = stops[i + 1]
+			if k >= float(a[0]) and k <= float(b[0]):
+				c = (a[1] as Color).lerp(b[1], (k - float(a[0])) / (float(b[0]) - float(a[0])))
+		img.fill_rect(Rect2i(0, y, w, 1), c)
+	for i in range(w * h / 500):
+		_px(img, rng.randi_range(0, w - 1), rng.randi_range(0, int(h * 0.3)), Color(0.95, 0.92, 1.0, rng.randf_range(0.2, 0.8)))
+	# Lune voilée.
+	var mr := maxi(6, int(minf(w, h) * 0.04))
+	var mx := int(w * 0.3)
+	var my := int(h * 0.16)
+	for r in range(mr * 3, mr, -1):
+		_disc(img, mx, my, r, Color(0.9, 0.85, 1.0, 0.035))
+	_disc(img, mx, my, mr, Color("e8e0f0"))
+	# Rives lointaines.
+	_ridge(img, rng, int(h * 0.5), int(h * 0.03), Color("5a5a6e"), Color("7a7a90"))
+	# Saules pleureurs.
+	for i in range(maxi(4, int(w / 70.0))):
+		var tx := rng.randi_range(0, w)
+		var base := int(h * 0.56) + rng.randi_range(-4, 4)
+		var th := rng.randi_range(int(h * 0.1), int(h * 0.16))
+		img.fill_rect(Rect2i(tx - 1, base - th, 3, th), Color("2a2a30"))
+		_disc(img, tx, base - th, int(th * 0.45), Color("3a4a40"))
+		for k in range(30):
+			var sx := tx + rng.randi_range(-int(th * 0.5), int(th * 0.5))
+			var sy := base - th + rng.randi_range(-int(th * 0.2), int(th * 0.2))
+			for d in range(rng.randi_range(4, int(th * 0.7))):
+				_px(img, sx, sy + d, Color("354538"))
+	# Maisons sur pilotis et lanternes.
+	for i in range(3):
+		var hx := int(w * (0.2 + 0.3 * float(i))) + rng.randi_range(-10, 10)
+		var hb := int(h * 0.57)
+		img.fill_rect(Rect2i(hx, hb - 10, 14, 8), Color("2a2622"))
+		for r in range(5):
+			img.fill_rect(Rect2i(hx - 1 + r, hb - 10 - r, 16 - r * 2, 1), Color("3a3028"))
+		for p in [hx + 1, hx + 6, hx + 12]:
+			img.fill_rect(Rect2i(p, hb - 2, 1, 6), Color("2a2622"))
+		_disc(img, hx + 7, hb - 6, 1, Color("f2c46b"))
+		for r in range(5, 1, -1):
+			_disc(img, hx + 7, hb - 6, r, Color(1.0, 0.8, 0.4, 0.05))
+	# Eau sombre et brume au ras de l'eau.
+	img.fill_rect(Rect2i(0, int(h * 0.6), w, h - int(h * 0.6)), Color("2f3a33"))
+	for i in range(int(w * h / 600.0)):
+		var y := rng.randi_range(int(h * 0.5), h - 1)
+		var x := rng.randi_range(-40, w)
+		for dx in range(rng.randi_range(30, 100)):
+			_px(img, x + dx, y, Color(0.8, 0.85, 0.82, 0.12))
 	return _tex(img)
 
 

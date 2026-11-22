@@ -17,6 +17,8 @@ const KINDS := {
 	"gravats": {"name": "Gravats", "slow": 0.3, "dur": 25.0},
 	"fissure": {"name": "Fissure", "slow": 0.25, "dur": 12.0},
 	"faille": {"name": "Faille", "elem": "physique", "slow": 0.5, "dur": 8.0},
+	# Zone 3 : les mares de poison frappent les invocations alliées (les bêtes du marais y sont immunisées).
+	"poison": {"name": "Mare de poison", "ally": true, "slow": 0.3, "dur": 8.0},
 }
 const MAX_SURFACES := 48
 const MAX_CRATERS := 14
@@ -69,6 +71,8 @@ func update() -> void:
 	var dt := BattleSim.TICK
 	for e in sim.enemies:
 		e.exposed_t = maxf(0.0, e.exposed_t - dt)
+	for a in sim.allies:
+		a.zone_slow = 0.0
 	var i := 0
 	while i < surfaces.size():
 		var s: Dictionary = surfaces[i]
@@ -102,6 +106,19 @@ func update() -> void:
 func _surface_tick(s: Dictionary, dt: float) -> void:
 	var kind := str(s["kind"])
 	var info: Dictionary = KINDS[kind]
+	if bool(info.get("ally", false)):
+		# Mare de poison : ralentit et empoisonne les invocations.
+		var pos: Vector2 = s["pos"]
+		var r := float(s["r"])
+		var pdps := float(s.get("dps", 0.0))
+		if pdps <= 0.0:
+			pdps = 1.0 * sim.enemy_mult
+		for a in sim._query(sim._grid_a, pos, r + 0.3):
+			if not a.alive or a.pos.distance_to(pos) > r + a.radius * 0.5 or a.role == "escort":
+				continue
+			a.zone_slow = maxf(a.zone_slow, float(info.get("slow", 0.0)))
+			sim._damage(a, pdps * dt, "nature")
+		return
 	var hits := _enemies_in(s)
 	var slow := float(info.get("slow", 0.0))
 	var dps := float(s.get("dps", 0.0))
@@ -256,6 +273,13 @@ func cast(c: BattleSim.Caster, sp: Dictionary, at: Vector2) -> bool:
 ## Appelé à chaque impact de sort (zone, colonne, chaîne, vague, zone durable) : réactions entre
 ## éléments, sols laissés par le sort, dégâts aux piliers. « rect » non vide : impact en colonne.
 func on_impact(c: BattleSim.Caster, sp: Dictionary, at: Vector2, r: float, dmg: float, rect: Rect2 = Rect2()) -> void:
+	if str(sp.get("element", "")) == "feu" and not sim.stumps.is_empty():
+		if rect.size != Vector2.ZERO:
+			for st in sim.stumps:
+				if rect.grow(0.6).has_point(st["pos"]):
+					st["t"] = -99.0
+		else:
+			sim.burn_stumps(at, r)
 	_reactions(c, sp, at, r, dmg, rect)
 	_leave_ground(c, sp, at, r, dmg, rect)
 	for p in props:
@@ -291,7 +315,22 @@ func _reactions(c: BattleSim.Caster, sp: Dictionary, at: Vector2, r: float, dmg:
 			i += 1
 			continue
 		var removed := false
-		if (elem == "feu" and kind in ["verglas", "eau"]) or (elem == "givre" and kind == "braises"):
+		if elem == "feu" and kind == "poison":
+			# Explosion toxique : le feu enflamme les vapeurs de la mare.
+			var pp: Vector2 = s["pos"]
+			for e in sim._query(sim._grid_e, pp, float(s["r"]) + 1.0):
+				if e.alive and e.pos.distance_to(pp) <= float(s["r"]) + 1.0:
+					sim._damage(e, sim._calc(dmg * 0.6, "feu", 0.0, e, false), "feu")
+			sim._event({"t": "explosion", "pos": pp, "r": float(s["r"]) + 1.0, "color": "9AD03A", "dur": 0.6})
+			label = "EXPLOSION TOXIQUE !"
+			surfaces.remove_at(i)
+			removed = true
+		elif elem == "givre" and kind == "poison":
+			s["kind"] = "verglas"
+			s["permanent"] = false
+			s["t"] = 8.0
+			label = "GEL !"
+		elif (elem == "feu" and kind in ["verglas", "eau"]) or (elem == "givre" and kind == "braises"):
 			# Vapeur : le feu et la glace s'annulent dans une explosion de vapeur brûlante.
 			for e in _enemies_in(s):
 				sim._damage(e, sim._calc(dmg * 0.5, "physique", 0.0, e, false), "physique")
@@ -316,7 +355,7 @@ func _reactions(c: BattleSim.Caster, sp: Dictionary, at: Vector2, r: float, dmg:
 			if pts.size() > 1:
 				sim._event({"t": "lightning", "pts": pts, "dur": 0.4, "color": "FFF6A8"})
 			label = "ÉLECTROCUTION !"
-		elif elem == "arcane" and not kind in ["cratere", "gravats", "fissure", "rune"]:
+		elif elem == "arcane" and not kind in ["cratere", "gravats", "fissure", "rune", "poison"]:
 			for e in _enemies_in(s):
 				sim._damage(e, sim._calc(dmg * 0.4, "arcane", 0.0, e, false), "arcane")
 			s["t"] = float(s["t"]) + 2.0
@@ -374,6 +413,30 @@ func _leave_ground(c: BattleSim.Caster, sp: Dictionary, at: Vector2, r: float, d
 				_add_surface("miasme", at, r * 0.7, 5.0)
 	elif t == "zone" and elem == "givre":
 		_add_surface("verglas", at, r, float(sp.get("dur", 3.0)) + 3.0)
+
+
+## Mare de poison (marais, mort d'un Rat de peste, venin et inondation de l'Hydre).
+func add_poison(pos: Vector2, r: float, dur: float, permanent: bool) -> void:
+	var s := _add_surface("poison", pos, r, dur)
+	if permanent:
+		s["permanent"] = true
+		s["t"] = 1e9
+
+
+## Purifier assainit les mares de poison. Retourne vrai si une mare a été touchée.
+func cleanse(at: Vector2, r: float) -> bool:
+	var hit := false
+	var i := 0
+	while i < surfaces.size():
+		var s: Dictionary = surfaces[i]
+		if str(s["kind"]) in ["poison", "miasme"] and (s["pos"] as Vector2).distance_to(at) <= r + float(s["r"]):
+			surfaces.remove_at(i)
+			hit = true
+			continue
+		i += 1
+	if hit:
+		sim._event({"t": "text", "pos": at, "text": "ASSAINI", "color": "FFF6C8"})
+	return hit
 
 
 func _add_surface(kind: String, pos: Vector2, r: float, dur: float, rect: Rect2 = Rect2()) -> Dictionary:

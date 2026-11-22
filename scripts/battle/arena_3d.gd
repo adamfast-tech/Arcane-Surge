@@ -54,6 +54,8 @@ var _pylon_nodes: Array[Dictionary] = []
 var _terrain_view: TerrainView
 var _moss_cap: StandardMaterial3D
 var day := false ## Zone 2 : Collines d'Ambre en plein jour.
+var swamp := false ## Zone 3 : Marais Murmurants au crépuscule.
+var _fog_nodes: Array[Dictionary] = []
 ## Forêt guérie (la Sylvarche a été purifiée) : sol plus vert, veines dorées, lucioles.
 var healed := false
 
@@ -67,6 +69,7 @@ func setup(s: BattleSim, f: Font, forest_healed: bool = false) -> void:
 	font = f
 	healed = forest_healed
 	day = WorldArt.zone == 2
+	swamp = WorldArt.zone == 3
 	_billboard = load("res://shaders/billboard_atlas.gdshader")
 	_stone_mat = _triplanar(WorldArt.stone_texture(), 0.55)
 	_build_environment()
@@ -158,11 +161,16 @@ func _build_environment() -> void:
 	if day:
 		_env.ambient_light_color = Color("e0c8a0")
 		_env.ambient_light_energy = 0.9
+	elif swamp:
+		_env.ambient_light_color = Color("9a8ab8")
+		_env.ambient_light_energy = 0.95
 	_env.fog_enabled = true
 	_env.fog_mode = Environment.FOG_MODE_DEPTH
 	_env.fog_light_color = Color("26405a") if healed else Color("2d2c5e")
 	if day:
 		_env.fog_light_color = Color("d8b880")
+	elif swamp:
+		_env.fog_light_color = Color("6e7f6a")
 	_env.fog_depth_begin = 40.0
 	_env.fog_depth_end = 80.0
 	_env.glow_enabled = true
@@ -173,7 +181,7 @@ func _build_environment() -> void:
 	we.environment = _env
 	add_child(we)
 	var moon := DirectionalLight3D.new()
-	moon.light_color = Color("fff0d0") if day else Color("b4c0ff")
+	moon.light_color = Color("fff0d0") if day else (Color("d0c8e8") if swamp else Color("b4c0ff"))
 	moon.light_energy = 1.1
 	moon.rotation_degrees = Vector3(-55.0, -35.0, 0.0)
 	add_child(moon)
@@ -247,6 +255,8 @@ func _build_terrain() -> void:
 	var layers := [[-1.4, Color("8a8ad0"), 0.45, Vector2(0.012, 0.004)], [-3.0, Color("6a6ab8"), 0.55, Vector2(-0.008, 0.006)]]
 	if day:
 		layers = [[-1.4, Color("f0d8a8"), 0.3, Vector2(0.02, 0.003)], [-3.0, Color("d8b888"), 0.4, Vector2(-0.012, 0.005)]]
+	elif swamp:
+		layers = [[-1.2, Color("c9d1c4"), 0.6, Vector2(0.01, 0.004)], [-2.6, Color("6e7f6a"), 0.7, Vector2(-0.008, 0.005)]]
 	for l in layers:
 		var mi := MeshInstance3D.new()
 		var mp := PlaneMesh.new()
@@ -308,7 +318,7 @@ func _trees_mm_instance() -> MultiMeshInstance3D:
 
 
 func _build_props() -> void:
-	var moss_cap := _unshaded(Color("a09048") if day else Color("3f6a3a"))
+	var moss_cap := _unshaded(Color("a09048") if day else (Color("4a5a48") if swamp else Color("3f6a3a")))
 	moss_cap.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
 	# Piliers en ruine le long de la chaussée : construits par TerrainView (ils peuvent s'effondrer).
 	_moss_cap = moss_cap
@@ -362,6 +372,12 @@ func _build_props() -> void:
 	ramp.set_color(1, Color(1.0, 0.95, 0.55, 0.0))
 	ramp.add_point(0.2, Color(1.0, 0.95, 0.6, 1.0))
 	ramp.add_point(0.8, Color(0.85, 1.0, 0.55, 1.0))
+	if swamp:
+		# Feux follets verdâtres au-dessus du marais.
+		ramp = Gradient.new()
+		ramp.set_color(0, Color(0.6, 1.0, 0.5, 0.0))
+		ramp.set_color(1, Color(0.6, 1.0, 0.5, 0.0))
+		ramp.add_point(0.5, Color(0.7, 1.0, 0.55, 0.9))
 	if day:
 		# Pollen et poussière dorée dans la lumière de midi.
 		ramp = Gradient.new()
@@ -396,6 +412,42 @@ func _build_pylons() -> void:
 		l.position = w3(py["pos"], 1.2)
 		add_child(l)
 		_pylon_nodes.append({"py": py, "sprite": s, "light": l})
+
+
+## Bancs de brume (zone 3) : nappes de brume qui dérivent ; plus pâles quand la Lumière les dissipe.
+func _update_fog_banks() -> void:
+	while _fog_nodes.size() < sim.fog.size():
+		var root := Node3D.new()
+		add_child(root)
+		var puffs: Array = []
+		for k in range(7):
+			var spr := Sprite3D.new()
+			spr.texture = FxArt.flash()
+			spr.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+			spr.shaded = false
+			spr.transparent = true
+			spr.no_depth_test = false
+			spr.modulate = Color(0.82, 0.88, 0.84, 0.0)
+			root.add_child(spr)
+			puffs.append([spr, Vector2(randf_range(-0.7, 0.7), randf_range(-0.7, 0.7)), randf_range(0.6, 1.1), randf() * TAU])
+		_fog_nodes.append({"root": root, "puffs": puffs})
+	for i in range(_fog_nodes.size()):
+		var fn: Dictionary = _fog_nodes[i]
+		if i >= sim.fog.size():
+			(fn["root"] as Node3D).visible = false
+			continue
+		var f: Dictionary = sim.fog[i]
+		var r := float(f["r"])
+		var d := float(f["density"])
+		(fn["root"] as Node3D).position = w3(f["pos"], 0.0)
+		for pf in fn["puffs"]:
+			var spr: Sprite3D = pf[0]
+			var off: Vector2 = pf[1]
+			var sc: float = pf[2]
+			var ph: float = pf[3]
+			spr.position = Vector3(off.x * r + sin(t * 0.4 + ph) * 0.3, 0.5 + 0.25 * sin(t * 0.6 + ph), -off.y * r)
+			spr.pixel_size = r * sc * 2.4 / 32.0
+			spr.modulate = Color(0.82, 0.88, 0.84, 0.62 * d)
 
 
 func _update_pylons() -> void:
@@ -791,6 +843,8 @@ func _process(delta: float) -> void:
 		cam.position += Vector3(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0), 0.0) * shake * 0.5
 	_update_portals()
 	_update_pylons()
+	if not sim.fog.is_empty():
+		_update_fog_banks()
 	_update_towers()
 	_update_nexus()
 	_update_barrier()
@@ -929,7 +983,7 @@ func _put_unit(u: Unit, n: int, cam_right: Vector3, cam_back: Vector3) -> int:
 	var uv: Rect2 = fr["uv"]
 	_units_mm.set_instance_custom_data(n, Color(uv.position.x, uv.position.y, uv.size.x, uv.size.y))
 	n += 1
-	var big := (u.team == 1 and u.max_hp >= 25.0) or u.role == "champion" or u.role == "elite"
+	var big := ((u.team == 1 and u.max_hp >= 25.0) or u.role == "champion" or u.role == "elite") and not u.fogged
 	if big and u.hp < u.max_hp:
 		n = _put_bar(pos + Vector3(0.0, h + 0.12, 0.0), clampf(u.hp / u.max_hp, 0.0, 1.0), Color("ff6b8a") if u.team == 1 else Color("6fe39a"), n, cam_right, cam_back)
 	if u.role == "soigneur":
@@ -968,6 +1022,8 @@ func _put_shadow(u: Unit, sn: int) -> int:
 
 
 func _tint(u: Unit) -> Color:
+	if u.fogged and u.flash_t <= 0.0:
+		return Color(0.38, 0.44, 0.42)
 	if u == sim.boss and sim.boss_shield_t > 0.0:
 		return Color(0.95, 0.7, 0.45) if u.flash_t <= 0.0 else Color(1.3, 1.0, 0.7)
 	if u.flash_t > 0.0:
@@ -1058,6 +1114,12 @@ func _draw_fx(delta: float) -> void:
 		var k2 := 1.0 - float(tg["t"]) / maxf(0.01, float(tg["dur"]))
 		var pulse := 0.5 + 0.5 * sin(t * (10.0 + 14.0 * k2))
 		_rect(lines, tg["rect"], Color(1.0, 0.25, 0.3, 0.45 + 0.5 * pulse), true)
+	# Plaies de l'Hydre : cercle orange qui se resserre (brûle-les avant 5 s).
+	for st in sim.stumps:
+		var left := clampf(float(st["t"]) / BattleSim.STUMP_TIME, 0.0, 1.0)
+		var pulse2 := 0.5 + 0.5 * sin(t * (8.0 + 10.0 * (1.0 - left)))
+		_ring(lines, st["pos"], 0.4 + 0.5 * left, Color(1.0, 0.6, 0.2, 0.5 + 0.5 * pulse2), 0.08)
+		_ring(lines, st["pos"], 0.25, Color(0.6, 1.0, 0.3, 0.8), 0.08)
 	for e in _fx:
 		if str(e["t"]) == "strike":
 			var k3 := float(e["age"]) / float(e["dur"])

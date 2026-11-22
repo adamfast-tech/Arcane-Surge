@@ -1,0 +1,135 @@
+{
+  "id": "z03_l09",
+  "name": "L'Adepte renégat",
+  "zone": 3,
+  "number": "3-9",
+  "global_level": 29,
+  "type": "Siège",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag"
+  ],
+  "desc": "Le refuge du Cercle des Cendres est assiégé par les morts du marais : deux Nexus de corruption, une tour et des mares partout.",
+  "par_time": 164,
+  "nexus": {
+    "hp": 16000
+  },
+  "towers": [
+    {
+      "x": 4.5,
+      "y": 14.0,
+      "hp": 520
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "element": "lumiere",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "motion": "slide",
+      "range": 1.6,
+      "speed": 0.5
+    },
+    {
+      "kind": "add",
+      "value": 5,
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 2.4,
+      "y": 10.4,
+      "width": 2.0
+    },
+    {
+      "kind": "elem",
+      "element": "nature",
+      "x": 6.6,
+      "y": 10.4,
+      "width": 2.0
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 46,
+    "budget_per_level": 13,
+    "local_level": 9,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "bog_zombie": 6,
+      "plague_rat": 3,
+      "slime_abomination": 1,
+      "shield_skeleton": 1,
+      "renegade_adept": 1,
+      "spitting_toad": 1
+    }
+  },
+  "initial_enemies": [],
+  "nexi": [
+    {
+      "x": 2.4,
+      "y": 14.9
+    },
+    {
+      "x": 6.6,
+      "y": 14.9
+    }
+  ],
+  "pylons": [
+    {
+      "x": 8.4,
+      "y": 6.4,
+      "portal": 2,
+      "every": 13,
+      "dur": 5,
+      "first": 7
+    }
+  ],
+  "wind": {
+    "first": 10,
+    "every": [
+      12,
+      16
+    ],
+    "warn": 1.6,
+    "dur": 2.4,
+    "force": 1.0
+  },
+  "pools": [
+    {
+      "x": 2.0,
+      "y": 6.5,
+      "r": 1.0
+    },
+    {
+      "x": 7.0,
+      "y": 6.5,
+      "r": 1.0
+    }
+  ],
+  "fog": {
+    "count": 1,
+    "r": 2.2,
+    "speed": 0.25,
+    "y_min": 8,
+    "y_max": 11
+  }
+}

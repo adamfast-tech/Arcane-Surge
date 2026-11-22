@@ -164,6 +164,14 @@ var wind_dir := 1.0
 var pylons: Array[Dictionary] = []
 ## Bannières de guerre : tant qu'il en reste, le boss est en armure (dégâts ÷ 5).
 var banners: Array[Unit] = []
+# Zone 3 · Marais Murmurants : bancs de brume, têtes de l'Hydre et plaies à cautériser.
+const MAX_HEADS := 6
+const STUMP_TIME := 5.0
+const FOG_CONCEAL := 0.8
+var fog: Array[Dictionary] = [] ## {pos, r, density, vx}
+var fog_cfg: Dictionary = {}
+var heads: Array[Unit] = []
+var stumps: Array[Dictionary] = [] ## {pos, t}
 ## Sorts à impact différé (projectile, météore) et zones actives (pluie, racines, vortex).
 var pending_impacts: Array[Dictionary] = []
 var terrain := BattleTerrain.new() ## sols, piliers, murs (scripts/battle/terrain.gd)
@@ -200,6 +208,8 @@ func setup(level_data: Dictionary, party: Dictionary, seed_value: int, opts: Dic
 	_setup_orbs()
 	_setup_zone_mechanics()
 	terrain.setup(self)
+	for pd in level.get("pools", []):
+		terrain.add_poison(Vector2(float(pd["x"]), float(pd["y"])), float(pd.get("r", 1.2)), 0.0, true)
 	for e in level.get("initial_enemies", []):
 		_spawn_enemy(str(e["kind"]), Vector2(float(e["x"]), float(e["y"])))
 	wave_t = float(level["waves"].get("first", 3.0))
@@ -261,6 +271,9 @@ func _apply_story_mods(opts: Dictionary) -> void:
 
 
 func _setup_zone_mechanics() -> void:
+	fog_cfg = level.get("fog", {})
+	for k in range(int(fog_cfg.get("count", 0))):
+		_add_fog(rng.randf_range(1.5, W - 1.5), rng.randf_range(float(fog_cfg.get("y_min", 5.0)), float(fog_cfg.get("y_max", 12.0))))
 	wind_cfg = level.get("wind", {})
 	if not wind_cfg.is_empty():
 		wind_t = float(wind_cfg.get("first", 8.0))
@@ -313,6 +326,136 @@ func _update_pylons() -> void:
 				_log("Un pylône d'ambre surcharge un portail !")
 	for p in portals:
 		p.charged_t = maxf(0.0, p.charged_t - TICK)
+
+
+## Fin d'escorte, selon ce qu'on escorte (Lanterne, chariot, barque).
+func _escort_text(kind: String, arrived: bool) -> String:
+	match kind:
+		"lantern":
+			return "La Lanterne de l'Aube purifie le Nexus !" if arrived else "La Lanterne s'est éteinte…"
+		"barge":
+			return "La barque des passeurs a traversé le marais !" if arrived else "La barque a sombré…"
+	return "Le chariot de vivres est arrivé !" if arrived else "Le chariot est détruit…"
+
+
+func heads_alive() -> int:
+	var n := 0
+	for h in heads:
+		if h.alive:
+			n += 1
+	return n
+
+
+# ---------------------------------------------------------------- zone 3 : brume, têtes de l'Hydre
+
+const MAX_FOG := 4
+
+
+func _add_fog(x: float, y: float) -> void:
+	if fog.size() >= MAX_FOG:
+		# Brume déjà épaisse : le banc le plus dissipé se reforme ailleurs.
+		var thin: Dictionary = fog[0]
+		for f in fog:
+			if float(f["density"]) < float(thin["density"]):
+				thin = f
+		thin["pos"] = Vector2(x, y)
+		thin["density"] = 1.0
+		return
+	var r := float(fog_cfg.get("r", 2.2))
+	var sp := float(fog_cfg.get("speed", 0.25))
+	fog.append({"pos": Vector2(x, y), "r": r, "density": 1.0, "vx": sp if rng.randf() < 0.5 else -sp})
+
+
+## Bancs de brume : ils dérivent, cachent les ennemis (-20 % de dégâts subis) et se reforment ;
+## les invocations de Lumière les dissipent en les traversant.
+func _update_fog() -> void:
+	for e in enemies:
+		e.fogged = false
+	for f in fog:
+		var p: Vector2 = f["pos"]
+		var r := float(f["r"])
+		p.x += float(f["vx"]) * TICK
+		if p.x < r * 0.5 or p.x > W - r * 0.5:
+			f["vx"] = -float(f["vx"])
+		f["pos"] = p
+		var lights := 0
+		for a in _query(_grid_a, p, r):
+			if a.alive and a.element == "lumiere":
+				lights += 1
+		var d := float(f["density"])
+		if lights > 0:
+			d -= 0.03 * float(mini(lights, 10)) * TICK * 10.0
+		else:
+			d += 0.04 * TICK
+		f["density"] = clampf(d, 0.0, 1.0)
+		if float(f["density"]) < 0.35:
+			continue
+		for e in _query(_grid_e, p, r):
+			if e.alive and e.pos.distance_to(p) <= r and e.role != "boss":
+				e.fogged = true
+
+
+## Dissipe la brume autour d'un point (Purifier). Retourne vrai si un banc a été touché.
+func clear_fog(at: Vector2, r: float) -> bool:
+	var hit := false
+	for f in fog:
+		if (f["pos"] as Vector2).distance_to(at) <= r + float(f["r"]):
+			f["density"] = 0.0
+			hit = true
+	if hit:
+		_event({"t": "ring", "pos": at, "r": r + 1.0, "color": "FFF6C8", "dur": 0.6})
+		_log("La lumière dissipe la brume.")
+	return hit
+
+
+## Plaies de l'Hydre : brûlées (Feu) dans les 5 s, elles se referment ; sinon deux têtes repoussent.
+func _update_stumps() -> void:
+	var i := 0
+	while i < stumps.size():
+		var st: Dictionary = stumps[i]
+		st["t"] = float(st["t"]) - TICK
+		# Une invocation de Feu au contact de la plaie la cautérise.
+		for a in _query(_grid_a, st["pos"], 0.9):
+			if a.alive and a.element == "feu":
+				st["t"] = -99.0
+				break
+		# Un sol de braises sur la plaie la cautérise aussi.
+		for s in terrain.surfaces:
+			if str(s["kind"]) == "braises" and (s["pos"] as Vector2).distance_to(st["pos"]) <= float(s["r"]) + 0.4:
+				st["t"] = -99.0
+		if float(st["t"]) <= -50.0:
+			_event({"t": "text", "pos": st["pos"], "text": "CAUTÉRISÉE !", "color": "FFB04A"})
+			_log("Plaie cautérisée : la tête ne repoussera pas.")
+			stumps.remove_at(i)
+			continue
+		if float(st["t"]) <= 0.0:
+			var n := 0
+			for k in range(2):
+				if heads_alive() >= MAX_HEADS:
+					break
+				_spawn_head(st["pos"] + Vector2((float(k) - 0.5) * 1.1, 0.0))
+				n += 1
+			if n > 0:
+				_log("%d têtes repoussent !" % n)
+				_event({"t": "text", "pos": st["pos"], "text": "×%d TÊTES !" % n, "color": "9AD03A"})
+			stumps.remove_at(i)
+			continue
+		i += 1
+
+
+func _spawn_head(p: Vector2) -> Unit:
+	var h := _spawn_enemy("hydra_head", Vector2(clampf(p.x, 0.8, W - 0.8), p.y))
+	h.hold_y = h.pos.y
+	heads.append(h)
+	_event({"t": "ring", "pos": h.pos, "r": 0.9, "color": "9AD03A", "dur": 0.5})
+	return h
+
+
+## Feu qui touche une plaie : elle est cautérisée.
+func burn_stumps(at: Vector2, r: float) -> void:
+	for st in stumps:
+		if (st["pos"] as Vector2).distance_to(at) <= r + 0.6:
+			st["t"] = -99.0
 
 
 func banners_alive() -> int:
@@ -516,6 +659,8 @@ func step() -> void:
 	_build_grids()
 	_update_impacts()
 	_update_zones()
+	_update_fog()
+	_update_stumps()
 	terrain.update()
 	_resolve_contacts()
 	_ranged_attacks()
@@ -1354,6 +1499,27 @@ func _boss_ability(ab: Dictionary) -> void:
 			_log("%s pousse un cri de guerre : les ennemis enragent !" % boss_name)
 			_event({"t": "ring", "pos": boss.pos, "r": 4.0, "color": "FF4A3A", "dur": 0.8})
 			_event({"t": "shake"})
+		"heads":
+			for x in ab.get("xs", [3.0, 4.5, 6.0]):
+				_spawn_head(Vector2(float(x), float(ab.get("y", boss.pos.y - 1.7))))
+			_log("%s dresse ses têtes : tant qu'elles vivent, son corps est protégé !" % boss_name)
+		"fog":
+			for k in range(int(ab.get("count", 1))):
+				_add_fog(rng.randf_range(1.5, W - 1.5), rng.randf_range(4.0, 11.0))
+			_log("%s souffle une brume épaisse." % boss_name)
+		"venom":
+			var used_x: Array[float] = []
+			for k in range(int(ab.get("count", 1))):
+				var x := _target_lane(used_x)
+				used_x.append(x)
+				var hw := float(ab.get("width", 1.4)) * 0.5
+				_telegraph(Rect2(x - hw, BARRIER_Y, hw * 2.0, boss.pos.y - 0.6 - BARRIER_Y), float(ab.get("delay", 1.3)), float(ab.get("dmg", 40)), 2.0, true)
+			_log("%s crache son venin !" % boss_name)
+		"flood":
+			for k in range(int(ab.get("count", 6))):
+				terrain.add_poison(Vector2(rng.randf_range(0.8, W - 0.8), rng.randf_range(2.5, 11.5)), rng.randf_range(0.9, 1.4), float(ab.get("dur", 14.0)), false)
+			_log("%s inonde le marais de poison !" % boss_name)
+			_event({"t": "shake"})
 		"shield":
 			boss_shield_t = float(ab.get("dur", 8.0))
 			boss_shield_elem = str(ab.get("element", "feu"))
@@ -1361,8 +1527,8 @@ func _boss_ability(ab: Dictionary) -> void:
 			_event({"t": "ring", "pos": boss.pos, "r": 2.0, "color": "8A5A30", "dur": 0.6})
 
 
-func _telegraph(r: Rect2, delay: float, dmg: float, barrier_dmg: float) -> void:
-	telegraphs.append({"rect": r, "t": delay, "dur": delay, "dmg": dmg * enemy_mult, "barrier": barrier_dmg})
+func _telegraph(r: Rect2, delay: float, dmg: float, barrier_dmg: float, venom: bool = false) -> void:
+	telegraphs.append({"rect": r, "t": delay, "dur": delay, "dmg": dmg * enemy_mult, "barrier": barrier_dmg, "venom": venom})
 
 
 func _update_telegraphs() -> void:
@@ -1380,6 +1546,10 @@ func _update_telegraphs() -> void:
 				_damage(a, dmg * (0.4 if a.role == "escort" else 1.0), "")
 		if float(tg["barrier"]) > 0.0:
 			_hurt_barrier(float(tg["barrier"]))
+		if bool(tg.get("venom", false)):
+			# Souffle de venin : des mares de poison restent le long du couloir.
+			for k in range(3):
+				terrain.add_poison(Vector2(r.get_center().x, lerpf(r.position.y + 1.5, r.end.y - 1.0, float(k) / 2.0)), 0.8, 10.0, false)
 		_event({"t": "strike", "rect": r, "dur": 0.35})
 		telegraphs.remove_at(i)
 
@@ -1499,6 +1669,8 @@ func _calc(atk: float, elem: String, crit: float, tgt: Unit, frontal: bool) -> f
 			d *= 1.0 + _mod("burning_vuln")
 		if tgt.exposed_t > 0.0:
 			d *= BattleTerrain.EXPOSE_MULT
+		if tgt.fogged:
+			d *= FOG_CONCEAL
 	if frontal and tgt.front_block > 0.0:
 		d *= 1.0 - tgt.front_block
 	return d
@@ -1523,6 +1695,8 @@ func _damage(tgt: Unit, amount: float, elem: String) -> void:
 		amount *= 0.1
 	if tgt == boss and banners_alive() > 0:
 		amount *= 0.2
+	if tgt == boss and heads_alive() > 0:
+		amount *= 0.25
 	if tgt.shield > 0.0:
 		var a := minf(tgt.shield, amount)
 		tgt.shield -= a
@@ -1589,13 +1763,21 @@ func _kill(u: Unit) -> void:
 	if u == boss:
 		_log("%s est %s !" % [boss_name, _defeated_word()])
 	if u == escort:
-		_log("La Lanterne s'est éteinte…" if u.kind == "lantern" else "Le chariot est détruit…")
+		_log(_escort_text(u.kind, false))
 	if u.team == 1 and u.burn_t > 0.0 and _mod("embrasement") > 0.0:
 		# Clé de voûte Embrasement : la brûlure se propage aux ennemis proches.
 		for e in _query(_grid_e, u.pos, 1.5):
 			if e != u and e.alive:
 				_apply_status(e, "feu")
 		_event({"t": "ring", "pos": u.pos, "r": 1.5, "color": "FF6A3A", "dur": 0.35})
+	if u.team == 1:
+		var dp := float((units_db.get(u.kind, {}) as Dictionary).get("death_pool", 0.0))
+		if dp > 0.0:
+			terrain.add_poison(u.pos, dp, 8.0, false)
+		if heads.has(u):
+			stumps.append({"pos": u.pos, "t": STUMP_TIME})
+			_event({"t": "text", "pos": u.pos + Vector2(0.0, 0.6), "text": "TRANCHÉE ! Brûle la plaie !", "color": "FFB04A"})
+			_log("Tête tranchée : brûle la plaie avant 5 s, sinon deux têtes repoussent !")
 	if u.team == 1:
 		kills += 1
 		var big := u.role in ["brute", "bouclier", "lanceur", "soigneur"] or u.elite
@@ -1656,7 +1838,7 @@ func _check_end() -> void:
 			"boss":
 				end_reason = "%s est %s !" % [boss_name, _defeated_word()]
 			"escort":
-				end_reason = "La Lanterne de l'Aube purifie le Nexus !" if escort.kind == "lantern" else "Le chariot de vivres est arrivé !"
+				end_reason = _escort_text(escort.kind, true)
 			_:
 				end_reason = "Le Nexus est détruit !" if nexi.size() <= 1 else "Les Nexus sont détruits !"
 		_log("Victoire !")
@@ -1667,7 +1849,7 @@ func _check_end() -> void:
 		barrier_hp = maxf(0.0, barrier_hp)
 		state = "defeat"
 		if lost_escort:
-			end_reason = "La Lanterne s'est éteinte…" if escort.kind == "lantern" else "Le chariot est détruit…"
+			end_reason = _escort_text(escort.kind, false)
 		else:
 			end_reason = "La Barrière est tombée…"
 		_log(end_reason)
@@ -1839,6 +2021,8 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 			_wave(c, sp, at)
 			return true
 		"purify":
+			var cleared := clear_fog(at, float(sp.get("radius", 2.5)))
+			cleared = terrain.cleanse(at, float(sp.get("radius", 2.5))) or cleared
 			var best: Portal = null
 			var bd := 1e9
 			for p in portals:
@@ -1849,7 +2033,9 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 					bd = d
 					best = p
 			if best == null:
-				return false
+				if cleared:
+					_event({"t": "pillar", "pos": at, "dur": 1.1, "color": col})
+				return cleared
 			_purify(best)
 			_event({"t": "pillar", "pos": Vector2(best.x, best.y), "dur": 1.1, "color": col})
 			return true
@@ -2221,9 +2407,13 @@ func objective_info() -> String:
 					parts.append("ÉCORCE : seul le %s blesse" % str(ELEM_NAMES.get(boss_shield_elem, boss_shield_elem)))
 				if banners_alive() > 0:
 					parts.append("ARMURE : %d bannière%s" % [banners_alive(), "s" if banners_alive() > 1 else ""])
+				if heads_alive() > 0:
+					parts.append("TÊTES : %d (corps protégé)" % heads_alive())
+				if not stumps.is_empty():
+					parts.append("BRÛLE %d plaie%s !" % [stumps.size(), "s" if stumps.size() > 1 else ""])
 		"escort":
 			if escort != null:
-				parts.append("%s %d / %d PV" % ["Lanterne" if escort.kind == "lantern" else "Chariot", int(ceil(maxf(0.0, escort.hp))), int(escort.max_hp)])
+				parts.append("%s %d / %d PV" % [{"lantern": "Lanterne", "caravan": "Chariot", "barge": "Barque"}.get(escort.kind, "Escorte"), int(ceil(maxf(0.0, escort.hp))), int(escort.max_hp)])
 				parts.append("trajet %d %%" % int((1.0 - objective_ratio()) * 100.0))
 		_:
 			parts.append("%d / %d" % [int(ceil(nexus_hp)), int(nexus_max)])

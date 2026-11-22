@@ -30,13 +30,16 @@
   },
   "loot_pool": {
     "1": ["baton_chene", "baguette_saule", "baton_lune", "orbe_luciole", "capuche_toile", "robe_apprenti", "gants_cuir", "bottes_marche", "amulette_mousse", "anneau_cuivre", "charme_luciole"],
-    "2": ["baton_chene", "baguette_saule", "baton_lune", "orbe_luciole", "capuche_toile", "robe_apprenti", "gants_cuir", "bottes_marche", "amulette_mousse", "anneau_cuivre", "charme_luciole"]
+    "2": ["baton_chene", "baguette_saule", "baton_lune", "orbe_luciole", "capuche_toile", "robe_apprenti", "gants_cuir", "bottes_marche", "amulette_mousse", "anneau_cuivre", "charme_luciole"],
+    "3": ["baton_chene", "baguette_saule", "baton_lune", "orbe_luciole", "capuche_toile", "robe_apprenti", "gants_cuir", "bottes_marche", "amulette_mousse", "anneau_cuivre", "charme_luciole"]
   },
   "materials": {
     "bois_lune": {"name": "Bois-lune"},
     "luciole": {"name": "Luciole séchée"},
     "ambre": {"name": "Éclat d'ambre"},
-    "crin_loup": {"name": "Crin de loup"}
+    "crin_loup": {"name": "Crin de loup"},
+    "tourbe": {"name": "Mousse de tourbière"},
+    "ecaille_liche": {"name": "Écaille de liche"}
   },
   "starter": [
     {"base": "baton_chene", "rarity": "commun", "ilvl": 1},
