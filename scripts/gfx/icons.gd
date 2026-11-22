@@ -48,6 +48,13 @@ const SHAPES := {
 	"purifier": "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2\"/>",
 	"meteore": "<circle cx=\"16\" cy=\"8\" r=\"4\"/><path d=\"M13 11L4 20M12.4 8.2L6 14.6M15.8 11.6L9.4 18\"/>",
 	"champion": "<path d=\"M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z\"/><path d=\"M12 8v8M8.5 12h7\"/>",
+	"brasier": "<path d=\"M4 21h16\"/><path d=\"M7 21c-2-2-2-5 0-7 0 2 1 3 2 3 0-3 1-6 4-8 0 3 2 4 2 6 1-1 1.5-2 1.5-3 2 2 2.5 5.5.5 9\"/><path d=\"M10.5 21c-1-1-1-2.5 0-3.5.5 1 1.5 1.5 2.5 1.5 0-1 .5-2 1.5-2.5.5 1.5.5 3-.5 4.5\"/>",
+	"prison_glace": "<path d=\"M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7\"/><path d=\"M9.5 3.5L12 6l2.5-2.5M9.5 20.5L12 18l2.5 2.5M3 10.5l3.4-.9-.9-3.4M21 13.5l-3.4.9.9 3.4M3 13.5l3.4.9-.9 3.4M21 10.5l-3.4-.9.9-3.4\"/>",
+	"bouclier_arcanique": "<path d=\"M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z\"/><path d=\"M12 8l3 4-3 4-3-4z\"/>",
+	"javelot_foudre": "<path d=\"M4 20L17 7\"/><path d=\"M17 7l3-4-4 1.5\"/><path d=\"M9 9l2 2-2 1 2 2\"/>",
+	"nuee_lucioles": "<circle cx=\"7\" cy=\"8\" r=\"1.6\"/><circle cx=\"16\" cy=\"6\" r=\"1.3\"/><circle cx=\"12\" cy=\"13\" r=\"2\"/><circle cx=\"18\" cy=\"15\" r=\"1.3\"/><circle cx=\"6\" cy=\"17\" r=\"1.3\"/><path d=\"M4 22h16\"/>",
+	"charge_bastion": "<path d=\"M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z\"/><path d=\"M12 7v10M9 14l3 3 3-3\"/>",
+	"volee_fleches": "<path d=\"M5 19L15 9M8 21l10-10M3 15l10-10\"/><path d=\"M12 5h3v3M15 9h3v3M10 3h3v3\"/>",
 	"bouclier_leve": "<path d=\"M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z\"/>",
 	"tir_precision": "<path d=\"M4 20L18 6\"/><path d=\"M14 5h5v5\"/><path d=\"M4 20l1-4 3 3z\"/>",
 }

@@ -65,6 +65,10 @@ func _use_abilities(sim: BattleSim, c: BattleSim.Caster) -> void:
 			continue
 		var sp: Dictionary = sim.spells_db[id]
 		match str(sp["type"]):
+			"barrier_heal":
+				if sim.barrier_hp < sim.barrier_max * 0.7:
+					if sim.cast_spell(c, id, Vector2(c.x, 2.0)):
+						return
 			"barrier_shield":
 				if sim.barrier_hp < sim.barrier_max * 0.6 or sim.total_threat() > 10.0:
 					if sim.cast_spell(c, id, Vector2(c.x, 2.0)):

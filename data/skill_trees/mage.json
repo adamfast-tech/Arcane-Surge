@@ -1,0 +1,53 @@
+{
+  "class": "mage",
+  "keystone_limit": 2,
+  "branches": [
+    {"id": "pyro", "name": "Pyromancie", "theme": "Feu, brûlure", "color": "FF9B4A", "icon": "boule_de_feu", "tiers": [
+      {"req": 0, "nodes": [
+        {"id": "combustion", "name": "Combustion", "max": 5, "desc": "Brûlure : +8 % de dégâts par rang.", "mods": {"burn_dmg": 0.08}},
+        {"id": "ardeur", "name": "Ardeur", "max": 5, "desc": "Sorts de Feu : +4 % de dégâts par rang.", "mods": {"elem_dmg.feu": 0.04}}
+      ]},
+      {"req": 5, "nodes": [
+        {"id": "braises", "name": "Braises", "max": 5, "desc": "Brûlure : +0,4 s par rang.", "mods": {"burn_dur": 0.4}},
+        {"id": "etincelle", "name": "Étincelle", "max": 5, "desc": "Boule de feu : +6 % de rayon par rang.", "mods": {"radius.boule_de_feu": 0.06}},
+        {"id": "brasier", "name": "Brasier", "max": 1, "kind": "spell", "desc": "Nouveau sort : un brasier embrase une zone pendant 4 s.", "unlock": "brasier"}
+      ]},
+      {"req": 10, "nodes": [
+        {"id": "fournaise", "name": "Fournaise", "max": 5, "desc": "+1 % de chances de critique par rang.", "mods": {"crit": 0.01}},
+        {"id": "feu_devorant", "name": "Feu dévorant", "max": 5, "desc": "Les ennemis qui brûlent subissent +4 % de dégâts par rang.", "mods": {"burning_vuln": 0.04}},
+        {"id": "flamme_sobre", "name": "Flamme sobre", "max": 5, "desc": "Sorts : −2 % de coût en mana par rang.", "mods": {"spell_cost": 0.02}}
+      ]},
+      {"req": 20, "nodes": [
+        {"id": "coeur_ardent", "name": "Cœur ardent", "max": 3, "desc": "Sorts de Feu : +5 % de dégâts par rang.", "mods": {"elem_dmg.feu": 0.05}},
+        {"id": "meteore_plus", "name": "Météore+", "max": 1, "kind": "evolution", "desc": "Évolution de l'Ultime : Météore arcanique +30 % de rayon, +25 % de dégâts.", "mods": {"ult_radius": 0.3, "ult_dmg": 0.25}}
+      ]},
+      {"req": 30, "nodes": [
+        {"id": "embrasement", "name": "Embrasement", "max": 1, "kind": "keystone", "desc": "Clé de voûte : la brûlure se propage aux ennemis proches à la mort de la cible.", "mods": {"embrasement": 1}}
+      ]}
+    ]},
+    {"id": "cryo", "name": "Cryomancie", "theme": "Givre, contrôle", "color": "9FE3FF", "icon": "pluie_de_givre", "tiers": [
+      {"req": 0, "nodes": [
+        {"id": "morsure", "name": "Morsure du froid", "max": 5, "desc": "Sorts de Givre : +6 % de dégâts par rang.", "mods": {"elem_dmg.givre": 0.06}},
+        {"id": "gel_profond", "name": "Gel profond", "max": 5, "desc": "Gel : +0,2 s par rang.", "mods": {"frozen_dur": 0.2}}
+      ]},
+      {"req": 5, "nodes": [
+        {"id": "eclats", "name": "Éclats", "max": 5, "desc": "Les ennemis gelés subissent +5 % de dégâts par rang.", "mods": {"frozen_vuln": 0.05}},
+        {"id": "givre_persistant", "name": "Givre persistant", "max": 5, "desc": "Pluie de givre : +0,3 s par rang.", "mods": {"dur.pluie_de_givre": 0.3}},
+        {"id": "prison_glace", "name": "Prison de glace", "max": 1, "kind": "spell", "desc": "Nouveau sort : gèle tous les ennemis d'une petite zone pendant 2 s.", "unlock": "prison_glace"}
+      ]},
+      {"req": 10, "nodes": [
+        {"id": "hiver", "name": "Hiver", "max": 5, "desc": "Zones de sorts : +4 % de ralentissement par rang.", "mods": {"zone_slow": 0.04}},
+        {"id": "blizzard", "name": "Blizzard", "max": 5, "desc": "Pluie de givre : +6 % de rayon par rang.", "mods": {"radius.pluie_de_givre": 0.06}},
+        {"id": "cristal", "name": "Cristal de mana", "max": 5, "desc": "+4 % de régénération de mana par rang.", "mods": {"mana_regen": 0.04}}
+      ]},
+      {"req": 20, "nodes": [
+        {"id": "coeur_glace", "name": "Cœur de glace", "max": 3, "desc": "Sorts de Givre : +5 % de dégâts par rang.", "mods": {"elem_dmg.givre": 0.05}},
+        {"id": "golem_givre", "name": "Golem de givre", "max": 1, "kind": "evolution", "desc": "Évolution du Champion : il devient de Givre et gagne +30 % de PV.", "mods": {"champ_hp": 0.3, "champ_givre": 1}}
+      ]},
+      {"req": 30, "nodes": [
+        {"id": "zero_absolu", "name": "Zéro absolu", "max": 1, "kind": "keystone", "desc": "Clé de voûte : le gel survient dès 2 cumuls de givre au lieu de 3.", "mods": {"zero_absolu": 1}}
+      ]}
+    ]},
+    {"id": "arcano", "name": "Arcanomancie", "theme": "Portails, mana", "color": "B07CFF", "icon": "rune", "locked": "Voie du Surge : s'ouvre à l'acte 3 (Marais Murmurants).", "tiers": []}
+  ]
+}

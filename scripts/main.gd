@@ -126,6 +126,9 @@ func _show_hub() -> void:
 	h.open_equipment.connect(_show_equipment)
 	h.open_login.connect(_show_login.bind(true))
 	h.open_save.connect(_show_save)
+	h.open_skills.connect(_show_room.bind("skills"))
+	h.open_library.connect(_show_room.bind("library"))
+	h.open_circle.connect(_show_room.bind("circle"))
 	h.play_level.connect(func(id: String) -> void: _play(id, false))
 	_set_screen(h)
 
@@ -135,6 +138,20 @@ func _show_map() -> void:
 	m.back.connect(_show_hub)
 	m.play.connect(_play)
 	_set_screen(m)
+
+
+## Salles de Havre-Aube : Entraînement (arbre), Bibliothèque (deck), Cercle (compagnons).
+func _show_room(which: String) -> void:
+	var s: Control
+	match which:
+		"skills":
+			s = SkillTreeScreen.new()
+		"library":
+			s = LibraryScreen.new()
+		_:
+			s = CircleScreen.new()
+	s.connect("back", _show_hub)
+	_set_screen(s)
 
 
 func _show_save() -> void:

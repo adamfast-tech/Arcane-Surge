@@ -156,5 +156,5 @@ iOS (iPhone 16 Pro Max, iPad), Android, PC (16:9, 16:10).
     - 10.2 ✅ narration de la zone 1 : prologue, 20 dialogues avec portraits, choix et fils du destin, répliques de combat — [`design/12-narration-zone1.md`](design/12-narration-zone1.md)
     - 10.2 bis ✅ 7 sorts en combat (3 nouveaux), Pluie de givre et Racines sur la durée, Boule de feu élargie, animation de chaque sort et pouvoir — [`design/13-sorts.md`](design/13-sorts.md)
     - 10.2 ter ✅ refonte de l'interface (concept UI) : cadres à coins coupés, icônes au trait, une icône par objet et par sort — [`design/14-interface.md`](design/14-interface.md)
-    - 10.3 arbres de compétences, Bibliothèque (sorts), Cercle (bots)
+    - 10.3 ✅ Entraînement (arbre du Mage), Bibliothèque (deck et sorts à apprendre), Cercle (réglages de Brann et Sylwen) — [`design/15-competences-bibliotheque-cercle.md`](design/15-competences-bibliotheque-cercle.md)
 11. Saison 2 : zones 11–15, niveau max 150, L'Ourdisseur (fils semés en saison 1)

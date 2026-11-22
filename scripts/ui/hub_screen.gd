@@ -7,6 +7,9 @@ signal open_map
 signal open_equipment
 signal open_login
 signal open_save
+signal open_skills
+signal open_library
+signal open_circle
 signal play_level(level_id: String)
 
 var _status_icon: TextureRect
@@ -46,6 +49,16 @@ func _ready() -> void:
 	var total := (index["levels"] as Array).size() * 3
 	grid.add_child(_tile("map", "CARTE DU MONDE", str(index["zone"]), "Zone 1 · %d / %d étoiles" % [Profile.stars_total(), total], func() -> void: open_map.emit()))
 	grid.add_child(_tile("baton_chene", "ÉQUIPEMENT", "Équipement & Forge", "Puissance %d · %d objets" % [Profile.power(), (Profile.data["inventory"] as Array).size()], func() -> void: open_equipment.emit()))
+	# Salles : Entraînement (arbre), Bibliothèque (deck), Cercle (compagnons).
+	var rooms := GridContainer.new()
+	rooms.columns = 3
+	rooms.add_theme_constant_override("h_separation", 10)
+	rooms.add_theme_constant_override("v_separation", 10)
+	col.add_child(rooms)
+	var free := Profile.skill_points_free()
+	rooms.add_child(_small_tile("target", "ENTRAÎNEMENT", "%d point%s" % [free, "s" if free > 1 else ""], UiTheme.GOLD if free > 0 else UiTheme.MUTED, func() -> void: open_skills.emit()))
+	rooms.add_child(_small_tile("book", "BIBLIOTHÈQUE", "Deck %d / %d" % [Profile.deck().size(), Profile.DECK_MAX], UiTheme.MUTED, func() -> void: open_library.emit()))
+	rooms.add_child(_small_tile("circle", "LE CERCLE", "Brann %d · Sylwen %d" % [Story.loyalty("brann"), Story.loyalty("sylwen")], UiTheme.MUTED, func() -> void: open_circle.emit()))
 	col.add_child(UiTheme.section("Prochainement"))
 	var soon := GridContainer.new()
 	soon.columns = 2
@@ -58,10 +71,7 @@ func _ready() -> void:
 			thread = "Fil : Sylvarche purifiée"
 		"B":
 			thread = "Fil : Sylvarche abattue"
-	soon.add_child(_locked("Bibliothèque", "Sorts et grimoires"))
-	soon.add_child(_locked("Entraînement", "Arbres de compétences"))
-	soon.add_child(_locked("Le Cercle", "Brann %d · Sylwen %d" % [Story.loyalty("brann"), Story.loyalty("sylwen")]))
-	soon.add_child(_locked("Observatoire", thread))
+	soon.add_child(_locked("Observatoire", thread + " · Changer le futur"))
 	col.add_child(UiTheme.rule())
 	col.add_child(_status_row())
 	var ver := UiTheme.label("v%s" % str(ProjectSettings.get_setting("application/config/version", "0.1")), 16, Color(UiTheme.MUTED, 0.6))
@@ -145,6 +155,29 @@ func _tile(icon: String, title: String, line1: String, line2: String, cb: Callab
 	ic.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	v.add_child(ic)
 	for t in [[title, 22, UiTheme.TEXT, true], [line1, 18, UiTheme.MUTED, false], [line2, 18, UiTheme.TEAL, false]]:
+		var l := UiTheme.title(str(t[0]), int(t[1]), t[2]) if bool(t[3]) else UiTheme.label(str(t[0]), int(t[1]), t[2])
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		l.custom_minimum_size = Vector2(10, 0)
+		v.add_child(l)
+	b.pressed.connect(cb)
+	return b
+
+
+func _small_tile(icon: String, title: String, line: String, line_col: Color, cb: Callable) -> Button:
+	var parts: Array = UiTheme.rich_button(128, "tile")
+	var b: Button = parts[0]
+	var h: HBoxContainer = parts[1]
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 4)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	v.alignment = BoxContainer.ALIGNMENT_CENTER
+	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	h.add_child(v)
+	var ic := UiTheme.icon_rect(icon, 32)
+	ic.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	v.add_child(ic)
+	for t in [[title, 18, UiTheme.TEXT, true], [line, 16, line_col, false]]:
 		var l := UiTheme.title(str(t[0]), int(t[1]), t[2]) if bool(t[3]) else UiTheme.label(str(t[0]), int(t[1]), t[2])
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

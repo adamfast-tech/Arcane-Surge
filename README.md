@@ -10,7 +10,7 @@ Jeu de « foule contrôlée » en univers de fantasy magique : tu lances des flu
 **https://adamfast-tech.github.io/Arcane-Surge/** (navigateur, téléphone ou ordinateur).
 
 - **Compte :** connexion avec ton **compte Académie** (même pseudo et même mot de passe), ou jeu sans compte, la progression restant alors sur l'appareil.
-- **Havre-Aube :** le hub, avec profil et progression, la carte de la zone 1 et l'équipement avec la Forge.
+- **Havre-Aube :** le hub, avec profil et progression, la carte de la zone 1, l'équipement avec la Forge, l'Entraînement (arbre de compétences), la Bibliothèque (choix des 7 sorts, sorts à apprendre), le Cercle (réglages des compagnons) et la Sauvegarde.
 - **Zone 1, Bois des Lucioles :** 10 niveaux, dont un mini-boss (le Grand Cerf), une escorte, un siège et le boss **la Sylvarche**.
 - **Sorts :** 7 sorts animés (Boule de feu, Pluie de givre, Racines, Éclair en chaîne, Vortex d'ombre, Onde arcanique, Purifier), plus le Champion et l'Ultime (Météore arcanique).
 - **Histoire :** prologue, dialogues avant et après chaque niveau avec portraits, choix qui changent la suite (les fées captives, le sort de la Sylvarche), loyauté de Brann et Sylwen, répliques des compagnons en combat.

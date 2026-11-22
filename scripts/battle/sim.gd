@@ -154,6 +154,8 @@ var orbs: Array[Dictionary] = []
 var orb_cfg: Dictionary = {}
 var telegraphs: Array[Dictionary] = []
 var end_reason := ""
+## Effets de l'arbre de compétences du joueur ({clé: valeur}, voir data/skill_trees).
+var mods: Dictionary = {}
 ## Sorts à impact différé (projectile, météore) et zones actives (pluie, racines, vortex).
 var pending_impacts: Array[Dictionary] = []
 var zones: Array[Dictionary] = []
@@ -167,6 +169,9 @@ func setup(level_data: Dictionary, party: Dictionary, seed_value: int, opts: Dic
 	level = level_data
 	units_db = GameData.units()
 	spells_db = GameData.spells()
+	for k in spells_db.keys():
+		spells_db[k]["id"] = k
+	mods = opts.get("mods", {})
 	echoes_db = GameData.echoes()
 	rng.seed = seed_value
 	autoplay = bool(opts.get("autoplay", false))
@@ -305,8 +310,12 @@ func _setup_casters(party: Dictionary, opts: Dictionary = {}) -> void:
 	pc.x = W * 0.5
 	pc.prev_x = pc.x
 	pc.target_x = pc.x
-	for s in pd["deck"]:
-		pc.spells.append(str(s))
+	for s in opts.get("deck", pd["deck"]):
+		if spells_db.has(str(s)):
+			pc.spells.append(str(s))
+	pc.crit += _mod("crit")
+	pc.mana_regen *= 1.0 + _mod("mana_regen")
+	spell_cost_mult *= 1.0 - _mod("spell_cost")
 	var cls: Dictionary = classes[pc.class_id]
 	effect_mult = float(cls.get("effect_mult", 1.0))
 	champion_kind = str(cls.get("champion", "champion_golem"))
@@ -327,9 +336,21 @@ func _setup_casters(party: Dictionary, opts: Dictionary = {}) -> void:
 		var bdd: Dictionary = (bd as Dictionary).duplicate()
 		if opts.has("bot_level"):
 			bdd["level"] = int(opts["bot_level"])
+		# Réglages du Cercle : ordre par défaut, sort emporté, côtés échangés, amitié.
+		var circ: Dictionary = opts.get("circle", {})
+		var mine: Dictionary = circ.get(str(bd.get("id", "")), {})
+		if mine.has("order"):
+			bdd["order"] = str(mine["order"])
+		if mine.has("spell") and spells_db.has(str(mine["spell"])):
+			bdd["spells"] = [str(mine["spell"])]
 		var c := _make_caster(casters.size(), bdd, classes, races)
 		c.is_bot = true
 		c.side = str(bd.get("side", "left"))
+		if bool(circ.get("swap", false)):
+			c.side = "right" if c.side == "left" else "left"
+		if int((opts.get("loyalty", {}) as Dictionary).get(c.id, 50)) >= 75:
+			c.atk_mult *= 1.05
+			c.hp_mult *= 1.05
 		if c.side == "left":
 			c.min_x = 0.5
 			c.max_x = 4.6
@@ -342,11 +363,11 @@ func _setup_casters(party: Dictionary, opts: Dictionary = {}) -> void:
 		c.target_x = c.x
 		c.move_speed = 4.0
 		c.personality = str(bd.get("personality", "equilibre"))
-		c.order = str(bd.get("order", "libre"))
+		c.order = str(bdd.get("order", "libre"))
 		c.think_interval = float(bd.get("think", 0.4))
 		c.aim_error = float(bd.get("aim_error", 0.4))
 		c.cadence *= float(bd.get("cadence_mult", 1.0))
-		for s in bd.get("spells", []):
+		for s in bdd.get("spells", []):
 			c.spells.append(str(s))
 		c.brain = BotBrain.new()
 		c.firing = true
@@ -1347,6 +1368,11 @@ func _calc(atk: float, elem: String, crit: float, tgt: Unit, frontal: bool) -> f
 	if rng.randf() < crit:
 		d *= 1.5
 	d *= 100.0 / (100.0 + maxf(0.0, tgt.defense))
+	if tgt.team == 1:
+		if tgt.frozen_t > 0.0:
+			d *= 1.0 + _mod("frozen_vuln")
+		if tgt.burn_t > 0.0:
+			d *= 1.0 + _mod("burning_vuln")
 	if frontal and tgt.front_block > 0.0:
 		d *= 1.0 - tgt.front_block
 	return d
@@ -1391,13 +1417,13 @@ func _apply_status(tgt: Unit, elem: String) -> void:
 		return
 	match elem:
 		"feu":
-			tgt.burn_t = 3.0
-			tgt.burn_dps = maxf(tgt.burn_dps, 0.03 * _dot_base(tgt) * effect_mult)
+			tgt.burn_t = 3.0 + _mod("burn_dur")
+			tgt.burn_dps = maxf(tgt.burn_dps, 0.03 * _dot_base(tgt) * effect_mult * (1.0 + _mod("burn_dmg")))
 		"givre":
 			tgt.slow_stacks += 1
 			tgt.slow_t = 3.0
-			if tgt.slow_stacks >= 3:
-				tgt.frozen_t = 1.5 * effect_mult
+			if tgt.slow_stacks >= (2 if _mod("zero_absolu") > 0.0 else 3):
+				tgt.frozen_t = (1.5 + _mod("frozen_dur")) * effect_mult
 				tgt.slow_stacks = 0
 		"nature":
 			tgt.poison_stacks = mini(5, tgt.poison_stacks + 1)
@@ -1436,6 +1462,12 @@ func _kill(u: Unit) -> void:
 		_log("%s est %s !" % [boss_name, _defeated_word()])
 	if u == escort:
 		_log("La Lanterne s'est éteinte…")
+	if u.team == 1 and u.burn_t > 0.0 and _mod("embrasement") > 0.0:
+		# Clé de voûte Embrasement : la brûlure se propage aux ennemis proches.
+		for e in _query(_grid_e, u.pos, 1.5):
+			if e != u and e.alive:
+				_apply_status(e, "feu")
+		_event({"t": "ring", "pos": u.pos, "r": 1.5, "color": "FF6A3A", "dur": 0.35})
 	if u.team == 1:
 		kills += 1
 		var big := u.role in ["brute", "bouclier", "lanceur", "soigneur"] or u.elite
@@ -1625,15 +1657,25 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 			_resolve_aoe(c, sp, at)
 			return true
 		"zone":
-			var dur := float(sp.get("dur", 3.0))
-			var zr := float(sp.get("radius", 1.5))
-			zones.append({"pos": at, "r": zr, "t": dur, "dps": float(sp.get("dps", 0)) * c.atk_mult,
-				"elem": str(sp.get("element", "")), "slow": float(sp.get("slow", 0.0)), "pull": float(sp.get("pull", 0.0)),
+			var dur := float(sp.get("dur", 3.0)) + _spell_mod(c, "dur.", sp)
+			var zr := float(sp.get("radius", 1.5)) * (1.0 + _spell_mod(c, "radius.", sp))
+			var zslow := float(sp.get("slow", 0.0))
+			if zslow > 0.0 and c.idx == 0:
+				zslow = minf(0.9, zslow + _mod("zone_slow"))
+			zones.append({"pos": at, "r": zr, "t": dur, "dps": float(sp.get("dps", 0)) * c.atk_mult * _elem_mult(c, sp),
+				"elem": str(sp.get("element", "")), "slow": zslow, "pull": float(sp.get("pull", 0.0)),
 				"stack_every": float(sp.get("stack_every", 0.0)), "stack_acc": 0.0})
 			_event({"t": str(sp.get("fx", "rain")), "pos": at, "r": zr, "dur": dur, "color": col})
 			return true
 		"chain":
 			return _chain(c, sp, at, from)
+		"barrier_heal":
+			if barrier_hp >= barrier_max:
+				return false
+			barrier_hp = minf(barrier_max, barrier_hp + float(sp.get("amount", 15)))
+			_event({"t": "shield", "dur": 1.0, "color": col})
+			_event({"t": "text", "pos": Vector2(W * 0.5, BARRIER_Y + 0.6), "text": "+%d Barrière" % int(sp.get("amount", 15)), "color": "F2E28B"})
+			return true
 		"wave":
 			_wave(c, sp, at)
 			return true
@@ -1659,7 +1701,7 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 			return true
 		"column":
 			var w := float(sp.get("width", 0.8))
-			var dmg := float(sp.get("damage", 30)) * c.atk_mult
+			var dmg := float(sp.get("damage", 30)) * c.atk_mult * _elem_mult(c, sp)
 			var elem := str(sp.get("element", ""))
 			for e in enemies:
 				if e.alive and absf(e.pos.x - at.x) <= w * 0.5 + e.radius:
@@ -1670,11 +1712,25 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 	return false
 
 
+func _mod(k: String) -> float:
+	return float(mods.get(k, 0.0))
+
+
+## Bonus de l'arbre propre à un sort (« radius.boule_de_feu », « dur.pluie_de_givre »), pour le joueur.
+func _spell_mod(c: Caster, prefix: String, sp: Dictionary) -> float:
+	return _mod(prefix + str(sp.get("id", ""))) if c.idx == 0 else 0.0
+
+
+## Bonus de dégâts de l'arbre pour l'élément du sort (« elem_dmg.feu »), pour le joueur.
+func _elem_mult(c: Caster, sp: Dictionary) -> float:
+	return 1.0 + (_mod("elem_dmg." + str(sp.get("element", ""))) if c.idx == 0 else 0.0)
+
+
 ## Impact d'un sort de zone instantané (ou à la fin de son projectile).
 func _resolve_aoe(c: Caster, sp: Dictionary, at: Vector2) -> void:
 	var col := str(sp.get("color", "FFFFFF"))
-	var r := float(sp.get("radius", 1.0))
-	var dmg := float(sp.get("damage", 0)) * c.atk_mult
+	var r := float(sp.get("radius", 1.0)) * (1.0 + _spell_mod(c, "radius.", sp))
+	var dmg := float(sp.get("damage", 0)) * c.atk_mult * _elem_mult(c, sp)
 	var elem := str(sp.get("element", ""))
 	for e in _query(_grid_e, at, r + 0.3):
 		_damage(e, _calc(dmg, elem, c.crit, e, false), elem)
@@ -1683,6 +1739,8 @@ func _resolve_aoe(c: Caster, sp: Dictionary, at: Vector2) -> void:
 		_apply_status(e, elem)
 		if sp.has("root"):
 			e.rooted_t = maxf(e.rooted_t, float(sp["root"]))
+		if sp.has("freeze") and e.role != "boss":
+			e.frozen_t = maxf(e.frozen_t, float(sp["freeze"]) + _mod("frozen_dur"))
 	for t in towers:
 		if t["alive"] and at.distance_to(t["pos"]) <= r + 0.45:
 			t["hp"] = float(t["hp"]) - dmg
@@ -1703,7 +1761,7 @@ func _resolve_aoe(c: Caster, sp: Dictionary, at: Vector2) -> void:
 				_event({"t": "text", "pos": (n["pos"] as Vector2) + Vector2(0.0, -0.8), "text": "-%d" % int(dmg * nr), "color": "FFFFFF"})
 		_sync_nexus()
 	var big := bool(sp.get("impact_flash", false))
-	_event({"t": "explosion", "pos": at, "r": r, "color": col, "dur": 0.8 if big else 0.6, "big": big})
+	_event({"t": "explosion", "pos": at, "r": r, "color": col, "dur": 0.8 if big else 0.6, "big": big, "ice": bool(sp.get("fx_ice", false))})
 	if big:
 		_event({"t": "flash"})
 		_event({"t": "shake"})
@@ -1771,7 +1829,7 @@ func _chain(c: Caster, sp: Dictionary, at: Vector2, from: Vector2) -> bool:
 			tgt = e
 	if tgt == null:
 		return false
-	var dmg := float(sp.get("damage", 40)) * c.atk_mult
+	var dmg := float(sp.get("damage", 40)) * c.atk_mult * _elem_mult(c, sp)
 	var reach := float(sp.get("range", 2.4))
 	var elem := str(sp.get("element", "foudre"))
 	var pts: Array = [from]
@@ -1799,7 +1857,7 @@ func _chain(c: Caster, sp: Dictionary, at: Vector2, from: Vector2) -> bool:
 ## Onde arcanique : dégâts et recul vers le fond de l'arène (les boss et les soigneurs fixes résistent).
 func _wave(c: Caster, sp: Dictionary, at: Vector2) -> void:
 	var r := float(sp.get("radius", 2.4))
-	var dmg := float(sp.get("damage", 20)) * c.atk_mult
+	var dmg := float(sp.get("damage", 20)) * c.atk_mult * _elem_mult(c, sp)
 	var push := float(sp.get("push", 2.0))
 	var elem := str(sp.get("element", ""))
 	for e in _query(_grid_e, at, r + 0.3):
@@ -1825,10 +1883,10 @@ func summon_champion() -> bool:
 		var u := _make_unit(champion_kind, 0, Vector2(x, CASTER_Y + 0.7))
 		u.owner_idx = 0
 		u.atk *= c.atk_mult
-		u.hp *= c.hp_mult
+		u.hp *= c.hp_mult * (1.0 + _mod("champ_hp"))
 		u.max_hp = u.hp
 		u.crit = c.crit
-		u.element = last_elem
+		u.element = "givre" if _mod("champ_givre") > 0.0 else last_elem
 		_pending_allies.append(u)
 		_event({"t": "ring", "pos": u.pos, "r": 1.0, "color": "F2C46B", "dur": 0.5})
 		_event({"t": "summon", "pos": u.pos, "dur": 0.9, "color": "F2C46B"})
@@ -1844,7 +1902,9 @@ func ultimate_ready() -> bool:
 func cast_ultimate(at: Vector2) -> bool:
 	if not ultimate_ready():
 		return false
-	var sp: Dictionary = spells_db[ultimate_id]
+	var sp: Dictionary = (spells_db[ultimate_id] as Dictionary).duplicate()
+	sp["radius"] = float(sp.get("radius", 3.0)) * (1.0 + _mod("ult_radius"))
+	sp["damage"] = float(sp.get("damage", 200)) * (1.0 + _mod("ult_dmg"))
 	_apply_spell(casters[0], sp, at)
 	surge = 0.0
 	if not bool(sp.get("impact_flash", false)):

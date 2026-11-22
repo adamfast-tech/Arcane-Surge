@@ -11,6 +11,12 @@ const STATS := ["pou", "vig", "esp", "cel", "des"]
 
 static var data: Dictionary = {}
 
+## Sorts connus au départ (et deck de départ) ; 7 sorts au plus en combat.
+const BASE_SPELLS := ["boule_de_feu", "pluie_de_givre", "racines", "eclair_chaine", "vortex_ombre", "onde_arcanique", "purifier"]
+const DECK_MAX := 7
+## Sorts que chaque compagnon peut emporter (Cercle).
+const COMPANION_SPELLS := {"brann": ["bouclier_leve", "charge_bastion"], "sylwen": ["tir_precision", "volee_fleches"]}
+
 
 static func items_db() -> Dictionary:
 	return GameData.load_json("res://data/items.json")
@@ -27,6 +33,9 @@ static func default_data() -> Dictionary:
 		"gold": 0, "dust": 0, "materials": {}, "inventory": [], "equipped": {}, "levels": {},
 		"settings": {"guest": false, "auto_fire": false}, "next_uid": 1,
 		"story": Story.default_state(),
+		"skills": {}, "skill_resets": 0,
+		"spells": {"known": BASE_SPELLS.duplicate(), "deck": BASE_SPELLS.duplicate()},
+		"circle": default_circle(),
 	}
 
 
@@ -446,4 +455,232 @@ static func _roll(table: Dictionary, rng: RandomNumberGenerator) -> String:
 ## Options passées à la simulation pour refléter la progression et les fils du destin.
 static func battle_opts() -> Dictionary:
 	return {"player_level": level(), "gear": gear_stats(), "weapon_element": weapon_element(), "bot_level": maxi(1, level() - 1),
-		"flags": Story.active_flags(), "healed": Story.has_flag("s1.sylvarche_purifiee")}
+		"flags": Story.active_flags(), "healed": Story.has_flag("s1.sylvarche_purifiee"),
+		"mods": skill_mods(), "deck": deck(), "circle": circle(),
+		"loyalty": {"brann": Story.loyalty("brann"), "sylwen": Story.loyalty("sylwen")}}
+
+
+# ---------------------------------------------------------------- arbre de compétences (Entraînement)
+
+static func tree_db() -> Dictionary:
+	return GameData.load_json("res://data/skill_trees/%s.json" % str(data["player"]["class"]))
+
+
+## 1 point par niveau à partir du niveau 2, plus 1 tous les 10 niveaux (04-classes-races §3.1).
+static func skill_points_total() -> int:
+	var l := level()
+	return maxi(0, l - 1) + int(l / 10.0)
+
+
+static func skill_ranks() -> Dictionary:
+	var cls := str(data["player"]["class"])
+	if not (data.get("skills") is Dictionary):
+		data["skills"] = {}
+	if not (data["skills"].get(cls) is Dictionary):
+		data["skills"][cls] = {}
+	return data["skills"][cls]
+
+
+static func skill_rank(id: String) -> int:
+	return int(skill_ranks().get(id, 0))
+
+
+static func skill_points_spent() -> int:
+	var n := 0
+	for k in skill_ranks().keys():
+		n += int(skill_ranks()[k])
+	return n
+
+
+static func skill_points_free() -> int:
+	return skill_points_total() - skill_points_spent()
+
+
+static func branch_spent(branch: Dictionary) -> int:
+	var n := 0
+	for tier in branch.get("tiers", []):
+		for node in tier["nodes"]:
+			n += skill_rank(str(node["id"]))
+	return n
+
+
+## [branche, palier, nœud] d'un nœud de l'arbre, ou [] s'il n'existe pas.
+static func find_node(id: String) -> Array:
+	for br in tree_db().get("branches", []):
+		for tier in br.get("tiers", []):
+			for node in tier["nodes"]:
+				if str(node["id"]) == id:
+					return [br, tier, node]
+	return []
+
+
+static func keystones_taken() -> int:
+	var n := 0
+	for br in tree_db().get("branches", []):
+		for tier in br.get("tiers", []):
+			for node in tier["nodes"]:
+				if str(node.get("kind", "")) == "keystone" and skill_rank(str(node["id"])) > 0:
+					n += 1
+	return n
+
+
+## "" si l'on peut investir un point dans ce nœud, sinon la raison.
+static func invest_block(id: String) -> String:
+	var f := find_node(id)
+	if f.is_empty():
+		return "Nœud inconnu"
+	var br: Dictionary = f[0]
+	var tier: Dictionary = f[1]
+	var node: Dictionary = f[2]
+	if br.has("locked"):
+		return str(br["locked"])
+	if skill_rank(id) >= int(node.get("max", 1)):
+		return "Rang maximum"
+	if branch_spent(br) < int(tier.get("req", 0)):
+		return "Palier verrouillé : %d points dans la branche" % int(tier["req"])
+	if str(node.get("kind", "")) == "keystone" and keystones_taken() >= int(tree_db().get("keystone_limit", 2)):
+		return "2 Clés de voûte au maximum"
+	if skill_points_free() <= 0:
+		return "Aucun point disponible"
+	return ""
+
+
+static func invest(id: String) -> bool:
+	if invest_block(id) != "":
+		return false
+	skill_ranks()[id] = skill_rank(id) + 1
+	return true
+
+
+## Réinitialisation : gratuite la 1re fois, puis 100 or de plus à chaque fois.
+static func reset_cost() -> int:
+	return 100 * int(data.get("skill_resets", 0))
+
+
+static func reset_skills() -> bool:
+	var cost := reset_cost()
+	if gold() < cost or skill_points_spent() == 0:
+		return false
+	data["gold"] = gold() - cost
+	skill_ranks().clear()
+	data["skill_resets"] = int(data.get("skill_resets", 0)) + 1
+	return true
+
+
+## Effets cumulés de l'arbre : {clé: valeur × rang}.
+static func skill_mods() -> Dictionary:
+	var out := {}
+	for br in tree_db().get("branches", []):
+		for tier in br.get("tiers", []):
+			for node in tier["nodes"]:
+				var r := skill_rank(str(node["id"]))
+				if r <= 0:
+					continue
+				var m: Dictionary = node.get("mods", {})
+				for k in m.keys():
+					out[k] = float(out.get(k, 0.0)) + float(m[k]) * float(r)
+	return out
+
+
+# ---------------------------------------------------------------- sorts (Bibliothèque)
+
+static func _spells_state() -> Dictionary:
+	if not (data.get("spells") is Dictionary):
+		data["spells"] = {"known": BASE_SPELLS.duplicate(), "deck": BASE_SPELLS.duplicate()}
+	return data["spells"]
+
+
+## Sorts connus : appris (base, Bibliothèque) et débloqués par l'arbre.
+static func known_spells() -> Array[String]:
+	var out: Array[String] = []
+	for id in _spells_state().get("known", []):
+		if GameData.spells().has(str(id)) and not out.has(str(id)):
+			out.append(str(id))
+	for br in tree_db().get("branches", []):
+		for tier in br.get("tiers", []):
+			for node in tier["nodes"]:
+				if node.has("unlock") and skill_rank(str(node["id"])) > 0 and not out.has(str(node["unlock"])):
+					out.append(str(node["unlock"]))
+	return out
+
+
+## Deck emporté en combat (dans l'ordre du grimoire), parmi les sorts connus.
+static func deck() -> Array[String]:
+	var known := known_spells()
+	var chosen: Array = _spells_state().get("deck", [])
+	var out: Array[String] = []
+	for id in GameData.spells().keys():
+		if chosen.has(id) and known.has(str(id)) and out.size() < DECK_MAX:
+			out.append(str(id))
+	if out.is_empty() and not known.is_empty():
+		out.append(known[0])
+	return out
+
+
+## Ajoute ou retire un sort du deck ; retourne "" ou la raison du refus.
+static func toggle_deck(id: String) -> String:
+	var st := _spells_state()
+	var d: Array = st.get("deck", [])
+	var current := deck()
+	if current.has(id):
+		if current.size() <= 1:
+			return "Il faut au moins un sort"
+		d.erase(id)
+	else:
+		if not known_spells().has(id):
+			return "Sort inconnu"
+		if current.size() >= DECK_MAX:
+			return "Deck complet (%d sorts) : retire d'abord un sort" % DECK_MAX
+		# On repart du deck effectif pour ne pas garder de sorts devenus inconnus.
+		d.clear()
+		d.append_array(current)
+		d.append(id)
+	st["deck"] = d
+	return ""
+
+
+static func learn_block(id: String) -> String:
+	var sp: Dictionary = GameData.spells().get(id, {})
+	if not sp.has("learn"):
+		return "Ne s'apprend pas à la Bibliothèque"
+	if known_spells().has(id):
+		return "Déjà appris"
+	var l: Dictionary = sp["learn"]
+	if level() < int(l.get("level", 1)):
+		return "Niveau %d requis" % int(l["level"])
+	if gold() < int(l.get("gold", 0)):
+		return "Or insuffisant"
+	return ""
+
+
+static func learn(id: String) -> bool:
+	if learn_block(id) != "":
+		return false
+	data["gold"] = gold() - int(GameData.spells()[id]["learn"].get("gold", 0))
+	(_spells_state()["known"] as Array).append(id)
+	return true
+
+
+# ---------------------------------------------------------------- Cercle (compagnons)
+
+static func default_circle() -> Dictionary:
+	return {"swap": false, "brann": {"order": "defends", "spell": "bouclier_leve"}, "sylwen": {"order": "focus_nexus", "spell": "tir_precision"}}
+
+
+static func circle() -> Dictionary:
+	if not (data.get("circle") is Dictionary):
+		data["circle"] = default_circle()
+	var c: Dictionary = data["circle"]
+	var def := default_circle()
+	for k in def.keys():
+		if not c.has(k):
+			c[k] = def[k]
+	return c
+
+
+static func set_circle(who: String, key: String, value: Variant) -> void:
+	var c := circle()
+	if who == "":
+		c[key] = value
+	else:
+		(c[who] as Dictionary)[key] = value

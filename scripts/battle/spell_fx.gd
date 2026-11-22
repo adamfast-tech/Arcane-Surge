@@ -37,6 +37,8 @@ func handle(e: Dictionary) -> bool:
 			_roots(e, col)
 		"vortex":
 			_vortex(e, col)
+		"blaze":
+			_blaze(e, col)
 		"wave":
 			_wave(e, col)
 		"lightning":
@@ -107,7 +109,12 @@ func _explosion(e: Dictionary, col: Color) -> void:
 		3.4 + r * 1.7, 0.18 if big else 0.13, 0.85, -6.0, 75.0)
 	_burst(p, 14 + (24 if big else 0), [Color(0.32, 0.26, 0.3, 0.75), Color(0.18, 0.16, 0.2, 0.0)], 1.0 + r * 0.5, 0.24, 1.1, 0.9, 95.0)
 	_light(p + Vector3(0, 0.7, 0), col.lerp(Color.WHITE, 0.2), r * 2.8, 3.2 if big else 2.2, 0.4)
-	_scorch(pos, r * 0.85, 2.0)
+	if bool(e.get("ice", false)):
+		# Prison de glace : éclats de cristal et givre au sol au lieu de la brûlure.
+		_burst(p, 30, [Color.WHITE, Color("cff4ff"), Color(0.6, 0.85, 1.0, 0.0)], 3.0, 0.1, 0.6, -7.0, 70.0)
+		_disc(pos, r, Color(0.7, 0.92, 1.0, 0.3), 2.0)
+	else:
+		_scorch(pos, r * 0.85, 2.0)
 	_ripple(pos, r, Color(col, 0.35), 0.45)
 	_line_fx.append({"kind": "shock", "pos": pos, "r": r, "age": 0.0, "dur": 0.45, "color": col})
 	if big:
@@ -189,6 +196,33 @@ func _roots(e: Dictionary, col: Color) -> void:
 	add_child(l)
 	_nodes.append({"kind": "emitter", "node": l, "age": 0.0, "stop": dur, "dur": dur + l.lifetime + 0.05})
 	_disc(pos, r, Color(0.22, 0.42, 0.16, 0.28), dur)
+	_line_fx.append({"kind": "zone", "pos": pos, "r": r, "age": 0.0, "dur": dur, "color": col})
+
+
+## Brasier : flammes qui montent du sol, disque rougeoyant, lumière orangée.
+func _blaze(e: Dictionary, col: Color) -> void:
+	var r := float(e["r"])
+	var dur := float(e["dur"])
+	var pos: Vector2 = e["pos"]
+	var p := CPUParticles3D.new()
+	p.amount = 40 + int(r * 16.0)
+	p.lifetime = 0.7
+	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	p.emission_box_extents = Vector3(r * 0.7, 0.05, r * 0.7)
+	p.direction = Vector3.UP
+	p.spread = 12.0
+	p.initial_velocity_min = 1.2
+	p.initial_velocity_max = 2.6
+	p.gravity = Vector3(0, 1.5, 0)
+	p.scale_amount_min = 0.8
+	p.scale_amount_max = 1.6
+	p.mesh = _pm(0.12)
+	p.color_ramp = _ramp([Color("fff3b0"), Color("ffb04a"), Color("e0502a"), Color(0.3, 0.1, 0.1, 0.0)])
+	p.position = w3(pos, 0.1)
+	add_child(p)
+	_nodes.append({"kind": "emitter", "node": p, "age": 0.0, "stop": dur, "dur": dur + p.lifetime + 0.05})
+	_disc(pos, r, Color(0.9, 0.35, 0.12, 0.3), dur)
+	_light(w3(pos, 0.9), col, r * 2.4, 2.0, dur)
 	_line_fx.append({"kind": "zone", "pos": pos, "r": r, "age": 0.0, "dur": dur, "color": col})
 
 
