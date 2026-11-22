@@ -51,6 +51,36 @@ static func orb(kind: String) -> ImageTexture:
 
 
 ## Halo doux (pour les éclairs de lumière, en mélange additif).
+## Orbe teinté à la couleur d'un sort (projectiles autres que la Boule de feu).
+static func orb_tint(col: Color) -> ImageTexture:
+	var key := "orbt_" + col.to_html(false)
+	if _cache.has(key):
+		return _cached(key)
+	var n := 12
+	var rings: Array = [Color.WHITE, col.lightened(0.55), col, col.darkened(0.35)]
+	var img := Image.create_empty(n, n, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var c := (float(n) - 1.0) * 0.5
+	for y in range(n):
+		for x in range(n):
+			var d := Vector2(float(x) - c - 0.8, float(y) - c + 0.8).length() / (c + 0.5)
+			var e := Vector2(float(x) - c, float(y) - c).length() / (c + 0.5)
+			if e > 1.0:
+				continue
+			img.set_pixel(x, y, rings[clampi(int(d * float(rings.size())), 0, rings.size() - 1)])
+	var src := img.duplicate() as Image
+	for y in range(n):
+		for x in range(n):
+			if src.get_pixel(x, y).a > 0.0:
+				continue
+			for dd in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+				var q: Vector2i = Vector2i(x, y) + dd
+				if q.x >= 0 and q.y >= 0 and q.x < n and q.y < n and src.get_pixel(q.x, q.y).a > 0.0:
+					img.set_pixel(x, y, col.darkened(0.75))
+					break
+	return _store(key, img)
+
+
 static func flash() -> ImageTexture:
 	if _cache.has("flash"):
 		return _cached("flash")

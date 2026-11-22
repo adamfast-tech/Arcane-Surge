@@ -42,3 +42,5 @@ Simulateur, 4 parties par niveau, personnage du niveau du lieu :
 | Barrière | 97 % | 99 % | 98 % | 95 % | 42 % | 97 % | 94 % | 95 % | 97 % | 53 % |
 
 Les durées restent proches du calibrage précédent : le mana limite toujours le nombre de sorts lancés.
+
+> Suite : 42 sorts rangés en 7 rangs, voir [`18-rangs-des-sorts.md`](18-rangs-des-sorts.md).

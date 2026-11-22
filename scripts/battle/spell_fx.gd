@@ -56,6 +56,15 @@ func handle(e: Dictionary) -> bool:
 			_line_fx.append({"kind": "arrow", "a": e["a"], "b": e["b"], "age": 0.0, "dur": float(e.get("dur", 0.3)), "color": col})
 		"wind":
 			_wind(e)
+		"bolt":
+			# Éclair tombé du ciel (Orage, Colère du ciel) : cible marquée, puis frappe à l'impact.
+			_line_fx.append({"kind": "mark", "pos": e["to"], "r": float(e.get("r", 1.0)), "age": 0.0, "dur": float(e["dur"]), "color": col})
+			_line_fx.append({"kind": "bolt", "pos": e["to"], "age": -float(e["dur"]), "dur": 0.35, "color": col, "seed": _rng.randi() % 1000})
+		"column":
+			_column(e, col)
+		"storm":
+			_rain(e, col)
+			_line_fx.append({"kind": "storm", "pos": e["pos"], "r": float(e["r"]), "age": 0.0, "dur": float(e["dur"]), "color": col})
 		_:
 			return false
 	return true
@@ -66,9 +75,11 @@ func handle(e: Dictionary) -> bool:
 func _projectile(e: Dictionary) -> void:
 	var meteor := str(e["t"]) == "meteor"
 	var to: Vector2 = e["to"]
+	var tint := bool(e.get("tint", false))
+	var col := Color(str(e.get("color", "FFFFFF")))
 	var spr := Sprite3D.new()
-	spr.texture = FxArt.orb("meteor" if meteor else "fire")
-	spr.pixel_size = TEXEL * (2.6 if meteor else 1.9)
+	spr.texture = FxArt.orb_tint(col) if tint else FxArt.orb("meteor" if meteor else "fire")
+	spr.pixel_size = TEXEL * (2.6 if meteor else 1.9) * (1.25 if tint and meteor else 1.0)
 	spr.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	spr.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	spr.shaded = false
@@ -86,7 +97,9 @@ func _projectile(e: Dictionary) -> void:
 	trail.initial_velocity_max = 0.5
 	trail.gravity = Vector3(0, 0.8, 0)
 	trail.mesh = _pm(0.16 if meteor else 0.11)
-	if meteor:
+	if tint:
+		trail.color_ramp = _ramp([Color.WHITE, col.lightened(0.4), col, Color(col.darkened(0.4), 0.0)])
+	elif meteor:
 		trail.color_ramp = _ramp([Color("ffffff"), Color("e8d0ff"), Color("b07cff"), Color(0.55, 0.25, 0.9, 0.0)])
 	else:
 		trail.color_ramp = _ramp([Color("fff3b0"), Color("ffb04a"), Color("e0502a"), Color(0.5, 0.12, 0.08, 0.0)])
@@ -199,6 +212,66 @@ func _wind(e: Dictionary) -> void:
 	d.position = w3(Vector2(4.5 - dir * 6.0, 8.0), 0.3)
 	add_child(d)
 	_nodes.append({"kind": "emitter", "node": d, "age": 0.0, "stop": dur, "dur": dur + d.lifetime + 0.05})
+
+
+## Sorts en colonne : gerbe d'effets le long de la colonne visée (flammes, glace, épines, ombre, rayon).
+func _column(e: Dictionary, col: Color) -> void:
+	var x := float(e["x"])
+	var y0 := float(e["y0"])
+	var y1 := float(e["y1"])
+	var w := float(e.get("w", 0.8))
+	var kind := str(e.get("fx", "beam"))
+	var mid := Vector2(x, (y0 + y1) * 0.5)
+	var p := CPUParticles3D.new()
+	p.one_shot = true
+	p.explosiveness = 0.85
+	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	p.emission_box_extents = Vector3(w * 0.35, 0.05, (y1 - y0) * 0.5)
+	p.direction = Vector3.UP
+	p.position = w3(mid, 0.1)
+	match kind:
+		"flames":
+			p.amount = 200
+			p.lifetime = 0.9
+			p.spread = 14.0
+			p.initial_velocity_min = 1.6
+			p.initial_velocity_max = 3.6
+			p.gravity = Vector3(0, 1.5, 0)
+			p.mesh = _pm(0.24)
+			p.color_ramp = _ramp([Color("fff3b0"), Color("ffb04a"), col, Color(0.5, 0.1, 0.05, 0.0)])
+			_light(w3(mid, 1.0), col, 7.0, 2.4, 0.6)
+		"ice", "thorns":
+			p.amount = 140
+			p.lifetime = 0.7
+			p.spread = 8.0
+			p.initial_velocity_min = 2.4
+			p.initial_velocity_max = 4.2
+			p.gravity = Vector3(0, -9.0, 0)
+			p.mesh = _streak()
+			p.color_ramp = _ramp([Color.WHITE, col, Color(col.darkened(0.3), 0.0)])
+		"shadow":
+			p.amount = 120
+			p.lifetime = 0.9
+			p.spread = 30.0
+			p.initial_velocity_min = 0.6
+			p.initial_velocity_max = 1.6
+			p.gravity = Vector3(0, 0.8, 0)
+			p.mesh = _pm(0.18)
+			p.color_ramp = _ramp([Color(col.lightened(0.3), 0.9), col, Color(0.1, 0.05, 0.2, 0.0)])
+		_:
+			p.amount = 60
+			p.lifetime = 0.5
+			p.spread = 40.0
+			p.initial_velocity_min = 0.8
+			p.initial_velocity_max = 2.0
+			p.gravity = Vector3.ZERO
+			p.mesh = _pm(0.1)
+			p.color_ramp = _ramp([Color.WHITE, col, Color(col, 0.0)])
+			_light(w3(mid, 1.0), col, 7.0, 2.0, 0.4)
+	add_child(p)
+	p.emitting = true
+	_nodes.append({"kind": "free", "node": p, "age": 0.0, "dur": p.lifetime + 0.2})
+	_line_fx.append({"kind": "colband", "x": x, "w": w, "y0": y0, "y1": y1, "age": 0.0, "dur": 0.45, "color": col})
 
 
 func _roots(e: Dictionary, col: Color) -> void:
@@ -577,6 +650,23 @@ func collect(lines: Array, points: Array) -> void:
 				_lightning_lines(lines, lf, col, k)
 			"wind":
 				_wind_lines(lines, lf, age, dur)
+			"mark":
+				var mr := float(lf["r"]) * (1.2 - 0.4 * k)
+				_ring(lines, lf["pos"], mr, Color(col, 0.35 + 0.5 * k), 0.06)
+			"bolt":
+				_bolt_lines(lines, lf["pos"], int(lf["seed"]), Color(col.lerp(Color.WHITE, 0.4), 1.0 - k))
+			"storm":
+				# Éclairs réguliers dans la zone de la Tempête.
+				var slot := int(age * 3.0)
+				if fmod(age * 3.0, 1.0) < 0.35 and age < dur - 0.3:
+					_rng.seed = slot * 977 + int(float(lf["r"]) * 10.0)
+					var off := Vector2.from_angle(_rng.randf() * TAU) * _rng.randf() * float(lf["r"])
+					_bolt_lines(lines, (lf["pos"] as Vector2) + off, slot, Color(col.lerp(Color.WHITE, 0.5), 0.9))
+			"colband":
+				var a := (1.0 - k) * 0.8
+				var hx := float(lf["w"]) * 0.5
+				for sx in [-hx, hx]:
+					lines.append([w3(Vector2(float(lf["x"]) + sx, float(lf["y0"])), 0.08), w3(Vector2(float(lf["x"]) + sx, float(lf["y1"])), 0.08), Color(col, a)])
 			"arrow":
 				var a: Vector2 = lf["a"]
 				var b: Vector2 = lf["b"]
@@ -584,6 +674,20 @@ func collect(lines: Array, points: Array) -> void:
 				var p1 := w3(a.lerp(b, clampf(k * 1.1, 0.0, 1.0)), 0.55)
 				lines.append([p0, p1, Color(1, 1, 1, 1.0 - k * 0.5)])
 				lines.append([p0 + Vector3(0, 0.04, 0), p1 + Vector3(0, 0.04, 0), Color(col, 1.0 - k * 0.5)])
+
+
+## Éclair vertical, du ciel jusqu'au sol.
+func _bolt_lines(lines: Array, pos: Vector2, seed_value: int, col: Color) -> void:
+	_rng.seed = seed_value * 31 + int(t * 30.0)
+	var prev := w3(pos, 7.0)
+	var n := 12
+	for i in range(1, n + 1):
+		var f := float(i) / float(n)
+		var q := pos + (Vector2(_rng.randf_range(-0.25, 0.25), _rng.randf_range(-0.1, 0.1)) if i < n else Vector2.ZERO)
+		var p := w3(q, lerpf(7.0, 0.05, f))
+		lines.append([prev, p, col])
+		lines.append([prev + Vector3(0.03, 0, 0), p + Vector3(0.03, 0, 0), Color(1, 1, 1, col.a)])
+		prev = p
 
 
 func _wind_lines(lines: Array, lf: Dictionary, age: float, dur: float) -> void:

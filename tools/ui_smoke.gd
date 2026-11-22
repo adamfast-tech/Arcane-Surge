@@ -157,6 +157,26 @@ func _run() -> void:
 	var t1 := Profile.toggle_deck("onde_arcanique")
 	var deck_after := Profile.deck().size()
 	Profile.toggle_deck("onde_arcanique")
+	# Rangs des sorts : un Novice s'apprend ; un Interdit demande le niveau 32 et donne de la Corruption.
+	var g0 := Profile.gold()
+	var nov := Profile.learn("etincelle")
+	var forb := Profile.learn_block("soleil_noir")
+	var lvl0 := int(Profile.data["player"]["level"])
+	var cor0 := Story.value("corruption")
+	Profile.data["player"]["level"] = 40
+	Profile.data["gold"] = 5000
+	var forb_ok := Profile.learn("soleil_noir")
+	var cor1 := Story.value("corruption")
+	Profile.data["player"]["level"] = lvl0
+	Profile.data["gold"] = g0 - 50
+	(Profile.data["spells"]["known"] as Array).erase("soleil_noir")
+	Story.add_value("corruption", cor0 - cor1)
+	print("rangs : Étincelle apprise ", nov, " (", g0, " -> ", Profile.gold(), " or) · Soleil noir : ", forb, " · au niv. 40 ", forb_ok, " · Corruption ", cor0, " -> ", cor1,
+		" · catalogue ", LibraryScreen.catalogue().size())
+	if not nov or forb_ok == false or cor1 - cor0 != 10 or LibraryScreen.catalogue().size() != 43:
+		push_error("rangs des sorts : apprentissage incorrect")
+		quit(1)
+		return
 	main.call("_show_room", "circle")
 	await _frames(5)
 	Profile.set_circle("brann", "order", "focus_nexus")
@@ -243,6 +263,21 @@ func _run() -> void:
 		await _frames(90)
 		print(id, " · ", bs.sim.objective_title(), " · ", bs.sim.objective_info(), " · état ", bs.sim.state)
 		bs.sim.debug_set_ratio(0.0)
+		if id == "z02_l03":
+			# Barrage (Orage) et magie interdite (Soleil noir, -20 Barrière).
+			var pcs: BattleSim.Caster = bs.sim.player()
+			pcs.spells.append_array(["orage", "soleil_noir"])
+			pcs.mana = pcs.mana_max
+			var b0 := bs.sim.barrier_hp
+			var ok1 := bs.sim.cast_spell(pcs, "orage", Vector2(4.5, 9.0))
+			pcs.mana = pcs.mana_max
+			var ok2 := bs.sim.cast_spell(pcs, "soleil_noir", Vector2(4.5, 10.0))
+			print("  sorts : Orage ", ok1, " · impacts en attente ", bs.sim.pending_impacts.size(), " · Soleil noir ", ok2, " · Barrière ", int(b0), " -> ", int(bs.sim.barrier_hp))
+			await _frames(40)
+			if not ok1 or not ok2 or b0 - bs.sim.barrier_hp < 19.0:
+				push_error("sorts : barrage ou prix en Barrière incorrect")
+				quit(1)
+				return
 		if id.begins_with("z02"):
 			var ids: Array[String] = []
 			for cc in bs.sim.casters:

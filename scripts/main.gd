@@ -28,6 +28,14 @@ func _ready() -> void:
 			fl.append("s1.krag_allie")
 			extra["flags"] = fl
 			extra["active"] = ["sylwen", "krag"]
+		var dq := str(_query().get("deck", ""))
+		if dq != "":
+			# Aperçu : sorts imposés (« &deck=orage,comete »).
+			var dk: Array[String] = []
+			for sid in dq.split(",", false):
+				if GameData.spells().has(sid):
+					dk.append(sid)
+			extra["deck"] = dk
 		_start(direct, _url_flag("solo"), extra)
 		var hp := float(str(_query().get("nexus", "0")))
 		if hp > 0.0 and hp < 1.0:
@@ -224,7 +232,7 @@ func _go(dest: String, level_id: String, solo: bool) -> void:
 
 
 ## Web : « ?level=z01_l08 » ouvre directement un niveau (« &solo=1 » pour le mode solo, « &krag=1 »
-## pour emmener Krag).
+## pour emmener Krag, « &deck=orage,comete » pour imposer des sorts).
 func _level_from_url() -> String:
 	var q := _query()
 	var id := str(q.get("level", ""))

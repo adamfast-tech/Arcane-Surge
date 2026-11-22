@@ -1748,7 +1748,10 @@ func spell_cost(c: Caster, id: String) -> float:
 
 
 func spell_ready(c: Caster, id: String) -> bool:
-	return state == "running" and c.mana >= spell_cost(c, id) and float(c.spell_cd.get(id, 0.0)) <= 0.0
+	if state != "running" or c.mana < spell_cost(c, id) or float(c.spell_cd.get(id, 0.0)) > 0.0:
+		return false
+	# Magie interdite : il faut pouvoir payer son prix en Barrière.
+	return barrier_hp > float(spells_db[id].get("barrier_cost", 0.0)) + 1.0
 
 
 ## Lance un sort à la position logique « at ». Retourne false s'il n'a pas pu être lancé.
@@ -1760,6 +1763,14 @@ func cast_spell(c: Caster, id: String, at: Vector2) -> bool:
 		return false
 	c.mana -= spell_cost(c, id)
 	c.spell_cd[id] = float(sp.get("cd", 0))
+	var price := float(sp.get("barrier_cost", 0.0))
+	if price > 0.0:
+		# Prix de la magie interdite : prélevé sur la Barrière elle-même (le bouclier ne protège pas).
+		barrier_hp = maxf(1.0, barrier_hp - price)
+		barrier_flash = 0.25
+		_event({"t": "barrier"})
+		_event({"t": "text", "pos": Vector2(W * 0.5, BARRIER_Y + 0.6), "text": "-%d Barrière" % int(price), "color": "D93CF2"})
+		_log("Magie interdite : la Barrière paie le prix (-%d)." % int(price))
 	if c.idx == 0 and barrier_cost_per_spell > 0.0:
 		_hurt_barrier(barrier_cost_per_spell)
 	if c.is_bot:
@@ -1776,9 +1787,23 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 			if delay > 0.0:
 				# Projectile (Boule de feu) ou chute (Météore) : l'impact suit l'animation.
 				pending_impacts.append({"t": delay, "c": c.idx, "sp": sp, "at": at})
-				_event({"t": str(sp.get("fx", "fireball")), "from": from, "to": at, "dur": delay, "r": float(sp.get("radius", 1.0)), "color": col})
+				_event({"t": str(sp.get("fx", "fireball")), "from": from, "to": at, "dur": delay, "r": float(sp.get("radius", 1.0)), "color": col,
+					"tint": bool(sp.get("tint", false))})
 				return true
 			_resolve_aoe(c, sp, at)
+			return true
+		"barrage":
+			# Pluie d'impacts (météores, éclairs) autour du point visé, l'un après l'autre.
+			var n := int(sp.get("count", 5))
+			var spread := float(sp.get("spread", 2.0))
+			var sub := sp.duplicate()
+			sub["type"] = "aoe"
+			sub.erase("barrier_cost")
+			for k in range(n):
+				var p := at + Vector2.from_angle(rng.randf() * TAU) * sqrt(rng.randf()) * spread
+				p = Vector2(clampf(p.x, 0.3, W - 0.3), clampf(p.y, BARRIER_Y + 0.8, H - 0.5))
+				pending_impacts.append({"t": 0.45 + float(k) * float(sp.get("interval", 0.25)), "c": c.idx, "sp": sub, "at": p,
+					"fx": str(sp.get("fx", "meteor")), "lead": 0.45, "from": from})
 			return true
 		"zone":
 			var dur := float(sp.get("dur", 3.0)) + _spell_mod(c, "dur.", sp)
@@ -1832,6 +1857,8 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 					_damage(e, _calc(dmg, elem, c.crit, e, false), elem)
 			_event({"t": "beam", "a": Vector2(at.x, BARRIER_Y), "b": Vector2(at.x, H - 0.4), "color": col, "dur": 0.3, "w": 3.0})
 			_event({"t": "arrow", "a": Vector2(at.x, BARRIER_Y), "b": Vector2(at.x, H - 0.4), "color": col, "dur": 0.3})
+			if sp.has("fx"):
+				_event({"t": "column", "fx": str(sp["fx"]), "x": at.x, "w": w, "y0": BARRIER_Y, "y1": H - 0.4, "color": col})
 			return true
 	return false
 
@@ -1884,6 +1911,8 @@ func _resolve_aoe(c: Caster, sp: Dictionary, at: Vector2) -> void:
 					n["alive"] = false
 				_event({"t": "text", "pos": (n["pos"] as Vector2) + Vector2(0.0, -0.8), "text": "-%d" % int(dmg * nr), "color": "FFFFFF"})
 		_sync_nexus()
+	if float(sp.get("surge_gain", 0.0)) > 0.0 and c.idx == 0:
+		surge = minf(100.0, surge + float(sp["surge_gain"]))
 	var big := bool(sp.get("impact_flash", false))
 	_event({"t": "explosion", "pos": at, "r": r, "color": col, "dur": 0.8 if big else 0.6, "big": big, "ice": bool(sp.get("fx_ice", false))})
 	if big:
@@ -1896,6 +1925,12 @@ func _update_impacts() -> void:
 	while i < pending_impacts.size():
 		var p: Dictionary = pending_impacts[i]
 		p["t"] = float(p["t"]) - TICK
+		if p.has("lead") and float(p["t"]) <= float(p["lead"]):
+			# Barrage : l'animation de chute part juste avant l'impact.
+			var sp: Dictionary = p["sp"]
+			_event({"t": str(p["fx"]), "from": p["from"], "to": p["at"], "pos": p["at"], "dur": maxf(0.05, float(p["t"])),
+				"r": float(sp.get("radius", 1.0)), "color": str(sp.get("color", "FFFFFF")), "tint": bool(sp.get("tint", false))})
+			p.erase("lead")
 		if float(p["t"]) <= 0.0:
 			pending_impacts.remove_at(i)
 			_resolve_aoe(casters[int(p["c"])], p["sp"], p["at"])

@@ -13,6 +13,19 @@ static var data: Dictionary = {}
 
 ## Sorts connus au départ (et deck de départ) ; 7 sorts au plus en combat.
 const BASE_SPELLS := ["boule_de_feu", "pluie_de_givre", "racines", "eclair_chaine", "vortex_ombre", "onde_arcanique", "purifier"]
+## Rangs des sorts élémentaires, par ordre croissant (docs/design/18-rangs-des-sorts.md) : niveau requis,
+## prix à la Bibliothèque, Corruption gagnée en l'apprenant.
+const SPELL_RANKS := ["novice", "intermediaire", "apprenti", "mage", "maitre", "archimage", "interdit"]
+const RANK_INFO := {
+	"novice": {"name": "Novice", "level": 1, "gold": 50, "color": "C8D0E0"},
+	"intermediaire": {"name": "Intermédiaire", "level": 1, "gold": 120, "color": "8FD16A"},
+	"apprenti": {"name": "Apprenti", "level": 5, "gold": 250, "color": "6FDCCF"},
+	"mage": {"name": "Mage", "level": 10, "gold": 500, "color": "6FA8E8"},
+	"maitre": {"name": "Maître", "level": 16, "gold": 900, "color": "B07CFF"},
+	"archimage": {"name": "Archimage", "level": 24, "gold": 1500, "color": "F2C46B"},
+	"interdit": {"name": "Interdit", "level": 32, "gold": 2500, "color": "D93CF2", "corruption": 10},
+}
+const SCHOOLS := {"feu": "Feu", "givre": "Givre", "foudre": "Foudre", "nature": "Nature", "ombre": "Ombre", "arcane": "Arcane"}
 const DECK_MAX := 7
 ## Sorts que chaque compagnon peut emporter (Cercle).
 const COMPANION_SPELLS := {"brann": ["bouclier_leve", "charge_bastion"], "sylwen": ["tir_precision", "volee_fleches"], "krag": ["hache_tournoyante", "bond_furieux"]}
@@ -644,13 +657,21 @@ static func toggle_deck(id: String) -> String:
 	return ""
 
 
-static func learn_block(id: String) -> String:
+## Conditions d'apprentissage d'un sort (selon son rang) : {level, gold, corruption} ; vide s'il ne
+## s'apprend pas à la Bibliothèque.
+static func learn_info(id: String) -> Dictionary:
 	var sp: Dictionary = GameData.spells().get(id, {})
-	if not sp.has("learn"):
+	if sp.has("learn"):
+		return sp["learn"]
+	return RANK_INFO.get(str(sp.get("rank", "")), {})
+
+
+static func learn_block(id: String) -> String:
+	var l := learn_info(id)
+	if l.is_empty():
 		return "Ne s'apprend pas à la Bibliothèque"
 	if known_spells().has(id):
 		return "Déjà appris"
-	var l: Dictionary = sp["learn"]
 	if level() < int(l.get("level", 1)):
 		return "Niveau %d requis" % int(l["level"])
 	if gold() < int(l.get("gold", 0)):
@@ -661,8 +682,12 @@ static func learn_block(id: String) -> String:
 static func learn(id: String) -> bool:
 	if learn_block(id) != "":
 		return false
-	data["gold"] = gold() - int(GameData.spells()[id]["learn"].get("gold", 0))
+	var l := learn_info(id)
+	data["gold"] = gold() - int(l.get("gold", 0))
 	(_spells_state()["known"] as Array).append(id)
+	# Magie interdite : la Corruption grandit (07-narration.md §1).
+	if int(l.get("corruption", 0)) > 0:
+		Story.add_value("corruption", int(l["corruption"]))
 	return true
 
 
