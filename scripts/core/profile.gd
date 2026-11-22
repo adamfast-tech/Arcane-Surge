@@ -87,6 +87,35 @@ static func progress_of(d: Dictionary) -> float:
 	return total
 
 
+## Résumé lisible d'une sauvegarde (écran Sauvegarde).
+static func summary(d: Dictionary) -> String:
+	var p: Dictionary = d.get("player", {}) if d.get("player") is Dictionary else {}
+	var stars := 0
+	for k in (d.get("levels", {}) as Dictionary).keys():
+		stars += int(d["levels"][k].get("stars", 0))
+	return "Niveau %d · %d étoile%s · %d objets · %d or" % [int(p.get("level", 1)), stars, "s" if stars > 1 else "",
+		(d.get("inventory", []) as Array).size(), int(d.get("gold", 0))]
+
+
+## Date de la dernière sauvegarde, à l'heure de l'appareil (« 22/11 à 10:42 »).
+static func save_date(d: Dictionary) -> String:
+	var u := float(d.get("updated", 0.0))
+	if u <= 0.0:
+		return "jamais sauvegardée"
+	var local := int(u) + int(Time.get_time_zone_from_system().get("bias", 0)) * 60
+	var t := Time.get_datetime_dict_from_unix_time(local)
+	return "%02d/%02d à %02d:%02d" % [int(t["day"]), int(t["month"]), int(t["hour"]), int(t["minute"])]
+
+
+## Copie de secours de l'appareil (« appareil », « compte ») : {} si absente.
+static func read_backup(tag: String) -> Dictionary:
+	var path := "user://save_backup_%s.json" % tag
+	if not FileAccess.file_exists(path):
+		return {}
+	var v: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+	return v if v is Dictionary else {}
+
+
 ## Copie de secours sur l'appareil (user://save_backup_<tag>.json) avant tout remplacement.
 static func backup(d: Dictionary, tag: String) -> void:
 	var f := FileAccess.open("user://save_backup_%s.json" % tag, FileAccess.WRITE)

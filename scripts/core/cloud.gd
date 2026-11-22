@@ -202,6 +202,36 @@ static func prefer_remote(local: Dictionary, remote: Dictionary) -> bool:
 	return float(remote.get("updated", 0.0)) > float(local.get("updated", 0.0))
 
 
+## Sauvegarde actuelle du compte : {} s'il n'y en a pas, null si le serveur ne répond pas.
+func fetch_remote() -> Variant:
+	if not is_online():
+		return null
+	var r := await _authed(HTTPClient.METHOD_GET, "/rest/v1/arcane_saves?select=data&user_id=eq." + user_id)
+	if not r["ok"]:
+		return null
+	var rows: Array = r["data"] if r["data"] is Array else []
+	if rows.is_empty() or not (rows[0].get("data") is Dictionary):
+		return {}
+	return rows[0]["data"]
+
+
+## Versions précédentes gardées par le serveur (5 au plus), de la plus récente à la plus ancienne.
+func fetch_history() -> Array:
+	if not is_online():
+		return []
+	var r := await _authed(HTTPClient.METHOD_GET, "/rest/v1/arcane_save_history?select=data,saved_at&user_id=eq.%s&order=saved_at.desc&limit=5" % user_id)
+	return r["data"] if r["ok"] and r["data"] is Array else []
+
+
+## Choix manuel : la progression « d » remplace celle de l'appareil (copie de secours gardée),
+## puis elle est envoyée sur le compte.
+func adopt(d: Dictionary) -> void:
+	Profile.backup(Profile.data, "appareil")
+	Profile.replace_with(d)
+	Profile.save_local()
+	await push()
+
+
 ## Envoie la progression locale (regroupe les envois rapprochés).
 func push() -> void:
 	if not is_online():

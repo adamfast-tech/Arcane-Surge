@@ -125,6 +125,7 @@ func _show_hub() -> void:
 	h.open_map.connect(_show_map)
 	h.open_equipment.connect(_show_equipment)
 	h.open_login.connect(_show_login.bind(true))
+	h.open_save.connect(_show_save)
 	h.play_level.connect(func(id: String) -> void: _play(id, false))
 	_set_screen(h)
 
@@ -134,6 +135,13 @@ func _show_map() -> void:
 	m.back.connect(_show_hub)
 	m.play.connect(_play)
 	_set_screen(m)
+
+
+func _show_save() -> void:
+	var s := SaveScreen.new()
+	s.back.connect(_show_hub)
+	s.open_login.connect(_show_login.bind(true))
+	_set_screen(s)
 
 
 func _show_equipment() -> void:

@@ -6,6 +6,7 @@ extends Control
 signal open_map
 signal open_equipment
 signal open_login
+signal open_save
 signal play_level(level_id: String)
 
 var _status_icon: TextureRect
@@ -182,6 +183,13 @@ func _status_row() -> VBoxContainer:
 	_account_label = UiTheme.label("", 17, UiTheme.MUTED)
 	_account_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	a.add_child(_account_label)
+	# Écran Sauvegarde : choisir manuellement la progression à garder.
+	var sv := UiTheme.button("Sauvegarde", 18)
+	sv.icon = Icons.tex("cloud", 40)
+	sv.add_theme_constant_override("icon_max_width", 20)
+	sv.custom_minimum_size = Vector2(0, 44)
+	sv.pressed.connect(func() -> void: open_save.emit())
+	a.add_child(sv)
 	_account_btn = UiTheme.button("", 18)
 	_account_btn.flat = true
 	_account_btn.custom_minimum_size = Vector2(0, 44)
