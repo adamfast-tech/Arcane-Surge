@@ -20,6 +20,11 @@ var user_id := ""
 var username := ""
 var _push_pending := false
 var _pushing := false
+## Vrai une fois la sauvegarde du compte lue et comparée pendant cette session : avant cela,
+## aucun envoi automatique (il pourrait écraser une progression plus avancée).
+var _synced := false
+## Détail de la dernière erreur réseau (affiché dans l'écran Sauvegarde).
+var last_error := ""
 
 
 func _enter_tree() -> void:
@@ -41,6 +46,9 @@ func _set_status(s: String, msg: String = "") -> void:
 func _request(method: int, path: String, body: Variant = null, use_auth: bool = true, extra: Array[String] = []) -> Dictionary:
 	var http := HTTPRequest.new()
 	http.timeout = 15.0
+	# Web : le navigateur décompresse déjà les réponses ; si Godot tente de les décompresser
+	# à nouveau, la lecture échoue (les envois, sans contenu en retour, passaient).
+	http.accept_gzip = not OS.has_feature("web")
 	add_child(http)
 	var headers := PackedStringArray(["apikey: " + KEY, "Content-Type: application/json", "Accept: application/json"])
 	if use_auth and access_token != "":
@@ -59,7 +67,10 @@ func _request(method: int, path: String, body: Variant = null, use_auth: bool = 
 	var data: Variant = null
 	if text != "":
 		data = JSON.parse_string(text)
-	return {"ok": int(res[0]) == HTTPRequest.RESULT_SUCCESS and code >= 200 and code < 300, "code": code, "data": data}
+	var ok := int(res[0]) == HTTPRequest.RESULT_SUCCESS and code >= 200 and code < 300
+	if not ok:
+		last_error = "HTTP %d, résultat %d" % [code, int(res[0])]
+	return {"ok": ok, "code": code, "data": data}
 
 
 ## Requête authentifiée : rafraîchit la session une fois si le jeton a expiré.
@@ -75,6 +86,7 @@ func _authed(method: int, path: String, body: Variant = null, extra: Array[Strin
 
 ## Retourne "" si la connexion réussit, sinon un message d'erreur.
 func login(identifier: String, password: String) -> String:
+	_synced = false
 	_set_status("connecting")
 	var r := await _request(HTTPClient.METHOD_POST, "/rest/v1/rpc/resolve_login", {"p_login": identifier.strip_edges(), "p_password": password}, false)
 	if int(r["code"]) == 0:
@@ -108,6 +120,7 @@ func resume() -> bool:
 	user_id = str(s.get("user_id", ""))
 	if refresh_token == "":
 		return false
+	_synced = false
 	_set_status("connecting")
 	if not await _refresh():
 		_set_status("offline", "Session expirée : reconnecte-toi")
@@ -119,6 +132,7 @@ func resume() -> bool:
 
 
 func logout() -> void:
+	_synced = false
 	access_token = ""
 	refresh_token = ""
 	user_id = ""
@@ -170,6 +184,7 @@ func sync_pull() -> void:
 		message = "Sauvegarde en ligne indisponible"
 		status_changed.emit()
 		return
+	_synced = true
 	var rows: Array = r["data"] if r["data"] is Array else []
 	if not rows.is_empty() and rows[0].get("data") is Dictionary:
 		var remote: Dictionary = rows[0]["data"]
@@ -189,7 +204,7 @@ func sync_pull() -> void:
 			Profile.backup(remote, "compte")
 		if lp > rp:
 			message = "Progression de cet appareil envoyée sur ton compte"
-	await push()
+	await push(true)
 
 
 ## Vrai si la sauvegarde du compte doit remplacer celle de l'appareil : la plus avancée gagne,
@@ -229,12 +244,17 @@ func adopt(d: Dictionary) -> void:
 	Profile.backup(Profile.data, "appareil")
 	Profile.replace_with(d)
 	Profile.save_local()
-	await push()
+	await push(true)
 
 
 ## Envoie la progression locale (regroupe les envois rapprochés).
-func push() -> void:
+## force : envoi voulu par le joueur (écran Sauvegarde) ou décidé par sync_pull. Sinon, tant que
+## la sauvegarde du compte n'a pas été lue, on la lit d'abord pour ne rien écraser.
+func push(force: bool = false) -> void:
 	if not is_online():
+		return
+	if not force and not _synced:
+		await sync_pull()
 		return
 	if _pushing:
 		_push_pending = true
@@ -244,6 +264,8 @@ func push() -> void:
 	var r := await _authed(HTTPClient.METHOD_POST, "/rest/v1/arcane_saves?on_conflict=user_id", body,
 		["Prefer: resolution=merge-duplicates,return=minimal"])
 	_pushing = false
+	if r["ok"]:
+		_synced = true
 	message = "Synchronisé" if r["ok"] else "Échec de la synchronisation (code %d)" % int(r["code"])
 	status_changed.emit()
 	if _push_pending:

@@ -76,8 +76,10 @@ func _rebuild() -> void:
 		av.add_child(login)
 	elif _loading:
 		av.add_child(UiTheme.label("Lecture de la sauvegarde en ligne…", 18, UiTheme.MUTED))
-	elif _remote == null:
+	elif typeof(_remote) == TYPE_NIL:
 		av.add_child(UiTheme.label("Sauvegarde en ligne injoignable.", 18, UiTheme.GOLD))
+		if Cloud.instance.last_error != "":
+			av.add_child(UiTheme.label("(%s)" % Cloud.instance.last_error, 15, UiTheme.MUTED))
 		var retry := UiTheme.button("Réessayer", 19)
 		retry.custom_minimum_size = Vector2(0, 52)
 		retry.pressed.connect(_load_remote)
@@ -159,7 +161,7 @@ func _version_row(d: Dictionary, label: String) -> PanelContainer:
 # ---------------------------------------------------------------- actions
 
 func _do_push() -> void:
-	await Cloud.instance.push()
+	await Cloud.instance.push(true)
 	_msg = "Progression de cet appareil envoyée sur le compte." if not Cloud.instance.message.begins_with("Échec") else Cloud.instance.message
 
 

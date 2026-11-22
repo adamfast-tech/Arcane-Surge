@@ -84,6 +84,7 @@ Jouer sans compte ───────────┴─> Havre-Aube ─┬─>
 **Synchronisation**
 - **Locale** : une sauvegarde est toujours écrite sur l'appareil.
 - **En ligne** : connecté, la version **la plus avancée** (XP cumulée) l'emporte au démarrage et à la connexion. La plus récente ne l'emporte qu'à progression égale : une partie neuve ne peut plus écraser une progression. L'autre version est gardée en copie de secours sur l'appareil (`user://save_backup_appareil.json` / `_compte.json`). La progression est envoyée après chaque partie et chaque action de Forge.
+- **Sécurité** : aucun envoi automatique tant que la sauvegarde du compte n'a pas été lue pendant la session. Sur le web, la décompression des réponses est laissée au navigateur (sinon les lectures échouaient).
 - **Écran Sauvegarde** (Havre-Aube, bouton « Sauvegarde ») : compare la progression de l'appareil et celle du compte, et permet de choisir à la main.
   - Envoyer la progression de l'appareil sur le compte, ou utiliser celle du compte.
   - Restaurer l'une des 5 versions précédentes gardées par le serveur (`arcane_save_history`) ou une copie de secours de l'appareil.
