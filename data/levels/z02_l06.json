@@ -5,7 +5,7 @@
   "number": "2-6",
   "global_level": 16,
   "type": "Assaut",
-  "party": ["brann", "sylwen", "krag"],
+  "party": ["brann", "sylwen", "krag", "nyx"],
   "desc": "Les Chamans d'orage foudroient tes invocations de loin. Les pylônes et le vent compliquent tout.",
   "par_time": 146,
   "nexus": {

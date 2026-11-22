@@ -7,7 +7,7 @@ extends RefCounted
 ## Clés de valeur : « loy.<compagnon> » (0 à 100), « rep.<faction> » (−100 à 100), « corruption » (0 à 100).
 ## Drapeaux rangés par saison : « s1.fees_liberees », « s1.sylvarche_purifiee »…
 
-const COMPANIONS := {"brann": "Brann", "sylwen": "Sylwen", "krag": "Krag"}
+const COMPANIONS := {"brann": "Brann", "sylwen": "Sylwen", "krag": "Krag", "nyx": "Nyx"}
 const FACTIONS := {
 	"elfes": "Elfes", "orcs": "Clans orcs", "humains": "Royaumes humains", "nains": "Nains",
 	"cendres": "Cercle des Cendres", "aube": "Ordre de l'Aube", "dragons": "Dragons", "archivistes": "Archivistes",

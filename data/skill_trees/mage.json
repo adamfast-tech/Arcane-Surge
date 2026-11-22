@@ -48,6 +48,29 @@
         {"id": "zero_absolu", "name": "Zéro absolu", "max": 1, "kind": "keystone", "desc": "Clé de voûte : le gel survient dès 2 cumuls de givre au lieu de 3.", "mods": {"zero_absolu": 1}}
       ]}
     ]},
-    {"id": "arcano", "name": "Arcanomancie", "theme": "Portails, mana", "color": "B07CFF", "icon": "rune", "locked": "Voie du Surge : s'ouvre à l'acte 3 (Marais Murmurants).", "tiers": []}
+    {"id": "arcano", "name": "Arcanomancie", "theme": "Voie du Surge : portails, mana, jauge Surge", "color": "B07CFF", "icon": "rune", "unlock_flag": "s1.verite_cendres", "locked": "Voie du Surge : s'ouvre à la fin de l'acte 3 (la Vérité des Cendres, 3-10).", "tiers": [
+      {"req": 0, "nodes": [
+        {"id": "resonance", "name": "Résonance", "max": 5, "desc": "Sorts d'Arcane : +6 % de dégâts par rang.", "mods": {"elem_dmg.arcane": 0.06}},
+        {"id": "flux_vital", "name": "Flux vital", "max": 3, "desc": "Mana : +4 % de régénération par rang.", "mods": {"mana_regen": 0.04}}
+      ]},
+      {"req": 5, "nodes": [
+        {"id": "eclat_surge", "name": "Éclat du Surge", "max": 5, "desc": "Jauge Surge : +6 % de gain par rang.", "mods": {"surge_gain": 0.06}},
+        {"id": "portail_instable", "name": "Portail instable", "max": 3, "desc": "Onde arcanique : +8 % de rayon par rang.", "mods": {"radius.onde_arcanique": 0.08}},
+        {"id": "distorsion_t", "name": "Distorsion", "max": 1, "kind": "spell", "desc": "Nouveau sort : le temps ralentit dans une zone pendant 5 s.", "unlock": "distorsion"}
+      ]},
+      {"req": 10, "nodes": [
+        {"id": "concentration", "name": "Concentration", "max": 5, "desc": "Sorts : −2 % de coût en mana par rang.", "mods": {"spell_cost": 0.02}},
+        {"id": "esprit_vif", "name": "Esprit vif", "max": 5, "desc": "Coups critiques : +1 % de chance par rang.", "mods": {"crit": 0.01}},
+        {"id": "faille_ouverte", "name": "Faille ouverte", "max": 3, "desc": "Distorsion : +0,3 s de durée par rang.", "mods": {"dur.distorsion": 0.3}}
+      ]},
+      {"req": 20, "nodes": [
+        {"id": "coeur_arcane", "name": "Cœur arcanique", "max": 3, "desc": "Sorts d'Arcane : +5 % de dégâts par rang.", "mods": {"elem_dmg.arcane": 0.05}},
+        {"id": "meteore_surge", "name": "Météore du Surge", "max": 1, "kind": "evolution", "desc": "Évolution de l'Ultime : +20 % de dégâts, +20 % de rayon, jauge Surge +10 %.", "mods": {"ult_dmg": 0.2, "ult_radius": 0.2, "surge_gain": 0.1}}
+      ]},
+      {"req": 30, "nodes": [
+        {"id": "aube_eternelle", "name": "Aube éternelle", "max": 1, "kind": "keystone", "flag": "s1.voie_aube", "flag_text": "Voie de l'Aube (choix de 3-10)", "desc": "Clé de voûte (Aube) : la Barrière se répare de 0,4 PV par seconde.", "mods": {"barrier_regen": 0.4}},
+        {"id": "cendres_vives", "name": "Cendres vives", "max": 1, "kind": "keystone", "flag": "s1.voie_cendres", "flag_text": "Voie des Cendres (choix de 3-10)", "desc": "Clé de voûte (Cendres) : chaque ennemi abattu rend 1 point de mana.", "mods": {"kill_mana": 1.0}}
+      ]}
+    ]}
   ]
 }

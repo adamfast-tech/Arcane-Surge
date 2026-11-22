@@ -5,11 +5,7 @@
   "number": "3-7",
   "global_level": 27,
   "type": "Escorte",
-  "party": [
-    "brann",
-    "sylwen",
-    "krag"
-  ],
+  "party": ["brann", "sylwen", "krag", "nyx"],
   "objective": "escort",
   "desc": "La barque des passeurs doit traverser le marais. Les rats de peste l'attaquent par les flancs ; la brume cache les embuscades.",
   "par_time": 170,

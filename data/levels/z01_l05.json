@@ -5,7 +5,7 @@
   "number": "1-5",
   "global_level": 5,
   "type": "Mini-boss",
-  "party": ["brann", "sylwen", "krag"],
+  "party": ["brann", "sylwen", "krag", "nyx"],
   "objective": "boss",
   "desc": "Le gardien de la clairière est corrompu. Esquive ses charges (zones rouges) et abats-le. Il appelle la harde des Lapins-épines.",
   "par_time": 150,

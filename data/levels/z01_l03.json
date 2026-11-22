@@ -5,7 +5,7 @@
   "number": "1-3",
   "global_level": 3,
   "type": "Assaut",
-  "party": ["brann", "sylwen", "krag"],
+  "party": ["brann", "sylwen", "krag", "nyx"],
   "desc": "Brann rejoint le Cercle. Les Lapins-épines foncent : utilise tes sorts. Le portail de Feu brûle les créatures de la forêt.",
   "par_time": 110,
   "nexus": {

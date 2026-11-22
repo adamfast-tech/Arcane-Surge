@@ -5,11 +5,7 @@
   "number": "3-6",
   "global_level": 26,
   "type": "Assaut",
-  "party": [
-    "brann",
-    "sylwen",
-    "krag"
-  ],
+  "party": ["brann", "sylwen", "krag", "nyx"],
   "desc": "Des Adeptes renégats lancent des sorts d'ombre depuis les saules. La brume les protège ; leurs mares ralentissent tes troupes.",
   "par_time": 180,
   "nexus": {

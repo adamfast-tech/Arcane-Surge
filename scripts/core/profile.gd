@@ -31,7 +31,7 @@ const SPELL_PRICE_MIN := 40
 const SCHOOLS := {"feu": "Feu", "givre": "Givre", "foudre": "Foudre", "nature": "Nature", "ombre": "Ombre", "arcane": "Arcane", "terre": "Terre"}
 const DECK_MAX := 7
 ## Sorts que chaque compagnon peut emporter (Cercle).
-const COMPANION_SPELLS := {"brann": ["bouclier_leve", "charge_bastion"], "sylwen": ["tir_precision", "volee_fleches"], "krag": ["hache_tournoyante", "bond_furieux"]}
+const COMPANION_SPELLS := {"brann": ["bouclier_leve", "charge_bastion"], "sylwen": ["tir_precision", "volee_fleches"], "krag": ["hache_tournoyante", "bond_furieux"], "nyx": ["linceul", "ossements"]}
 ## Compagnons emmenés en combat : 2 au plus.
 const ACTIVE_MAX := 2
 
@@ -477,7 +477,7 @@ static func battle_opts() -> Dictionary:
 	return {"player_level": level(), "gear": gear_stats(), "weapon_element": weapon_element(), "bot_level": maxi(1, level() - 1),
 		"flags": Story.active_flags(), "healed": Story.has_flag("s1.sylvarche_purifiee"),
 		"mods": skill_mods(), "deck": deck() if spell_mode() == "deck" else drawer_spells(), "spell_mode": spell_mode(), "circle": circle(),
-		"loyalty": {"brann": Story.loyalty("brann"), "sylwen": Story.loyalty("sylwen"), "krag": Story.loyalty("krag")},
+		"loyalty": {"brann": Story.loyalty("brann"), "sylwen": Story.loyalty("sylwen"), "krag": Story.loyalty("krag"), "nyx": Story.loyalty("nyx")},
 		"active": active_companions()}
 
 
@@ -535,6 +535,15 @@ static func find_node(id: String) -> Array:
 	return []
 
 
+## "" si la branche est ouverte, sinon la raison (ex. Voie du Surge : ouverte par l'histoire de l'acte 3).
+static func branch_locked(br: Dictionary) -> String:
+	if br.has("unlock_flag"):
+		return "" if Story.has_flag(str(br["unlock_flag"])) else str(br.get("locked", "Verrouillée"))
+	if br.has("locked"):
+		return str(br["locked"])
+	return ""
+
+
 static func keystones_taken() -> int:
 	var n := 0
 	for br in tree_db().get("branches", []):
@@ -553,8 +562,10 @@ static func invest_block(id: String) -> String:
 	var br: Dictionary = f[0]
 	var tier: Dictionary = f[1]
 	var node: Dictionary = f[2]
-	if br.has("locked"):
-		return str(br["locked"])
+	if branch_locked(br) != "":
+		return branch_locked(br)
+	if node.has("flag") and not Story.has_flag(str(node["flag"])):
+		return "Réservé : %s" % str(node.get("flag_text", node["flag"]))
 	if skill_rank(id) >= int(node.get("max", 1)):
 		return "Rang maximum"
 	if branch_spent(br) < int(tier.get("req", 0)):
@@ -789,7 +800,8 @@ static func learn(id: String) -> bool:
 
 static func default_circle() -> Dictionary:
 	return {"swap": false, "active": ["brann", "sylwen"], "brann": {"order": "defends", "spell": "bouclier_leve"},
-		"sylwen": {"order": "focus_nexus", "spell": "tir_precision"}, "krag": {"order": "defends", "spell": "hache_tournoyante"}}
+		"sylwen": {"order": "focus_nexus", "spell": "tir_precision"}, "krag": {"order": "defends", "spell": "hache_tournoyante"},
+		"nyx": {"order": "focus_nexus", "spell": "linceul"}}
 
 
 ## Compagnons qui ont rejoint le groupe (Krag : selon les choix de l'acte 2).

@@ -255,6 +255,23 @@ func _run() -> void:
 		quit(1)
 		return
 	Profile.data["story"] = saved
+	# Acte 3 : Nyx rejoint (3-6), 3-9 « Protéger Corvin », ✦ 3-10 « Voie des Cendres » -> branche Voie du Surge.
+	var arc: Dictionary = {}
+	for br in Profile.tree_db()["branches"]:
+		if str(br["id"]) == "arcano":
+			arc = br
+	var locked0 := Profile.branch_locked(arc) != ""
+	for sid in ["z03_l06_outro", "z03_l09_outro", "z03_l10_outro"]:
+		main.call("_show_dialogue", [sid], Callable(main, "_show_map"))
+		await _frames(3)
+		await _through_dialogues(1)
+	print("acte 3 : Nyx alliée ", Story.has_flag("s1.nyx_allie"), " · loyauté ", Story.loyalty("nyx"), " · 3-9 ", Story.choice("z03_l09"), " · 3-10 ", Story.choice("z03_l10"),
+		" · Corruption ", Story.value("corruption"), " · Voie du Surge : verrouillée avant ", locked0, ", après ", Profile.branch_locked(arc) != "",
+		" · Aube éternelle « ", Profile.invest_block("aube_eternelle"), " » · Cendres vives « ", Profile.invest_block("cendres_vives"), " »")
+	if not Story.has_flag("s1.nyx_allie") or Story.loyalty("nyx") != 80 or not locked0 or Profile.branch_locked(arc) != "" or not Profile.invest_block("aube_eternelle").begins_with("Réservé") or Profile.invest_block("cendres_vives").begins_with("Réservé"):
+		push_error("acte 3 incorrect")
+		quit(1)
+		return
 	main.call("_show_room", "circle")
 	await _frames(5)
 	Profile.swap_active("krag", "brann")

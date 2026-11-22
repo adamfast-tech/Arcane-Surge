@@ -26,6 +26,8 @@ static func plate(kind: String, size: Vector2i) -> ImageTexture:
 			_tour(img, rng)
 		"steppe", "moulins", "campement", "orage", "traite", "fort":
 			_ambre(img, rng, kind)
+		"marais", "cercle", "hydre", "refuge":
+			_marais(img, rng, kind)
 		_:
 			_forest(img, rng, kind)
 	var tex := ImageTexture.create_from_image(img)
@@ -548,6 +550,85 @@ static func _fire(img: Image, rng: RandomNumberGenerator, x: int, y: int) -> voi
 	for st in range(40):
 		_px(img, int(p.x), int(p.y), Color(0.3, 0.25, 0.3, 0.35))
 		p += Vector2(rng.randf_range(-0.6, 0.8), -1.0)
+
+
+# ---------------------------------------------------------------- acte 3 · Marais Murmurants
+
+## Marais au crépuscule et variantes : marais (pilotis, lanternes), cercle (saules et braseros de cendre),
+## hydre (silhouette dans la brume), refuge (cabanes du Cercle assiégées).
+static func _marais(img: Image, rng: RandomNumberGenerator, kind: String) -> void:
+	var w := img.get_width()
+	var h := img.get_height()
+	_sky(img, rng, [[0.0, Color("1a1628")], [0.38, Color("4a3e62")], [0.55, Color("9c8ab4")], [0.64, Color("c9d1c4")], [1.0, Color("2f3a33")]], 0.5)
+	_moon(img, int(w * 0.72), int(h * 0.14), maxi(5, int(minf(w, h) * 0.045)))
+	_ridge(img, rng, int(h * 0.44), int(h * 0.03), Color("4a4a5e"), Color("6a6a82"))
+	var water := int(h * 0.56)
+	img.fill_rect(Rect2i(0, water, w, h - water), Color("2a3530"))
+	for i in range(int(w * h / 300.0)):
+		var y := rng.randi_range(water, h - 1)
+		var x := rng.randi_range(0, w - 1)
+		for dx in range(rng.randi_range(4, 14)):
+			_px(img, x + dx, y, Color(0.6, 0.65, 0.75, 0.12))
+	# Saules pleureurs.
+	for i in range(maxi(3, int(w / 45.0))):
+		var tx := rng.randi_range(-10, w + 10)
+		var th := rng.randi_range(int(h * 0.16), int(h * 0.26))
+		img.fill_rect(Rect2i(tx - 1, water - th, 3, th), Color("23222a"))
+		_disc(img, tx, water - th, int(th * 0.4), Color("2e3d34"))
+		for k in range(40):
+			var sx := tx + rng.randi_range(-int(th * 0.45), int(th * 0.45))
+			var sy := water - th + rng.randi_range(-int(th * 0.2), int(th * 0.15))
+			for d in range(rng.randi_range(5, int(th * 0.8))):
+				_px(img, sx, sy + d, Color("33463a"))
+	match kind:
+		"marais":
+			for i in range(3):
+				var hx := int(w * (0.18 + 0.32 * float(i)))
+				img.fill_rect(Rect2i(hx, water - 14, 18, 10), Color("2a2420"))
+				for r in range(6):
+					img.fill_rect(Rect2i(hx - 2 + r, water - 14 - r, 22 - r * 2, 1), Color("3a3028"))
+				for p in [hx + 1, hx + 8, hx + 16]:
+					img.fill_rect(Rect2i(p, water - 4, 1, 8), Color("2a2420"))
+				_glow_px(img, hx + 9, water - 9, 6, Color("f2c46b"), 0.35)
+				_px(img, hx + 9, water - 9, Color("fff0b0"))
+		"cercle", "refuge":
+			# Cercle de pierres et braseros de cendre.
+			var cx := int(w * 0.5)
+			var cy := water - 2
+			for k in range(7):
+				var a := PI + float(k) * PI / 6.0
+				var px := cx + int(cos(a) * w * 0.34)
+				var py := cy + int(sin(a) * h * 0.06)
+				img.fill_rect(Rect2i(px - 2, py - 10, 5, 10), Color("4a4a52"))
+				if k % 2 == 0:
+					_glow_px(img, px, py - 13, 6, Color("ff8a3a"), 0.4)
+					_px(img, px, py - 13, Color("ffd070"))
+			if kind == "refuge":
+				for k in range(5):
+					var p := Vector2(rng.randf_range(w * 0.15, w * 0.85), float(water - 12))
+					for st in range(30):
+						_px(img, int(p.x), int(p.y), Color(0.75, 0.4, 1.0, 0.25))
+						p += Vector2(rng.randf_range(-0.6, 0.9), -1.0)
+		"hydre":
+			# Silhouette de l'hydre dans la brume : un corps, cinq cous.
+			var bx := int(w * 0.5)
+			_disc(img, bx, water + 2, int(w * 0.16), Color("1e2a22"))
+			for k in range(5):
+				var a := -PI * 0.5 + (float(k) - 2.0) * 0.38
+				var p := Vector2(bx, water - 2)
+				for st in range(int(h * 0.22)):
+					var wv := sin(float(st) * 0.15 + float(k)) * 0.6
+					p += Vector2(cos(a) + wv, sin(a))
+					_disc(img, int(p.x), int(p.y), 2, Color("1e2a22"))
+				_disc(img, int(p.x), int(p.y), 4, Color("1e2a22"))
+				_px(img, int(p.x) + 1, int(p.y) - 1, Color("f0d23c"))
+	# Brume au ras de l'eau.
+	for i in range(int(w * h / 500.0)):
+		var y := rng.randi_range(int(h * 0.45), h - 1)
+		var x := rng.randi_range(-40, w)
+		for dx in range(rng.randi_range(30, 100)):
+			_px(img, x + dx, y, Color(0.8, 0.85, 0.82, 0.1))
+	_fireflies(img, rng, int(w / 14.0), int(h * 0.4), h - 2, Color("a8e070"))
 
 
 # ---------------------------------------------------------------- icônes (glyphes absents des polices)

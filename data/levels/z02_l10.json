@@ -5,7 +5,7 @@
   "number": "2-10",
   "global_level": 20,
   "type": "Boss",
-  "party": ["brann", "sylwen", "krag"],
+  "party": ["brann", "sylwen", "krag", "nyx"],
   "objective": "boss",
   "desc": "Le seigneur de guerre possédé. Abats ses 3 bannières pour briser son armure, esquive ses charges, détruis ses totems d'orage. La Nature le blesse davantage.",
   "par_time": 320,

@@ -1,6 +1,7 @@
 {
   "familiar_mage": {"name": "Familier arcanique", "role": "familier", "sprite": "familiar", "hp": 10, "atk": 10, "def": 0, "speed": 2.5, "radius": 0.22, "weight": 1, "atk_interval": 0.5},
   "familiar_knight": {"name": "Fantassin", "role": "familier", "sprite": "knight", "hp": 13, "atk": 9, "def": 5, "speed": 2.3, "radius": 0.23, "weight": 1, "atk_interval": 0.5},
+  "familiar_necro": {"name": "Squelette lié", "role": "familier", "sprite": "skeleton", "element": "ombre", "hp": 12, "atk": 10, "def": 2, "speed": 2.3, "radius": 0.22, "weight": 1, "atk_interval": 0.5},
   "familiar_berserker": {"name": "Lanceur de haches", "role": "familier", "sprite": "berserker", "hp": 14, "atk": 8, "def": 2, "speed": 2.5, "radius": 0.22, "weight": 1, "atk_interval": 0.7, "range": 2.4},
   "familiar_archer": {"name": "Archer spectral", "role": "familier", "sprite": "archer", "hp": 8, "atk": 9, "def": 0, "speed": 2.4, "radius": 0.21, "weight": 1, "atk_interval": 0.9, "range": 2.6},
   "skeleton": {"name": "Squelette relevé", "role": "familier", "sprite": "skeleton", "element": "ombre", "hp": 10, "atk": 10, "def": 0, "speed": 2.2, "radius": 0.22, "weight": 1, "atk_interval": 0.5},

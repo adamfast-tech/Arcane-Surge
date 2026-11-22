@@ -48,6 +48,14 @@ static func texture(who: String, mood: String = "neutre") -> Texture2D:
 			_prevote(img, mood)
 		"varg":
 			_varg(img, mood)
+		"nyx":
+			_nyx(img, mood)
+		"vesper":
+			_vesper(img, mood)
+		"aurele":
+			_aurele(img, mood)
+		"corvin":
+			_corvin(img, mood)
 		_:
 			return null
 	_outline(img)
@@ -57,7 +65,7 @@ static func texture(who: String, mood: String = "neutre") -> Texture2D:
 
 
 static func has_portrait(who: String) -> bool:
-	return who in ["porteur", "sylwen", "brann", "ancien", "cerf", "sylvarche", "fee", "voix", "krag", "gharok", "prevote", "varg"] \
+	return who in ["porteur", "sylwen", "brann", "ancien", "cerf", "sylvarche", "fee", "voix", "krag", "gharok", "prevote", "varg", "nyx", "vesper", "aurele", "corvin"] \
 		or ResourceLoader.exists("res://assets/portraits/%s.png" % who)
 
 
@@ -787,3 +795,112 @@ static func _varg(img: Image, mood: String) -> void:
 	_line(img, Vector2(36, 28), Vector2(41, 39), Color("8a4a3a"))
 	_mouth(img, 32, 41, mood, Color("4a2a20"), Color("2a1414"))
 	_rim(img, 3, 61, 8, 63, Color("ffd8b0"))
+
+
+# ---------------------------------------------------------------- acte 3 · Marais Murmurants
+
+## Nyx : fée assombrie du Cercle des Cendres. Ailes de phalène, cheveux cendrés, regard violet, sourire en coin.
+static func _nyx(img: Image, mood: String) -> void:
+	var skin := _ramp(["9a88a8", "cbb8d4", "e8dcf0"])
+	var hair := _ramp(["3a3448", "5e5872", "8a84a0", "b8b2cc"])
+	var wing := _ramp(["3a3050", "5a4a78", "8a7aa8", "b8a8d8"])
+	var robe := _ramp(["1e1430", "3a2a5a", "5a3a8a"])
+	_glow(img, 32, 30, 28, Color("8e62e0"), 0.1)
+	# Ailes de phalène derrière la tête.
+	_poly(img, PackedVector2Array([Vector2(28, 30), Vector2(10, 8), Vector2(3, 14), Vector2(5, 30), Vector2(12, 40), Vector2(26, 38)]), wing)
+	_poly(img, PackedVector2Array([Vector2(36, 30), Vector2(54, 8), Vector2(61, 14), Vector2(59, 30), Vector2(52, 40), Vector2(38, 38)]), wing)
+	for e in [Vector2(11, 20), Vector2(53, 20)]:
+		_ellipse(img, e.x, e.y, 3.0, 3.0, _ramp(["1e1430", "d93cf2"]), 0.0)
+	_poly(img, PackedVector2Array([Vector2(8, 64), Vector2(12, 52), Vector2(22, 47), Vector2(42, 47), Vector2(52, 52), Vector2(56, 64)]), robe)
+	# Pendentif d'os.
+	_line(img, Vector2(26, 48), Vector2(32, 54), Color("8a8678"))
+	_line(img, Vector2(38, 48), Vector2(32, 54), Color("8a8678"))
+	_ellipse(img, 32.0, 56.0, 2.0, 2.6, _ramp(["a8a498", "e8e4d8"]))
+	_ellipse(img, 32.0, 33.0, 10.0, 12.0, skin)
+	# Petites oreilles pointues.
+	_poly(img, PackedVector2Array([Vector2(23, 30), Vector2(16, 24), Vector2(18, 29), Vector2(23, 35)]), skin, 0.1)
+	_poly(img, PackedVector2Array([Vector2(41, 30), Vector2(48, 24), Vector2(46, 29), Vector2(41, 35)]), skin, 0.1)
+	# Cheveux cendrés en bataille.
+	_poly(img, PackedVector2Array([Vector2(20, 34), Vector2(19, 22), Vector2(23, 15), Vector2(30, 11), Vector2(38, 12), Vector2(45, 19), Vector2(46, 34), Vector2(42, 26), Vector2(39, 29), Vector2(36, 23), Vector2(32, 28), Vector2(28, 22), Vector2(25, 28), Vector2(22, 27)]), hair)
+	for q in [Vector2i(24, 12), Vector2i(31, 9), Vector2i(39, 10), Vector2i(44, 15)]:
+		_px(img, q.x, q.y, Color("5e5872"))
+	_brow(img, 26, 28, -1, mood, Color("7a7488"))
+	_brow(img, 37, 28, 1, mood, Color("7a7488"))
+	_glow_eye(img, 25, 32, -1, mood, Color("e8c8ff"), Color("b07cff"))
+	_glow_eye(img, 37, 32, 1, mood, Color("e8c8ff"), Color("b07cff"))
+	if mood == "joie":
+		# Sourire en coin.
+		for x in range(30, 36):
+			_px(img, x, 39 - (1 if x > 33 else 0), Color("5a3a5a"))
+	else:
+		_mouth(img, 32, 39, mood, Color("7a5070"), Color("3a2a3a"))
+	_rim(img, 4, 60, 6, 63, Color("e8d8ff"))
+
+
+## Vesper : gardien du Cercle des Cendres. Robe cendre, masque d'os relevé sur le front, barbe grise.
+static func _vesper(img: Image, mood: String) -> void:
+	var skin := _ramp(["8a7068", "b89888", "d8b8a8"])
+	var robe := _ramp(["2a2a30", "4a4a52", "6a6a74", "8a8a94"])
+	var bone := _ramp(["8a8678", "c8c4b4", "e8e4d8", "fffef0"])
+	_poly(img, PackedVector2Array([Vector2(3, 64), Vector2(7, 50), Vector2(19, 44), Vector2(45, 44), Vector2(57, 50), Vector2(61, 64)]), robe)
+	_poly(img, PackedVector2Array([Vector2(12, 56), Vector2(14, 34), Vector2(19, 20), Vector2(32, 13), Vector2(45, 20), Vector2(50, 34), Vector2(52, 56), Vector2(42, 48), Vector2(22, 48)]), robe)
+	_ellipse(img, 32.0, 33.0, 10.5, 12.5, skin)
+	# Masque d'os relevé.
+	_ellipse(img, 32.0, 21.0, 10.0, 5.5, bone)
+	for e in [Vector2(28, 21), Vector2(36, 21)]:
+		_ellipse(img, e.x, e.y, 2.0, 1.6, _ramp(["1a1418"]), 0.0, true)
+	# Barbe grise courte.
+	_poly(img, PackedVector2Array([Vector2(23, 37), Vector2(25, 45), Vector2(32, 49), Vector2(39, 45), Vector2(41, 37), Vector2(36, 41), Vector2(28, 41)]), _ramp(["6a6a72", "9a9aa2", "c8c8d0"]))
+	_brow(img, 26, 29, -1, mood, Color("8a8a92"), 2)
+	_brow(img, 37, 29, 1, mood, Color("8a8a92"), 2)
+	_eye(img, 25, 31, -1, mood, Color("9aa0a8"), Color("2a2a30"))
+	_eye(img, 36, 31, 1, mood, Color("9aa0a8"), Color("2a2a30"))
+	_mouth(img, 32, 42, mood, Color("4a3a3a"), Color("2a1a1a"))
+	# Braise au collier.
+	_glow(img, 32, 52, 4, Color("ff8a3a"), 0.4)
+	_ellipse(img, 32.0, 52.0, 1.8, 1.8, _ramp(["c8402a", "ff8a3a", "ffd070"]))
+	_rim(img, 3, 61, 12, 63, Color("d8d8e8"))
+
+
+## Aurèle : inquisitrice de l'Ordre de l'Aube. Armure blanc et or, cheveux blonds courts, regard dur.
+static func _aurele(img: Image, mood: String) -> void:
+	var skin := _ramp(["b88a72", "e0b496", "f6d6bc"])
+	var plate := _ramp(["8a8a9a", "c8c8d8", "eeeef8", "ffffff"])
+	var gold := _ramp(["8a6a28", "c89a3a", "f2c46b", "fff0b0"])
+	var hair := _ramp(["a8803a", "d8b060", "f0d890"])
+	_poly(img, PackedVector2Array([Vector2(2, 64), Vector2(5, 49), Vector2(18, 43), Vector2(46, 43), Vector2(59, 49), Vector2(62, 64)]), plate)
+	_ellipse(img, 10.0, 50.0, 9.0, 7.0, gold)
+	_ellipse(img, 54.0, 50.0, 9.0, 7.0, gold)
+	# Soleil de l'Aube sur le plastron.
+	_ellipse(img, 32.0, 57.0, 3.2, 3.2, gold)
+	for d in [Vector2i(0, -5), Vector2i(-5, 0), Vector2i(5, 0), Vector2i(-4, -4), Vector2i(4, -4)]:
+		_px(img, 32 + d.x, 57 + d.y, Color("f2c46b"))
+	_ellipse(img, 32.0, 32.0, 10.5, 12.5, skin)
+	_poly(img, PackedVector2Array([Vector2(21, 32), Vector2(21, 22), Vector2(26, 17), Vector2(33, 15), Vector2(40, 17), Vector2(44, 23), Vector2(44, 32), Vector2(41, 25), Vector2(35, 23), Vector2(28, 24), Vector2(24, 28)]), hair)
+	_brow(img, 26, 28, -1, "colere" if mood == "neutre" else mood, Color("a8803a"), 2)
+	_brow(img, 37, 28, 1, "colere" if mood == "neutre" else mood, Color("a8803a"), 2)
+	_eye(img, 25, 30, -1, mood, Color("3a6ab8"), Color("3a2a2a"))
+	_eye(img, 36, 30, 1, mood, Color("3a6ab8"), Color("3a2a2a"))
+	_px(img, 32, 35, Color("c8907a"))
+	_mouth(img, 32, 39, mood, Color("9a4a4a"), Color("4a2a2a"))
+	_rim(img, 2, 62, 10, 63, Color("fff6d8"))
+
+
+## Corvin : jeune adepte renégat du Cercle. Capuche bleu-gris, cheveux bruns en désordre, rune au visage.
+static func _corvin(img: Image, mood: String) -> void:
+	var skin := _ramp(["a8806a", "d8ac8e", "f0ccb0"])
+	var hood := _ramp(["1e2a3a", "3a4a5e", "5a6a82", "7a8aa2"])
+	var hair := _ramp(["3a2414", "5a3a20", "7a5230"])
+	_poly(img, PackedVector2Array([Vector2(4, 64), Vector2(8, 51), Vector2(20, 45), Vector2(44, 45), Vector2(56, 51), Vector2(60, 64)]), hood)
+	_poly(img, PackedVector2Array([Vector2(13, 54), Vector2(14, 34), Vector2(18, 21), Vector2(32, 12), Vector2(46, 21), Vector2(50, 34), Vector2(51, 54), Vector2(42, 47), Vector2(22, 47)]), hood)
+	_ellipse(img, 32.0, 33.0, 10.0, 12.0, skin)
+	_poly(img, PackedVector2Array([Vector2(22, 30), Vector2(22, 22), Vector2(28, 18), Vector2(35, 18), Vector2(42, 22), Vector2(42, 29), Vector2(39, 24), Vector2(36, 27), Vector2(33, 23), Vector2(30, 27), Vector2(27, 23), Vector2(25, 28)]), hair)
+	# Rune tatouée sur la joue.
+	for q in [Vector2i(39, 35), Vector2i(40, 36), Vector2i(41, 35), Vector2i(40, 37), Vector2i(40, 38)]:
+		_px(img, q.x, q.y, Color("b07cff"))
+	_brow(img, 26, 29, -1, "triste" if mood == "neutre" else mood, Color("3a2414"))
+	_brow(img, 37, 29, 1, "triste" if mood == "neutre" else mood, Color("3a2414"))
+	_eye(img, 25, 31, -1, mood, Color("6a4a2a"), Color("2a1a14"))
+	_eye(img, 36, 31, 1, mood, Color("6a4a2a"), Color("2a1a14"))
+	_mouth(img, 32, 40, mood, Color("8a5a4a"), Color("3a2020"))
+	_rim(img, 8, 58, 12, 63, Color("c8d8f0"))

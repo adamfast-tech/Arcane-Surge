@@ -34,9 +34,693 @@
    "portrait": "krag",
    "loyalty": true,
    "loyalty_if": "s1.krag_allie"
+  },
+  "nyx": {
+   "name": "Nyx",
+   "title": "Cercle des Cendres",
+   "color": "C87CF0",
+   "portrait": "nyx",
+   "loyalty": true,
+   "loyalty_if": "s1.nyx_allie"
+  },
+  "vesper": {
+   "name": "Vesper",
+   "title": "Gardien des Cendres",
+   "color": "A8A8B8",
+   "portrait": "vesper"
+  },
+  "aurele": {
+   "name": "Aurèle",
+   "title": "Inquisitrice de l'Aube",
+   "color": "F2D48B",
+   "portrait": "aurele"
+  },
+  "corvin": {
+   "name": "Corvin",
+   "title": "Adepte renégat",
+   "color": "8AA8D0",
+   "portrait": "corvin"
+  },
+  "voix": {
+   "name": "Voix inconnue",
+   "title": "???",
+   "color": "B07CFF",
+   "portrait": "voix"
   }
  },
- "scenes": {},
+ "scenes": {
+  "z03_l01_intro": {
+   "art": "marais",
+   "subject": "bog_zombie",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Au sud des collines, la terre s'enfonce. Les Marais Murmurants : des saules, des pilotis, et une brume qui chuchote."
+    },
+    {
+     "who": "brann",
+     "text": "Des marais. Évidemment. Mes bottes n'y survivront pas."
+    },
+    {
+     "who": "sylwen",
+     "text": "Écoute… La brume parle. Des voix, des centaines de voix.",
+     "mood": "triste"
+    },
+    {
+     "who": "krag",
+     "text": "Chez nous, on dit que les morts du marais ne dorment jamais. Ils attendent qu'on les appelle.",
+     "if": "s1.krag_allie"
+    },
+    {
+     "who": "brann",
+     "text": "Des morts qui marchent ? Formidable. Vise la tête."
+    }
+   ]
+  },
+  "z03_l01_outro": {
+   "art": "marais",
+   "subject": "nyx",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Sur un poteau des pilotis, une petite silhouette aux ailes de phalène applaudit, lentement."
+    },
+    {
+     "who": "nyx",
+     "text": "Bravo. Vraiment. Vous avez tué des gens déjà morts. Le Cercle va vous décerner une médaille.",
+     "mood": "joie"
+    },
+    {
+     "who": "brann",
+     "text": "Une fée ? Je les croyais plus… lumineuses.",
+     "mood": "surpris"
+    },
+    {
+     "who": "nyx",
+     "text": "Et moi, je croyais les nains plus petits. On est tous déçus, mon grand."
+    },
+    {
+     "who": "nyx",
+     "text": "Je suis Nyx. Le Cercle des Cendres veut voir le Porteur d'Écho. Toi, j'imagine, {pseudo}. Suis la brume. Si tu survis."
+    }
+   ]
+  },
+  "z03_l02_intro": {
+   "art": "marais",
+   "subject": "plague_rat",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Les mares fument d'un poison verdâtre. Les rats de peste y nagent comme chez eux."
+    },
+    {
+     "who": "sylwen",
+     "text": "Ces mares rongent tes invocations. Il faut les traverser vite… ou les faire disparaître."
+    },
+    {
+     "who": "nyx",
+     "text": "Le poison n'aime pas le feu. Moi non plus, d'ailleurs. Et la glace le fige."
+    },
+    {
+     "who": "brann",
+     "text": "Elle nous suit, la fée ?"
+    },
+    {
+     "who": "nyx",
+     "text": "Je surveille un investissement. Le Cercle tient à ce que tu arrives entier."
+    }
+   ]
+  },
+  "z03_l02_outro": {
+   "art": "marais",
+   "lines": [
+    {
+     "who": "nyx",
+     "text": "Pas mal. Tu brûles les problèmes au lieu de les contourner. Ça me plaît."
+    },
+    {
+     "who": "sylwen",
+     "text": "Pourquoi le Cercle veut-il le Porteur d'Écho ?"
+    },
+    {
+     "who": "nyx",
+     "text": "Parce que le Sceau que vous trimbalez a une histoire. Et que personne ne vous l'a racontée.",
+     "mood": "triste"
+    }
+   ]
+  },
+  "z03_l03_intro": {
+   "art": "marais",
+   "subject": "mist_witch",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "La brume s'épaissit. Des silhouettes s'y cachent ; des sorcières chantent pour soigner le Nexus."
+    },
+    {
+     "who": "aurele",
+     "text": "Halte. Inquisitrice Aurèle, Ordre de l'Aube. Vous voyagez avec une nécromancienne.",
+     "mood": "colere"
+    },
+    {
+     "who": "nyx",
+     "text": "Oh non. Une lampe-tempête avec une épée.",
+     "mood": "joie"
+    },
+    {
+     "who": "aurele",
+     "text": "Le Cercle des Cendres joue avec l'énergie des morts. Porteur, ne te laisse pas séduire. La Lumière dissipe cette brume ; leurs mensonges aussi."
+    },
+    {
+     "who": "sylwen",
+     "text": "Pour l'instant, la brume cache l'ennemi. Fais passer tes troupes par la Lumière."
+    }
+   ]
+  },
+  "z03_l03_outro": {
+   "art": "marais",
+   "lines": [
+    {
+     "who": "aurele",
+     "text": "Bien. Tu sais te battre. L'Ordre a besoin de bras comme les tiens."
+    },
+    {
+     "who": "nyx",
+     "text": "L'Ordre a besoin de bras pour allumer ses bûchers. Ne l'écoute pas trop."
+    },
+    {
+     "who": "brann",
+     "text": "Je n'aime ni les bûchers ni les nécromanciens. Je vous préviens toutes les deux."
+    }
+   ]
+  },
+  "z03_l04_intro": {
+   "art": "marais",
+   "subject": "shield_skeleton",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Au Gué des Morts, des squelettes lèvent des pavois gravés de runes. Ils marchent en rang, comme une armée d'autrefois."
+    },
+    {
+     "who": "sylwen",
+     "text": "Qui ose relever les morts ? C'est… monstrueux.",
+     "mood": "colere"
+    },
+    {
+     "who": "nyx",
+     "text": "Ce ne sont pas les nôtres. Les nôtres demandent la permission.",
+     "mood": "colere"
+    },
+    {
+     "who": "krag",
+     "text": "Un mort qui se bat bien reste un adversaire honorable. On l'abat proprement.",
+     "if": "s1.krag_allie"
+    }
+   ]
+  },
+  "z03_l04_outro": {
+   "art": "marais",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Sur un pavois brisé, une rune encore chaude : le sceau d'un adepte du Cercle."
+    },
+    {
+     "who": "nyx",
+     "text": "Corvin… Petit idiot. Qu'est-ce que tu as fait ?",
+     "mood": "triste"
+    },
+    {
+     "who": "brann",
+     "text": "Un des vôtres, donc."
+    },
+    {
+     "who": "nyx",
+     "text": "Un des nôtres qui a cru pouvoir sauver le marais tout seul. On en reparlera."
+    }
+   ]
+  },
+  "z03_l05_intro": {
+   "art": "hydre",
+   "subject": "croc_lich",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Sous les racines, une forme immense remue : un crocodile mort depuis des siècles, relié au monde par des chaînes de runes violettes."
+    },
+    {
+     "who": "nyx",
+     "text": "Le Gardien du gué. Quelqu'un l'a réveillé avec un rituel bâclé. Il ne fait plus la différence entre amis et ennemis."
+    },
+    {
+     "who": "sylwen",
+     "text": "Il charge en ligne et crache son venin. Sors des couloirs, et ne t'attarde pas dans le poison."
+    }
+   ]
+  },
+  "z03_l05_outro": {
+   "art": "hydre",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Les chaînes de runes se brisent. Le vieux gardien retourne à la vase, enfin apaisé."
+    },
+    {
+     "who": "voix",
+     "text": "Porteur… Tu ranges les morts comme on range des jouets. Mais qui rangera les tiens ?",
+     "mood": "joie"
+    },
+    {
+     "who": "sylwen",
+     "text": "Encore cette voix… Elle nous suit depuis le Bois.",
+     "mood": "surpris"
+    },
+    {
+     "who": "nyx",
+     "text": "Tu l'entends aussi ? Alors c'est pire que je pensais. Le Cercle doit te parler. Maintenant.",
+     "mood": "surpris"
+    }
+   ]
+  },
+  "z03_l06_intro": {
+   "art": "cercle",
+   "subject": "renegade_adept",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Au cœur du marais, un cercle de saules et de braseros de cendre. Des adeptes renégats en ont chassé les gardiens."
+    },
+    {
+     "who": "nyx",
+     "text": "Le Cercle de Saules. Notre sanctuaire. Ces adeptes ont suivi Corvin… Fais-les reculer, je m'occupe du reste."
+    },
+    {
+     "who": "brann",
+     "text": "« Je m'occupe du reste », dit la fée qui ne se bat jamais."
+    },
+    {
+     "who": "nyx",
+     "text": "Regarde bien, mon grand.",
+     "mood": "joie"
+    }
+   ]
+  },
+  "z03_l06_outro": {
+   "art": "cercle",
+   "subject": "",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Les renégats s'enfuient. Un vieil homme au masque d'os relevé sort de l'ombre des saules."
+    },
+    {
+     "who": "vesper",
+     "text": "Porteur d'Écho. Je suis Vesper, gardien des Cendres. Nyx a bien fait de t'amener jusqu'ici."
+    },
+    {
+     "who": "vesper",
+     "text": "Le Surge n'est pas une malédiction tombée du ciel. C'est une blessure. Et ton Sceau… est la main qui l'a ouverte."
+    },
+    {
+     "who": "sylwen",
+     "text": "Qu'est-ce que vous voulez dire ?",
+     "mood": "surpris"
+    },
+    {
+     "who": "vesper",
+     "text": "Pas encore. Il y a une hydre dans ce marais, nourrie par la blessure. Abats-la, et je te dirai tout.",
+     "mood": "triste"
+    },
+    {
+     "who": "nyx",
+     "text": "Je pars avec eux, Vesper. Quelqu'un doit s'assurer que le Porteur ne meurt pas avant la fin de l'histoire."
+    },
+    {
+     "effects": {
+      "set": [
+       "s1.nyx_allie"
+      ]
+     }
+    },
+    {
+     "who": "narrateur",
+     "text": "Nyx rejoint le groupe. Au Cercle de Havre-Aube, choisis les deux compagnons qui t'accompagnent."
+    }
+   ]
+  },
+  "z03_l07_intro": {
+   "art": "marais",
+   "subject": "barge",
+   "lines": [
+    {
+     "who": "nyx",
+     "text": "La barque des passeurs emmène les familles du marais vers le Cercle. Les rats de peste la guettent."
+    },
+    {
+     "who": "brann",
+     "text": "Une barque. Sur de l'eau empoisonnée. Avec des rats. Je suis ravi."
+    },
+    {
+     "who": "nyx",
+     "text": "Tu sais nager, au moins ?",
+     "mood": "joie"
+    },
+    {
+     "who": "brann",
+     "text": "Les nains ne nagent pas. Les nains coulent avec dignité."
+    }
+   ]
+  },
+  "z03_l07_outro": {
+   "art": "marais",
+   "subject": "barge",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "La barque accoste au Cercle de Saules. Les familles descendent en silence."
+    },
+    {
+     "who": "aurele",
+     "text": "L'Ordre aurait pu les protéger. Dans nos forteresses, derrière nos murs blancs."
+    },
+    {
+     "who": "nyx",
+     "text": "Et derrière vos murs blancs, on demande aux enfants s'ils parlent aux morts. Puis on les brûle.",
+     "mood": "colere"
+    },
+    {
+     "who": "aurele",
+     "text": "…Pas tous.",
+     "mood": "triste"
+    }
+   ]
+  },
+  "z03_l08_intro": {
+   "art": "marais",
+   "subject": "mist_witch",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Les sorcières des brumes ont scellé un Nexus de corruption sous deux sceaux. Elles le soignent en chantant."
+    },
+    {
+     "who": "sylwen",
+     "text": "Purifie les sceaux. Ensuite, leurs soins ne serviront à rien."
+    },
+    {
+     "who": "nyx",
+     "text": "Ces sorcières suivent Corvin. Il leur a promis de chasser la brume pour toujours."
+    }
+   ]
+  },
+  "z03_l08_outro": {
+   "art": "refuge",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Les sceaux tombent. Une sorcière, libérée, montre le sud : le refuge du Cercle, assiégé par les morts."
+    },
+    {
+     "who": "nyx",
+     "text": "Corvin s'est réfugié là-bas. Et l'Ordre le cherche aussi.",
+     "mood": "triste"
+    },
+    {
+     "who": "aurele",
+     "text": "Corvin a relevé les morts du marais. Pour l'Ordre, c'est un crime. Je le ramènerai, avec ou sans ton aide."
+    }
+   ]
+  },
+  "z03_l09_intro": {
+   "art": "refuge",
+   "subject": "renegade_adept",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Le refuge du Cercle est assiégé : deux Nexus de corruption, une tour, et des mares partout."
+    },
+    {
+     "who": "nyx",
+     "text": "Corvin est à l'intérieur. Brisons le siège avant que l'Ordre ou les morts ne l'atteignent."
+    },
+    {
+     "who": "krag",
+     "text": "Un siège ? Enfin quelque chose de simple.",
+     "if": "s1.krag_allie"
+    }
+   ]
+  },
+  "z03_l09_outro": {
+   "art": "refuge",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Les Nexus s'effondrent. Dans les ruines du refuge, un jeune adepte tremble, la rune de son visage encore luisante."
+    },
+    {
+     "who": "corvin",
+     "text": "Je voulais juste… arrêter l'hydre. Avec les morts du marais. Ils ne m'ont pas obéi. Ils ont tout détruit.",
+     "mood": "triste"
+    },
+    {
+     "who": "aurele",
+     "text": "Il vient avec moi. L'Ordre jugera ce qu'il a fait.",
+     "mood": "colere"
+    },
+    {
+     "who": "nyx",
+     "text": "L'Ordre le brûlera. Tu le sais. Il a fait une erreur, pas un crime.",
+     "mood": "colere"
+    },
+    {
+     "who": "brann",
+     "text": "Des villages ont été détruits à cause de lui. Ça compte aussi."
+    },
+    {
+     "who": "corvin",
+     "text": "Porteur… S'il te plaît.",
+     "mood": "triste"
+    },
+    {
+     "choice": "z03_l09",
+     "prompt": "L'Adepte renégat",
+     "options": [
+      {
+       "key": "A",
+       "text": "Le livrer à l'Ordre de l'Aube",
+       "effects": {
+        "set": [
+         "s1.corvin_livre"
+        ],
+        "add": {
+         "rep.aube": 20,
+         "loy.nyx": -20
+        }
+       },
+       "then": [
+        {
+         "who": "aurele",
+         "text": "Tu as fait ce qui est juste. L'Ordre s'en souviendra.",
+         "mood": "joie"
+        },
+        {
+         "who": "nyx",
+         "text": "…Je m'en souviendrai aussi.",
+         "mood": "colere"
+        },
+        {
+         "who": "narrateur",
+         "text": "Aurèle emmène Corvin. Il ne se retourne pas."
+        }
+       ]
+      },
+      {
+       "key": "B",
+       "text": "Le protéger",
+       "effects": {
+        "set": [
+         "s1.corvin_protege"
+        ],
+        "add": {
+         "rep.cendres": 20,
+         "loy.nyx": 20,
+         "corruption": 5
+        }
+       },
+       "then": [
+        {
+         "who": "nyx",
+         "text": "Merci. Vraiment. Je… je ne m'y attendais pas.",
+         "mood": "joie"
+        },
+        {
+         "who": "aurele",
+         "text": "Tu protèges un nécromancien. L'Ordre de l'Aube ne l'oubliera pas.",
+         "mood": "colere"
+        },
+        {
+         "who": "corvin",
+         "text": "Je réparerai ce que j'ai fait. Je le jure sur les Cendres.",
+         "mood": "joie"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "z03_l10_intro": {
+   "art": "hydre",
+   "subject": "hydra",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Au centre du marais, la brume se lève d'un coup. L'Hydre des brumes déploie ses cous, et l'eau bouillonne de poison."
+    },
+    {
+     "who": "vesper",
+     "text": "Elle se nourrit de la blessure du Surge. Chaque tête que tu tranches repousse… à moins que le feu ne referme la plaie."
+    },
+    {
+     "who": "nyx",
+     "text": "Tranche, puis brûle. Tranche, puis brûle. Même un nain peut retenir ça.",
+     "mood": "joie"
+    },
+    {
+     "who": "brann",
+     "text": "Je retiens surtout que je vais lui couper toutes ses têtes."
+    },
+    {
+     "who": "sylwen",
+     "text": "Tant qu'une tête vit, son corps est protégé. Les têtes d'abord, {pseudo} !"
+    }
+   ]
+  },
+  "z03_l10_outro": {
+   "art": "cercle",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "L'hydre s'effondre dans la vase. Pour la première fois depuis des années, la brume du marais se dissipe."
+    },
+    {
+     "who": "vesper",
+     "text": "Il est temps que tu saches. La Fracture n'était pas une catastrophe. C'était un sort."
+    },
+    {
+     "who": "vesper",
+     "text": "Un Porteur d'Écho a voulu réparer le temps, défaire une seule mort. Il a ouvert une blessure entre les instants. Le Surge, c'est ce qui en coule.",
+     "mood": "triste"
+    },
+    {
+     "who": "sylwen",
+     "text": "Le Grand Cerf nous avait prévenus : « Le dernier qui l'a porté a voulu tout réparer… et il a tout brisé. »",
+     "mood": "triste"
+    },
+    {
+     "who": "aurele",
+     "text": "L'Ordre de l'Aube veut refermer la blessure. Sceller le Surge, à jamais, quel qu'en soit le prix. Même les Sceaux d'Écho."
+    },
+    {
+     "who": "vesper",
+     "text": "Le Cercle des Cendres pense qu'on ne referme pas une blessure en l'ignorant. Le Surge est une énergie : on peut la canaliser, l'apprivoiser."
+    },
+    {
+     "who": "nyx",
+     "text": "Deux portes, Porteur. Aucune n'est propre. Mais ton Sceau ne te laissera pas rester sur le seuil."
+    },
+    {
+     "choice": "z03_l10",
+     "major": true,
+     "prompt": "La Vérité des Cendres",
+     "options": [
+      {
+       "key": "A",
+       "text": "Suivre la Voie de l'Aube",
+       "effects": {
+        "set": [
+         "s1.voie_aube",
+         "s1.verite_cendres"
+        ],
+        "add": {
+         "corruption": -10,
+         "rep.aube": 20,
+         "rep.cendres": -10,
+         "loy.nyx": -10
+        }
+       },
+       "then": [
+        {
+         "who": "aurele",
+         "text": "Alors l'Aube marchera avec toi. Refermons cette blessure.",
+         "mood": "joie"
+        },
+        {
+         "who": "nyx",
+         "text": "Je reste. Pas pour l'Ordre. Pour toi. Ne me fais pas regretter ça.",
+         "mood": "triste"
+        },
+        {
+         "who": "narrateur",
+         "text": "Une nouvelle branche s'ouvre à l'Entraînement : la Voie du Surge, et sa Clé de voûte de l'Aube."
+        }
+       ]
+      },
+      {
+       "key": "B",
+       "text": "Suivre la Voie des Cendres",
+       "effects": {
+        "set": [
+         "s1.voie_cendres",
+         "s1.verite_cendres"
+        ],
+        "add": {
+         "corruption": 20,
+         "rep.cendres": 20,
+         "rep.aube": -10,
+         "loy.nyx": 10,
+         "loy.sylwen": -5
+        }
+       },
+       "then": [
+        {
+         "who": "vesper",
+         "text": "Le Cercle t'ouvrira ses archives. Apprends à tenir le Surge sans qu'il te tienne.",
+         "mood": "joie"
+        },
+        {
+         "who": "aurele",
+         "text": "Tu joues avec le feu qui a brûlé le monde. Je prierai pour toi.",
+         "mood": "colere"
+        },
+        {
+         "who": "nyx",
+         "text": "Bienvenue chez les gens qu'on n'invite nulle part.",
+         "mood": "joie"
+        },
+        {
+         "who": "narrateur",
+         "text": "Une nouvelle branche s'ouvre à l'Entraînement : la Voie du Surge, et sa Clé de voûte des Cendres."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "who": "narrateur",
+     "text": "Acte 3 terminé : les Cendres. Au nord, les Pics Gelés gardent le secret des Portes runiques… et du clan de Brann.",
+     "art": "marais"
+    },
+    {
+     "who": "brann",
+     "text": "Les Pics. Mon clan. Je savais que ce jour viendrait.",
+     "mood": "triste",
+     "art": "marais"
+    }
+   ]
+  }
+ },
  "barks": {
   "start": [
    {
@@ -50,6 +734,26 @@
    {
     "who": "krag",
     "text": "Ça pue la mort. Bien. Les morts tombent comme les vivants."
+   },
+   {
+    "who": "nyx",
+    "text": "Allez, mes os. On a du travail."
+   },
+   {
+    "who": "nyx",
+    "text": "Si je meurs, relevez-moi. C'est la tradition."
+   },
+   {
+    "who": "nyx",
+    "text": "Tu as protégé Corvin. Je ne l'oublierai jamais.",
+    "if": "s1.corvin_protege"
+   },
+   {
+    "who": "nyx",
+    "text": "Je me bats. Ne t'attends pas à des sourires.",
+    "loy_max": {
+     "nyx": 30
+    }
    }
   ],
   "barrier_low": [
@@ -64,6 +768,10 @@
    {
     "who": "krag",
     "text": "Ils passent ! Je les arrête à la hache !"
+   },
+   {
+    "who": "nyx",
+    "text": "La Barrière craque ! Mes squelettes ne vont pas la recoudre !"
    }
   ],
   "half": [
@@ -74,6 +782,10 @@
    {
     "who": "brann",
     "text": "À moitié fait ! Le plus dur, c'est l'autre moitié."
+   },
+   {
+    "who": "nyx",
+    "text": "À moitié mort. Mon genre préféré."
    }
   ],
   "boss_phase": [
@@ -88,6 +800,10 @@
    {
     "who": "krag",
     "text": "Il enrage ? Moi aussi !"
+   },
+   {
+    "who": "nyx",
+    "text": "Il change de forme. Comme tout le monde, au fond."
    }
   ],
   "echo": [

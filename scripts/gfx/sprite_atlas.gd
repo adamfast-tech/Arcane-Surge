@@ -16,7 +16,7 @@ const ELEM := {
 }
 ## Hauteur en jeu (mètres) : un sprite remplacé, quelle que soit sa résolution, garde cette taille.
 const HEIGHT_M := {
-	"mage": 1.5, "brann": 1.25, "sylwen": 1.45, "krag": 1.55, "berserker": 0.74,
+	"mage": 1.5, "brann": 1.25, "sylwen": 1.45, "krag": 1.55, "berserker": 0.74, "nyx": 1.05,
 	"familiar": 0.64, "knight": 0.75, "archer": 0.75, "skeleton": 0.7, "golem": 1.0, "fusion": 0.66,
 	"mushroom": 0.58, "rabbit": 0.62, "bear": 0.9, "pixie": 0.52, "turtle": 0.58, "wisp": 0.7, "dryad": 1.05,
 	"cross": 0.29, "px": 1.0,
@@ -706,6 +706,37 @@ const DEFS := {
 		"..oddddo..",
 		".ogo..ogo.",
 		".ooo..ooo.",
+	]]},
+	"nyx": {"pal": {"o": "120e1a", "w": "6a5a8a", "W": "9a8ab8", "x": "c8b8e8", "h": "b8b4c8", "H": "e0dcec", "d": "3a2a5a", "D": "5a3a8a", "s": "c8b0c8", "g": "d93cf2"}, "frames": [[
+		"..oo......oo..",
+		".oWWo....oWWo.",
+		"oWxWWo..oWWxWo",
+		"oWWxWWooWWxWWo",
+		"owWWWohhoWWWwo",
+		".owWohHHhoWwo.",
+		"..owohhhhowo..",
+		"...oohhhhoo...",
+		"....oDDDDo....",
+		"...oDddddDo...",
+		"...odDgDddo...",
+		"...odddddDo...",
+		"....os.so.....",
+		"....oo.oo.....",
+	], [
+		"..oo......oo..",
+		".oWWo....oWWo.",
+		"oWxWWo..oWWxWo",
+		"oWWxWWooWWxWWo",
+		"owWWWohhoWWWwo",
+		".owWohHHhoWwo.",
+		"..owohhhhowo..",
+		"...oohhhhoo...",
+		"....oDDDDo....",
+		"...oDddddDo...",
+		"...odDgDddo...",
+		"...odddddDo...",
+		"...os...so....",
+		"...oo...oo....",
 	]]},
 	# Zone 2 · Collines d'Ambre.
 	"pillard": {"pal": {"o": "1a120c", "h": "7a5230", "H": "a8743a", "s": "e0a882", "e": "2a1a1a", "r": "b83a2a", "t": "5a4a3a", "b": "2a1e16", "d": "c8d0e0", "l": "4a3a2a"}, "frames": [[

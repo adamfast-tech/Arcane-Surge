@@ -652,6 +652,9 @@ func step() -> void:
 		return
 	time += TICK
 	_update_casters()
+	if _mod("barrier_regen") > 0.0 and barrier_hp > 0.0:
+		# Clé de voûte Aube éternelle : la Barrière se répare lentement.
+		barrier_hp = minf(barrier_max, barrier_hp + _mod("barrier_regen") * TICK)
 	_update_portals()
 	_update_waves()
 	_update_wind()
@@ -1784,7 +1787,10 @@ func _kill(u: Unit) -> void:
 	if u.team == 1:
 		kills += 1
 		var big := u.role in ["brute", "bouclier", "lanceur", "soigneur"] or u.elite
-		surge = minf(100.0, surge + (SURGE_PER_BIG if big else SURGE_PER_KILL))
+		surge = minf(100.0, surge + (SURGE_PER_BIG if big else SURGE_PER_KILL) * (1.0 + _mod("surge_gain")))
+		if _mod("kill_mana") > 0.0:
+			# Clé de voûte Cendres vives : chaque ennemi abattu rend du mana.
+			casters[0].mana = minf(casters[0].mana_max, casters[0].mana + _mod("kill_mana"))
 		_event({"t": "puff", "pos": u.pos, "color": "FF6B8A"})
 		if u.role == "soigneur":
 			_log("Soigneur ennemi abattu")

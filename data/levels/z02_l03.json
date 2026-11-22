@@ -5,7 +5,7 @@
   "number": "2-3",
   "global_level": 13,
   "type": "Assaut",
-  "party": ["brann", "sylwen", "krag"],
+  "party": ["brann", "sylwen", "krag", "nyx"],
   "desc": "Les pylônes d'ambre surchargent un portail : pendant quelques secondes, il électrise ET double tes invocations.",
   "par_time": 128,
   "nexus": {

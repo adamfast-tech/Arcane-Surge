@@ -5,11 +5,7 @@
   "number": "3-4",
   "global_level": 24,
   "type": "Assaut",
-  "party": [
-    "brann",
-    "sylwen",
-    "krag"
-  ],
+  "party": ["brann", "sylwen", "krag", "nyx"],
   "desc": "Les Squelettes à pavois bloquent de face, les Abominations de vase encaissent et laissent une mare en mourant.",
   "par_time": 140,
   "nexus": {

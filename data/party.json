@@ -46,6 +46,17 @@
         "des": 6
       },
       "familiar": "familiar_berserker"
+    },
+    "necromancien": {
+      "name": "Nécromancien",
+      "base": {
+        "pou": 12,
+        "vig": 6,
+        "esp": 16,
+        "cel": 8,
+        "des": 8
+      },
+      "familiar": "familiar_necro"
     }
   },
   "races": {
@@ -73,6 +84,14 @@
       "esp": -2,
       "cel": 0,
       "des": 0
+    },
+    "fee": {
+      "name": "Fée",
+      "pou": -1,
+      "vig": -2,
+      "esp": 4,
+      "cel": 3,
+      "des": 2
     }
   },
   "player": {
@@ -147,6 +166,25 @@
       "id": "krag",
       "requires": "s1.krag_allie",
       "role": "Assaut : ses lanceurs de haches frappent par-dessus la mêlée"
+    },
+    {
+      "name": "Nyx",
+      "class": "necromancien",
+      "race": "fee",
+      "level": 7,
+      "side": "right",
+      "sprite": "nyx",
+      "personality": "opportuniste",
+      "order": "focus_nexus",
+      "spells": [
+        "linceul"
+      ],
+      "think": 0.4,
+      "aim_error": 0.35,
+      "cadence_mult": 0.8,
+      "id": "nyx",
+      "requires": "s1.nyx_allie",
+      "role": "Ombre : ses squelettes liés et son Linceul ralentissent et affaiblissent l'ennemi"
     }
   ]
 }

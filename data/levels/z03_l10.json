@@ -5,11 +5,7 @@
   "number": "3-10",
   "global_level": 30,
   "type": "Boss",
-  "party": [
-    "brann",
-    "sylwen",
-    "krag"
-  ],
+  "party": ["brann", "sylwen", "krag", "nyx"],
   "objective": "boss",
   "desc": "L'Hydre des brumes. Tant que ses têtes vivent, son corps ne craint presque rien. Une tête tranchée repousse en double si tu ne brûles pas la plaie (Feu) dans les 5 s.",
   "par_time": 430,

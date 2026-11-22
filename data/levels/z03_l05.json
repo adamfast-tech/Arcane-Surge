@@ -5,11 +5,7 @@
   "number": "3-5",
   "global_level": 25,
   "type": "Mini-boss",
-  "party": [
-    "brann",
-    "sylwen",
-    "krag"
-  ],
+  "party": ["brann", "sylwen", "krag", "nyx"],
   "objective": "boss",
   "desc": "La liche-crocodile charge en ligne, crache son venin (couloirs de poison) et relève les morts du marais.",
   "par_time": 160,

@@ -165,5 +165,5 @@ iOS (iPhone 16 Pro Max, iPad), Android, PC (16:9, 16:10).
     - 11.5 ✅ préparation avant combat : Deck (7 sorts) ou Tiroir (tous les sorts par école, appui maintenu et glisser) — [`design/20-tiroir-de-sorts.md`](design/20-tiroir-de-sorts.md)
 12. Acte 3 :
     - 12.1 ✅ zone 3 jouable, Marais Murmurants : 10 niveaux (21 à 30), morts du marais, brume, mares de poison, Crocodile-liche et Hydre des brumes — [`design/21-zone3.md`](design/21-zone3.md)
-    - 12.2 narration de l'acte 3 (les Cendres), Nyx, choix 3-9 et ✦ 3-10, branche « Voie du Surge »
+    - 12.2 ✅ narration de l'acte 3 : 20 dialogues, Nyx 4ᵉ compagne, choix 3-9 (Corvin) et ✦ 3-10 (Aube ou Cendres), branche « Voie du Surge » — [`design/22-narration-zone3.md`](design/22-narration-zone3.md)
 13. Saison 2 : zones 11–15, niveau max 150, L'Ourdisseur (fils semés en saison 1)

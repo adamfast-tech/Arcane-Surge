@@ -5,11 +5,7 @@
   "number": "3-8",
   "global_level": 28,
   "type": "Purification",
-  "party": [
-    "brann",
-    "sylwen",
-    "krag"
-  ],
+  "party": ["brann", "sylwen", "krag", "nyx"],
   "desc": "Deux sceaux rendent le Nexus invulnérable : purifie-les. Les Sorcières des brumes soignent le Nexus, et la brume les cache.",
   "par_time": 158,
   "nexus": {

@@ -5,7 +5,7 @@
   "number": "2-5",
   "global_level": 15,
   "type": "Mini-boss",
-  "party": ["brann", "sylwen", "krag"],
+  "party": ["brann", "sylwen", "krag", "nyx"],
   "objective": "boss",
   "desc": "Le chef des pillards charge en ligne (couloirs rouges), appelle sa bande et pousse des cris de guerre qui enragent ses hommes.",
   "par_time": 160,

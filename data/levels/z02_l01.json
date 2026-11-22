@@ -5,7 +5,7 @@
   "number": "2-1",
   "global_level": 11,
   "type": "Assaut",
-  "party": ["brann", "sylwen", "krag"],
+  "party": ["brann", "sylwen", "krag", "nyx"],
   "desc": "Les Collines d'Ambre. Pillards et chevaucheurs de loup harcèlent la route : le portail de Foudre électrise tes invocations.",
   "par_time": 116,
   "nexus": {

@@ -5,7 +5,7 @@
   "number": "1-7",
   "global_level": 7,
   "type": "Escorte",
-  "party": ["brann", "sylwen", "krag"],
+  "party": ["brann", "sylwen", "krag", "nyx"],
   "objective": "escort",
   "desc": "Des villageois portent la Lanterne de l'Aube jusqu'au Nexus pour le purifier. Protège-la : si elle s'éteint, la mission échoue.",
   "par_time": 150,

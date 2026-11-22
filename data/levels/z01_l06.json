@@ -5,7 +5,7 @@
   "number": "1-6",
   "global_level": 6,
   "type": "Assaut",
-  "party": ["brann", "sylwen", "krag"],
+  "party": ["brann", "sylwen", "krag", "nyx"],
   "desc": "Les Pixies sombres tirent de loin et les Tortues-souches encaissent. Le Sceau d'Écho s'éveille : choisis bien tes Échos.",
   "par_time": 130,
   "nexus": {

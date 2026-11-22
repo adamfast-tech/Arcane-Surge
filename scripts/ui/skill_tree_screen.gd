@@ -46,7 +46,7 @@ func _rebuild() -> void:
 	for br in Profile.tree_db().get("branches", []):
 		var id := str(br["id"])
 		var bc := Color(str(br.get("color", "6fdccf")))
-		var locked: bool = br.has("locked")
+		var locked: bool = Profile.branch_locked(br) != ""
 		var t := UiTheme.button("%s\n%s" % [str(br["name"]), "Acte 3" if locked else "%d points" % Profile.branch_spent(br)], 18)
 		t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		t.custom_minimum_size = Vector2(0, 70)
@@ -67,13 +67,13 @@ func _rebuild() -> void:
 		return
 	var bc2 := Color(str(current.get("color", "6fdccf")))
 	col.add_child(UiTheme.label("%s · %s" % [str(current["name"]), str(current.get("theme", ""))], 22, bc2))
-	if current.has("locked"):
+	if Profile.branch_locked(current) != "":
 		var c: Array = UiTheme.card(UiTheme.BORDER, 16)
 		col.add_child(c[0])
 		var h := HBoxContainer.new()
 		(c[1] as VBoxContainer).add_child(h)
 		h.add_child(UiTheme.icon_rect("lock", 28, UiTheme.MUTED))
-		h.add_child(UiTheme.wrap(str(current["locked"]), 19, UiTheme.MUTED))
+		h.add_child(UiTheme.wrap(Profile.branch_locked(current), 19, UiTheme.MUTED))
 		return
 	var spent := Profile.branch_spent(current)
 	var i := 0

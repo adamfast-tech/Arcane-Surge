@@ -948,6 +948,10 @@
     "loy_min": {
      "krag": 75
     }
+   },
+   {
+    "who": "nyx",
+    "text": "Des collines. Du vent. Aucun mort à qui parler. Quel ennui."
    }
   ],
   "barrier_low": [
@@ -980,6 +984,10 @@
    {
     "who": "krag",
     "text": "Ça saigne ! Encore !"
+   },
+   {
+    "who": "nyx",
+    "text": "À moitié mort. Mon genre préféré."
    }
   ],
   "boss_phase": [

@@ -285,7 +285,8 @@
       {"who": "sylwen", "if": "s1.sylvarche_purifiee", "text": "La Sylvarche veille sur nous. Je le sens."},
       {"who": "sylwen", "if": "s1.sylvarche_abattue", "text": "La forêt est si silencieuse, maintenant…"},
       {"who": "krag", "text": "Pour Croc-Tonnerre !"},
-      {"who": "krag", "text": "Ces bois sentent la mousse et la peur. J'aime pas ça."}
+      {"who": "krag", "text": "Ces bois sentent la mousse et la peur. J'aime pas ça."},
+      {"who": "nyx", "text": "Des lucioles. Que c'est mignon. Je vais vomir."}
     ],
     "barrier_low": [
       {"who": "brann", "text": "La Barrière cède ! Vise ceux qui passent !"},
@@ -296,7 +297,8 @@
     "half": [
       {"who": "sylwen", "text": "Il faiblit ! Continue !"},
       {"who": "brann", "text": "À moitié fait ! Le plus dur, c'est l'autre moitié."},
-      {"who": "krag", "text": "Ça saigne ! Encore !"}
+      {"who": "krag", "text": "Ça saigne ! Encore !"},
+      {"who": "nyx", "text": "À moitié mort. Mon genre préféré."}
     ],
     "boss_phase": [
       {"who": "brann", "text": "Il s'énerve ! Bon signe : on lui fait mal."},

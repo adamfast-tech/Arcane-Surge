@@ -5,7 +5,7 @@
   "number": "1-10",
   "global_level": 10,
   "type": "Boss",
-  "party": ["brann", "sylwen", "krag"],
+  "party": ["brann", "sylwen", "krag", "nyx"],
   "objective": "boss",
   "desc": "L'arbre gardien des elfes est corrompu. Ses racines balaient l'arène, ses Fleurs-sèves le soignent et son écorce ne cède qu'au Feu.",
   "par_time": 300,

@@ -5,11 +5,7 @@
   "number": "3-3",
   "global_level": 23,
   "type": "Assaut",
-  "party": [
-    "brann",
-    "sylwen",
-    "krag"
-  ],
+  "party": ["brann", "sylwen", "krag", "nyx"],
   "desc": "Trois bancs de brume dérivent sur le marais. Les Sorcières des brumes soignent le Nexus. La Lumière et Purifier dissipent la brume.",
   "par_time": 190,
   "nexus": {

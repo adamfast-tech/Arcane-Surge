@@ -5,11 +5,7 @@
   "number": "3-1",
   "global_level": 21,
   "type": "Assaut",
-  "party": [
-    "brann",
-    "sylwen",
-    "krag"
-  ],
+  "party": ["brann", "sylwen", "krag", "nyx"],
   "desc": "Les Marais Murmurants. Zombies des tourbières et rats de peste montent des pilotis. Un banc de brume cache les ennemis : fais passer tes invocations par le portail de Lumière pour le dissiper.",
   "par_time": 116,
   "nexus": {
