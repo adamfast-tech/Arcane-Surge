@@ -1,4 +1,4 @@
--- Arcane Surge : historique des sauvegardes (20 dernières versions par joueur).
+-- Arcane Surge : historique des sauvegardes (5 dernières versions par joueur).
 -- À exécuter une fois dans Supabase > SQL Editor (projet academie-cmd-powershell).
 create table if not exists public.arcane_save_history (
   id bigint generated always as identity primary key,
@@ -29,7 +29,7 @@ begin
          select h2.id from public.arcane_save_history h2
           where h2.user_id = old.user_id
           order by h2.saved_at desc, h2.id desc
-          limit 20);
+          limit 5);
   end if;
   return new;
 end;
