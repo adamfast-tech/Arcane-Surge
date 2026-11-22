@@ -117,7 +117,16 @@
         "6a4a32"
       ],
       "trait": "none",
-      "height": 1.5
+      "height": 1.5,
+      "passive_mods": {
+        "xp_bonus": 0.1,
+        "price_discount": 0.05,
+        "extra_points": 1
+      },
+      "don_id": "ralliement",
+      "don_name": "Ralliement",
+      "don_cd": 50,
+      "color": "E8C070"
     },
     "elfe": {
       "name": "Elfe",
@@ -141,7 +150,15 @@
         "7a5a44"
       ],
       "trait": "ears",
-      "height": 1.5
+      "height": 1.5,
+      "passive_mods": {
+        "unit_range": 0.1,
+        "mana_regen": 0.1
+      },
+      "don_id": "pas_de_brise",
+      "don_name": "Pas de brise",
+      "don_cd": 45,
+      "color": "8FD16A"
     },
     "nain": {
       "name": "Nain",
@@ -164,7 +181,15 @@
         "6a4430"
       ],
       "trait": "beard",
-      "height": 1.25
+      "height": 1.25,
+      "passive_mods": {
+        "unit_def": 0.15,
+        "forge_discount": 0.1
+      },
+      "don_id": "rempart_runique",
+      "don_name": "Rempart runique",
+      "don_cd": 55,
+      "color": "C8D0E0"
     },
     "orc": {
       "name": "Orc",
@@ -187,7 +212,15 @@
         "6a7a6a"
       ],
       "trait": "tusks",
-      "height": 1.55
+      "height": 1.55,
+      "passive_mods": {
+        "unit_hp": 0.1,
+        "surge_gain": 0.1
+      },
+      "don_id": "charge_des_clans",
+      "don_name": "Charge des clans",
+      "don_cd": 50,
+      "color": "E8703A"
     },
     "fee": {
       "name": "Fée",
@@ -210,7 +243,15 @@
         "c8e8d0"
       ],
       "trait": "wings",
-      "height": 1.1
+      "height": 1.1,
+      "passive_mods": {
+        "fairy_wings": 1,
+        "heal_bonus": 0.2
+      },
+      "don_id": "nuee_feerique",
+      "don_name": "Nuée féerique",
+      "don_cd": 60,
+      "color": "F7A8E0"
     },
     "draconique": {
       "name": "Draconique",
@@ -233,7 +274,16 @@
         "b88a4a"
       ],
       "trait": "horns",
-      "height": 1.55
+      "height": 1.55,
+      "passive_mods": {
+        "elem_dmg.feu": 0.2,
+        "fire_resist": 0.2,
+        "barrier_dr": 0.1
+      },
+      "don_id": "souffle",
+      "don_name": "Souffle",
+      "don_cd": 45,
+      "color": "FF8A3A"
     },
     "reptilien": {
       "name": "Reptilien",
@@ -256,7 +306,16 @@
         "9a9a5a"
       ],
       "trait": "tail",
-      "height": 1.5
+      "height": 1.5,
+      "passive_mods": {
+        "unit_regen": 0.01,
+        "barrier_regen": 0.2,
+        "venom": 0.1
+      },
+      "don_id": "mue",
+      "don_name": "Mue",
+      "don_cd": 60,
+      "color": "6FBF8A"
     },
     "revenant": {
       "name": "Revenant",
@@ -280,7 +339,16 @@
       ],
       "trait": "ghost",
       "height": 1.5,
-      "locked": "Débloqué par l'histoire (acte 6)"
+      "locked": "Débloqué par l'histoire (acte 6)",
+      "passive_mods": {
+        "poison_immune": 1,
+        "elem_dmg.ombre": 0.15,
+        "skeleton_bonus": 0.2
+      },
+      "don_id": "retour",
+      "don_name": "Retour",
+      "don_cd": 60,
+      "color": "B8B0C8"
     }
   },
   "player": {

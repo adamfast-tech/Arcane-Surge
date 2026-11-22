@@ -175,6 +175,14 @@ var fog: Array[Dictionary] = [] ## {pos, r, density, vx}
 var fog_cfg: Dictionary = {}
 var heads: Array[Unit] = []
 var stumps: Array[Dictionary] = [] ## {pos, t}
+# Don racial (étape 13.2) : {id, name, cd, power} ; effets temporaires.
+var don: Dictionary = {}
+var don_t := 0.0
+var rally_t := 0.0
+var breeze_t := 0.0
+var charge_t := 0.0
+var barrier_invuln_t := 0.0
+var _fallen: Array[Dictionary] = []
 ## Sorts à impact différé (projectile, météore) et zones actives (pluie, racines, vortex).
 var pending_impacts: Array[Dictionary] = []
 var terrain := BattleTerrain.new() ## sols, piliers, murs (scripts/battle/terrain.gd)
@@ -211,6 +219,8 @@ func setup(level_data: Dictionary, party: Dictionary, seed_value: int, opts: Dic
 	_setup_orbs()
 	_setup_zone_mechanics()
 	terrain.setup(self)
+	don = opts.get("don", {})
+	don_t = float(don.get("cd", 60.0)) * 0.3
 	for pd in level.get("pools", []):
 		terrain.add_poison(Vector2(float(pd["x"]), float(pd["y"])), float(pd.get("r", 1.2)), 0.0, true)
 	for e in level.get("initial_enemies", []):
@@ -656,6 +666,11 @@ func step() -> void:
 	if state != "running":
 		return
 	time += TICK
+	don_t = maxf(0.0, don_t - TICK)
+	rally_t = maxf(0.0, rally_t - TICK)
+	breeze_t = maxf(0.0, breeze_t - TICK)
+	charge_t = maxf(0.0, charge_t - TICK)
+	barrier_invuln_t = maxf(0.0, barrier_invuln_t - TICK)
 	_update_casters()
 	if _mod("barrier_regen") > 0.0 and barrier_hp > 0.0:
 		# Clé de voûte Aube éternelle : la Barrière se répare lentement.
@@ -702,7 +717,7 @@ func _update_casters() -> void:
 		if not c.firing:
 			c.fire_acc = minf(c.fire_acc, 0.99)
 			continue
-		c.fire_acc += TICK * c.cadence * cadence_mult
+		c.fire_acc += TICK * c.cadence * cadence_mult * (1.5 if breeze_t > 0.0 and c.idx == 0 else 1.0)
 		while c.fire_acc >= 1.0:
 			c.fire_acc -= 1.0
 			var u := _spawn_familiar(c, Vector2(c.x + rng.randf_range(-0.12, 0.12), CASTER_Y + 0.45))
@@ -877,6 +892,10 @@ func _apply_portal(p: Portal, u: Unit) -> void:
 	if p.charged_t > 0.0 and not p.is_negative():
 		u.element = "foudre"
 		_add_ally(_clone(u, Vector2(rng.randf_range(-0.3, 0.3), -0.08)))
+	if p.is_negative() and u.wings:
+		# Fée (Ailes) : le premier portail négatif est survolé.
+		u.wings = false
+		return
 	if p.is_negative() and u.element == "lumiere":
 		# La Lumière ignore les portails négatifs et affaiblit les sceaux.
 		if p.is_seal and not p.purified:
@@ -1000,6 +1019,8 @@ func _spawn_familiar(c: Caster, p: Vector2) -> Unit:
 	u.owner_idx = c.idx
 	u.atk *= c.atk_mult
 	u.hp *= c.hp_mult
+	if c.idx == 0:
+		_player_unit_mods(u)
 	u.max_hp = u.hp
 	u.crit = c.crit
 	if u.element == "physique":
@@ -1007,6 +1028,20 @@ func _spawn_familiar(c: Caster, p: Vector2) -> Unit:
 	summoned += 1
 	_add_ally(u)
 	return u
+
+
+## Passifs de race et arbre d'héritage sur une invocation du joueur.
+func _player_unit_mods(u: Unit) -> void:
+	u.atk *= 1.0 + _mod("unit_atk")
+	u.hp *= 1.0 + _mod("unit_hp")
+	u.defense += 20.0 * _mod("unit_def")
+	if u.attack_range > 0.0:
+		u.attack_range *= 1.0 + _mod("unit_range")
+	if _mod("fairy_wings") > 0.0:
+		u.wings = true
+	if u.kind in ["skeleton", "familiar_necro"] and _mod("skeleton_bonus") > 0.0:
+		u.atk *= 1.0 + _mod("skeleton_bonus")
+		u.hp *= 1.0 + _mod("skeleton_bonus")
 
 
 func _clone(u: Unit, off: Vector2) -> Unit:
@@ -1100,10 +1135,13 @@ func _tick_status() -> void:
 		u.frozen_t = maxf(0.0, u.frozen_t - TICK)
 		u.rooted_t = maxf(0.0, u.rooted_t - TICK)
 		u.wither_t = maxf(0.0, u.wither_t - TICK)
+	var regen := _mod("unit_regen")
 	for u in allies:
 		if not u.alive:
 			continue
 		u.atk_cd -= TICK
+		if regen > 0.0 and u.owner_idx == 0 and u.hp < u.max_hp:
+			u.hp = minf(u.max_hp, u.hp + u.max_hp * regen * TICK)
 		if u.flash_t > 0.0:
 			u.flash_t -= TICK
 		if u.slow_t > 0.0:
@@ -1648,6 +1686,9 @@ func _update_orbs() -> void:
 
 
 func _hurt_barrier(amount: float) -> void:
+	if barrier_invuln_t > 0.0:
+		return
+	amount *= 1.0 - clampf(_mod("barrier_dr"), 0.0, 0.6)
 	if barrier_shield > 0.0:
 		var a := minf(barrier_shield, amount)
 		barrier_shield -= a
@@ -1662,6 +1703,10 @@ func _hurt_barrier(amount: float) -> void:
 func _hit(src: Unit, tgt: Unit, mult: float = 1.0) -> void:
 	if src.enraged_t > 0.0:
 		mult *= 1.3
+	if src.team == 0 and rally_t > 0.0:
+		mult *= 1.2
+	if src.team == 0 and charge_t > 0.0 and tgt.role not in ["boss", "banniere", "tete"] and tgt.hold_y <= 0.0:
+		tgt.pos.y = minf(H - 0.6, tgt.pos.y + 0.12)
 	var dmg := _calc(src.atk * mult, src.element, src.crit, tgt, src.team == 0)
 	_damage(tgt, dmg, src.element)
 	if src.team == 0:
@@ -1708,6 +1753,8 @@ func _damage(tgt: Unit, amount: float, elem: String) -> void:
 		amount *= 0.2
 	if tgt == boss and heads_alive() > 0:
 		amount *= 0.25
+	if tgt.team == 0 and elem == "feu" and _mod("fire_resist") > 0.0:
+		amount *= 1.0 - _mod("fire_resist")
 	if tgt.shield > 0.0:
 		var a := minf(tgt.shield, amount)
 		tgt.shield -= a
@@ -1747,6 +1794,8 @@ func _apply_status(tgt: Unit, elem: String) -> void:
 
 
 func _on_hit_effects(src: Unit, tgt: Unit, dmg: float, elem: String) -> void:
+	if src.owner_idx == 0 and _mod("venom") > 0.0 and rng.randf() < _mod("venom"):
+		_apply_status(tgt, "nature")
 	match elem:
 		"feu", "givre", "nature", "ombre":
 			_apply_status(tgt, elem)
@@ -1802,9 +1851,14 @@ func _kill(u: Unit) -> void:
 		if u.last_elem == "ombre" and rng.randf() < 0.05:
 			var s := _make_unit("skeleton", 0, u.pos)
 			s.owner_idx = 0
+			_player_unit_mods(s)
 			_add_ally(s)
 	else:
 		_event({"t": "puff", "pos": u.pos, "color": "4FE3D2"})
+		if u.owner_idx == 0 and u.role in ["familier", "elite", "champion"]:
+			_fallen.append({"kind": u.kind, "element": u.element, "atk": u.atk, "hp": u.max_hp})
+			if _fallen.size() > 14:
+				_fallen.pop_front()
 		if fire_explode and u.element == "feu":
 			_event({"t": "ring", "pos": u.pos, "r": 0.9, "color": "FF9B4A", "dur": 0.3})
 			for e in _query(_grid_e, u.pos, 0.9):
@@ -2027,7 +2081,7 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 		"barrier_heal":
 			if barrier_hp >= barrier_max:
 				return false
-			barrier_hp = minf(barrier_max, barrier_hp + float(sp.get("amount", 15)))
+			barrier_hp = minf(barrier_max, barrier_hp + float(sp.get("amount", 15)) * (1.0 + _mod("heal_bonus")))
 			_event({"t": "shield", "dur": 1.0, "color": col})
 			_event({"t": "text", "pos": Vector2(W * 0.5, BARRIER_Y + 0.6), "text": "+%d Barrière" % int(sp.get("amount", 15)), "color": "F2E28B"})
 			return true
@@ -2243,6 +2297,91 @@ func _wave(c: Caster, sp: Dictionary, at: Vector2) -> void:
 		e.pos.x = clampf(e.pos.x + signf(e.pos.x - at.x) * push * 0.25 * k, 0.3, W - 0.3)
 	_event({"t": "wave", "pos": at, "r": r, "dur": 0.7, "color": str(sp.get("color", "B07CFF"))})
 	terrain.on_impact(c, sp, at, r, dmg)
+
+
+# ---------------------------------------------------------------- Don racial (étape 13.2)
+
+func don_ready() -> bool:
+	return state == "running" and not don.is_empty() and don_t <= 0.0
+
+
+## Lance le Don racial du joueur. « at » sert au Souffle (Draconique).
+func use_don(at: Vector2 = Vector2(-1.0, -1.0)) -> bool:
+	if not don_ready():
+		return false
+	var pw := 1.0 + float(don.get("power", 0.0))
+	var c := casters[0]
+	var col := str(don.get("color", "F2C46B"))
+	match str(don.get("id", "")):
+		"ralliement":
+			rally_t = 6.0 * pw
+			_event({"t": "ring", "pos": Vector2(c.x, CASTER_Y + 1.0), "r": 4.0, "color": col, "dur": 0.8})
+			_log("Ralliement : attaque des invocations +20 %% pendant %d s !" % int(rally_t))
+		"pas_de_brise":
+			breeze_t = 5.0 * pw
+			_event({"t": "ring", "pos": Vector2(c.x, CASTER_Y + 0.8), "r": 2.5, "color": col, "dur": 0.8})
+			_log("Pas de brise : cadence du Flux +50 %% pendant %d s !" % int(breeze_t))
+		"rempart_runique":
+			var amount := (20.0 + float(c.level) * 0.5) * pw
+			barrier_shield += amount
+			_event({"t": "shield", "dur": 1.0, "color": col})
+			_event({"t": "text", "pos": Vector2(W * 0.5, BARRIER_Y + 0.6), "text": "+%d bouclier" % int(amount), "color": col})
+			_log("Rempart runique : la Barrière gagne %d de bouclier." % int(amount))
+		"charge_des_clans":
+			charge_t = 4.0 * pw
+			_event({"t": "shake"})
+			_log("Charge des clans : les invocations repoussent l'ennemi pendant %d s !" % int(charge_t))
+		"nuee_feerique":
+			var n := int(round(12.0 * pw))
+			for k in range(n):
+				var u := _make_unit("fairy_swarm", 0, Vector2(clampf(c.x + rng.randf_range(-1.5, 1.5), 0.4, W - 0.4), CASTER_Y + 0.5 + rng.randf_range(0.0, 0.6)))
+				u.owner_idx = 0
+				u.atk *= c.atk_mult
+				u.hp *= c.hp_mult
+				u.max_hp = u.hp
+				_add_ally(u)
+			barrier_hp = minf(barrier_max, barrier_hp + 10.0 * pw * (1.0 + _mod("heal_bonus")))
+			_event({"t": "shield", "dur": 1.0, "color": col})
+			_log("Nuée féerique : %d lucioles !" % n)
+		"souffle":
+			var x := at.x if at.x >= 0.0 else c.x
+			var rc := Rect2(Vector2(x - 1.6, BARRIER_Y), Vector2(3.2, 5.5))
+			var dmg := 70.0 * c.atk_mult * pw * (1.0 + _mod("elem_dmg.feu"))
+			for e in enemies:
+				if e.alive and rc.has_point(e.pos):
+					_damage(e, _calc(dmg, "feu", c.crit, e, false), "feu")
+					_apply_status(e, "feu")
+			_event({"t": "column", "fx": "flames", "x": x, "w": 3.2, "y0": BARRIER_Y, "y1": BARRIER_Y + 5.5, "color": col})
+			terrain.on_impact(c, {"element": "feu", "type": "aoe"}, Vector2(x, BARRIER_Y + 2.5), 1.6, dmg)
+			_log("Souffle de dragon !")
+		"mue":
+			barrier_invuln_t = 2.0 * pw
+			for a in allies:
+				if a.alive:
+					a.poison_stacks = 0
+					a.slow_stacks = 0
+					a.zone_slow = 0.0
+			terrain.cleanse(Vector2(W * 0.5, BARRIER_Y + 2.0), 3.5)
+			_event({"t": "shield", "dur": 1.2, "color": col})
+			_log("Mue : effets néfastes purgés, Barrière invulnérable %.1f s." % barrier_invuln_t)
+		"retour":
+			var n := mini(_fallen.size(), int(round(10.0 * pw)))
+			for k in range(n):
+				var f: Dictionary = _fallen.pop_back()
+				var u := _make_unit(str(f["kind"]), 0, Vector2(clampf(c.x + rng.randf_range(-1.5, 1.5), 0.4, W - 0.4), CASTER_Y + 0.6))
+				u.owner_idx = 0
+				u.element = str(f["element"])
+				u.atk = float(f["atk"])
+				u.hp = float(f["hp"])
+				u.max_hp = u.hp
+				_add_ally(u)
+			_event({"t": "ring", "pos": Vector2(c.x, CASTER_Y + 1.0), "r": 3.0, "color": col, "dur": 0.8})
+			_log("Retour : %d invocations relevées." % n)
+		_:
+			return false
+	don_t = float(don.get("cd", 60.0))
+	_event({"t": "text", "pos": Vector2(c.x, CASTER_Y + 1.6), "text": str(don.get("name", "Don")).to_upper(), "color": col})
+	return true
 
 
 func summon_champion() -> bool:

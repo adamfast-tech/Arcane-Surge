@@ -1,0 +1,381 @@
+{
+ "points": "1 point d'héritage tous les 10 niveaux, plus 1 par acte terminé (boss de zone vaincu).",
+ "races": {
+  "humain": [
+   {
+    "id": "h_polyvalence",
+    "name": "Polyvalence",
+    "max": 3,
+    "desc": "XP : +3 % par rang.",
+    "mods": {
+     "xp_bonus": 0.03
+    }
+   },
+   {
+    "id": "h_negoce",
+    "name": "Négoce",
+    "max": 3,
+    "desc": "Prix des sorts et de la Forge : −2 % par rang.",
+    "mods": {
+     "price_discount": 0.02
+    }
+   },
+   {
+    "id": "h_ferveur",
+    "name": "Ferveur",
+    "max": 3,
+    "desc": "Attaque des invocations : +3 % par rang.",
+    "mods": {
+     "unit_atk": 0.03
+    }
+   },
+   {
+    "id": "h_ralliement",
+    "name": "Ralliement prolongé",
+    "max": 3,
+    "desc": "Don racial : +15 % d'effet et de durée par rang.",
+    "mods": {
+     "don_power": 0.15
+    }
+   },
+   {
+    "id": "h_meneur",
+    "name": "Meneur",
+    "max": 3,
+    "desc": "Don racial : −8 % de recharge par rang.",
+    "mods": {
+     "don_cd": 0.08
+    }
+   }
+  ],
+  "elfe": [
+   {
+    "id": "e_oeil",
+    "name": "Œil affûté",
+    "max": 3,
+    "desc": "Critique : +1 % par rang.",
+    "mods": {
+     "crit": 0.01
+    }
+   },
+   {
+    "id": "e_veines",
+    "name": "Veines vives",
+    "max": 3,
+    "desc": "Mana : +4 % de régénération par rang.",
+    "mods": {
+     "mana_regen": 0.04
+    }
+   },
+   {
+    "id": "e_tireurs",
+    "name": "Tireurs sylvestres",
+    "max": 3,
+    "desc": "Portée des invocations : +5 % par rang.",
+    "mods": {
+     "unit_range": 0.05
+    }
+   },
+   {
+    "id": "e_brise",
+    "name": "Brise prolongée",
+    "max": 3,
+    "desc": "Don racial : +15 % d'effet et de durée par rang.",
+    "mods": {
+     "don_power": 0.15
+    }
+   },
+   {
+    "id": "e_souffle",
+    "name": "Souffle vif",
+    "max": 3,
+    "desc": "Don racial : −8 % de recharge par rang.",
+    "mods": {
+     "don_cd": 0.08
+    }
+   }
+  ],
+  "nain": [
+   {
+    "id": "n_pierre",
+    "name": "Peau de pierre",
+    "max": 3,
+    "desc": "Défense des invocations : +5 % par rang.",
+    "mods": {
+     "unit_def": 0.05
+    }
+   },
+   {
+    "id": "n_forge",
+    "name": "Maître de forge",
+    "max": 3,
+    "desc": "Forge : −5 % de coût par rang.",
+    "mods": {
+     "forge_discount": 0.05
+    }
+   },
+   {
+    "id": "n_rempart",
+    "name": "Rempart épais",
+    "max": 3,
+    "desc": "Barrière : −2 % de dégâts subis par rang.",
+    "mods": {
+     "barrier_dr": 0.02
+    }
+   },
+   {
+    "id": "n_runes",
+    "name": "Runes profondes",
+    "max": 3,
+    "desc": "Don racial : +15 % d'effet par rang.",
+    "mods": {
+     "don_power": 0.15
+    }
+   },
+   {
+    "id": "n_enclume",
+    "name": "Enclume",
+    "max": 3,
+    "desc": "Don racial : −8 % de recharge par rang.",
+    "mods": {
+     "don_cd": 0.08
+    }
+   }
+  ],
+  "orc": [
+   {
+    "id": "o_cuir",
+    "name": "Cuir épais",
+    "max": 3,
+    "desc": "PV des invocations : +4 % par rang.",
+    "mods": {
+     "unit_hp": 0.04
+    }
+   },
+   {
+    "id": "o_rage",
+    "name": "Rage",
+    "max": 3,
+    "desc": "Attaque des invocations : +3 % par rang.",
+    "mods": {
+     "unit_atk": 0.03
+    }
+   },
+   {
+    "id": "o_cri",
+    "name": "Cri puissant",
+    "max": 3,
+    "desc": "Jauge Surge : +4 % de gain par rang.",
+    "mods": {
+     "surge_gain": 0.04
+    }
+   },
+   {
+    "id": "o_charge",
+    "name": "Charge furieuse",
+    "max": 3,
+    "desc": "Don racial : +15 % de durée par rang.",
+    "mods": {
+     "don_power": 0.15
+    }
+   },
+   {
+    "id": "o_clan",
+    "name": "Chef de clan",
+    "max": 3,
+    "desc": "Don racial : −8 % de recharge par rang.",
+    "mods": {
+     "don_cd": 0.08
+    }
+   }
+  ],
+  "fee": [
+   {
+    "id": "f_poussiere",
+    "name": "Poussière d'étoiles",
+    "max": 3,
+    "desc": "Soins : +6 % par rang.",
+    "mods": {
+     "heal_bonus": 0.06
+    }
+   },
+   {
+    "id": "f_esprit",
+    "name": "Esprit féerique",
+    "max": 3,
+    "desc": "Mana : +4 % de régénération par rang.",
+    "mods": {
+     "mana_regen": 0.04
+    }
+   },
+   {
+    "id": "f_eclat",
+    "name": "Éclat",
+    "max": 3,
+    "desc": "Critique : +1 % par rang.",
+    "mods": {
+     "crit": 0.01
+    }
+   },
+   {
+    "id": "f_nuee",
+    "name": "Nuée dense",
+    "max": 3,
+    "desc": "Don racial : +15 % de lucioles par rang.",
+    "mods": {
+     "don_power": 0.15
+    }
+   },
+   {
+    "id": "f_envol",
+    "name": "Envol",
+    "max": 3,
+    "desc": "Don racial : −8 % de recharge par rang.",
+    "mods": {
+     "don_cd": 0.08
+    }
+   }
+  ],
+  "draconique": [
+   {
+    "id": "d_braise",
+    "name": "Sang ardent",
+    "max": 3,
+    "desc": "Sorts de Feu : +5 % de dégâts par rang.",
+    "mods": {
+     "elem_dmg.feu": 0.05
+    }
+   },
+   {
+    "id": "d_ecailles",
+    "name": "Écailles",
+    "max": 3,
+    "desc": "Barrière : −2 % de dégâts subis par rang.",
+    "mods": {
+     "barrier_dr": 0.02
+    }
+   },
+   {
+    "id": "d_fureur",
+    "name": "Fureur draconique",
+    "max": 3,
+    "desc": "Attaque des invocations : +3 % par rang.",
+    "mods": {
+     "unit_atk": 0.03
+    }
+   },
+   {
+    "id": "d_souffle",
+    "name": "Souffle brûlant",
+    "max": 3,
+    "desc": "Don racial : +15 % de dégâts par rang.",
+    "mods": {
+     "don_power": 0.15
+    }
+   },
+   {
+    "id": "d_ailes",
+    "name": "Ailes de cendre",
+    "max": 3,
+    "desc": "Don racial : −8 % de recharge par rang.",
+    "mods": {
+     "don_cd": 0.08
+    }
+   }
+  ],
+  "reptilien": [
+   {
+    "id": "r_regen",
+    "name": "Régénération",
+    "max": 3,
+    "desc": "Invocations : +0,3 % de PV par seconde par rang.",
+    "mods": {
+     "unit_regen": 0.003
+    }
+   },
+   {
+    "id": "r_venin",
+    "name": "Venin",
+    "max": 3,
+    "desc": "Empoisonnement : +3 % de chance par rang.",
+    "mods": {
+     "venom": 0.03
+    }
+   },
+   {
+    "id": "r_carapace",
+    "name": "Carapace",
+    "max": 3,
+    "desc": "Défense des invocations : +5 % par rang.",
+    "mods": {
+     "unit_def": 0.05
+    }
+   },
+   {
+    "id": "r_mue",
+    "name": "Mue rapide",
+    "max": 3,
+    "desc": "Don racial : +15 % de durée par rang.",
+    "mods": {
+     "don_power": 0.15
+    }
+   },
+   {
+    "id": "r_archives",
+    "name": "Mémoire des Archives",
+    "max": 3,
+    "desc": "Don racial : −8 % de recharge par rang.",
+    "mods": {
+     "don_cd": 0.08
+    }
+   }
+  ],
+  "revenant": [
+   {
+    "id": "v_pacte",
+    "name": "Pacte",
+    "max": 3,
+    "desc": "Squelettes : +7 % de stats par rang.",
+    "mods": {
+     "skeleton_bonus": 0.07
+    }
+   },
+   {
+    "id": "v_ombre",
+    "name": "Ombre",
+    "max": 3,
+    "desc": "Sorts d'Ombre : +5 % de dégâts par rang.",
+    "mods": {
+     "elem_dmg.ombre": 0.05
+    }
+   },
+   {
+    "id": "v_linceul",
+    "name": "Linceul",
+    "max": 3,
+    "desc": "PV des invocations : +4 % par rang.",
+    "mods": {
+     "unit_hp": 0.04
+    }
+   },
+   {
+    "id": "v_retour",
+    "name": "Retour",
+    "max": 3,
+    "desc": "Don racial : +15 % d'unités relevées par rang.",
+    "mods": {
+     "don_power": 0.15
+    }
+   },
+   {
+    "id": "v_eternel",
+    "name": "Éternel",
+    "max": 3,
+    "desc": "Don racial : −8 % de recharge par rang.",
+    "mods": {
+     "don_cd": 0.08
+    }
+   }
+  ]
+ }
+}

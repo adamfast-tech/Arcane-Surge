@@ -107,7 +107,9 @@ func _surface_tick(s: Dictionary, dt: float) -> void:
 	var kind := str(s["kind"])
 	var info: Dictionary = KINDS[kind]
 	if bool(info.get("ally", false)):
-		# Mare de poison : ralentit et empoisonne les invocations.
+		# Mare de poison : ralentit et empoisonne les invocations (sauf Revenant : immunité au poison).
+		if sim._mod("poison_immune") > 0.0:
+			return
 		var pos: Vector2 = s["pos"]
 		var r := float(s["r"])
 		var pdps := float(s.get("dps", 0.0))

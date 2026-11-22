@@ -65,6 +65,15 @@ func _run() -> void:
 	var cr_name: String = cr.get_script().get_global_name()
 	cr.done.emit()
 	await _frames(3)
+	# Héritage : points (niveau et actes terminés), un rang dans « Peau de pierre ».
+	Profile.data["player"]["level"] = maxi(10, int(Profile.data["player"]["level"]))
+	var ht := Profile.heritage_total()
+	var inv_ok := Profile.race_invest("n_pierre")
+	print("héritage : ", ht, " point(s) · Peau de pierre ", inv_ok, " (rang ", Profile.race_rank("n_pierre"), ") · Don ", Profile.don_info().get("name", ""), " ", int(Profile.don_info().get("cd", 0)), " s · DÉF bonus ", Profile.race_mods().get("unit_def", 0.0))
+	if ht < 1 or not inv_ok or absf(float(Profile.race_mods().get("unit_def", 0.0)) - 0.2) > 0.001:
+		push_error("héritage racial incorrect")
+		quit(1)
+		return
 	var bo := Profile.battle_opts()
 	print("création : écran ", cr_name, " · Revenant ", rev, " · Nain ", nain, " · Archer ", arch, " · créé ", Profile.created(),
 		" · ", Profile.race(), " ", Profile.look()["head"], " · écran ", _screen().get_script().get_global_name(), " · sprite combat ", bo.has("look"))
@@ -380,6 +389,22 @@ func _run() -> void:
 				quit(1)
 				return
 		bs.sim.debug_set_ratio(0.0)
+		if id == "z01_l05":
+			# Race Nain : passif Sang de pierre (DÉF des invocations) et Don Rempart runique.
+			var fam: Unit = null
+			for al in bs.sim.allies:
+				if al.owner_idx == 0 and al.role == "familier":
+					fam = al
+					break
+			var sh0 := bs.sim.barrier_shield
+			bs.sim.don_t = 0.0
+			var used := bs.sim.use_don()
+			print("  race : Don ", bs.sim.don.get("id", ""), " lancé ", used, " · bouclier ", int(sh0), " -> ", int(bs.sim.barrier_shield), " · recharge ", int(bs.sim.don_t),
+				" s · DÉF d'une invocation ", fam.defense if fam != null else -1.0)
+			if not used or bs.sim.barrier_shield <= sh0 or bs.sim.don_t < 40.0 or (fam != null and fam.defense < 2.9):
+				push_error("Don racial ou passif incorrect")
+				quit(1)
+				return
 		if id == "z01_l05":
 			print("  héros : sprite ", bs.sim.player().sprite, " · race ", bs.sim.player().race_id, " · hauteur ", SpriteAtlas.height_m("player"))
 			if bs.sim.player().sprite != "player" or bs.sim.player().race_id != "nain":

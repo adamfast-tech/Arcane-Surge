@@ -348,7 +348,9 @@ static func weapon_element() -> String:
 static func upgrade_cost(item: Dictionary) -> int:
 	var up := int(item.get("up", 0))
 	var value := float(rarity_of(item).get("value", 1))
-	return int(round(float(prog_db()["upgrade"]["gold_base"]) * float(up + 1) * (1.0 + value * 0.25) * (1.0 + float(item.get("ilvl", 1)) * 0.1)))
+	var rm := race_mods()
+	var disc := clampf(float(rm.get("price_discount", 0.0)) + float(rm.get("forge_discount", 0.0)), 0.0, 0.5)
+	return int(round(float(prog_db()["upgrade"]["gold_base"]) * float(up + 1) * (1.0 + value * 0.25) * (1.0 + float(item.get("ilvl", 1)) * 0.1) * (1.0 - disc)))
 
 
 static func can_upgrade(item: Dictionary) -> bool:
@@ -453,6 +455,7 @@ static func apply_battle(level_id: String, victory: bool, stars: int, time: floa
 		gold_gain = 0.0
 	data["levels"][level_id] = rec
 	var before := level()
+	xp_gain *= 1.0 + float(race_mods().get("xp_bonus", 0.0))
 	var gained := add_xp(int(round(xp_gain)))
 	data["gold"] = gold() + int(round(gold_gain))
 	save_local()
@@ -476,7 +479,7 @@ static func _roll(table: Dictionary, rng: RandomNumberGenerator) -> String:
 static func battle_opts() -> Dictionary:
 	return {"player_level": level(), "gear": gear_stats(), "weapon_element": weapon_element(), "bot_level": maxi(1, level() - 1),
 		"flags": Story.active_flags(), "healed": Story.has_flag("s1.sylvarche_purifiee"),
-		"mods": skill_mods(), "deck": deck() if spell_mode() == "deck" else drawer_spells(), "spell_mode": spell_mode(), "circle": circle(),
+		"mods": all_mods(), "don": don_info(), "deck": deck() if spell_mode() == "deck" else drawer_spells(), "spell_mode": spell_mode(), "circle": circle(),
 		"player_race": race(), "look": look(),
 		"loyalty": {"brann": Story.loyalty("brann"), "sylwen": Story.loyalty("sylwen"), "krag": Story.loyalty("krag"), "nyx": Story.loyalty("nyx")},
 		"active": active_companions()}
@@ -491,7 +494,8 @@ static func tree_db() -> Dictionary:
 ## 1 point par niveau à partir du niveau 2, plus 1 tous les 10 niveaux (04-classes-races §3.1).
 static func skill_points_total() -> int:
 	var l := level()
-	return maxi(0, l - 1) + int(l / 10.0)
+	var extra := int(l / 20.0) if float(race_mods().get("extra_points", 0.0)) > 0.0 else 0
+	return maxi(0, l - 1) + int(l / 10.0) + extra
 
 
 static func skill_ranks() -> Dictionary:
@@ -689,6 +693,89 @@ static func set_class(c: String) -> bool:
 
 
 ## Personnage créé (sinon l'écran de création s'affiche à l'arrivée à Havre-Aube).
+# ---------------------------------------------------------------- héritage racial (étape 13.2)
+
+static func race_tree() -> Array:
+	return (GameData.load_json("res://data/race_trees.json")["races"] as Dictionary).get(race(), [])
+
+
+static func _heritage() -> Dictionary:
+	if not (data["player"].get("heritage") is Dictionary):
+		data["player"]["heritage"] = {}
+	return data["player"]["heritage"]
+
+
+static func race_rank(id: String) -> int:
+	return int(_heritage().get(id, 0))
+
+
+## Points d'héritage : 1 tous les 10 niveaux, plus 1 par acte terminé (boss de fin de zone vaincu).
+static func heritage_total() -> int:
+	var n := int(level() / 10.0)
+	for z in GameData.level_index().get("zones", []):
+		var ids: Array = z.get("levels", [])
+		if not ids.is_empty() and int(level_record(str(ids.back()))["clears"]) > 0:
+			n += 1
+	return n
+
+
+static func heritage_spent() -> int:
+	var n := 0
+	for node in race_tree():
+		n += race_rank(str(node["id"]))
+	return n
+
+
+static func race_invest_block(id: String) -> String:
+	for node in race_tree():
+		if str(node["id"]) == id:
+			if race_rank(id) >= int(node.get("max", 3)):
+				return "Rang maximum"
+			if heritage_spent() >= heritage_total():
+				return "Aucun point d'héritage"
+			return ""
+	return "Nœud inconnu"
+
+
+static func race_invest(id: String) -> bool:
+	if race_invest_block(id) != "":
+		return false
+	_heritage()[id] = race_rank(id) + 1
+	return true
+
+
+## Passifs de la race et rangs de l'arbre d'héritage.
+static func race_mods() -> Dictionary:
+	var out: Dictionary = ((GameData.party()["races"] as Dictionary).get(race(), {}) as Dictionary).get("passive_mods", {}).duplicate()
+	for node in race_tree():
+		var r := race_rank(str(node["id"]))
+		if r <= 0:
+			continue
+		var m: Dictionary = node.get("mods", {})
+		for k in m.keys():
+			out[k] = float(out.get(k, 0.0)) + float(m[k]) * float(r)
+	return out
+
+
+## Modificateurs de combat : arbre de compétences + race.
+static func all_mods() -> Dictionary:
+	var out := skill_mods()
+	var rm := race_mods()
+	for k in rm.keys():
+		out[k] = float(out.get(k, 0.0)) + float(rm[k])
+	return out
+
+
+## Don racial : {id, name, cd} (recharge réduite par l'arbre d'héritage).
+static func don_info() -> Dictionary:
+	var ri: Dictionary = (GameData.party()["races"] as Dictionary).get(race(), {})
+	if not ri.has("don_id"):
+		return {}
+	var cd := float(ri.get("don_cd", 60)) * (1.0 - clampf(float(race_mods().get("don_cd", 0.0)), 0.0, 0.6))
+	return {"id": str(ri["don_id"]), "name": str(ri.get("don_name", "Don")), "cd": cd, "color": str(ri.get("color", "F2C46B")),
+		"power": float(race_mods().get("don_power", 0.0))}
+
+
 static func created() -> bool:
 	return bool(data["player"].get("created", false))
 
@@ -800,6 +887,7 @@ static func spell_power(id: String) -> int:
 ## Prix d'un sort à la Bibliothèque : proportionnel à sa puissance (arrondi à 10 or, à 50 or au-delà de 1 000).
 static func spell_price(id: String) -> int:
 	var g := maxf(float(SPELL_PRICE_MIN), float(spell_power(id)) * SPELL_PRICE_PER_POWER)
+	g *= 1.0 - clampf(float(race_mods().get("price_discount", 0.0)), 0.0, 0.5)
 	var step := 50.0 if g >= 1000.0 else 10.0
 	return int(round(g / step) * step)
 

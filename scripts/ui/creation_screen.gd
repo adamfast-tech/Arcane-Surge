@@ -158,7 +158,7 @@ func _race_details(r: Dictionary) -> PanelContainer:
 		v.add_child(UiTheme.wrap("· " + str(ps), 16, UiTheme.MUTED))
 	if r.has("don"):
 		v.add_child(UiTheme.wrap("Don racial : " + str(r["don"]), 16, UiTheme.GOLD))
-	v.add_child(UiTheme.wrap("Passifs et Don racial : actifs à la prochaine mise à jour (étape « Races »).", 14, Color(UiTheme.MUTED, 0.8)))
+	v.add_child(UiTheme.wrap("Le Don racial se lance en combat (bouton DON). L'arbre d'héritage de la race se trouve à l'Entraînement.", 14, Color(UiTheme.MUTED, 0.8)))
 	return c[0]
 
 

@@ -63,6 +63,25 @@ func _rebuild() -> void:
 			_branch = id
 			_rebuild.call_deferred())
 		tabs.add_child(t)
+	# Héritage racial : arbre de la race, points d'héritage.
+	var ri: Dictionary = (GameData.party()["races"] as Dictionary).get(Profile.race(), {})
+	var rc := Color(str(ri.get("color", "F2C46B")))
+	var ht := UiTheme.button("Héritage\n%d / %d pts" % [Profile.heritage_spent(), Profile.heritage_total()], 18)
+	ht.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	ht.custom_minimum_size = Vector2(0, 70)
+	ht.icon = Icons.tex("sparkle", 40)
+	ht.add_theme_constant_override("icon_max_width", 20)
+	ht.add_theme_color_override("icon_normal_color", rc)
+	if _branch == "heritage":
+		ht.add_theme_stylebox_override("normal", UiTheme.box(Color(UiTheme.PANEL2, 0.96), rc, 12, 2, 8, rc))
+		ht.add_theme_color_override("font_color", rc)
+	ht.pressed.connect(func() -> void:
+		_branch = "heritage"
+		_rebuild.call_deferred())
+	tabs.add_child(ht)
+	if _branch == "heritage":
+		_heritage_view(col, ri, rc)
+		return
 	if current.is_empty():
 		return
 	var bc2 := Color(str(current.get("color", "6fdccf")))
@@ -98,6 +117,56 @@ func _rebuild() -> void:
 				_save()
 			_rebuild.call_deferred())
 		col.add_child(rs)
+
+
+## Arbre racial : passifs, Don racial et 5 nœuds de 3 rangs payés en points d'héritage.
+func _heritage_view(col: VBoxContainer, ri: Dictionary, rc: Color) -> void:
+	var free := Profile.heritage_total() - Profile.heritage_spent()
+	col.add_child(UiTheme.label("Héritage %s · %d point%s disponible%s" % [str(ri.get("name", "")).to_lower(), free, "s" if free > 1 else "", "s" if free > 1 else ""], 22, rc))
+	col.add_child(UiTheme.wrap("1 point d'héritage tous les 10 niveaux, plus 1 par acte terminé (boss de fin de zone vaincu).", 16, UiTheme.MUTED))
+	var c: Array = UiTheme.card(Color(rc, 0.6), 12)
+	col.add_child(c[0])
+	var v: VBoxContainer = c[1]
+	v.add_theme_constant_override("separation", 2)
+	v.add_child(UiTheme.label("Passifs de race", 18, rc))
+	for ps in ri.get("passives", []):
+		v.add_child(UiTheme.wrap("· " + str(ps), 16, UiTheme.TEXT))
+	v.add_child(UiTheme.label("Don racial · recharge %d s (bouton DON, touche D)" % int(Profile.don_info().get("cd", 0)), 18, UiTheme.GOLD))
+	v.add_child(UiTheme.wrap(str(ri.get("don", "")), 16, UiTheme.TEXT))
+	col.add_child(UiTheme.section("Arbre d'héritage", rc))
+	for node in Profile.race_tree():
+		var id := str(node["id"])
+		var rank := Profile.race_rank(id)
+		var mx := int(node.get("max", 3))
+		var nc: Array = UiTheme.card(Color(rc, 0.85) if rank > 0 else UiTheme.BORDER, 12)
+		col.add_child(nc[0])
+		var h := HBoxContainer.new()
+		h.add_theme_constant_override("separation", 12)
+		(nc[1] as VBoxContainer).add_child(h)
+		h.add_child(UiTheme.icon_rect("sparkle", 30, rc))
+		var nv := VBoxContainer.new()
+		nv.add_theme_constant_override("separation", 0)
+		nv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		h.add_child(nv)
+		var top := HBoxContainer.new()
+		top.add_theme_constant_override("separation", 8)
+		nv.add_child(top)
+		top.add_child(UiTheme.label(str(node["name"]), 22, rc))
+		top.add_child(UiTheme.label("%d / %d" % [rank, mx], 15, UiTheme.GOLD if rank > 0 else UiTheme.MUTED))
+		nv.add_child(UiTheme.wrap(str(node.get("desc", "")), 17, UiTheme.MUTED))
+		var block := Profile.race_invest_block(id)
+		var inv := UiTheme.button("+1" if rank < mx else "MAX", 22)
+		inv.custom_minimum_size = Vector2(72, 56)
+		inv.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		inv.disabled = block != ""
+		if block == "":
+			inv.add_theme_color_override("font_color", UiTheme.GOLD)
+			inv.add_theme_stylebox_override("normal", UiTheme.box(Color(UiTheme.WARM, 0.94), Color(UiTheme.GOLD, 0.85), 10, 2, 6))
+		inv.pressed.connect(func() -> void:
+			if Profile.race_invest(id):
+				_save()
+			_rebuild.call_deferred())
+		h.add_child(inv)
 
 
 func _node_card(node: Dictionary, bc: Color, open: bool) -> PanelContainer:

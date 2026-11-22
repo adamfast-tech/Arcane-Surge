@@ -53,6 +53,7 @@ var mana_bar: ProgressBar
 var mana_label: Label
 var spell_btns: Array[Button] = []
 var champ_btn: Button
+var don_btn: Button
 var ult_btn: Button
 var bot_btns: Array[Button] = []
 var order_btns: Array = []
@@ -234,6 +235,7 @@ func _build_hud() -> void:
 	for ch in hud.get_children():
 		ch.queue_free()
 	spell_btns.clear()
+	don_btn = null
 	bot_btns.clear()
 	order_btns.clear()
 	bot_mana_bars.clear()
@@ -299,6 +301,9 @@ func _build_portrait() -> void:
 	for c in sim.casters:
 		if c.is_bot and c.side == "left":
 			r1.add_child(_bot_cycle_button(c))
+	if not sim.don.is_empty():
+		don_btn = _don_button()
+		r1.add_child(don_btn)
 	champ_btn = _action_button("CHAMPION", UiTheme.GOLD)
 	champ_btn.pressed.connect(_on_champion)
 	r1.add_child(champ_btn)
@@ -353,7 +358,7 @@ func _build_landscape() -> void:
 	var sp := Control.new()
 	sp.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	lv.add_child(sp)
-	lv.add_child(_wrap_label("Clic maintenu : Flux · 1-7 : sorts au curseur · E : Champion · Espace : Ultime · Q/R : ordres · F : tir auto · Échap : pause", 18, UiTheme.MUTED))
+	lv.add_child(_wrap_label("Clic maintenu : Flux · 1-7 : sorts au curseur · E : Champion · D : Don racial · Espace : Ultime · Q/R : ordres · F : tir auto · Échap : pause", 18, UiTheme.MUTED))
 
 	var right := PanelContainer.new()
 	right.add_theme_stylebox_override("panel", UiTheme.box(Color(UiTheme.PANEL, 0.96), UiTheme.BORDER, 0, 0, 16))
@@ -382,6 +387,10 @@ func _build_landscape() -> void:
 	champ_btn.pressed.connect(_on_champion)
 	champ_btn.custom_minimum_size = Vector2(0, 80)
 	grid.add_child(champ_btn)
+	if not sim.don.is_empty():
+		don_btn = _don_button()
+		don_btn.custom_minimum_size = Vector2(0, 80)
+		grid.add_child(don_btn)
 	ult_btn = _ult_button()
 	ult_btn.custom_minimum_size = Vector2(0, 80)
 	grid.add_child(ult_btn)
@@ -702,6 +711,27 @@ func _aim_with(id: String) -> void:
 	arena.aim_color = Color(str(sp.get("color", "FFFFFF")))
 
 
+## Don racial : bouton à la couleur de la race, recharge affichée.
+func _don_button() -> Button:
+	var col := Color(str(sim.don.get("color", "F2C46B")))
+	var b := _action_button("DON", col)
+	b.icon = Icons.tex("sparkle", 48)
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	b.add_theme_constant_override("icon_max_width", 20)
+	b.add_theme_color_override("icon_normal_color", col)
+	b.add_theme_stylebox_override("normal", UiTheme.box(UiTheme.PANEL2, Color(col, 0.8), 12, 2, 6))
+	b.pressed.connect(_on_don)
+	return b
+
+
+func _on_don() -> void:
+	if not sim.use_don(_hover if _hover_in else Vector2(-1.0, -1.0)):
+		_toast("Don racial en recharge : %d s" % int(ceil(sim.don_t)))
+	else:
+		_bark("ultimate", false)
+
+
 func _ult_button() -> Button:
 	var b := UiTheme.button("ULTIME", 18)
 	b.icon = Icons.tex("meteore", 56)
@@ -846,6 +876,9 @@ func _update_hud() -> void:
 		b.disabled = not sim.spell_ready(c, id)
 		b.modulate = Color(1.0, 0.92, 0.6) if aiming == id else Color.WHITE
 	_set_text(champ_btn, "CHAMPION\n%d/%d" % [sim.champion_charge, sim.champion_need])
+	if don_btn != null and is_instance_valid(don_btn):
+		_set_text(don_btn, ("%s" % str(sim.don.get("name", "Don"))) if sim.don_ready() else "%s\n%d s" % [str(sim.don.get("name", "Don")), int(ceil(sim.don_t))])
+		don_btn.disabled = not sim.don_ready()
 	champ_btn.disabled = sim.champion_charge < sim.champion_need or sim.state != "running"
 	_set_text(ult_btn, "ULTIME\n%d%%" % int(sim.surge))
 	ult_btn.disabled = not sim.ultimate_ready()
@@ -1085,6 +1118,8 @@ func _unhandled_input(ev: InputEvent) -> void:
 				_on_spell_pressed(i, _hover_in)
 		KEY_E:
 			_on_champion()
+		KEY_D:
+			_on_don()
 		KEY_SPACE:
 			if _hover_in:
 				aiming = "ultimate"

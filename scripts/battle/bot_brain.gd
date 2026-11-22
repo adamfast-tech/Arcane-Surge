@@ -148,7 +148,13 @@ func _use_abilities(sim: BattleSim, c: BattleSim.Caster) -> void:
 					return
 	if c.idx != 0:
 		return
-	# Pilotage automatique du joueur (simulateur) : Champion et Ultime.
+	# Pilotage automatique du joueur (simulateur) : Don racial, Champion et Ultime.
+	if sim.don_ready():
+		var did := str(sim.don.get("id", ""))
+		var low := sim.barrier_hp < sim.barrier_max * 0.75
+		if (did in ["rempart_runique", "mue"] and low) or (did not in ["rempart_runique", "mue"] and sim.time > 8.0):
+			var cl := sim.densest_enemy(1.6, 6.5)
+			sim.use_don(cl["pos"] if int(cl["n"]) > 0 else Vector2(-1.0, -1.0))
 	if sim.champion_charge >= sim.champion_need:
 		sim.summon_champion()
 	if sim.ultimate_ready():
