@@ -110,6 +110,155 @@ static func scorch() -> ImageTexture:
 	return _store("scorch", img)
 
 
+## Sols du terrain interactif (scripts/battle/terrain.gd), vus de dessus, bords transparents.
+static func ground(kind: String) -> ImageTexture:
+	var key := "ground_" + kind
+	if _cache.has(key):
+		return _cached(key)
+	var n := 64
+	var img := Image.create_empty(n, n, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(kind)
+	var c := (float(n) - 1.0) * 0.5
+	var base := Color(0, 0, 0, 0)
+	var alpha := 0.6
+	match kind:
+		"braises":
+			base = Color("2a1610")
+			alpha = 0.85
+		"verglas":
+			base = Color("bfe8ff")
+			alpha = 0.6
+		"eau":
+			base = Color("2f6aa8")
+			alpha = 0.6
+		"miasme":
+			base = Color("4a2278")
+			alpha = 0.5
+		"statique":
+			base = Color("1e1a3a")
+			alpha = 0.45
+		"cratere":
+			base = Color("1e1510")
+			alpha = 0.9
+		"faille":
+			base = Color("0e0a08")
+			alpha = 0.95
+	# Disque aux bords irréguliers (sauf runes, gravats et fissures, dessinés à part).
+	if not kind in ["rune", "gravats", "fissure"]:
+		for y in range(n):
+			for x in range(n):
+				var d := Vector2(float(x) - c, float(y) - c).length() / (c + 0.5) + rng.randf_range(-0.06, 0.06)
+				if d > 1.0:
+					continue
+				var a := alpha * clampf((1.0 - d) * 3.0, 0.0, 1.0)
+				var col := base
+				if kind == "cratere":
+					# Fond sombre, bord relevé éclairé.
+					col = base.lerp(Color("6a5038"), clampf((d - 0.45) / 0.4, 0.0, 1.0))
+					if d > 0.78 and d < 0.9:
+						col = Color("8a7050")
+					a = clampf((1.0 - d) * 6.0, 0.0, 1.0) * alpha
+				elif kind == "eau" and int(d * 9.0) % 3 == 0:
+					col = base.lightened(0.25)
+				img.set_pixel(x, y, Color(col, a))
+	match kind:
+		"braises":
+			for k in range(7):
+				var p := Vector2(c, c)
+				var dir := Vector2.from_angle(rng.randf() * TAU)
+				for st in range(26):
+					if p.distance_to(Vector2(c, c)) > c * 0.85:
+						break
+					img.set_pixel(int(p.x), int(p.y), Color("ff8a3a") if st % 4 != 0 else Color("ffd070"))
+					dir = dir.rotated(rng.randf_range(-0.6, 0.6))
+					p += dir
+			for k in range(30):
+				var q := Vector2.from_angle(rng.randf() * TAU) * rng.randf() * c * 0.8 + Vector2(c, c)
+				img.set_pixel(int(q.x), int(q.y), Color("ffb04a"))
+		"verglas":
+			for k in range(6):
+				var p := Vector2.from_angle(rng.randf() * TAU) * rng.randf() * c * 0.5 + Vector2(c, c)
+				var dir := Vector2.from_angle(rng.randf() * TAU)
+				for st in range(20):
+					if p.distance_to(Vector2(c, c)) > c * 0.9:
+						break
+					img.set_pixel(int(p.x), int(p.y), Color(1, 1, 1, 0.9))
+					p += dir
+			for k in range(14):
+				var q := Vector2.from_angle(rng.randf() * TAU) * rng.randf() * c * 0.8 + Vector2(c, c)
+				img.set_pixel(int(q.x), int(q.y), Color.WHITE)
+		"statique":
+			for k in range(5):
+				var p := Vector2(c, c)
+				var dir := Vector2.from_angle(rng.randf() * TAU)
+				for st in range(30):
+					if p.distance_to(Vector2(c, c)) > c * 0.9:
+						break
+					img.set_pixel(int(p.x), int(p.y), Color("f0d23c"))
+					p += dir.rotated(rng.randf_range(-1.0, 1.0))
+		"miasme":
+			for k in range(24):
+				var q := Vector2.from_angle(rng.randf() * TAU) * rng.randf() * c * 0.75 + Vector2(c, c)
+				var r := rng.randi_range(2, 5)
+				for y in range(-r, r + 1):
+					for x in range(-r, r + 1):
+						if x * x + y * y <= r * r:
+							var px := clampi(int(q.x) + x, 0, n - 1)
+							var py := clampi(int(q.y) + y, 0, n - 1)
+							img.set_pixel(px, py, img.get_pixel(px, py).lerp(Color(0.55, 0.3, 0.85, 0.55), 0.4))
+		"rune":
+			for a in range(0, 360, 2):
+				var v := Vector2.from_angle(deg_to_rad(float(a)))
+				for rr in [c * 0.9, c * 0.75]:
+					var q: Vector2 = v * rr + Vector2(c, c)
+					img.set_pixel(int(q.x), int(q.y), Color("d8c0ff"))
+			var tri := [Vector2(c, c * 0.35), Vector2(c * 1.55, c * 1.45), Vector2(c * 0.45, c * 1.45)]
+			for k in range(3):
+				var a0: Vector2 = tri[k]
+				var b0: Vector2 = tri[(k + 1) % 3]
+				for st in range(40):
+					var q := a0.lerp(b0, float(st) / 39.0)
+					img.set_pixel(int(q.x), int(q.y), Color("b07cff"))
+			for k in range(8):
+				var v := Vector2.from_angle(float(k) * TAU / 8.0) * c * 0.82 + Vector2(c, c)
+				img.set_pixel(int(v.x), int(v.y), Color.WHITE)
+		"gravats":
+			for k in range(26):
+				var q := Vector2.from_angle(rng.randf() * TAU) * rng.randf() * c * 0.85 + Vector2(c, c)
+				var r := rng.randi_range(1, 4)
+				var sc := Color("8a7a60").lerp(Color("5a4a3a"), rng.randf())
+				for y in range(-r, r + 1):
+					for x in range(-r, r + 1):
+						if absi(x) + absi(y) <= r:
+							img.set_pixel(clampi(int(q.x) + x, 0, n - 1), clampi(int(q.y) + y, 0, n - 1), sc if y > -r / 2 else sc.lightened(0.25))
+		"fissure":
+			for k in range(4):
+				var p := Vector2(c, c)
+				var dir := Vector2.from_angle(rng.randf() * TAU)
+				for st in range(34):
+					if p.distance_to(Vector2(c, c)) > c * 0.95:
+						break
+					img.set_pixel(int(p.x), int(p.y), Color("140e0a"))
+					img.set_pixel(clampi(int(p.x) + 1, 0, n - 1), int(p.y), Color(0.08, 0.05, 0.04, 0.6))
+					dir = dir.rotated(rng.randf_range(-0.5, 0.5))
+					p += dir
+		"faille":
+			# Bords déchiquetés : un liseré clair autour du gouffre.
+			var src := img.duplicate() as Image
+			for y in range(n):
+				for x in range(n):
+					if src.get_pixel(x, y).a > 0.3:
+						continue
+					for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+						var q: Vector2i = Vector2i(x, y) + d
+						if q.x >= 0 and q.y >= 0 and q.x < n and q.y < n and src.get_pixel(q.x, q.y).a > 0.3:
+							img.set_pixel(x, y, Color("6a5038"))
+							break
+	return _store(key, img)
+
+
 ## Colonne de lumière : lumineuse au centre, s'efface en haut.
 static func beam() -> ImageTexture:
 	if _cache.has("beam"):

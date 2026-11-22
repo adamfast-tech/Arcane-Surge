@@ -62,6 +62,17 @@ func handle(e: Dictionary) -> bool:
 			_line_fx.append({"kind": "bolt", "pos": e["to"], "age": -float(e["dur"]), "dur": 0.35, "color": col, "seed": _rng.randi() % 1000})
 		"column":
 			_column(e, col)
+		"quake":
+			_quake(e, col)
+		"steam":
+			var sp3 := w3(e["pos"], 0.3)
+			var sr := float(e.get("r", 1.5))
+			_burst(sp3, 40 + int(sr * 20.0), [Color(1, 1, 1, 0.95), Color(0.9, 0.95, 1.0, 0.6), Color(1, 1, 1, 0.0)], 2.6, 0.35, 1.3, 1.2, 70.0)
+			_flash(sp3 + Vector3(0, 0.4, 0), sr * 2.0, Color(1, 1, 1, 0.8), 0.4)
+		"ground":
+			var gp := w3(e["pos"], 0.15)
+			_burst(gp, 26, [Color.WHITE, col, Color(col, 0.0)], 1.8, 0.1, 0.6, -2.0, 70.0)
+			_line_fx.append({"kind": "shock", "pos": e["pos"], "r": float(e.get("r", 1.5)), "age": 0.0, "dur": 0.5, "color": col})
 		"storm":
 			_rain(e, col)
 			_line_fx.append({"kind": "storm", "pos": e["pos"], "r": float(e["r"]), "age": 0.0, "dur": float(e["dur"]), "color": col})
@@ -240,15 +251,18 @@ func _column(e: Dictionary, col: Color) -> void:
 			p.mesh = _pm(0.24)
 			p.color_ramp = _ramp([Color("fff3b0"), Color("ffb04a"), col, Color(0.5, 0.1, 0.05, 0.0)])
 			_light(w3(mid, 1.0), col, 7.0, 2.4, 0.6)
-		"ice", "thorns":
+		"ice", "thorns", "stone":
 			p.amount = 140
 			p.lifetime = 0.7
 			p.spread = 8.0
 			p.initial_velocity_min = 2.4
 			p.initial_velocity_max = 4.2
 			p.gravity = Vector3(0, -9.0, 0)
-			p.mesh = _streak()
+			p.mesh = _streak() if kind != "stone" else _pm(0.16)
 			p.color_ramp = _ramp([Color.WHITE, col, Color(col.darkened(0.3), 0.0)])
+			if kind == "stone":
+				p.color_ramp = _ramp([Color("d8c8a8"), col, Color(col.darkened(0.4), 0.0)])
+				dust(w3(mid, 0.2), Vector3(w * 0.4, 0.1, (y1 - y0) * 0.5), Color("b8a888"), 50)
 		"shadow":
 			p.amount = 120
 			p.lifetime = 0.9
@@ -272,6 +286,59 @@ func _column(e: Dictionary, col: Color) -> void:
 	p.emitting = true
 	_nodes.append({"kind": "free", "node": p, "age": 0.0, "dur": p.lifetime + 0.2})
 	_line_fx.append({"kind": "colband", "x": x, "w": w, "y0": y0, "y1": y1, "age": 0.0, "dur": 0.45, "color": col})
+
+
+## Séisme : la terre se soulève sur toute la largeur de la bande (poussière, roches projetées).
+func _quake(e: Dictionary, col: Color) -> void:
+	var pos: Vector2 = e["pos"]
+	var band := minf(float(e.get("band", 2.0)), 8.0)
+	var cy := clampf(pos.y, band, BattleSim.H - band) if band >= 7.9 else pos.y
+	dust(w3(Vector2(4.5, cy), 0.1), Vector3(4.6, 0.1, band), Color("b8a888"), 80 + int(band * 20.0))
+	var r := CPUParticles3D.new()
+	r.one_shot = true
+	r.explosiveness = 0.9
+	r.amount = 40 + int(band * 10.0)
+	r.lifetime = 1.0
+	r.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	r.emission_box_extents = Vector3(4.6, 0.05, band)
+	r.direction = Vector3.UP
+	r.spread = 20.0
+	r.initial_velocity_min = 2.0
+	r.initial_velocity_max = 4.5
+	r.gravity = Vector3(0, -12.0, 0)
+	r.mesh = _pm(0.12)
+	r.color_ramp = _ramp([Color("8a7a60"), Color("5a4a3a"), Color(0.3, 0.25, 0.2, 0.0)])
+	r.position = w3(Vector2(4.5, cy), 0.1)
+	add_child(r)
+	r.emitting = true
+	_nodes.append({"kind": "free", "node": r, "age": 0.0, "dur": 1.2})
+	_line_fx.append({"kind": "shock", "pos": Vector2(4.5, cy), "r": 4.8, "age": 0.0, "dur": 0.6, "color": col})
+
+
+## Nuage de poussière (impacts, piliers, murs, séismes).
+func dust(p: Vector3, ext: Vector3, col: Color, amount: int) -> void:
+	var b := CPUParticles3D.new()
+	b.one_shot = true
+	b.explosiveness = 0.85
+	b.amount = clampi(amount, 4, 300)
+	b.lifetime = 1.1
+	b.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	b.emission_box_extents = ext
+	b.direction = Vector3.UP
+	b.spread = 60.0
+	b.initial_velocity_min = 0.4
+	b.initial_velocity_max = 1.6
+	b.gravity = Vector3(0, -0.6, 0)
+	b.damping_min = 0.6
+	b.damping_max = 1.4
+	b.scale_amount_min = 0.8
+	b.scale_amount_max = 1.8
+	b.mesh = _pm(0.2)
+	b.color_ramp = _ramp([Color(col, 0.8), Color(col.darkened(0.15), 0.5), Color(col, 0.0)])
+	b.position = p
+	add_child(b)
+	b.emitting = true
+	_nodes.append({"kind": "free", "node": b, "age": 0.0, "dur": 1.3})
 
 
 func _roots(e: Dictionary, col: Color) -> void:

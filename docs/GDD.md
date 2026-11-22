@@ -161,4 +161,5 @@ iOS (iPhone 16 Pro Max, iPad), Android, PC (16:9, 16:10).
     - 11.1 ✅ zone 2 jouable, Collines d'Ambre : 10 niveaux (niveaux 11 à 20), bestiaire orc, Varg et Gharok, vent des steppes, pylônes d'ambre, décor de jour — [`design/16-zone2.md`](design/16-zone2.md)
     - 11.2 ✅ narration de l'acte 2 : 20 dialogues, choix du Traité d'Ambre et ✦ Gharok, Krag 3e compagnon (2 compagnons actifs au Cercle) — [`design/17-narration-zone2.md`](design/17-narration-zone2.md)
     - 11.3 ✅ 42 sorts élémentaires en 7 rangs (Novice → Interdit), 6 écoles, Bibliothèque filtrée — [`design/18-rangs-des-sorts.md`](design/18-rangs-des-sorts.md)
+    - 11.4 ✅ terrain interactif : sols laissés par les sorts, réactions entre éléments, piliers destructibles, murs, séismes ; école Terre et 13 nouveaux sorts — [`design/19-terrain-interactif.md`](design/19-terrain-interactif.md)
 12. Saison 2 : zones 11–15, niveau max 150, L'Ourdisseur (fils semés en saison 1)

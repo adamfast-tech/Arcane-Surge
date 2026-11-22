@@ -36,6 +36,9 @@ func _ready() -> void:
 				if GameData.spells().has(sid):
 					dk.append(sid)
 			extra["deck"] = dk
+		if _url_flag("mana"):
+			# Aperçu : mana qui se recharge 20 fois plus vite (« &mana=1 »).
+			extra["debug_mana"] = true
 		_start(direct, _url_flag("solo"), extra)
 		var hp := float(str(_query().get("nexus", "0")))
 		if hp > 0.0 and hp < 1.0:
@@ -232,7 +235,7 @@ func _go(dest: String, level_id: String, solo: bool) -> void:
 
 
 ## Web : « ?level=z01_l08 » ouvre directement un niveau (« &solo=1 » pour le mode solo, « &krag=1 »
-## pour emmener Krag, « &deck=orage,comete » pour imposer des sorts).
+## pour emmener Krag, « &deck=orage,comete » pour imposer des sorts, « &mana=1 » pour un mana rapide).
 func _level_from_url() -> String:
 	var q := _query()
 	var id := str(q.get("level", ""))

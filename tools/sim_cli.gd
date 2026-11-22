@@ -58,6 +58,7 @@ func _init() -> void:
 		total_time += s.time
 		total_barrier += s.barrier_hp / s.barrier_max
 		total_stars += s.stars
+		s.terrain.sim = null
 		print("  #%02d %-8s %5.1fs  barrière %3d%%  étoiles %d  kills %4d  invocations %5d  soins +%d  reste %d%%  %s" % [
 			i + 1, s.state, s.time, int(100.0 * s.barrier_hp / s.barrier_max), s.stars, s.kills, s.summoned,
 			int(s.healed_total), int(100.0 * s.objective_ratio()), s.objective_info()])

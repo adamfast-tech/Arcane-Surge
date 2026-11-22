@@ -175,7 +175,7 @@ func _run() -> void:
 		and Profile.spell_price("comete") < Profile.spell_price("soleil_noir")
 	print("prix : Étincelle ", p_nov, " or, apprise ", nov, " · Comète ", Profile.spell_price("comete"), " · Soleil noir ", p_forb, " (", forb, ") puis acheté ", forb_ok,
 		" · Corruption ", cor0, " -> ", cor1, " · croissants ", ordered, " · catalogue ", LibraryScreen.catalogue().size())
-	if not nov or not forb_ok or forb != "Or insuffisant" or cor1 - cor0 != 10 or not ordered or LibraryScreen.catalogue().size() != 43:
+	if not nov or not forb_ok or forb != "Or insuffisant" or cor1 - cor0 != 10 or not ordered or LibraryScreen.catalogue().size() != 56:
 		push_error("rangs des sorts : apprentissage incorrect")
 		quit(1)
 		return
@@ -264,7 +264,6 @@ func _run() -> void:
 		bs.sim.set_player_firing(true)
 		await _frames(90)
 		print(id, " · ", bs.sim.objective_title(), " · ", bs.sim.objective_info(), " · état ", bs.sim.state)
-		bs.sim.debug_set_ratio(0.0)
 		if id == "z02_l03":
 			# Barrage (Orage) et magie interdite (Soleil noir, -20 Barrière).
 			var pcs: BattleSim.Caster = bs.sim.player()
@@ -280,6 +279,38 @@ func _run() -> void:
 				push_error("sorts : barrage ou prix en Barrière incorrect")
 				quit(1)
 				return
+			# Terrain interactif : marais + foudre (électrocution), banquise + feu (vapeur), mur, séisme, cataclysme.
+			var tr: BattleTerrain = bs.sim.terrain
+			pcs.spells.append_array(["marais", "javelot_foudre", "banquise", "boule_de_feu", "mur_pierre", "seisme", "cataclysme", "rune_piege"])
+			var casts := []
+			for sid in ["marais", "javelot_foudre", "banquise", "boule_de_feu", "mur_pierre", "rune_piege", "seisme"]:
+				pcs.mana = pcs.mana_max
+				var at := Vector2(4.5, 8.0)
+				if sid in ["banquise", "boule_de_feu"]:
+					at = Vector2(4.5, 11.0)
+				casts.append(bs.sim.cast_spell(pcs, sid, at))
+				await _frames(14)
+			var standing := 0
+			for pr in tr.props:
+				if bool(pr["alive"]):
+					standing += 1
+			bs.sim.barrier_hp = bs.sim.barrier_max
+			pcs.mana = pcs.mana_max
+			var cata := bs.sim.cast_spell(pcs, "cataclysme", Vector2(4.5, 8.0))
+			await _frames(30)
+			var fallen := 0
+			for pr in tr.props:
+				if not bool(pr["alive"]):
+					fallen += 1
+			var kinds := {}
+			for sf in tr.surfaces:
+				kinds[str(sf["kind"])] = true
+			print("  terrain : lancers ", casts, " · réactions ", tr.reactions, " · murs ", tr.walls.size(), " · sols ", kinds.keys(), " · piliers debout ", standing, " · Cataclysme ", cata, " : ", fallen, "/", tr.props.size(), " à terre")
+			if casts.has(false) or tr.reactions < 2 or fallen != tr.props.size() or not kinds.has("cratere"):
+				push_error("terrain interactif incorrect")
+				quit(1)
+				return
+		bs.sim.debug_set_ratio(0.0)
 		if id.begins_with("z02"):
 			var ids: Array[String] = []
 			for cc in bs.sim.casters:

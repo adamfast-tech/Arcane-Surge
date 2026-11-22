@@ -71,6 +71,20 @@ func _use_abilities(sim: BattleSim, c: BattleSim.Caster) -> void:
 				var cl := sim.densest_enemy(float(sp.get("spread", 2.0)), 12.0)
 				if int(cl["n"]) >= 6 and sim.cast_spell(c, id, cl["pos"]):
 					return
+			"wall":
+				# Mur de pierre : couper une masse qui approche de la Barrière.
+				var cl := sim.densest_enemy(1.6, 7.0)
+				if int(cl["n"]) >= 6 and sim.cast_spell(c, id, (cl["pos"] as Vector2) - Vector2(0.0, 1.0)):
+					return
+			"quake":
+				var cl := sim.densest_enemy(minf(float(sp.get("band", 2.0)), 3.0), 12.0)
+				if int(cl["n"]) >= 8 and sim.cast_spell(c, id, cl["pos"]):
+					return
+			"ground":
+				var gk := str(sp.get("ground_kind", ""))
+				var cl := sim.densest_enemy(float(sp.get("radius", 2.0)) + (1.0 if gk == "rune" else 0.0), 9.0 if gk == "rune" else 12.0)
+				if int(cl["n"]) >= (3 if gk == "rune" else 5) and sim.cast_spell(c, id, cl["pos"]):
+					return
 			"barrier_heal":
 				if sim.barrier_hp < sim.barrier_max * 0.7:
 					if sim.cast_spell(c, id, Vector2(c.x, 2.0)):

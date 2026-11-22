@@ -166,6 +166,7 @@ var pylons: Array[Dictionary] = []
 var banners: Array[Unit] = []
 ## Sorts à impact différé (projectile, météore) et zones actives (pluie, racines, vortex).
 var pending_impacts: Array[Dictionary] = []
+var terrain := BattleTerrain.new() ## sols, piliers, murs (scripts/battle/terrain.gd)
 var zones: Array[Dictionary] = []
 ## Effets des fils du destin appliqués à ce niveau (textes affichés au départ).
 var story_notes: Array[String] = []
@@ -198,6 +199,7 @@ func setup(level_data: Dictionary, party: Dictionary, seed_value: int, opts: Dic
 	_apply_story_mods(opts)
 	_setup_orbs()
 	_setup_zone_mechanics()
+	terrain.setup(self)
 	for e in level.get("initial_enemies", []):
 		_spawn_enemy(str(e["kind"]), Vector2(float(e["x"]), float(e["y"])))
 	wave_t = float(level["waves"].get("first", 3.0))
@@ -387,6 +389,8 @@ func _setup_casters(party: Dictionary, opts: Dictionary = {}) -> void:
 			pc.spells.append(str(s))
 	pc.crit += _mod("crit")
 	pc.mana_regen *= 1.0 + _mod("mana_regen")
+	if bool(opts.get("debug_mana", false)):
+		pc.mana_regen *= 20.0
 	spell_cost_mult *= 1.0 - _mod("spell_cost")
 	var cls: Dictionary = classes[pc.class_id]
 	effect_mult = float(cls.get("effect_mult", 1.0))
@@ -512,6 +516,7 @@ func step() -> void:
 	_build_grids()
 	_update_impacts()
 	_update_zones()
+	terrain.update()
 	_resolve_contacts()
 	_ranged_attacks()
 	_towers_attack()
@@ -676,7 +681,7 @@ func _move_units() -> void:
 		if escort != null and escort.alive and e.pos.y > escort.pos.y and e.pos.y - escort.pos.y < 4.0:
 			# Les ennemis convergent vers la Lanterne de l'Aube.
 			e.pos.x = clampf(e.pos.x + clampf(escort.pos.x - e.pos.x, -0.9, 0.9) * sf_e * TICK, 0.3, W - 0.3)
-		e.pos.y -= e.speed * sf_e * TICK
+		e.pos.y = terrain.block_y(e, e.pos.y - e.speed * sf_e * TICK) if not terrain.walls.is_empty() else e.pos.y - e.speed * sf_e * TICK
 		e.pos.x = clampf(e.pos.x + _wind_push(e) * TICK, 0.3, W - 0.3)
 
 
@@ -1492,6 +1497,8 @@ func _calc(atk: float, elem: String, crit: float, tgt: Unit, frontal: bool) -> f
 			d *= 1.0 + _mod("frozen_vuln")
 		if tgt.burn_t > 0.0:
 			d *= 1.0 + _mod("burning_vuln")
+		if tgt.exposed_t > 0.0:
+			d *= BattleTerrain.EXPOSE_MULT
 	if frontal and tgt.front_block > 0.0:
 		d *= 1.0 - tgt.front_block
 	return d
@@ -1815,9 +1822,12 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 				"elem": str(sp.get("element", "")), "slow": zslow, "pull": float(sp.get("pull", 0.0)),
 				"stack_every": float(sp.get("stack_every", 0.0)), "stack_acc": 0.0})
 			_event({"t": str(sp.get("fx", "rain")), "pos": at, "r": zr, "dur": dur, "color": col})
+			terrain.on_impact(c, sp, at, zr, float(sp.get("dps", 0)) * c.atk_mult * 2.0)
 			return true
 		"chain":
 			return _chain(c, sp, at, from)
+		"wall", "quake", "ground":
+			return terrain.cast(c, sp, at)
 		"barrier_heal":
 			if barrier_hp >= barrier_max:
 				return false
@@ -1859,6 +1869,7 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 			_event({"t": "arrow", "a": Vector2(at.x, BARRIER_Y), "b": Vector2(at.x, H - 0.4), "color": col, "dur": 0.3})
 			if sp.has("fx"):
 				_event({"t": "column", "fx": str(sp["fx"]), "x": at.x, "w": w, "y0": BARRIER_Y, "y1": H - 0.4, "color": col})
+			terrain.on_impact(c, sp, at, w * 0.5, dmg, Rect2(Vector2(at.x - w * 0.5, BARRIER_Y), Vector2(w, H - 0.4 - BARRIER_Y)))
 			return true
 	return false
 
@@ -1911,6 +1922,7 @@ func _resolve_aoe(c: Caster, sp: Dictionary, at: Vector2) -> void:
 					n["alive"] = false
 				_event({"t": "text", "pos": (n["pos"] as Vector2) + Vector2(0.0, -0.8), "text": "-%d" % int(dmg * nr), "color": "FFFFFF"})
 		_sync_nexus()
+	terrain.on_impact(c, sp, at, r, dmg)
 	if float(sp.get("surge_gain", 0.0)) > 0.0 and c.idx == 0:
 		surge = minf(100.0, surge + float(sp["surge_gain"]))
 	var big := bool(sp.get("impact_flash", false))
@@ -2010,6 +2022,7 @@ func _chain(c: Caster, sp: Dictionary, at: Vector2, from: Vector2) -> bool:
 			break
 		tgt = next
 	_event({"t": "lightning", "pts": pts, "dur": 0.45, "color": str(sp.get("color", "F0D23C"))})
+	terrain.on_impact(c, sp, pts[1], 1.0, float(sp.get("damage", 40)) * c.atk_mult)
 	return true
 
 
@@ -2029,6 +2042,7 @@ func _wave(c: Caster, sp: Dictionary, at: Vector2) -> void:
 		e.pos.y = minf(H - 0.6, e.pos.y + push * k)
 		e.pos.x = clampf(e.pos.x + signf(e.pos.x - at.x) * push * 0.25 * k, 0.3, W - 0.3)
 	_event({"t": "wave", "pos": at, "r": r, "dur": 0.7, "color": str(sp.get("color", "B07CFF"))})
+	terrain.on_impact(c, sp, at, r, dmg)
 
 
 func summon_champion() -> bool:

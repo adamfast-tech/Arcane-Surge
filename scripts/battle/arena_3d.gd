@@ -51,6 +51,8 @@ var _staff_fx: CPUParticles3D
 var _staff_light: OmniLight3D
 var _torch_lights: Array[OmniLight3D] = []
 var _pylon_nodes: Array[Dictionary] = []
+var _terrain_view: TerrainView
+var _moss_cap: StandardMaterial3D
 var day := false ## Zone 2 : Collines d'Ambre en plein jour.
 ## Forêt guérie (la Sylvarche a été purifiée) : sol plus vert, veines dorées, lucioles.
 var healed := false
@@ -80,6 +82,9 @@ func setup(s: BattleSim, f: Font, forest_healed: bool = false) -> void:
 	_build_fx()
 	_spell_fx = SpellFx.new()
 	add_child(_spell_fx)
+	_terrain_view = TerrainView.new()
+	add_child(_terrain_view)
+	_terrain_view.setup(sim, _stone_mat, _moss_cap, _spell_fx)
 	cam = Camera3D.new()
 	cam.fov = FOV
 	cam.near = 0.5
@@ -303,22 +308,10 @@ func _trees_mm_instance() -> MultiMeshInstance3D:
 
 
 func _build_props() -> void:
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 99
 	var moss_cap := _unshaded(Color("a09048") if day else Color("3f6a3a"))
 	moss_cap.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
-	# Piliers en ruine le long de la chaussée.
-	for y in [1.8, 4.2, 7.8, 9.6, 12.2, 15.4]:
-		for side in [-1, 1]:
-			if rng.randf() < 0.25:
-				continue
-			var x := -0.55 if side < 0 else 9.55
-			var h := rng.randf_range(0.6, 2.4)
-			_box(Vector3(0.6, h, 0.6), w3(Vector2(x, y), h * 0.5), _stone_mat)
-			_box(Vector3(0.66, 0.08, 0.66), w3(Vector2(x, y), h + 0.04), moss_cap)
-			if rng.randf() < 0.6:
-				var block := _box(Vector3(0.45, 0.3, 0.4), w3(Vector2(x + float(-side) * 0.1, y + 0.7), 0.15), _stone_mat)
-				block.rotation.y = rng.randf_range(-0.6, 0.6)
+	# Piliers en ruine le long de la chaussée : construits par TerrainView (ils peuvent s'effondrer).
+	_moss_cap = moss_cap
 	# Bannière près des lanceurs (comme sur l'image de référence).
 	var banner := Sprite3D.new()
 	banner.texture = WorldArt.banner_texture()
@@ -760,6 +753,9 @@ func consume_events(events: Array[Dictionary]) -> void:
 				flash = 0.35
 			"text":
 				_spawn_label(e)
+			"prop_hit", "prop_fall", "prop_crash", "wall", "wall_break":
+				if _terrain_view != null:
+					_terrain_view.handle(e)
 			_:
 				# Animations de sorts (projectiles, zones, foudre…) : SpellFx ; le reste en traits.
 				if _spell_fx == null or not _spell_fx.handle(e):
@@ -802,6 +798,8 @@ func _process(delta: float) -> void:
 	_update_casters()
 	_update_labels(delta)
 	_draw_fx(delta)
+	if _terrain_view != null:
+		_terrain_view.update(delta)
 	for l in _torch_lights:
 		l.light_energy = 1.25 + 0.25 * sin(t * 11.0 + l.position.x) + 0.1 * sin(t * 23.0)
 

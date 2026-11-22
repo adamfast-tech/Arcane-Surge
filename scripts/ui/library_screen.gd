@@ -1,7 +1,7 @@
 class_name LibraryScreen
 extends Control
 ## Bibliothèque : grimoire du Mage. Choix des 7 sorts emportés en combat (le deck) et sorts à
-## apprendre contre de l'or, rangés par école (Feu, Givre, Foudre, Nature, Ombre, Arcane) et par rang,
+## apprendre contre de l'or, rangés par école (Feu, Givre, Foudre, Nature, Ombre, Arcane, Terre) et par rang,
 ## de Novice à Interdit (docs/design/18-rangs-des-sorts.md).
 
 signal back
@@ -116,11 +116,11 @@ func _deck_row(deck: Array[String]) -> HBoxContainer:
 
 func _school_tabs() -> GridContainer:
 	var g := GridContainer.new()
-	g.columns = 7
+	g.columns = 4
 	g.add_theme_constant_override("h_separation", 6)
 	var tabs := [["", "Tous", "rune", "6fdccf"], ["feu", "Feu", "boule_de_feu", "FF9B4A"], ["givre", "Givre", "pluie_de_givre", "9FE3FF"],
 		["foudre", "Foudre", "eclair_chaine", "F0D23C"], ["nature", "Nature", "racines", "8FD16A"], ["ombre", "Ombre", "vortex_ombre", "8E62E0"],
-		["arcane", "Arcane", "onde_arcanique", "B07CFF"]]
+		["arcane", "Arcane", "onde_arcanique", "B07CFF"], ["terre", "Terre", "seisme", "C8A070"]]
 	for t in tabs:
 		var id := str(t[0])
 		var tc := Color(str(t[3]))
@@ -132,7 +132,7 @@ func _school_tabs() -> GridContainer:
 		bt.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
 		bt.add_theme_color_override("icon_normal_color", tc if on else Color(tc, 0.7))
 		bt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		bt.custom_minimum_size = Vector2(0, 62)
+		bt.custom_minimum_size = Vector2(0, 58)
 		if on:
 			bt.add_theme_color_override("font_color", tc)
 			bt.add_theme_stylebox_override("normal", UiTheme.box(Color(UiTheme.PANEL2, 0.96), tc, 10, 2, 4))

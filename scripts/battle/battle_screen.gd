@@ -85,6 +85,9 @@ func configure(id: String, solo_mode: bool, opts: Dictionary = {}) -> void:
 
 func _exit_tree() -> void:
 	WorldArt.zone = 1
+	# Casse la référence circulaire simulation <-> terrain (sinon fuite mémoire).
+	if sim != null:
+		sim.terrain.sim = null
 
 
 func _ready() -> void:

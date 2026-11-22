@@ -28,7 +28,7 @@ const RANK_INFO := {
 ## Or par point de puissance, prix minimum.
 const SPELL_PRICE_PER_POWER := 1.5
 const SPELL_PRICE_MIN := 40
-const SCHOOLS := {"feu": "Feu", "givre": "Givre", "foudre": "Foudre", "nature": "Nature", "ombre": "Ombre", "arcane": "Arcane"}
+const SCHOOLS := {"feu": "Feu", "givre": "Givre", "foudre": "Foudre", "nature": "Nature", "ombre": "Ombre", "arcane": "Arcane", "terre": "Terre"}
 const DECK_MAX := 7
 ## Sorts que chaque compagnon peut emporter (Cercle).
 const COMPANION_SPELLS := {"brann": ["bouclier_leve", "charge_bastion"], "sylwen": ["tir_precision", "volee_fleches"], "krag": ["hache_tournoyante", "bond_furieux"]}
@@ -689,7 +689,32 @@ static func spell_power(id: String) -> int:
 			p = float(sp.get("amount", 15)) * 12.0
 		"purify":
 			p = 100.0
+		"wall":
+			p = float(sp.get("amount", 300)) * 0.8 + float(sp.get("dur", 10.0)) * 10.0
+		"quake":
+			var band := minf(float(sp.get("band", 2.0)), 8.0)
+			p = dmg * band * 2.2 + float(sp.get("stun", 1.0)) * band * 10.0 + float(sp.get("cracks", 0)) * 10.0 + float(sp.get("craters", 0)) * 50.0
+		"ground":
+			var a: float = area.call(float(sp.get("radius", 2.0)))
+			var d := float(sp.get("dur", 6.0))
+			match str(sp.get("ground_kind", "")):
+				"braises":
+					p = float(sp.get("dps", 0)) * d * a
+				"verglas":
+					p = 0.35 * d * 12.0 * a + dmg * a
+				"eau":
+					p = 0.25 * d * 12.0 * a
+				"statique":
+					p = float(sp.get("zap", 30)) * 3.0 * (d / 0.8) * 0.5
+				"miasme":
+					p = d * a * 12.0
+				"rune":
+					p = float(sp.get("blast", 120)) * float(area.call(float(sp.get("blast_r", 2.0))))
 	p += dmg * float(sp.get("nexus_ratio", 0.0)) * 2.0 + float(sp.get("surge_gain", 0.0)) * 20.0
+	var g: Variant = sp.get("ground", null)
+	if g is Dictionary:
+		# Sol laissé par le sort (gravats, faille…).
+		p += dmg * float((g as Dictionary).get("dps", 0.0)) * float((g as Dictionary).get("dur", 0.0)) * 2.0 + float((g as Dictionary).get("dur", 0.0)) * 5.0
 	return int(round(p))
 
 

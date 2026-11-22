@@ -78,3 +78,5 @@ Gain d'un combat gagné : 20 + 10 × niveau du lieu en or, multiplié par le bon
 ## Aperçu web
 
 `?level=z02_l01&deck=orage,mur_flammes,tempete,comete` lance un niveau avec ces sorts.
+
+> Ajout : école Terre et sorts de terrain (13 sorts, 55 au total) — voir [`19-terrain-interactif.md`](19-terrain-interactif.md).
