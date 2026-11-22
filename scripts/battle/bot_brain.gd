@@ -144,7 +144,7 @@ func _use_abilities(sim: BattleSim, c: BattleSim.Caster) -> void:
 					return
 			"army":
 				# Horde : des squelettes entre la Barrière et la masse ennemie.
-				var cl := sim.densest_enemy(2.0, 8.0)
+				var cl := sim.densest_enemy(2.0, 11.0)
 				if int(cl["n"]) >= 4 and sim.cast_spell(c, id, (cl["pos"] as Vector2) - Vector2(0.0, 1.2)):
 					return
 			"frenzy":
@@ -154,6 +154,32 @@ func _use_abilities(sim: BattleSim, c: BattleSim.Caster) -> void:
 			"purify":
 				var target := sim.purify_target()
 				if target.x >= 0.0 and sim.cast_spell(c, id, target):
+					return
+				if float(sp.get("damage", 0.0)) > 0.0:
+					# Exorcisme : sans portail à purifier, frapper une masse.
+					var cl := sim.densest_enemy(float(sp.get("radius", 2.0)), 12.0)
+					if int(cl["n"]) >= 5 and sim.cast_spell(c, id, cl["pos"]):
+						return
+			"mirror":
+				# Lames miroirs : dédoubler une mêlée de ses propres invocations.
+				var best := Vector2(-1.0, -1.0)
+				var bn := 0
+				for a in sim.allies:
+					if a.alive and a.owner_idx == c.idx and a.role == "familier" and a.pos.y > 3.0:
+						var k := 0
+						for b in sim.allies:
+							if b.owner_idx == c.idx and b.alive and b.pos.distance_squared_to(a.pos) < 3.2:
+								k += 1
+						if k > bn:
+							bn = k
+							best = a.pos
+						break
+				if bn >= 6 and sim.cast_spell(c, id, best):
+					return
+			"harvest":
+				# Moisson d'âmes : sacrifier des invocations prises dans une masse ennemie.
+				var cl := sim.densest_enemy(2.0, 11.0)
+				if int(cl["n"]) >= 6 and sim.cast_spell(c, id, cl["pos"]):
 					return
 	if c.idx != 0:
 		return

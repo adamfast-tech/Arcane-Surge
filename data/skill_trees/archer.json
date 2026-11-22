@@ -271,6 +271,157 @@
      ]
     }
    ]
+  },
+  {
+   "id": "astrales",
+   "name": "Flèches astrales",
+   "theme": "Voie du Surge : Lumière, division",
+   "color": "FFF6C8",
+   "icon": "constellation",
+   "unlock_flag": "s1.verite_cendres",
+   "locked": "Voie du Surge : s'ouvre à la fin de l'acte 3 (la Vérité des Cendres, 3-10).",
+   "tiers": [
+    {
+     "req": 0,
+     "nodes": [
+      {
+       "id": "lumiere_astrale",
+       "name": "Lumière astrale",
+       "max": 5,
+       "desc": "Sorts de Lumière : +6 % de dégâts par rang.",
+       "mods": {
+        "elem_dmg.lumiere": 0.06
+       }
+      },
+      {
+       "id": "eclat_stellaire",
+       "name": "Éclat stellaire",
+       "max": 5,
+       "desc": "Jauge Surge : +4 % de gain par rang.",
+       "mods": {
+        "surge_gain": 0.04
+       }
+      }
+     ]
+    },
+    {
+     "req": 5,
+     "nodes": [
+      {
+       "id": "fleches_divisees",
+       "name": "Flèches divisées",
+       "max": 5,
+       "desc": "5 % de chances par rang qu'un tireur se divise en passant un portail positif.",
+       "mods": {
+        "portal_split": 0.05
+       }
+      },
+      {
+       "id": "ciel_clair",
+       "name": "Ciel clair",
+       "max": 5,
+       "desc": "+4 % de régénération de mana par rang.",
+       "mods": {
+        "mana_regen": 0.04
+       }
+      },
+      {
+       "id": "constellation_t",
+       "name": "Constellation",
+       "max": 1,
+       "desc": "Nouveau sort : sept étoiles en grappe.",
+       "kind": "spell",
+       "unlock": "constellation"
+      }
+     ]
+    },
+    {
+     "req": 10,
+     "nodes": [
+      {
+       "id": "astrolabe",
+       "name": "Astrolabe",
+       "max": 5,
+       "desc": "Invocations à distance : +4 % de portée par rang.",
+       "mods": {
+        "unit_range": 0.04
+       }
+      },
+      {
+       "id": "comete_a",
+       "name": "Comète",
+       "max": 5,
+       "desc": "+1 % de chances de critique par rang.",
+       "mods": {
+        "crit": 0.01
+       }
+      },
+      {
+       "id": "voute",
+       "name": "Voûte",
+       "max": 5,
+       "desc": "Sorts : −2 % de coût en mana par rang.",
+       "mods": {
+        "spell_cost": 0.02
+       }
+      }
+     ]
+    },
+    {
+     "req": 20,
+     "nodes": [
+      {
+       "id": "firmament",
+       "name": "Firmament",
+       "max": 3,
+       "desc": "Sorts de Lumière : +5 % de dégâts par rang.",
+       "mods": {
+        "elem_dmg.lumiere": 0.05
+       }
+      },
+      {
+       "id": "pluie_astrale",
+       "name": "Pluie astrale",
+       "max": 1,
+       "desc": "Évolution : 4 étoiles de plus, +20 % de rayon.",
+       "kind": "evolution",
+       "mods": {
+        "ult_count": 4,
+        "ult_radius": 0.2
+       }
+      }
+     ]
+    },
+    {
+     "req": 30,
+     "nodes": [
+      {
+       "id": "etoiles_aube",
+       "name": "Étoiles de l'Aube",
+       "max": 1,
+       "desc": "Clé de voûte (Aube) : chaque étoile de l'Ultime soigne la Barrière de 2 PV.",
+       "kind": "keystone",
+       "mods": {
+        "ult_heal": 1
+       },
+       "flag": "s1.voie_aube",
+       "flag_text": "Voie de l'Aube (choix de 3-10)"
+      },
+      {
+       "id": "etoiles_cendres",
+       "name": "Étoiles des Cendres",
+       "max": 1,
+       "desc": "Clé de voûte (Cendres) : l'Ultime flétrit et empoisonne tout ce qu'elle touche.",
+       "kind": "keystone",
+       "mods": {
+        "ult_wither": 1
+       },
+       "flag": "s1.voie_cendres",
+       "flag_text": "Voie des Cendres (choix de 3-10)"
+      }
+     ]
+    }
+   ]
   }
  ]
 }

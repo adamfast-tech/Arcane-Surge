@@ -271,6 +271,157 @@
      ]
     }
    ]
+  },
+  {
+   "id": "spectrale",
+   "name": "Lame spectrale",
+   "theme": "Voie du Surge : clones",
+   "color": "B8C8FF",
+   "icon": "lames_miroirs",
+   "unlock_flag": "s1.verite_cendres",
+   "locked": "Voie du Surge : s'ouvre à la fin de l'acte 3 (la Vérité des Cendres, 3-10).",
+   "tiers": [
+    {
+     "req": 0,
+     "nodes": [
+      {
+       "id": "double_fantome",
+       "name": "Double fantôme",
+       "max": 5,
+       "desc": "3 % de chances par rang qu'une invocation surgisse avec son double.",
+       "mods": {
+        "ghost_double": 0.03
+       }
+      },
+      {
+       "id": "lame_ombre",
+       "name": "Lame d'ombre",
+       "max": 5,
+       "desc": "Invocations : +4 % d'attaque par rang.",
+       "mods": {
+        "unit_atk": 0.04
+       }
+      }
+     ]
+    },
+    {
+     "req": 5,
+     "nodes": [
+      {
+       "id": "echo_lame",
+       "name": "Écho de lame",
+       "max": 5,
+       "desc": "Invocations : renvoient 4 % des coups reçus par rang.",
+       "mods": {
+        "riposte": 0.04
+       }
+      },
+      {
+       "id": "spectre",
+       "name": "Spectre",
+       "max": 5,
+       "desc": "Invocations : +4 % de PV par rang.",
+       "mods": {
+        "unit_hp": 0.04
+       }
+      },
+      {
+       "id": "lames_miroirs_t",
+       "name": "Lames miroirs",
+       "max": 1,
+       "desc": "Nouveau sort : 10 invocations proches se dédoublent.",
+       "kind": "spell",
+       "unlock": "lames_miroirs"
+      }
+     ]
+    },
+    {
+     "req": 10,
+     "nodes": [
+      {
+       "id": "fil_spectral",
+       "name": "Fil spectral",
+       "max": 5,
+       "desc": "Invocations : +3 % de cadence par rang.",
+       "mods": {
+        "cadence": 0.03
+       }
+      },
+      {
+       "id": "esprit_vif_e",
+       "name": "Esprit vif",
+       "max": 5,
+       "desc": "+1 % de chances de critique par rang.",
+       "mods": {
+        "crit": 0.01
+       }
+      },
+      {
+       "id": "voile",
+       "name": "Voile",
+       "max": 5,
+       "desc": "Sorts : −2 % de coût en mana par rang.",
+       "mods": {
+        "spell_cost": 0.02
+       }
+      }
+     ]
+    },
+    {
+     "req": 20,
+     "nodes": [
+      {
+       "id": "danse_ombres",
+       "name": "Danse des ombres",
+       "max": 3,
+       "desc": "Invocations : +4 % d'attaque par rang.",
+       "mods": {
+        "unit_atk": 0.04
+       }
+      },
+      {
+       "id": "maitre_spectral",
+       "name": "Maître-lame spectral",
+       "max": 1,
+       "desc": "Évolution : Champion +25 % de PV et d'attaque.",
+       "kind": "evolution",
+       "mods": {
+        "champ_atk": 0.25,
+        "champ_hp": 0.25
+       }
+      }
+     ]
+    },
+    {
+     "req": 30,
+     "nodes": [
+      {
+       "id": "double_aube",
+       "name": "Double protecteur",
+       "max": 1,
+       "desc": "Clé de voûte (Aube) : le Champion laisse un double à 60 % (bouclier de 50 %) ; Barrière +20 de bouclier.",
+       "kind": "keystone",
+       "mods": {
+        "double_guard": 1
+       },
+       "flag": "s1.voie_aube",
+       "flag_text": "Voie de l'Aube (choix de 3-10)"
+      },
+      {
+       "id": "double_cendres",
+       "name": "Double vampire",
+       "max": 1,
+       "desc": "Clé de voûte (Cendres) : le Champion laisse un double à 60 % qui vole 30 % de ses dégâts en vie.",
+       "kind": "keystone",
+       "mods": {
+        "double_drain": 1
+       },
+       "flag": "s1.voie_cendres",
+       "flag_text": "Voie des Cendres (choix de 3-10)"
+      }
+     ]
+    }
+   ]
   }
  ]
 }

@@ -271,6 +271,157 @@
      ]
     }
    ]
+  },
+  {
+   "id": "fureur",
+   "name": "Fureur primordiale",
+   "theme": "Voie du Surge : risque et récompense",
+   "color": "D9442A",
+   "icon": "rage_primordiale",
+   "unlock_flag": "s1.verite_cendres",
+   "locked": "Voie du Surge : s'ouvre à la fin de l'acte 3 (la Vérité des Cendres, 3-10).",
+   "tiers": [
+    {
+     "req": 0,
+     "nodes": [
+      {
+       "id": "bord_gouffre",
+       "name": "Au bord du gouffre",
+       "max": 5,
+       "desc": "Barrière sous 50 % : invocations +6 % de dégâts par rang.",
+       "mods": {
+        "low_barrier_atk": 0.06
+       }
+      },
+      {
+       "id": "sang_bouillant",
+       "name": "Sang bouillant",
+       "max": 5,
+       "desc": "Frénésie : +0,3 s par rang.",
+       "mods": {
+        "frenzy_dur": 0.3
+       }
+      }
+     ]
+    },
+    {
+     "req": 5,
+     "nodes": [
+      {
+       "id": "peau_fer",
+       "name": "Peau de fer",
+       "max": 5,
+       "desc": "Invocations : +4 % de PV par rang.",
+       "mods": {
+        "unit_hp": 0.04
+       }
+      },
+      {
+       "id": "furie",
+       "name": "Furie",
+       "max": 5,
+       "desc": "Invocations : +3 % d'attaque par rang.",
+       "mods": {
+        "unit_atk": 0.03
+       }
+      },
+      {
+       "id": "rage_primordiale_t",
+       "name": "Rage primordiale",
+       "max": 1,
+       "desc": "Nouveau sort : la Barrière paie 8 PV, frénésie générale 6 s.",
+       "kind": "spell",
+       "unlock": "rage_primordiale"
+      }
+     ]
+    },
+    {
+     "req": 10,
+     "nodes": [
+      {
+       "id": "hurle_sang",
+       "name": "Hurle-sang",
+       "max": 5,
+       "desc": "Invocations : +2 % de vol de vie par rang.",
+       "mods": {
+        "lifesteal": 0.02
+       }
+      },
+      {
+       "id": "ivresse",
+       "name": "Ivresse",
+       "max": 5,
+       "desc": "+1 % de chances de critique par rang.",
+       "mods": {
+        "crit": 0.01
+       }
+      },
+      {
+       "id": "rage_froide",
+       "name": "Rage froide",
+       "max": 5,
+       "desc": "Sorts : −2 % de coût en mana par rang.",
+       "mods": {
+        "spell_cost": 0.02
+       }
+      }
+     ]
+    },
+    {
+     "req": 20,
+     "nodes": [
+      {
+       "id": "primordial",
+       "name": "Primordial",
+       "max": 3,
+       "desc": "Barrière sous 50 % : invocations +5 % de dégâts par rang.",
+       "mods": {
+        "low_barrier_atk": 0.05
+       }
+      },
+      {
+       "id": "dechainement_primordial",
+       "name": "Déchaînement primordial",
+       "max": 1,
+       "desc": "Évolution : +3 s de frénésie, +20 % de dégâts.",
+       "kind": "evolution",
+       "mods": {
+        "ult_dur": 3,
+        "ult_dmg": 0.2
+       }
+      }
+     ]
+    },
+    {
+     "req": 30,
+     "nodes": [
+      {
+       "id": "rage_aube",
+       "name": "Dernier rempart",
+       "max": 1,
+       "desc": "Clé de voûte (Aube) : sous 25 % de Barrière, toutes les invocations restent en frénésie.",
+       "kind": "keystone",
+       "mods": {
+        "rage_low": 1
+       },
+       "flag": "s1.voie_aube",
+       "flag_text": "Voie de l'Aube (choix de 3-10)"
+      },
+      {
+       "id": "rage_cendres",
+       "name": "Rage de sang",
+       "max": 1,
+       "desc": "Clé de voûte (Cendres) : la frénésie passe à +120 % de dégâts, mais la Barrière perd 1,5 PV/s tant qu'elle dure.",
+       "kind": "keystone",
+       "mods": {
+        "blood_rage": 1
+       },
+       "flag": "s1.voie_cendres",
+       "flag_text": "Voie des Cendres (choix de 3-10)"
+      }
+     ]
+    }
+   ]
   }
  ]
 }

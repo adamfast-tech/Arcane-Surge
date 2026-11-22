@@ -270,6 +270,157 @@
      ]
     }
    ]
+  },
+  {
+   "id": "garde_runique",
+   "name": "Garde runique",
+   "theme": "Voie du Surge : runes sur les unités",
+   "color": "4FE3D2",
+   "icon": "cercle_runique",
+   "unlock_flag": "s1.verite_cendres",
+   "locked": "Voie du Surge : s'ouvre à la fin de l'acte 3 (la Vérité des Cendres, 3-10).",
+   "tiers": [
+    {
+     "req": 0,
+     "nodes": [
+      {
+       "id": "rune_protection",
+       "name": "Rune de protection",
+       "max": 5,
+       "desc": "Invocations : bouclier de 4 % de leurs PV par rang à l'apparition.",
+       "mods": {
+        "spawn_shield": 0.04
+       }
+      },
+      {
+       "id": "rune_epines",
+       "name": "Rune d'épines",
+       "max": 5,
+       "desc": "Invocations : renvoient 4 % des coups reçus par rang.",
+       "mods": {
+        "riposte": 0.04
+       }
+      }
+     ]
+    },
+    {
+     "req": 5,
+     "nodes": [
+      {
+       "id": "gravure",
+       "name": "Gravure",
+       "max": 5,
+       "desc": "Invocations : +1 de défense par rang.",
+       "mods": {
+        "unit_def": 0.05
+       }
+      },
+      {
+       "id": "runes_vives",
+       "name": "Runes vives",
+       "max": 5,
+       "desc": "La Barrière se répare de 0,03 PV/s par rang.",
+       "mods": {
+        "barrier_regen": 0.03
+       }
+      },
+      {
+       "id": "cercle_runique_t",
+       "name": "Cercle runique",
+       "max": 1,
+       "desc": "Nouveau sort : un cercle blesse et protège pendant 7 s.",
+       "kind": "spell",
+       "unlock": "cercle_runique"
+      }
+     ]
+    },
+    {
+     "req": 10,
+     "nodes": [
+      {
+       "id": "pierre_runique",
+       "name": "Pierre runique",
+       "max": 5,
+       "desc": "Invocations : +4 % de PV par rang.",
+       "mods": {
+        "unit_hp": 0.04
+       }
+      },
+      {
+       "id": "sceau_k",
+       "name": "Sceau",
+       "max": 5,
+       "desc": "Barrière : −2 % de dégâts subis par rang.",
+       "mods": {
+        "barrier_dr": 0.02
+       }
+      },
+      {
+       "id": "meditation_k",
+       "name": "Méditation",
+       "max": 5,
+       "desc": "+4 % de régénération de mana par rang.",
+       "mods": {
+        "mana_regen": 0.04
+       }
+      }
+     ]
+    },
+    {
+     "req": 20,
+     "nodes": [
+      {
+       "id": "grand_graveur",
+       "name": "Grand graveur",
+       "max": 3,
+       "desc": "Invocations : bouclier de 5 % de PV par rang à l'apparition.",
+       "mods": {
+        "spawn_shield": 0.05
+       }
+      },
+      {
+       "id": "paladin_runique",
+       "name": "Paladin runique",
+       "max": 1,
+       "desc": "Évolution : Champion +30 % de PV, +20 % d'attaque.",
+       "kind": "evolution",
+       "mods": {
+        "champ_hp": 0.3,
+        "champ_atk": 0.2
+       }
+      }
+     ]
+    },
+    {
+     "req": 30,
+     "nodes": [
+      {
+       "id": "runes_aube",
+       "name": "Runes miroirs",
+       "max": 1,
+       "desc": "Clé de voûte (Aube) : les invocations renvoient 30 % des dégâts reçus.",
+       "kind": "keystone",
+       "mods": {
+        "riposte": 0.3
+       },
+       "flag": "s1.voie_aube",
+       "flag_text": "Voie de l'Aube (choix de 3-10)"
+      },
+      {
+       "id": "runes_cendres",
+       "name": "Runes explosives",
+       "max": 1,
+       "desc": "Clé de voûte (Cendres) : chaque invocation qui tombe explose en runes.",
+       "kind": "keystone",
+       "mods": {
+        "rune_burst": 1
+       },
+       "flag": "s1.voie_cendres",
+       "flag_text": "Voie des Cendres (choix de 3-10)"
+      }
+     ]
+    }
+   ]
   }
  ]
 }

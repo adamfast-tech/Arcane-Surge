@@ -270,6 +270,158 @@
      ]
     }
    ]
+  },
+  {
+   "id": "purification",
+   "name": "Purification",
+   "theme": "Voie du Surge : anti-corruption, anti-soin ennemi",
+   "color": "FFF6C8",
+   "icon": "exorcisme",
+   "unlock_flag": "s1.verite_cendres",
+   "locked": "Voie du Surge : s'ouvre à la fin de l'acte 3 (la Vérité des Cendres, 3-10).",
+   "tiers": [
+    {
+     "req": 0,
+     "nodes": [
+      {
+       "id": "purge",
+       "name": "Purge",
+       "max": 5,
+       "desc": "Purifier et Exorcisme : +8 % de rayon par rang.",
+       "mods": {
+        "radius.purifier": 0.08,
+        "radius.exorcisme": 0.08
+       }
+      },
+      {
+       "id": "sceau_sacre",
+       "name": "Sceau sacré",
+       "max": 5,
+       "desc": "Soins ennemis : −6 % par rang.",
+       "mods": {
+        "anti_heal": 0.06
+       }
+      }
+     ]
+    },
+    {
+     "req": 5,
+     "nodes": [
+      {
+       "id": "eau_benite",
+       "name": "Eau bénite",
+       "max": 5,
+       "desc": "Sorts de Lumière : +5 % de dégâts par rang.",
+       "mods": {
+        "elem_dmg.lumiere": 0.05
+       }
+      },
+      {
+       "id": "veille",
+       "name": "Veille",
+       "max": 5,
+       "desc": "+4 % de régénération de mana par rang.",
+       "mods": {
+        "mana_regen": 0.04
+       }
+      },
+      {
+       "id": "exorcisme_t",
+       "name": "Exorcisme",
+       "max": 1,
+       "desc": "Nouveau sort : purifie et frappe de Lumière.",
+       "kind": "spell",
+       "unlock": "exorcisme"
+      }
+     ]
+    },
+    {
+     "req": 10,
+     "nodes": [
+      {
+       "id": "cilice",
+       "name": "Cilice",
+       "max": 5,
+       "desc": "Soins ennemis : −4 % par rang.",
+       "mods": {
+        "anti_heal": 0.04
+       }
+      },
+      {
+       "id": "litanie",
+       "name": "Litanie",
+       "max": 5,
+       "desc": "Sorts : −2 % de coût en mana par rang.",
+       "mods": {
+        "spell_cost": 0.02
+       }
+      },
+      {
+       "id": "ferveur_p",
+       "name": "Ferveur",
+       "max": 5,
+       "desc": "Jauge Surge : +4 % de gain par rang.",
+       "mods": {
+        "surge_gain": 0.04
+       }
+      }
+     ]
+    },
+    {
+     "req": 20,
+     "nodes": [
+      {
+       "id": "sanctuaire_p",
+       "name": "Lumière purificatrice",
+       "max": 3,
+       "desc": "Sorts de Lumière : +5 % de dégâts par rang.",
+       "mods": {
+        "elem_dmg.lumiere": 0.05
+       }
+      },
+      {
+       "id": "jugement_pur",
+       "name": "Jugement purificateur",
+       "max": 1,
+       "desc": "Évolution : Ultime : +20 % de rayon et de dégâts.",
+       "kind": "evolution",
+       "mods": {
+        "ult_radius": 0.2,
+        "ult_dmg": 0.2
+       }
+      }
+     ]
+    },
+    {
+     "req": 30,
+     "nodes": [
+      {
+       "id": "purif_aube",
+       "name": "Portail béni",
+       "max": 1,
+       "desc": "Clé de voûte (Aube) : un portail purifié devient ×2.",
+       "kind": "keystone",
+       "mods": {
+        "purify_double": 1
+       },
+       "flag": "s1.voie_aube",
+       "flag_text": "Voie de l'Aube (choix de 3-10)"
+      },
+      {
+       "id": "purif_cendres",
+       "name": "Vol des soins",
+       "max": 1,
+       "desc": "Clé de voûte (Cendres) : les soins ennemis perdent 20 %, et une part revient à la Barrière.",
+       "kind": "keystone",
+       "mods": {
+        "heal_steal": 1
+       },
+       "flag": "s1.voie_cendres",
+       "flag_text": "Voie des Cendres (choix de 3-10)"
+      }
+     ]
+    }
+   ]
   }
  ]
 }

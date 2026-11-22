@@ -108,6 +108,55 @@ func _classes_ok() -> bool:
 	if capped > 5.01 or not miracle or not colossus or not charged:
 		push_error("Clés de voûte de classe incorrectes")
 		return false
+	# Voies du Surge (13.3b) : 3e branche par classe, verrouillée sans la Vérité des Cendres.
+	var surge_ok := true
+	for cls in ["archer", "epeiste", "clerc", "necromancien", "chevalier", "berserker"]:
+		var tree: Dictionary = GameData.load_json("res://data/skill_trees/%s.json" % cls)
+		var brs: Array = tree["branches"]
+		var last: Dictionary = brs[brs.size() - 1]
+		var keys: Array = (last["tiers"] as Array)[4]["nodes"]
+		if brs.size() != 3 or str(last.get("unlock_flag", "")) != "s1.verite_cendres" or keys.size() != 2 \
+				or str(keys[0].get("flag", "")) != "s1.voie_aube" or str(keys[1].get("flag", "")) != "s1.voie_cendres":
+			surge_ok = false
+	var k3 := BattleSim.new()
+	k3.setup(lv, GameData.party(), 11, {"player_class": "necromancien", "solo": true,
+		"mods": {"harvest_barrier": 1.0, "purify_double": 1.0, "blood_rage": 1.0}})
+	var pl := k3.player()
+	for k in range(12):
+		var a := k3._spawn_familiar(pl, Vector2(3.8 + float(k % 4) * 0.4, 5.0 + float(k / 4) * 0.3))
+		a.vx = 0.0
+	k3._flush()
+	k3._build_grids()
+	var before := k3.allies.size()
+	var mir := k3._apply_spell(pl, {"type": "mirror", "radius": 2.0, "count": 5, "color": "B8C8FF"}, Vector2(4.4, 5.3))
+	k3._flush()
+	k3._build_grids()
+	var mirrored := k3.allies.size() - before
+	k3.barrier_hp = k3.barrier_max - 40.0
+	var bh0 := k3.barrier_hp
+	var harv := k3._apply_spell(pl, {"type": "harvest", "radius": 2.5, "count": 20, "damage": 25, "element": "ombre", "color": "8E62E0"}, Vector2(4.4, 5.3))
+	var gained := k3.barrier_hp - bh0
+	var neg: Portal = null
+	for pt in k3.portals:
+		if not pt.is_seal:
+			neg = pt
+			break
+	var doubled := true
+	if neg != null:
+		neg.kind = "sub"
+		neg.value = 3
+		k3._purify(neg)
+		doubled = neg.kind == "mult" and neg.value == 2
+	k3.frenzy_until = k3.time + 5.0
+	var bb := k3.barrier_hp
+	for k in range(30):
+		k3.step()
+	var drained := k3.barrier_hp < bb
+	k3.terrain.sim = null
+	print("  Voies du Surge : arbres ", surge_ok, " · Lames miroirs +", mirrored, " · Sacrifice ", k3.sacrificed, " (Barrière +", snappedf(gained, 0.1), ") · portail purifié ×2 ", doubled, " · Rage de sang ", drained)
+	if not surge_ok or not mir or mirrored != 5 or not harv or k3.sacrificed < 12 or gained < 5.9 or not doubled or not drained:
+		push_error("Voies du Surge des classes incorrectes")
+		return false
 	return true
 
 

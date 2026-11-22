@@ -107,6 +107,12 @@ const SHAPES := {
 	"bouclier_leve": "<path d=\"M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z\"/>",
 	"tir_precision": "<path d=\"M4 20L18 6\"/><path d=\"M14 5h5v5\"/><path d=\"M4 20l1-4 3 3z\"/>",
 	# Classes (étape 13.3)
+	"constellation": "<circle cx=\"6\" cy=\"7\" r=\"1.4\"/><circle cx=\"13\" cy=\"4\" r=\"1.4\"/><circle cx=\"18\" cy=\"10\" r=\"1.4\"/><circle cx=\"10\" cy=\"14\" r=\"1.4\"/><circle cx=\"16\" cy=\"19\" r=\"1.4\"/><path d=\"M7.2 6.5l4.6-2M14.2 5l2.8 4M16.9 11l-5.6 2.4M11 15.2l4 2.8\"/>",
+	"lames_miroirs": "<path d=\"M3 20L12 11M21 20l-9-9\"/><path d=\"M10 9l2-6 2 6\"/><path d=\"M12 11v10\" stroke-dasharray=\"2 2\"/><path d=\"M5 15l2 2M19 15l-2 2\"/>",
+	"exorcisme": "<path d=\"M12 3v18M7 8h10\"/><circle cx=\"12\" cy=\"8\" r=\"7\"/><path d=\"M4 18l3-2M20 18l-3-2\"/>",
+	"sacrifice_ames": "<path d=\"M4 20C8 8 14 4 20 4c-2 3-6 4-9 5\"/><path d=\"M4 20l3-3\"/><circle cx=\"15\" cy=\"15\" r=\"2\"/><circle cx=\"19\" cy=\"19\" r=\"1.2\"/><circle cx=\"11\" cy=\"19\" r=\"1.2\"/>",
+	"cercle_runique": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"5\"/><path d=\"M12 3v4M12 17v4M3 12h4M17 12h4\"/><path d=\"M11 11l2 2M13 11l-2 2\"/>",
+	"rage_primordiale": "<path d=\"M5 20c0-6 3-9 7-9s7 3 7 9\"/><path d=\"M9 11L7 4l4 4 1-5 1 5 4-4-2 7\"/><path d=\"M9 16h.01M15 16h.01\"/>",
 	"fente": "<path d=\"M4 20L17 7\"/><path d=\"M15 4l5 5\"/><path d=\"M4 20l2.5-1L5 17.5z\"/><path d=\"M19 15l2 2M17 18l1.5 1.5\"/>",
 	"tranche_orage": "<path d=\"M5 19L16 8\"/><path d=\"M14 6l4 4\"/><path d=\"M13 3l-2 4h3l-2 4\"/><path d=\"M20 12l-2 3h2.5l-2 3\"/>",
 	"priere": "<path d=\"M12 21V11\"/><path d=\"M8 13c0-4 2-7 4-9 2 2 4 5 4 9\"/><path d=\"M5 21h14\"/><path d=\"M4 9l2 1M20 9l-2 1M12 1v1\"/>",

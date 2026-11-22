@@ -271,6 +271,157 @@
      ]
     }
    ]
+  },
+  {
+   "id": "liche",
+   "name": "Liche",
+   "theme": "Voie du Surge : sacrifice, drain",
+   "color": "8E62E0",
+   "icon": "sacrifice_ames",
+   "unlock_flag": "s1.verite_cendres",
+   "locked": "Voie du Surge : s'ouvre à la fin de l'acte 3 (la Vérité des Cendres, 3-10).",
+   "tiers": [
+    {
+     "req": 0,
+     "nodes": [
+      {
+       "id": "phylactere",
+       "name": "Phylactère",
+       "max": 5,
+       "desc": "Barrière : +3 % de PV max par rang.",
+       "mods": {
+        "barrier_max": 0.03
+       }
+      },
+      {
+       "id": "siphon_l",
+       "name": "Siphon",
+       "max": 5,
+       "desc": "Chaque ennemi abattu rend 0,2 mana par rang.",
+       "mods": {
+        "kill_mana": 0.2
+       }
+      }
+     ]
+    },
+    {
+     "req": 5,
+     "nodes": [
+      {
+       "id": "moelle_ame",
+       "name": "Moelle d'âme",
+       "max": 5,
+       "desc": "Squelettes : +5 % d'attaque et de PV par rang.",
+       "mods": {
+        "skeleton_bonus": 0.05
+       }
+      },
+      {
+       "id": "pacte",
+       "name": "Pacte",
+       "max": 5,
+       "desc": "+4 % de régénération de mana par rang.",
+       "mods": {
+        "mana_regen": 0.04
+       }
+      },
+      {
+       "id": "sacrifice_ames_t",
+       "name": "Sacrifice d'âmes",
+       "max": 1,
+       "desc": "Nouveau sort : sacrifie 20 invocations qui explosent en Ombre.",
+       "kind": "spell",
+       "unlock": "sacrifice_ames"
+      }
+     ]
+    },
+    {
+     "req": 10,
+     "nodes": [
+      {
+       "id": "drain_l",
+       "name": "Drain",
+       "max": 5,
+       "desc": "Invocations : +2 % de vol de vie par rang.",
+       "mods": {
+        "lifesteal": 0.02
+       }
+      },
+      {
+       "id": "charnier",
+       "name": "Charnier",
+       "max": 5,
+       "desc": "Ennemis tués par l'Ombre : +1 % de chances par rang de se relever.",
+       "mods": {
+        "skeleton_chance": 0.01
+       }
+      },
+      {
+       "id": "rite",
+       "name": "Rite",
+       "max": 5,
+       "desc": "Sorts : −2 % de coût en mana par rang.",
+       "mods": {
+        "spell_cost": 0.02
+       }
+      }
+     ]
+    },
+    {
+     "req": 20,
+     "nodes": [
+      {
+       "id": "liche_n",
+       "name": "Cœur de liche",
+       "max": 3,
+       "desc": "Sorts d'Ombre : +5 % de dégâts par rang.",
+       "mods": {
+        "elem_dmg.ombre": 0.05
+       }
+      },
+      {
+       "id": "seigneur_liche",
+       "name": "Seigneur liche",
+       "max": 1,
+       "desc": "Évolution : Ultime : +25 % de dégâts, +20 % de rayon.",
+       "kind": "evolution",
+       "mods": {
+        "ult_dmg": 0.25,
+        "ult_radius": 0.2
+       }
+      }
+     ]
+    },
+    {
+     "req": 30,
+     "nodes": [
+      {
+       "id": "liche_aube",
+       "name": "Offrande",
+       "max": 1,
+       "desc": "Clé de voûte (Aube) : 20 invocations sacrifiées rendent 10 PV à la Barrière.",
+       "kind": "keystone",
+       "mods": {
+        "harvest_barrier": 1
+       },
+       "flag": "s1.voie_aube",
+       "flag_text": "Voie de l'Aube (choix de 3-10)"
+      },
+      {
+       "id": "liche_cendres",
+       "name": "Festin d'âmes",
+       "max": 1,
+       "desc": "Clé de voûte (Cendres) : 20 invocations sacrifiées donnent +15 de Surge.",
+       "kind": "keystone",
+       "mods": {
+        "harvest_surge": 1
+       },
+       "flag": "s1.voie_cendres",
+       "flag_text": "Voie des Cendres (choix de 3-10)"
+      }
+     ]
+    }
+   ]
   }
  ]
 }

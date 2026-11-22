@@ -1,4 +1,4 @@
-# Classes jouables (étape 13.3a)
+# Classes jouables (étapes 13.3a et 13.3b)
 
 > Ébauche : [`04-classes-races.md`](04-classes-races.md) §1 et §3.2. Données : `data/party.json` (`familiar`, `player_familiar`, `champion`, `ultimate`, `effect_mult`, `playable`), `data/units.json`, `data/spells.json`, `data/skill_trees/<classe>.json`. Code : `BattleSim._setup_casters` (classe du héros via `player_class`), `_class_on_hit`, `_wrath`, `_charge_line`, types de sorts `army` et `frenzy`, `SpriteAtlas._draw_weapon`.
 
@@ -37,7 +37,7 @@ La structure est celle du Mage :
 - palier 20 : 1 passif de 3 rangs et 1 évolution ;
 - palier 30 : 1 Clé de voûte.
 
-Deux Clés de voûte au plus. La 3ᵉ branche, la Voie du Surge, viendra à l'étape 13.3b.
+Deux Clés de voûte au plus. La 3ᵉ branche, la Voie du Surge, est décrite plus bas (13.3b).
 
 | Classe | Branche | Sort (palier 5) | Évolution (palier 20) | Clé de voûte (palier 30) |
 |---|---|---|---|---|
@@ -68,6 +68,35 @@ Nouveaux effets d'arbre (clés de `mods`) :
 - **Clés de voûte :** `hawk_eye`, `thorn_burst`, `perfect_dance`, `ult_chain`, `miracle`, `wrath`, `legion`, `pandemic`, `barrier_cap`, `vanguard`, `thirst`, `clan_chief`.
 
 Les sorts d'arbre sans rang (`tree_class`) n'apparaissent à la Bibliothèque que pour leur classe, ou une fois connus.
+
+## Voies du Surge (étape 13.3b)
+
+La 3ᵉ branche de chaque classe a la même structure que les deux autres. Elle s'ouvre avec la Vérité des Cendres (fin de 3-10, `s1.verite_cendres`). Son palier 30 a deux Clés de voûte, et le choix de 3-10 n'en permet qu'une :
+- l'Aube exige `s1.voie_aube` ;
+- les Cendres exigent `s1.voie_cendres`.
+
+| Classe | Branche | Nœuds clés | Sort (palier 5) | Clé (Aube) | Clé (Cendres) |
+|---|---|---|---|---|---|
+| Archer | Flèches astrales | Flèches divisées : un tireur peut se dédoubler en passant un portail positif | Constellation : 7 étoiles en grappe | Chaque étoile de l'Ultime soigne la Barrière (+2) | L'Ultime flétrit et empoisonne |
+| Épéiste | Lame spectrale | Double fantôme : une invocation peut surgir avec son double ; Écho de lame (riposte) | Lames miroirs : 10 invocations proches se dédoublent | Le Champion laisse un double protecteur (bouclier, Barrière +20 de bouclier) | Double vampire : vol de vie 30 % |
+| Clerc | Purification | Purge : rayon de Purifier ; Sceau sacré : soins ennemis réduits | Exorcisme : purifie et frappe de Lumière | Un portail purifié devient ×2 | Les soins ennemis perdent 20 %, dont une part revient à la Barrière |
+| Nécromancien | Liche | Phylactère (Barrière max), Siphon (mana par victime), Drain (vol de vie) | Sacrifice d'âmes : jusqu'à 20 invocations explosent en Ombre | 20 sacrifiés : Barrière +10 | 20 sacrifiés : Surge +15 |
+| Chevalier | Garde runique | Rune de protection : bouclier à l'invocation ; Rune d'épines (riposte) | Cercle runique : 7 s de dégâts de Lumière et de bouclier pour les invocations | Les invocations renvoient 30 % des dégâts | Chaque invocation tombée explose en runes |
+| Berserker | Fureur primordiale | Au bord du gouffre : sous 50 % de Barrière, invocations plus fortes | Rage primordiale : la Barrière paie 8 PV, frénésie 6 s | Sous 25 % de Barrière, frénésie permanente | La frénésie passe à +120 % de dégâts, mais la Barrière perd 1,5 PV/s tant qu'elle dure |
+
+Nouveaux effets (`mods`) :
+- **Passifs :** `portal_split`, `ghost_double`, `anti_heal`, `spawn_shield`, `low_barrier_atk`.
+- **Clés de voûte :** `ult_heal`, `ult_wither`, `double_guard`, `double_drain`, `purify_double`, `heal_steal`, `harvest_barrier`, `harvest_surge`, `rune_burst`, `rage_low`, `blood_rage`.
+
+Nouveaux types de sorts : `mirror` et `harvest`. Les zones acceptent `ally_shield`, et une purification peut porter des dégâts.
+
+Contrôle au simulateur, boss de la zone 2, Clés forcées par `--mods` :
+- Archer : 3/3 en 148 s ;
+- Épéiste : 3/3 en 225 s ;
+- Clerc : 3/3 en 245 s ;
+- Nécromancien : 2/3 en 267 s ;
+- Chevalier : 3/3 en 211 s ;
+- Berserker (Rage de sang) : 3/3 en 183 s, Barrière moyenne 26 %.
 
 ## Équilibrage (simulateur, IA aux commandes, sans arbre)
 

@@ -190,6 +190,8 @@ var _thirst_budget := 2.0 ## Soif : PV de Barrière rendus au plus par seconde
 var _wrath_acc := 0.0 ## Courroux céleste : soins en excès à convertir en dégâts
 var _legion_count := 0 ## Légion : squelettes invoqués depuis le dernier Colosse
 var _last_crit := false
+var frenzy_until := 0.0 ## fin de la dernière frénésie lancée (Rage de sang : la Barrière paie)
+var sacrificed := 0 ## invocations sacrifiées (Moisson d'âmes)
 ## Sorts à impact différé (projectile, météore) et zones actives (pluie, racines, vortex).
 var pending_impacts: Array[Dictionary] = []
 var terrain := BattleTerrain.new() ## sols, piliers, murs (scripts/battle/terrain.gd)
@@ -910,6 +912,9 @@ func _cross_portals() -> void:
 
 func _apply_portal(p: Portal, u: Unit) -> void:
 	p.flash_t = 0.2
+	if u.owner_idx == 0 and u.attack_range > 0.0 and _mod("portal_split") > 0.0 and not p.is_negative() and rng.randf() < _mod("portal_split"):
+		# Flèches astrales : un tireur du joueur se divise en passant un portail.
+		_add_ally(_clone(u, Vector2(rng.randf_range(-0.3, 0.3), -0.06)))
 	if p.charged_t > 0.0 and not p.is_negative():
 		u.element = "foudre"
 		_add_ally(_clone(u, Vector2(rng.randf_range(-0.3, 0.3), -0.08)))
@@ -975,6 +980,11 @@ func _apply_portal(p: Portal, u: Unit) -> void:
 func _purify(p: Portal) -> bool:
 	if not p.purify():
 		return false
+	if _mod("purify_double") > 0.0 and not p.is_seal and not (p.kind == "mult" and p.value >= 2):
+		# Clé de voûte (Aube) de la Purification : le portail purifié devient ×2.
+		p.kind = "mult"
+		p.value = 2
+		p.ready = true
 	_event({"t": "ring", "pos": Vector2(p.x, p.y), "r": 1.5, "color": "FFF6C8", "dur": 0.7})
 	_log("Portail purifié")
 	if p.is_seal and not nexus_shielded():
@@ -1050,6 +1060,9 @@ func _spawn_familiar(c: Caster, p: Vector2) -> Unit:
 		u.element = c.element
 	summoned += 1
 	_add_ally(u)
+	if c.idx == 0 and _mod("ghost_double") > 0.0 and rng.randf() < _mod("ghost_double"):
+		# Double fantôme (Lame spectrale) : l'invocation surgit avec son double.
+		_add_ally(_clone(u, Vector2(rng.randf_range(-0.3, 0.3), -0.1)))
 	return u
 
 
@@ -1066,6 +1079,9 @@ func _player_unit_mods(u: Unit) -> void:
 		u.atk *= 1.0 + _mod("skeleton_bonus")
 		u.hp *= 1.0 + _mod("skeleton_bonus")
 	u.lifesteal += _mod("lifesteal")
+	if _mod("spawn_shield") > 0.0:
+		# Rune de protection (Garde runique) : bouclier à l'invocation.
+		u.shield = maxf(u.shield, u.hp * _mod("spawn_shield"))
 	if u.heal_aura > 0.0:
 		u.heal_aura *= 1.0 + _mod("aura_heal")
 	if u.kind in ["skeleton", "familiar_necro"] and _mod("legion") > 0.0:
@@ -1181,12 +1197,19 @@ func _tick_status() -> void:
 		u.marked_t = maxf(0.0, u.marked_t - TICK)
 	var regen := _mod("unit_regen")
 	_dance_budget = minf(1.0, _dance_budget + TICK)
+	var last_stand := _mod("rage_low") > 0.0 and barrier_hp < barrier_max * 0.25
+	if _mod("blood_rage") > 0.0 and time < frenzy_until and barrier_hp > 1.0:
+		# Clé de voûte (Cendres) : la Rage consomme la Barrière.
+		barrier_hp = maxf(1.0, barrier_hp - 1.5 * TICK)
 	_thirst_budget = minf(2.0, _thirst_budget + 2.0 * TICK)
 	for u in allies:
 		if not u.alive:
 			continue
 		u.atk_cd -= TICK
 		u.frenzy_t = maxf(0.0, u.frenzy_t - TICK)
+		if last_stand:
+			# Clé de voûte (Aube) : sous 25 % de Barrière, Rage permanente.
+			u.frenzy_t = maxf(u.frenzy_t, 0.5)
 		if u.heal_aura > 0.0:
 			u.aura_t -= TICK
 			if u.aura_t <= 0.0 and not _grid_a.is_empty():
@@ -1348,6 +1371,7 @@ func _enemy_abilities() -> void:
 				var amount_b := boss.max_hp * float(d["heal_boss"]) if d.has("heal_boss") else float(d.get("heal_nexus", 0.0)) * enemy_mult
 				if boss.wither_t > 0.0:
 					amount_b *= 0.5
+				amount_b = _steal_heal(amount_b)
 				if boss.hp < boss.max_hp:
 					var before_b := boss.hp
 					boss.hp = minf(boss.max_hp, boss.hp + amount_b)
@@ -1368,6 +1392,8 @@ func _enemy_abilities() -> void:
 				if not target.is_empty() and float(target["wither"]) > 0.0:
 					amount *= 0.5
 				if amount > 0.0 and not target.is_empty() and float(target["hp"]) < float(target["max"]):
+					amount = _steal_heal(amount)
+				if amount > 0.0 and not target.is_empty() and float(target["hp"]) < float(target["max"]):
 					var before := float(target["hp"])
 					target["hp"] = minf(float(target["max"]), before + amount)
 					healed_total += float(target["hp"]) - before
@@ -1376,7 +1402,7 @@ func _enemy_abilities() -> void:
 					if _heal_log_t <= 0.0:
 						_heal_log_t = 8.0
 						_log("Une Dryade soigne le Nexus !")
-			var hu := float(d.get("heal_units", 0.0))
+			var hu := float(d.get("heal_units", 0.0)) * (1.0 - clampf(_mod("anti_heal"), 0.0, 0.8))
 			if hu > 0.0:
 				for o in _query(_grid_e, e.pos, 1.5):
 					if o != e and o != boss:
@@ -1390,6 +1416,18 @@ func _enemy_abilities() -> void:
 			for a in _query(_grid_a, tgt.pos, r):
 				_damage(a, e.atk * (1.3 if e.enraged_t > 0.0 else 1.0) * affinity(e.element, a.element), "")
 			_event({"t": "ring", "pos": tgt.pos, "r": r, "color": "FFF2A8", "dur": 0.35})
+
+
+## Soins ennemis réduits par le Sceau sacré ; 20 % volés au profit de la Barrière (Clé des Cendres).
+func _steal_heal(amount: float) -> float:
+	amount *= 1.0 - clampf(_mod("anti_heal"), 0.0, 0.8)
+	if _mod("heal_steal") > 0.0:
+		var stolen := amount * 0.2
+		amount -= stolen
+		if barrier_hp < barrier_max:
+			barrier_hp = minf(barrier_max, barrier_hp + stolen * 0.25)
+			_event({"t": "text", "pos": Vector2(W * 0.5, BARRIER_Y + 0.6), "text": "+%d volé" % maxi(1, int(stolen * 0.25)), "color": "FFF0A0"})
+	return amount
 
 
 ## Le Nexus repousse périodiquement les unités qui l'assiègent.
@@ -1774,7 +1812,10 @@ func _hit(src: Unit, tgt: Unit, mult: float = 1.0) -> void:
 	if src.team == 0 and charge_t > 0.0 and tgt.role not in ["boss", "banniere", "tete"] and tgt.hold_y <= 0.0:
 		tgt.pos.y = minf(H - 0.6, tgt.pos.y + 0.12)
 	if src.frenzy_t > 0.0:
-		mult *= 1.4
+		mult *= 2.2 if (src.owner_idx == 0 and _mod("blood_rage") > 0.0) else 1.4
+	if src.team == 0 and src.owner_idx == 0 and _mod("low_barrier_atk") > 0.0 and barrier_hp < barrier_max * 0.5:
+		# Au bord du gouffre (Fureur primordiale) : plus la Barrière vacille, plus on frappe fort.
+		mult *= 1.0 + _mod("low_barrier_atk")
 	var dmg := _calc(src.atk * mult, src.element, src.crit, tgt, src.team == 0, src.crit_mult)
 	var crit := _last_crit
 	_damage(tgt, dmg, src.element)
@@ -1988,6 +2029,11 @@ func _kill(u: Unit) -> void:
 			_fallen.append({"kind": u.kind, "element": u.element, "atk": u.atk, "hp": u.max_hp})
 			if _fallen.size() > 14:
 				_fallen.pop_front()
+		if u.owner_idx == 0 and _mod("rune_burst") > 0.0:
+			# Clé de voûte (Cendres) de la Garde runique : l'invocation explose en runes.
+			for e in _query(_grid_e, u.pos, 0.8):
+				_damage(e, u.atk * 0.8, "lumiere")
+			_event({"t": "ring", "pos": u.pos, "r": 0.8, "color": "4FE3D2", "dur": 0.25})
 		if fire_explode and u.element == "feu":
 			_event({"t": "ring", "pos": u.pos, "r": 0.9, "color": "FF9B4A", "dur": 0.3})
 			for e in _query(_grid_e, u.pos, 0.9):
@@ -2208,6 +2254,7 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 			if zslow > 0.0 and c.idx == 0:
 				zslow = minf(0.9, zslow + _mod("zone_slow"))
 			zones.append({"pos": at, "r": zr, "t": dur, "dps": float(sp.get("dps", 0)) * c.atk_mult * _elem_mult(c, sp),
+				"ally_shield": float(sp.get("ally_shield", 0.0)) * c.hp_mult,
 				"elem": str(sp.get("element", "")), "slow": zslow, "pull": float(sp.get("pull", 0.0)),
 				"stack_every": float(sp.get("stack_every", 0.0)), "stack_acc": 0.0})
 			_event({"t": str(sp.get("fx", "rain")), "pos": at, "r": zr, "dur": dur, "color": col})
@@ -2260,6 +2307,49 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 				_event({"t": "puff", "pos": p, "color": col})
 			_event({"t": "ring", "pos": at, "r": ar, "color": col, "dur": 0.6})
 			return true
+		"mirror":
+			# Lames miroirs : les invocations du joueur proches du point visé se dédoublent.
+			var mr := float(sp.get("radius", 2.0))
+			var n := 0
+			for a: Unit in _query(_grid_a, at, mr):
+				if a.alive and a.owner_idx == c.idx and a.role in ["familier", "elite"]:
+					_add_ally(_clone(a, Vector2(rng.randf_range(-0.3, 0.3), 0.1)))
+					n += 1
+					if n >= int(sp.get("count", 10)):
+						break
+			_event({"t": "ring", "pos": at, "r": mr, "color": col, "dur": 0.5})
+			if n > 0:
+				_event({"t": "text", "pos": at + Vector2(0.0, 0.6), "text": "×%d" % n, "color": col})
+			return n > 0
+		"harvest":
+			# Moisson d'âmes : les invocations sacrifiées explosent en Ombre.
+			var hr := float(sp.get("radius", 2.0))
+			var n2 := 0
+			for a: Unit in _query(_grid_a, at, hr):
+				if not a.alive or a.owner_idx != c.idx or a.role not in ["familier", "elite"]:
+					continue
+				a.alive = false
+				n2 += 1
+				var bd := (float(sp.get("damage", 25)) + a.atk * 2.0) * _elem_mult(c, sp)
+				for e: Unit in _query(_grid_e, a.pos, 0.9):
+					_damage(e, _calc(bd, "ombre", c.crit, e, false), "ombre")
+					_apply_status(e, "ombre")
+				_event({"t": "puff", "pos": a.pos, "color": col})
+				if n2 >= int(sp.get("count", 20)):
+					break
+			if n2 == 0:
+				return false
+			sacrificed += n2
+			if c.idx == 0 and _mod("harvest_barrier") > 0.0:
+				# Clé de voûte (Aube) de la Liche : 20 sacrifiés → Barrière +10.
+				barrier_hp = minf(barrier_max, barrier_hp + 0.5 * float(n2))
+				_event({"t": "shield", "dur": 0.8, "color": col})
+			if c.idx == 0 and _mod("harvest_surge") > 0.0:
+				# Clé de voûte (Cendres) de la Liche : 20 sacrifiés → Surge +15.
+				surge = minf(100.0, surge + 0.75 * float(n2))
+			_event({"t": "ring", "pos": at, "r": hr, "color": col, "dur": 0.6})
+			_event({"t": "text", "pos": at + Vector2(0.0, 0.6), "text": "%d âmes" % n2, "color": col})
+			return true
 		"frenzy":
 			# Déchaînement, Hurlement : un choc, puis toutes les invocations entrent en frénésie.
 			if float(sp.get("damage", 0.0)) > 0.0:
@@ -2267,6 +2357,7 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 				hit2["type"] = "aoe"
 				_resolve_aoe(c, hit2, at)
 			var fd := float(sp.get("dur", 6.0)) + (_mod("frenzy_dur") if c.idx == 0 else 0.0)
+			frenzy_until = maxf(frenzy_until, time + fd)
 			for a in allies:
 				if a.alive:
 					a.frenzy_t = maxf(a.frenzy_t, fd)
@@ -2274,21 +2365,27 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 			_event({"t": "text", "pos": Vector2(W * 0.5, CASTER_Y + 2.4), "text": "FRÉNÉSIE !", "color": col})
 			return true
 		"purify":
-			var cleared := clear_fog(at, float(sp.get("radius", 2.5)))
-			cleared = terrain.cleanse(at, float(sp.get("radius", 2.5))) or cleared
+			if float(sp.get("damage", 0.0)) > 0.0:
+				# Exorcisme : la purification frappe aussi les ennemis de Lumière.
+				var ex := sp.duplicate()
+				ex["type"] = "aoe"
+				_resolve_aoe(c, ex, at)
+			var pr := float(sp.get("radius", 2.5)) * (1.0 + _spell_mod(c, "radius.", sp))
+			var cleared := clear_fog(at, pr)
+			cleared = terrain.cleanse(at, pr) or cleared
 			var best: Portal = null
 			var bd := 1e9
 			for p in portals:
 				if not p.is_negative():
 					continue
 				var d := Vector2(p.x, p.y).distance_to(at)
-				if d < bd and d <= float(sp.get("radius", 2.5)) + p.width * 0.5:
+				if d < bd and d <= pr + p.width * 0.5:
 					bd = d
 					best = p
 			if best == null:
-				if cleared:
+				if cleared or float(sp.get("damage", 0.0)) > 0.0:
 					_event({"t": "pillar", "pos": at, "dur": 1.1, "color": col})
-				return cleared
+				return cleared or float(sp.get("damage", 0.0)) > 0.0
 			_purify(best)
 			_event({"t": "pillar", "pos": Vector2(best.x, best.y), "dur": 1.1, "color": col})
 			return true
@@ -2368,6 +2465,16 @@ func _resolve_aoe(c: Caster, sp: Dictionary, at: Vector2) -> void:
 			_wrath_acc += barrier_hp + bh - barrier_max
 		barrier_hp = minf(barrier_max, barrier_hp + bh)
 		_event({"t": "shield", "dur": 1.0, "color": col})
+	if bool(sp.get("is_ult", false)) and c.idx == 0:
+		if _mod("ult_heal") > 0.0 and barrier_hp < barrier_max:
+			# Clé (Aube) des Flèches astrales : chaque impact de l'Ultime soigne la Barrière.
+			barrier_hp = minf(barrier_max, barrier_hp + 2.0 * _mod("ult_heal"))
+		if _mod("ult_wither") > 0.0:
+			# Clé (Cendres) : l'Ultime flétrit et empoisonne.
+			for e: Unit in _query(_grid_e, at, r + 0.3):
+				if e.alive:
+					_apply_status(e, "ombre")
+					_apply_status(e, "nature")
 	if bool(sp.get("chain_bolt", false)):
 		# Orage d'acier : chaque impact de Mille lames lance un arc de foudre.
 		var bolt := {"damage": dmg * 0.4 / maxf(0.01, c.atk_mult), "bounces": 3, "range": 2.2, "element": "foudre", "color": "FFE45C"}
@@ -2432,6 +2539,11 @@ func _update_zones() -> void:
 				_damage(e, _calc(dps, elem, 0.0, e, false) * TICK, elem)
 			if stack and e.alive:
 				_apply_status(e, elem)
+		if float(z.get("ally_shield", 0.0)) > 0.0:
+			# Cercle runique : les alliés dans le cercle gardent un bouclier.
+			for a: Unit in _query(_grid_a, pos, float(z["r"])):
+				if a.alive:
+					a.shield = maxf(a.shield, float(z["ally_shield"]))
 		if float(z["t"]) <= 0.0:
 			zones.remove_at(i)
 		else:
@@ -2604,6 +2716,19 @@ func summon_champion() -> bool:
 			# Clé de voûte Avant-garde : le Champion charge en ligne droite à son apparition.
 			_charge_line(u)
 		_pending_allies.append(u)
+		if _mod("double_guard") > 0.0 or _mod("double_drain") > 0.0:
+			# Lame spectrale : un double du Champion (Aube : protecteur ; Cendres : vampire).
+			var g := _clone(u, Vector2(0.7 if x < W * 0.5 else -0.7, 0.0))
+			g.atk *= 0.6
+			g.hp = u.max_hp * 0.6
+			g.max_hp = g.hp
+			if _mod("double_guard") > 0.0:
+				g.shield = g.max_hp * 0.5
+				barrier_shield += 20.0
+			else:
+				g.lifesteal = 0.3
+			_pending_allies.append(g)
+			_event({"t": "summon", "pos": g.pos, "dur": 0.9, "color": "B8C8FF"})
 		_event({"t": "ring", "pos": u.pos, "r": 1.0, "color": "F2C46B", "dur": 0.5})
 		_event({"t": "summon", "pos": u.pos, "dur": 0.9, "color": "F2C46B"})
 	champion_charge = 0
@@ -2640,6 +2765,7 @@ func cast_ultimate(at: Vector2) -> bool:
 		sp["dur"] = float(sp["dur"]) + _mod("ult_dur")
 	if _mod("ult_chain") > 0.0:
 		sp["chain_bolt"] = true
+	sp["is_ult"] = true
 	_apply_spell(casters[0], sp, at)
 	# Toute Ultime cautérise les moignons de l'hydre pendant 6 s dans sa zone (comme les braises du Météore).
 	ult_wards.append({"pos": at, "r": maxf(float(sp["radius"]), float(sp.get("spread", 0.0)) + 0.5), "t": 6.0})
