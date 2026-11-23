@@ -180,6 +180,7 @@ iOS (iPhone 16 Pro Max, iPad), Android, PC (16:9, 16:10).
         - ✅ Chevalier : 60 techniques (Boucliers, Charges, Étendards, Forteresse, Ordre, Justice, Défi, Serments), étendards qui renforcent les invocations, murs, provocations, l'Ordre
         - ✅ Berserker : 60 techniques (Haches, Fureur, Assauts, Cris de guerre, Totems, Carnage, Clan, Séismes), totems qui accélèrent les invocations, séismes, le clan
     - 13.6 ✅ Options (clé à molette de Havre-Aube) : Deck ou Tiroir ; écoles élémentaires pour toutes les voies ou réservées au Mage ; 6 difficultés, de Facile à Impossible (vitesse et dégâts ennemis, PV du Nexus, XP et butin) — [`design/30-options.md`](design/30-options.md)
+    - 13.7 ✅ ambiance des menus (option « Enrichie ») : rayons et brume en shader, particules par salle, illustration qui respire, panneaux en relief, titres dorés ; même mise en page — [`design/31-ambiance.md`](design/31-ambiance.md)
     - 13.4 ✅ Salle de méditation (Sœur Aelis : voies du héros et des compagnons, 3 configurations, réinitialisation, Harmonie) ; compagnons avec niveau et XP propres, équipement et classe changeable — [`design/27-meditation-compagnons.md`](design/27-meditation-compagnons.md)
 14. Acte 4 :
     - 14.1 ✅ zone 4 jouable, Pics Gelés : 10 niveaux (31 à 40), bêtes des montagnes et élémentaires de givre, glace qui fait glisser, avalanches, Portes naines FORGE, Sentinelle runique et Colosse runique (runes corporelles) — [`design/28-zone4.md`](design/28-zone4.md)

@@ -44,6 +44,16 @@ func _rebuild() -> void:
 		_changed("Mode Tiroir : tous tes sorts connus, rangés par école et par discipline.")))
 	col.add_child(UiTheme.wrap("L'écran de Préparation, avant chaque combat, permet aussi de changer ce choix.", 15, UiTheme.MUTED))
 
+	# Ambiance des menus : sobre, ou enrichie (rayons, brume, particules, panneaux en relief, titres dorés).
+	col.add_child(UiTheme.section("Ambiance des menus"))
+	var fx := Profile.ambience_on()
+	col.add_child(_choice("ENRICHIE", "Havre-Aube et ses salles s'animent : lumière et brume qui dérivent, lucioles, poussière arcanique ou braises selon la salle, panneaux en relief, titres dorés. Le combat ne change pas.", "sparkle", fx, func() -> void:
+		Profile.set_ambience(true)
+		_changed("Ambiance enrichie : Havre-Aube s'anime.")))
+	col.add_child(_choice("SOBRE", "Les menus d'origine, sans animation de fond (plus économe sur les vieux téléphones).", "moon", not fx, func() -> void:
+		Profile.set_ambience(false)
+		_changed("Ambiance sobre.")))
+
 	# Grimoires : écoles élémentaires communes, ou chaque voie son grimoire.
 	col.add_child(UiTheme.section("Grimoires"))
 	var all := Profile.elem_for_all()

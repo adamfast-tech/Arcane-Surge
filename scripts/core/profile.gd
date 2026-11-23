@@ -741,6 +741,16 @@ static func set_elem_for_all(v: bool) -> void:
 	_options()["elem_all"] = v
 
 
+## Ambiance enrichie des menus (rayons, brume, particules, panneaux en relief, titres dorés).
+static func ambience_on() -> bool:
+	return bool(_options().get("ambience", false))
+
+
+static func set_ambience(v: bool) -> void:
+	_options()["ambience"] = v
+	RuneBox.rich = v
+
+
 static func difficulty() -> String:
 	var d := str(_options().get("difficulty", "normal"))
 	for x in DIFFICULTIES:

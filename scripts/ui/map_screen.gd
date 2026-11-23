@@ -19,7 +19,7 @@ const ZONE_BLURB := {
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	UiTheme.backdrop(self, 0.72)
+	UiTheme.backdrop(self, 0.72, 0.0, "mist")
 	if zone <= 0:
 		zone = int(GameData.level(Profile.next_level()).get("zone", 1))
 	_build()

@@ -180,6 +180,19 @@ func _options_ok() -> bool:
 	root.add_child(scr)
 	await _frames(2)
 	scr.queue_free()
+	# Ambiance enrichie : fond animé (shader, particules), panneaux en relief, titres dorés.
+	Profile.set_ambience(true)
+	var lib := LibraryScreen.new()
+	root.add_child(lib)
+	await _frames(3)
+	var amb_found := false
+	for ch in lib.get_children():
+		if ch is Ambience:
+			amb_found = true
+	lib.queue_free()
+	Profile.set_ambience(false)
+	if not amb_found or RuneBox.rich:
+		errs.append("ambiance : couche %s, relief resté %s" % [amb_found, RuneBox.rich])
 	print("options : difficulté ×%s (vitesse %.2f → %.2f, Nexus %d → %d) · Archer sans écoles : %d sorts, deck %d · %s" % [o["difficulty"], e1.speed, e2.speed, int(nx1), int(nx2), known.size(), deck.size(), block])
 	if not errs.is_empty():
 		push_error("options : %s" % [errs])

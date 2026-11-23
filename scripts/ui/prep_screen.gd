@@ -12,7 +12,7 @@ var _msg := ""
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	UiTheme.backdrop(self, 0.72)
+	UiTheme.backdrop(self, 0.72, 0.0, "mist")
 	_rebuild()
 
 

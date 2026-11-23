@@ -15,6 +15,10 @@ func _ready() -> void:
 	cloud = Cloud.new()
 	add_child(cloud)
 	Profile.load_local()
+	if _url_flag("fx"):
+		# Aperçu de l'ambiance enrichie (« &fx=1 »), sans changer la sauvegarde.
+		Profile._options()["ambience"] = true
+	RuneBox.rich = Profile.ambience_on()
 	var scene := str(_query().get("scene", ""))
 	if Dialogues.has_scene(scene):
 		# Aperçu d'une scène de dialogue (« ?scene=z01_l10_outro »).
@@ -108,6 +112,10 @@ func _set_screen(c: Control) -> void:
 		_screen.queue_free()
 	_screen = c
 	add_child(c)
+	if Profile.ambience_on():
+		# Ambiance enrichie : chaque écran apparaît en fondu.
+		c.modulate.a = 0.0
+		c.create_tween().tween_property(c, "modulate:a", 1.0, 0.25)
 
 
 func _show_loading() -> void:

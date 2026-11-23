@@ -15,7 +15,7 @@ var _disc := "" ## discipline filtrée dans le grimoire de classe
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	UiTheme.backdrop(self, 0.68)
+	UiTheme.backdrop(self, 0.68, 0.0, "arcane")
 	_rebuild()
 
 

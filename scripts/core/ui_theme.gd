@@ -151,9 +151,24 @@ static func bar(color: Color, height: int = 16) -> ProgressBar:
 	return p
 
 
+static var _shine: ShaderMaterial
+
+
 static func title(text: String, size: int = 40, color: Color = GOLD) -> Label:
 	var l := label(text, size, color)
 	l.add_theme_font_override("font", title_font())
+	if Profile.ambience_on() and size >= 26:
+		# Titres dorés : halo, ombre portée et reflet qui passe (shader).
+		if _shine == null:
+			_shine = ShaderMaterial.new()
+			_shine.shader = load("res://shaders/ui_title_shine.gdshader")
+		l.material = _shine
+		l.add_theme_color_override("font_shadow_color", Color(color, 0.22))
+		l.add_theme_constant_override("shadow_offset_x", 0)
+		l.add_theme_constant_override("shadow_offset_y", 0)
+		l.add_theme_constant_override("shadow_outline_size", 9)
+		l.add_theme_color_override("font_outline_color", Color(color.darkened(0.8), 0.95))
+		l.add_theme_constant_override("outline_size", 5)
 	return l
 
 
@@ -166,7 +181,7 @@ static func spacer() -> Control:
 
 ## Fond commun des écrans hors combat : illustration de la direction artistique, assombrie.
 ## fade > 0 : le bas de l'écran s'assombrit en dégradé (lisibilité des textes sur l'illustration).
-static func backdrop(parent: Control, dim: float = 0.62, fade: float = 0.0) -> void:
+static func backdrop(parent: Control, dim: float = 0.62, fade: float = 0.0, mood: String = "dawn") -> void:
 	var bg := ColorRect.new()
 	bg.color = BG
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -201,6 +216,12 @@ static func backdrop(parent: Control, dim: float = 0.62, fade: float = 0.0) -> v
 		fr.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		parent.add_child(fr)
 		fr.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	if Profile.ambience_on():
+		# Ambiance enrichie : l'illustration respire, rayons, brume, particules de la salle, vignette.
+		var amb := Ambience.new()
+		amb.mood = mood
+		amb.art = art
+		parent.add_child(amb)
 
 
 ## Colonne centrée et défilante (largeur max 680 px) ; retourne le conteneur où ajouter le contenu.
@@ -330,7 +351,36 @@ static func back_button(text: String) -> Button:
 
 ## Titre de section discret (« PROCHAINEMENT », « ÉQUIPÉ · 3 OBJETS »).
 static func section(text: String, color: Color = MUTED) -> Label:
-	var l := label(text.to_upper(), 18, color)
+	if not Profile.ambience_on():
+		return label(text.to_upper(), 18, color)
+	# Ambiance enrichie : un losange devant, un filet qui s'efface derrière.
+	var l := label("     " + text.to_upper(), 18, color)
+	var h := l.get_minimum_size().y
+	var tw := font().get_string_size(l.text, HORIZONTAL_ALIGNMENT_LEFT, -1, 18).x
+	var dia := ColorRect.new()
+	dia.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	dia.color = color.lightened(0.2)
+	dia.size = Vector2(8, 8)
+	dia.pivot_offset = Vector2(4, 4)
+	dia.rotation = PI * 0.25
+	dia.position = Vector2(4, h * 0.5 - 4.0)
+	l.add_child(dia)
+	var g := Gradient.new()
+	g.colors = PackedColorArray([Color(color, 0.7), Color(color, 0.0)])
+	var gt := GradientTexture2D.new()
+	gt.gradient = g
+	gt.width = 128
+	gt.height = 2
+	var line := TextureRect.new()
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	line.texture = gt
+	line.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	line.stretch_mode = TextureRect.STRETCH_SCALE
+	line.anchor_right = 1.0
+	line.offset_left = tw + 14.0
+	line.offset_top = h * 0.5 - 1.0
+	line.offset_bottom = h * 0.5 + 1.0
+	l.add_child(line)
 	return l
 
 

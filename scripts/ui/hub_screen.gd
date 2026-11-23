@@ -23,7 +23,7 @@ var _account_btn: Button
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	UiTheme.backdrop(self, 0.28, 0.94)
+	UiTheme.backdrop(self, 0.28, 0.94, "dawn")
 	var col := UiTheme.scroll_column(self, 680.0, 16.0)
 	col.add_theme_constant_override("separation", 16)
 	col.add_child(_profile_card())

@@ -11,7 +11,7 @@ var _reset_armed := false
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	UiTheme.backdrop(self, 0.68)
+	UiTheme.backdrop(self, 0.68, 0.0, "gold")
 	var branches: Array = Profile.tree_db().get("branches", [])
 	_branch = str(branches[0]["id"]) if not branches.is_empty() else ""
 	_rebuild()
