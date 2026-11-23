@@ -161,6 +161,38 @@ Les sorts de l'arbre (Bouclier levé, Charge, Cercle runique) restent à part. I
   - Roi déchu.
 - **Nouveaux sprites d'animation** : bannière, heaume, marteau, cheval.
 
+## Berserker : 60 techniques, 8 disciplines
+
+| Discipline | Novice | Intermédiaire | Apprenti | Mage | Maître | Archimage | Interdit |
+|---|---|---|---|---|---|---|---|
+| **Haches** | Hache lancée, Double hache | Haches jumelles | Tempête de haches | Hache du bourreau | Pluie de haches | Tourbillon de haches | Hache du jugement |
+| **Fureur** | Rage | Colère | Frénésie sanglante, Rage aveugle | Furie | Folie guerrière | Rage du berserker | Fureur absolue |
+| **Assauts** | Bond | Charge furieuse, Coup de boutoir | Bond du titan | Assaut brutal | Saut météore | Chute du titan | Saut de l'apocalypse |
+| **Cris de guerre** | Cri de guerre | Hurlement de terreur | Intimidation | Cri des ancêtres | Rugissement | Cri du berserker | Hurlement du néant |
+| **Totems** | Totem de rage | Totem de sang | Cercle de totems | Totems de guerre | Totem ancestral | Cercle des ancêtres | Totem du sang noir |
+| **Carnage** | Morsure sanglante | Soif de sang | Festin du loup | Carnage | Buveur de sang | Bain de sang | Massacre |
+| **Clan** | Pillards | Loups de guerre | Géant du clan | Horde barbare, Esprit de l'ours | Chef de guerre | Géants du clan | Titan de sang |
+| **Séismes** | Piétinement | Secousse | Onde de choc | Tremblement | Fracture | Séisme du titan | Fin du monde |
+
+Les sorts de l'arbre (Tourbillon, Bond furieux, Hurlement, Rage primordiale) restent à part. Ils se débloquent par l'arbre du Berserker.
+
+**Mécaniques ajoutées pour le Berserker :**
+- **Totems** :
+  - zones où les invocations frappent plus fort (`ally_atk`) et plus vite (`ally_aspd`), parfois soignées ;
+  - totems de guerre : invocations immobiles avec une aura de soin (20 à 25 s).
+- **Fureur** : la frénésie de toutes les invocations (`frenzy`) a désormais un prix (selon sa durée). Elle peut porter un renfort en plus (Folie guerrière, Rage du berserker, Fureur absolue).
+- **Séismes du grimoire** (`quake`) : ils ont leur propre animation, sur toute la largeur de l'arène.
+- **Carnage** : le sang versé soigne la Barrière (`barrier_heal` sur les coups).
+- **Le clan** :
+  - Pillard ;
+  - Loup de guerre ;
+  - Géant ;
+  - Totem de guerre ;
+  - Esprit de l'ours ;
+  - Chef de guerre ;
+  - Titan de sang (tous avec vol de vie).
+- **Nouveaux sprites d'animation** : totem, poing.
+
 ## Nouvelles mécaniques
 
 Ces mécaniques servent à tous les grimoires de classe.
@@ -321,6 +353,19 @@ Réglages en cours de route :
 - épées de la Croisade moins fortes ;
 - Dernier bastion : +140.
 
-## Suite
+### Berserker
 
-Le grimoire du Berserker suit : environ 60 techniques en 8 disciplines.
+| Niveau | Deck | Victoires | Durée | Barrière |
+|---|---|---|---|---|
+| 1-5 | Novice et Intermédiaire : Hache lancée, Bond, Cri de guerre, Totem de rage, Pillards, Haches jumelles, Charge furieuse | 3/3 | 98 s | 57 % |
+| 2-10 (Gharok) | Apprenti et Mage : Tempête de haches, Bond du titan, Cercle de totems, Hache du bourreau, Carnage, Horde barbare, Tremblement | 3/3 | 231 s | 47 % |
+| 2-10 (Gharok) | Deck de base (élémentaire) | 3/3 | 251 s | 49 % |
+| 4-6 | Maître et Archimage : Pluie de haches, Saut météore, Chef de guerre, Fracture, Chute du titan, Tourbillon de haches, Folie guerrière | 3/3 | 87 s | 99 % |
+
+Réglages en cours de route :
+- Géant du clan : 280 PV et 28 d'attaque ;
+- le Totem du sang noir brûle moins.
+
+## Bilan
+
+Les six classes non mages ont chacune leur grimoire : 6 × 60 = 360 techniques, chacune avec son icône et sa propre animation. Avec les 56 sorts élémentaires (le grimoire du Mage, ouvert à tous), cela fait 416 sorts à acheter à la Bibliothèque.

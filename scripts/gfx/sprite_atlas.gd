@@ -25,6 +25,7 @@ const HEIGHT_M := {
 	"champion_ranger": 1.6, "champion_blademaster": 1.55, "champion_guardian": 1.6, "champion_bone": 1.7, "champion_paladin": 1.6, "champion_warlord": 1.75, "duelist": 0.72,
 	"bog_zombie": 0.72, "plague_rat": 0.42, "slime_abomination": 1.0, "spitting_toad": 0.5, "shield_skeleton": 0.74, "renegade_adept": 0.82, "mist_witch": 0.86, "croc_lich": 1.4, "hydra": 2.9, "hydra_head": 1.2, "barge": 1.2,
 	"blade_dancer": 0.72, "ronin": 1.2, "sword_guard": 1.05, "blade_master_ghost": 1.45, "flying_sword": 0.5,
+	"raider": 0.62, "war_wolf": 0.55, "giant": 1.3, "war_totem": 1.2, "war_chief": 1.45, "blood_titan": 1.6, "spirit_bear": 1.0,
 	"squire": 0.72, "crossbowman": 0.6, "cavalier": 0.8, "holy_paladin": 1.5, "fallen_king": 1.7,
 	"skeleton_archer": 0.7, "ghoul": 0.72, "wraith": 0.86, "bone_golem": 1.1, "death_knight": 0.9, "lich": 1.0, "abomination": 1.3,
 	"holy_wisp": 0.55, "cherub": 0.55, "seraph": 1.0, "archangel": 1.6, "crystal_guardian": 1.1,
@@ -1917,6 +1918,14 @@ const DEFS := {
 	"cavalier": {"base": "wolf_rider", "pal": {"o": "16120e", "w": "8a5a2b", "W": "a8743a", "n": "3a2a1a", "e": "1a0f0a", "g": "c8d0e0", "G": "e8eef8", "x": "d8b048", "r": "7a5230", "k": "e8eef8"}},
 	"holy_paladin": {"base": "champion_paladin", "pal": {"o": "3a2a08", "d": "b89a3a", "m": "f5e7a0", "l": "fffbe8", "S": "c8a040", "s": "fff0c0", "b": "ffffff"}},
 	"fallen_king": {"base": "champion_paladin", "pal": {"o": "0a0610", "d": "2a1a3a", "m": "5a3a8a", "l": "b07cff", "S": "3a2a4a", "s": "8e62e0", "b": "f2c46b"}},
+	# Grimoire du Berserker : le clan.
+	"raider": {"base": "pillard", "pal": {"o": "1a0c08", "h": "8a2a1a", "H": "b83a2a", "s": "e0a882", "e": "2a1a1a", "r": "f0d23c", "t": "5a3a2a", "b": "2a1e16", "d": "c8d0e0", "l": "4a2a1a"}},
+	"war_wolf": {"base": "white_wolf", "pal": {"o": "1a0a0a", "w": "6a3a2a", "W": "4a2a1a", "e": "ff3a3a", "n": "2a1010"}},
+	"giant": {"base": "ogre", "pal": {"o": "1a0f0a", "s": "a8705a", "S": "c8905a", "d": "6a4a2a", "e": "ff3a3a", "n": "4a2a1a", "a": "c8d0e0", "A": "ffffff", "f": "4a2a1a", "F": "6a4a2a", "w": "e8e0c8"}},
+	"war_totem": {"base": "storm_totem", "pal": {"o": "140808", "w": "6a2a1a", "W": "8a3a2a", "e": "ff6a3a", "y": "d84a2a", "Y": "ff8a3a", "g": "5a2a1a"}},
+	"war_chief": {"base": "varg", "pal": {"o": "140808", "h": "3a3a4a", "H": "7a849c", "n": "e8dcc0", "s": "e0a882", "e": "ff3a3a", "B": "4a1a0a", "r": "8a1a1a", "R": "c83a3a", "t": "3a2a1a", "b": "1a0e08", "a": "e8eef8", "w": "4a2a1a", "l": "2a1a10"}},
+	"blood_titan": {"base": "ogre", "pal": {"o": "0a0404", "s": "6a1a1a", "S": "8a2a2a", "d": "3a0a0a", "e": "ffea3a", "n": "2a0505", "a": "ff6a3a", "A": "ffd070", "f": "2a0a0a", "F": "4a1a1a", "w": "e8c8c8"}},
+	"spirit_bear": {"base": "bear", "pal": {"o": "1a0808", "M": "8a2a1a", "g": "c84a2a", "e": "ffd070", "n": "140808", "w": "e8a070"}},
 	"white_wolf": {"pal": {"o": "1a1a24", "w": "e8ecf0", "W": "b8c0cc", "e": "4fe3d2", "n": "2a2a30"}, "frames": [[
 		"..............",
 		"oo............",

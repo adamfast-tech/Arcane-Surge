@@ -16,7 +16,7 @@ var fx: SpellFx
 var _rng := RandomNumberGenerator.new()
 
 const PHASE_KEY := {"spell": "cast", "explosion": "hit", "wave": "hit", "ring": "hit", "rally": "hit", "shield": "hit",
-	"trap": "trap", "ground": "set", "puff": "pop", "column": "col", "lightning": "chain", "pillar": "pure", "wall": "hit",
+	"trap": "trap", "ground": "set", "puff": "pop", "column": "col", "lightning": "chain", "pillar": "pure", "wall": "hit", "quake": "hit",
 	"rain": "zone", "roots": "zone", "vortex": "zone", "blaze": "zone", "storm": "zone", "zonefx": "zone"}
 
 
@@ -75,6 +75,11 @@ func play(ph: String, e: Dictionary, v: Dictionary) -> bool:
 				ctx["r"] = 2.0
 			elif ph == "wall":
 				ctx["r"] = float(e.get("hw", 1.3))
+			elif ph == "quake":
+				# Séisme : toute la largeur de l'arène, sur une bande.
+				ctx["a"] = Vector2(0.4, (ctx["pos"] as Vector2).y)
+				ctx["b"] = Vector2(BattleSim.W - 0.4, (ctx["pos"] as Vector2).y)
+				ctx["r"] = float(e.get("band", 1.0)) * 0.4
 			ctx["dur"] = maxf(0.6, float(e.get("dur", 0.8))) if ph != "rally" else 1.2
 		"pop":
 			ctx["r"] = 0.5

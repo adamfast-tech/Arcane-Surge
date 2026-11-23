@@ -416,6 +416,9 @@ const SPRITES := {
 	"helm": [".KKKKK.", "KLLWLLK", "KLCCCLK", "KKKCKKK", "KCKCKCK", "KCCCCCK", ".KKKKK."],
 	"hammer": ["KKKKKKK", "KLLWLLK", "KCCCCCK", "KKKwKKK", "...w...", "...w...", "...w...", "...w...", "...w...", "..KwK..", "...K..."],
 	"horse": ["........KK..", ".......KCLK.", "KK....KCCCK.", "KCKKKKCCCK..", ".KCCCCCCCK..", ".KCCCCCCK...", ".KCK..KCK...", ".KK...KK...."],
+	# Grimoire du Berserker.
+	"totem": [".KKKKK.", "KCLWLCK", "KCKCKCK", ".KCCCK.", "KKLLLKK", "KCKCKCK", ".KCCCK.", "..KwK..", "..KwK..", "..KwK.."],
+	"fist": [".KKKK..", "KCLCLK.", "KCLCLKK", "KCCCCLK", "KCCCCCK", ".KCCCK.", "..KKK.."],
 	"falcon": ["K.........K", "KCK.....KCK", ".KCKK.KKCK.", "..KCCLCCK..", "...KCWCK...", "....KyK....", ".....K....."],
 }
 const FIXED := {"K": "120e1a", "b": "e8dcc0", "B": "a89c80", "e": "1a0f0a", "g": "8a7a60", "G": "b8a888", "h": "5a4a3a",

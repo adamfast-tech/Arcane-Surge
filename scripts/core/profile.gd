@@ -953,7 +953,7 @@ static func spell_power(id: String) -> int:
 				p += d / maxf(0.3, float(sp.get("spawn_every", 2.0))) * uv * (2.0 if str(su.get("role", "")) == "elite" else 1.0)
 			if bool(sp.get("raise", false)):
 				p += d * 4.0 * a
-			p += float(sp.get("ally_atk", 0.0)) * d * 30.0 * minf(a, 2.5)
+			p += (float(sp.get("ally_atk", 0.0)) + float(sp.get("ally_aspd", 0.0)) * 0.9) * d * 30.0 * minf(a, 2.5)
 		"chain":
 			var f := float(sp.get("falloff", 0.8))
 			for k in range(int(sp.get("bounces", 5))):
@@ -973,6 +973,9 @@ static func spell_power(id: String) -> int:
 			p = float(sp.get("count", 20)) * (float(sp.get("damage", 25)) + 20.0) * 0.6
 		"mirror":
 			p = float(sp.get("count", 10)) * 15.0
+		"frenzy":
+			# Frénésie de toutes les invocations : +40 % de dégâts, vol de vie.
+			p = float(sp.get("dur", 6.0)) * 40.0 + dmg * float(area.call(float(sp.get("radius", 1.5))))
 		"army":
 			# Invocations : PV, dégâts par seconde, aura de soin ; une élite compte double ; durée de vie limitée.
 			var kinds: Array = sp.get("kinds", [])

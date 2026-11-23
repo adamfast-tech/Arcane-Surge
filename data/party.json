@@ -111,7 +111,7 @@
       "playable": true,
       "player_familiar": "familiar_rager",
       "champion": "champion_warlord",
-      "ultimate": "dechainement",
+      "ultimate": "dechainement", "disciplines": [{"id": "haches", "name": "Haches", "icon": "hache_lancee", "color": "C8D0E0", "desc": "Haches lancées, jumelles, tournoyantes ou tombées du ciel."}, {"id": "fureur", "name": "Fureur", "icon": "rage", "color": "E8703A", "desc": "Frénésie de toutes les invocations : dégâts et vol de vie."}, {"id": "assaut", "name": "Assauts", "icon": "bond", "color": "D8A070", "desc": "Bonds et charges : recul et étourdissement."}, {"id": "cris", "name": "Cris de guerre", "icon": "cri_guerre", "color": "E89A3A", "desc": "Cris qui affaiblissent, repoussent ou galvanisent."}, {"id": "totems", "name": "Totems", "icon": "totem_rage", "color": "D84A2A", "desc": "Totems : les invocations proches frappent plus fort et plus vite, ou sont soignées."}, {"id": "carnage", "name": "Carnage", "icon": "morsure_sanglante", "color": "C83A3A", "desc": "Saignements, vol de vie, et le sang versé soigne la Barrière."}, {"id": "clan", "name": "Clan", "icon": "pillards", "color": "B83A2A", "desc": "Pillards, loups de guerre, géants, chef de guerre."}, {"id": "seisme", "name": "Séismes", "icon": "pietinement", "color": "C8A070", "desc": "Piétinements, secousses et séismes qui étourdissent."}],
       "effect_mult": 1.0
     }
   },
