@@ -69,6 +69,33 @@ Les sorts de l'arbre (Fente, Tranche-orage, Lames miroirs) restent à part. Ils 
   - Maître spectral (vol de vie).
 - **Nouveaux sprites d'animation** : katana, rapière, dague, pétale.
 
+## Clerc : 60 techniques, 8 disciplines
+
+| Discipline | Novice | Intermédiaire | Apprenti | Mage | Maître | Archimage | Interdit |
+|---|---|---|---|---|---|---|---|
+| **Soins** | Soin léger | Prière fervente | Guérison, Renouveau | Source de vie | Résurgence | Résurrection | Martyre |
+| **Châtiment** | Éclat sacré, Marque divine | Châtiment | Colère divine | Jugement | Courroux sacré | Épée de justice | Jugement dernier |
+| **Bénédictions** | Bénédiction | Hymne | Grâce | Ferveur | Bénédiction suprême | Apothéose | Ascension |
+| **Sanctuaires** | Cercle de lumière | Sanctuaire | Terre consacrée | Bastion sacré | Cathédrale de lumière | Sanctum | Jardin céleste |
+| **Purification** | Aspersion | Eau bénite | Rite d'exorcisme | Purge sacrée | Bannissement | Grande purification | Anathème |
+| **Anges** | Lueurs sacrées | Chérubins | Séraphin | Gardien de cristal, Anges gardiens | Chœur céleste | Archange | Ost céleste |
+| **Rayons** | Rayon de l'aube | Chaîne de lumière, Lumière brûlante | Lance de lumière | Prisme | Rayon divin | Lance du soleil | Aube éternelle |
+| **Égides** | Bouclier de la foi | Égide | Rempart de foi | Sceau de protection | Égide divine | Mur sacré | Rempart des dieux |
+
+Les sorts de l'arbre (Prière, Lance solaire, Exorcisme) restent à part. Ils se débloquent par l'arbre du Clerc.
+
+**Mécaniques ajoutées pour le Clerc :**
+- **Soin de Barrière sur la durée** (`over`) : les PV reviennent peu à peu, sur n secondes (Prière fervente, Renouveau, Source de vie, Martyre).
+- **Sanctuaires** : une zone peut soigner les invocations (`ally_heal`, une part de leurs PV par seconde) en plus de les protéger (`ally_shield`) et de brûler l'ennemi.
+- **Purification** : elle a désormais sa propre animation (« pure ») quand elle purifie un portail ou la brume.
+- **Anges** :
+  - Lueur sacrée (20 s, à distance) ;
+  - Chérubin (aura de soin) ;
+  - Séraphin ;
+  - Gardien de cristal (tank) ;
+  - Archange (forte aura de soin).
+- **Nouveaux sprites d'animation** : colombe, cloche, cierge, aile.
+
 ## Nouvelles mécaniques
 
 Ces mécaniques servent à tous les grimoires de classe.
@@ -175,6 +202,22 @@ Réglages en cours de route :
 - boucliers de Parade, Garde haute et Égide réduits pour leur rang ;
 - Rōnin spectral : 140 PV et 26 d'attaque.
 
+### Clerc
+
+| Niveau | Deck | Victoires | Durée | Barrière |
+|---|---|---|---|---|
+| 1-5 | Novice et Intermédiaire : Éclat sacré, Marque divine, Cercle de lumière, Lueurs sacrées, Châtiment, Chérubins, Hymne | 3/3 | 96 s | 63 % |
+| 2-10 (Gharok) | Apprenti et Mage : Colère divine, Séraphin, Terre consacrée, Guérison, Jugement, Ferveur, Prisme | 3/3 | 191 s | 93 % |
+| 2-10 (Gharok) | Deck de base (élémentaire) | 3/3 | 245 s | 81 % |
+| 4-6 | Maître et Archimage : Courroux sacré, Cathédrale, Chœur céleste, Rayon divin, Bénédiction suprême, Épée de justice, Lance du soleil | 3/3 | 151 s | 98 % |
+
+Le Clerc garde la Barrière au plus haut, mais avance plus lentement : contre le Givre de la zone 4, sa Lumière ne bénéficie d'aucun avantage d'élément.
+
+Réglages en cours de route :
+- valeur des sanctuaires (soins et boucliers d'invocations) revue à la baisse ;
+- Jardin céleste et Sanctum moins forts ;
+- rayons d'Anathème et de la Grande purification réduits.
+
 ## Suite
 
-Les grimoires des 4 autres classes suivent, une classe à la fois : Clerc, Nécromancien, Chevalier, Berserker. Chacun aura environ 60 techniques en 8 disciplines.
+Les grimoires des 3 autres classes suivent, une classe à la fois : Nécromancien, Chevalier, Berserker. Chacun aura environ 60 techniques en 8 disciplines.

@@ -401,6 +401,11 @@ const SPRITES := {
 	"rapier": ["..K..", ".KwK.", "KyyyK", "KyKyK", "..C..", "..C..", "..W..", "..C..", "..C..", "..C..", "..W..", "..C..", "..K.."],
 	"dagger": [".K.", "KwK", "KyK", "KCK", "KWK", "KCK", ".K."],
 	"petal": ["..KK.", ".KLLK", "KLWLK", "KCLK.", ".KK.."],
+	# Grimoire du Clerc.
+	"dove": ["....KK...", "...KLLK..", "KK.KLWK..", "KLKKLLLKK", ".KLLLLLLK", "..KKLLKK.", "....KK..."],
+	"bell": ["...K...", "..KLK..", ".KLWLK.", ".KLWLK.", ".KCLCK.", "KCCCCCK", "KKKKKKK", "...K..."],
+	"candle": ["..y..", ".yWy.", "..y..", ".KbK.", ".KbK.", ".KbK.", ".KbK.", "KKbKK", "KKKKK"],
+	"wing": ["......KK", "....KKLK", "..KKLLWK", ".KLLLWLK", "KLLLWLK.", "KLLWLK..", ".KLLK...", "..KLK...", "...K...."],
 	"falcon": ["K.........K", "KCK.....KCK", ".KCKK.KKCK.", "..KCCLCCK..", "...KCWCK...", "....KyK....", ".....K....."],
 }
 const FIXED := {"K": "120e1a", "b": "e8dcc0", "B": "a89c80", "e": "1a0f0a", "g": "8a7a60", "G": "b8a888", "h": "5a4a3a",

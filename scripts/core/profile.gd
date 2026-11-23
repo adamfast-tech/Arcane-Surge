@@ -945,6 +945,7 @@ static func spell_power(id: String) -> int:
 			var a: float = area.call(float(sp.get("radius", 1.5)))
 			var d := float(sp.get("dur", 3.0))
 			p = float(sp.get("dps", 0)) * d * a + float(sp.get("slow", 0.0)) * d * 12.0 * a + float(sp.get("pull", 0.0)) * d * 8.0 + dmg * a
+			p += float(sp.get("ally_heal", 0.0)) * d * 150.0 * a + float(sp.get("ally_shield", 0.0)) * a * 1.5
 		"chain":
 			var f := float(sp.get("falloff", 0.8))
 			for k in range(int(sp.get("bounces", 5))):
@@ -969,7 +970,7 @@ static func spell_power(id: String) -> int:
 				p += u * (2.0 if str(ud.get("role", "")) == "elite" else 1.0) * (minf(1.0, life / 30.0) if life > 0.0 else 1.0)
 			p += dmg * float(area.call(float(sp.get("radius", 2.0))))
 		"purify":
-			p = 100.0
+			p = 100.0 + dmg * float(area.call(float(sp.get("radius", 2.5))))
 		"wall":
 			p = float(sp.get("amount", 300)) * 0.8 + float(sp.get("dur", 10.0)) * 10.0
 		"quake":

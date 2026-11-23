@@ -16,7 +16,7 @@ var fx: SpellFx
 var _rng := RandomNumberGenerator.new()
 
 const PHASE_KEY := {"spell": "cast", "explosion": "hit", "wave": "hit", "ring": "hit", "rally": "hit", "shield": "hit",
-	"trap": "trap", "ground": "set", "puff": "pop", "column": "col", "lightning": "chain",
+	"trap": "trap", "ground": "set", "puff": "pop", "column": "col", "lightning": "chain", "pillar": "pure",
 	"rain": "zone", "roots": "zone", "vortex": "zone", "blaze": "zone", "storm": "zone", "zonefx": "zone"}
 
 
@@ -79,6 +79,9 @@ func play(ph: String, e: Dictionary, v: Dictionary) -> bool:
 			ctx["dur"] = 0.7
 		"set":
 			ctx["dur"] = 0.8
+		"pure":
+			ctx["r"] = 1.4
+			ctx["dur"] = 1.1
 	for layer in v[key]:
 		_layer(str(layer), ctx)
 	return true

@@ -186,6 +186,8 @@ var _immune_txt_t := 0.0
 var don: Dictionary = {}
 var don_t := 0.0
 var rally_t := 0.0
+var _bheal_t := 0.0 ## soin de Barrière sur la durée (grimoire du Clerc) : durée restante
+var _bheal_rate := 0.0 ## PV par seconde
 var breeze_t := 0.0
 var charge_t := 0.0
 var barrier_invuln_t := 0.0
@@ -721,6 +723,12 @@ func step() -> void:
 	if _mod("barrier_regen") > 0.0 and barrier_hp > 0.0:
 		# Clé de voûte Aube éternelle : la Barrière se répare lentement.
 		barrier_hp = minf(barrier_max, barrier_hp + _mod("barrier_regen") * TICK)
+	if _bheal_t > 0.0 and barrier_hp > 0.0:
+		# Prière fervente, Renouveau… : la Barrière se soigne pendant quelques secondes.
+		_bheal_t -= TICK
+		barrier_hp = minf(barrier_max, barrier_hp + _bheal_rate * TICK)
+		if _bheal_t <= 0.0:
+			_bheal_rate = 0.0
 	_update_portals()
 	_update_waves()
 	_update_wind()
@@ -2464,7 +2472,7 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 			if zslow > 0.0 and c.idx == 0:
 				zslow = minf(0.9, zslow + _mod("zone_slow"))
 			zones.append({"pos": at, "r": zr, "t": dur, "dps": float(sp.get("dps", 0)) * c.atk_mult * _elem_mult(c, sp),
-				"ally_shield": float(sp.get("ally_shield", 0.0)) * c.hp_mult,
+				"ally_shield": float(sp.get("ally_shield", 0.0)) * c.hp_mult, "ally_heal": float(sp.get("ally_heal", 0.0)),
 				"elem": str(sp.get("element", "")), "slow": zslow, "pull": float(sp.get("pull", 0.0)),
 				"stack_every": float(sp.get("stack_every", 0.0)), "stack_acc": 0.0})
 			_event({"t": str(sp.get("fx", "rain")), "pos": at, "r": zr, "dur": dur, "color": col})
@@ -2487,6 +2495,14 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 			if barrier_hp >= barrier_max:
 				return false
 			var heal := float(sp.get("amount", 15)) * (1.0 + _mod("heal_bonus"))
+			if float(sp.get("over", 0.0)) > 0.0:
+				# Soin sur la durée.
+				var over := float(sp["over"])
+				_bheal_rate = maxf(_bheal_rate, heal / over)
+				_bheal_t = maxf(_bheal_t, over)
+				_event({"t": "shield", "dur": 1.0, "color": col})
+				_event({"t": "text", "pos": Vector2(W * 0.5, BARRIER_Y + 0.6), "text": "+%d Barrière (%d s)" % [int(heal), int(over)], "color": "F2E28B"})
+				return true
 			if barrier_hp + heal > barrier_max:
 				_wrath_acc += barrier_hp + heal - barrier_max
 			barrier_hp = minf(barrier_max, barrier_hp + heal)
@@ -2839,6 +2855,13 @@ func _update_zones() -> void:
 				_damage(e, _calc(dps, elem, 0.0, e, false) * TICK, elem)
 			if stack and e.alive:
 				_apply_status(e, elem)
+		if float(z.get("ally_heal", 0.0)) > 0.0:
+			# Sanctuaires : les invocations dans la zone regagnent une part de leurs PV chaque seconde.
+			for a: Unit in _query(_grid_a, pos, float(z["r"])):
+				if a.alive and a.hp < a.max_hp:
+					var h := a.max_hp * float(z["ally_heal"]) * TICK
+					healed_total += minf(h, a.max_hp - a.hp)
+					a.hp = minf(a.max_hp, a.hp + h)
 		if float(z.get("ally_shield", 0.0)) > 0.0:
 			# Cercle runique : les alliés dans le cercle gardent un bouclier.
 			for a: Unit in _query(_grid_a, pos, float(z["r"])):

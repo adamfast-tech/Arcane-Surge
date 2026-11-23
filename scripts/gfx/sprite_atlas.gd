@@ -25,6 +25,7 @@ const HEIGHT_M := {
 	"champion_ranger": 1.6, "champion_blademaster": 1.55, "champion_guardian": 1.6, "champion_bone": 1.7, "champion_paladin": 1.6, "champion_warlord": 1.75, "duelist": 0.72,
 	"bog_zombie": 0.72, "plague_rat": 0.42, "slime_abomination": 1.0, "spitting_toad": 0.5, "shield_skeleton": 0.74, "renegade_adept": 0.82, "mist_witch": 0.86, "croc_lich": 1.4, "hydra": 2.9, "hydra_head": 1.2, "barge": 1.2,
 	"blade_dancer": 0.72, "ronin": 1.2, "sword_guard": 1.05, "blade_master_ghost": 1.45, "flying_sword": 0.5,
+	"holy_wisp": 0.55, "cherub": 0.55, "seraph": 1.0, "archangel": 1.6, "crystal_guardian": 1.1,
 	"beast_wolf": 0.55, "beast_alpha": 0.8, "beast_bear": 0.95, "beast_void": 1.15, "beast_stag": 1.3, "beast_falcon": 0.42, "baliste": 0.85,
 	"ice_goblin": 0.6, "white_wolf": 0.55, "yeti": 1.1, "stalactite_kobold": 0.55, "ice_golem": 0.85, "blizzard_elemental": 0.9, "aurora_spirit": 0.9, "ancient_sentinel": 1.2, "rune_sentinel": 1.6, "rune_colossus": 3.2, "body_rune": 0.7, "rune_cart": 1.1,
 }
@@ -1894,6 +1895,12 @@ const DEFS := {
 		"...o...",
 		".......",
 	]]},
+	# Grimoire du Clerc : anges et lueurs.
+	"holy_wisp": {"base": "wisp", "pal": {"y": "f2c46b", "Y": "fff0a0", "w": "ffffff", "k": "8a6a1a"}},
+	"cherub": {"base": "pixie", "pal": {"w": "f5e7a0", "W": "fffbe8", "o": "4a3a10", "d": "b89a3a", "e": "8fd0ff", "v": "f2c46b"}},
+	"seraph": {"base": "aurora_spirit", "pal": {"o": "4a3a10", "L": "fffbe8", "c": "f2c46b", "e": "ffffff", "m": "b89a3a", "g": "fff0a0", "v": "f5e7a0"}},
+	"archangel": {"base": "champion_guardian", "pal": {"o": "3a2a08", "d": "b89a3a", "m": "f5e7a0", "l": "fffbe8", "y": "ffffff", "g": "f2c46b", "k": "4a3a10"}},
+	"crystal_guardian": {"base": "golem", "pal": {"o": "1a2a3a", "d": "6ab0d8", "m": "b0e8ff", "l": "ffffff", "S": "8ac8e8", "s": "d8f6ff"}},
 	"white_wolf": {"pal": {"o": "1a1a24", "w": "e8ecf0", "W": "b8c0cc", "e": "4fe3d2", "n": "2a2a30"}, "frames": [[
 		"..............",
 		"oo............",

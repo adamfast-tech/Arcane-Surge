@@ -61,7 +61,7 @@
       "desc": "Lumière et soins : la Barrière tient, les portails sont purifiés.",
       "playable": true,
       "champion": "champion_guardian",
-      "ultimate": "jugement_solaire",
+      "ultimate": "jugement_solaire", "disciplines": [{"id": "soins", "name": "Soins", "icon": "soin_leger", "color": "F2E28B", "desc": "Soins de Barrière, immédiats ou sur la durée."}, {"id": "chatiment", "name": "Châtiment", "icon": "eclat_sacre", "color": "FFF0A0", "desc": "La lumière frappe : lances du ciel, jugements, épées sacrées."}, {"id": "benediction", "name": "Bénédictions", "icon": "benediction", "color": "F5E7A0", "desc": "Les invocations sont soignées et frappent plus fort."}, {"id": "sanctuaire", "name": "Sanctuaires", "icon": "cercle_lumiere", "color": "FFF6C8", "desc": "Zones sacrées : brûlent l'ennemi, soignent et protègent les invocations."}, {"id": "purification", "name": "Purification", "icon": "aspersion", "color": "BFE8FF", "desc": "Portails et brume purifiés, Ombre chassée."}, {"id": "anges", "name": "Anges", "icon": "lueurs_sacrees", "color": "FFF0A0", "desc": "Lueurs, chérubins, séraphins, gardiens de cristal et archanges."}, {"id": "rayons", "name": "Rayons", "icon": "rayon_aube", "color": "FFE8A0", "desc": "Rayons, lances et chaînes de lumière."}, {"id": "egide", "name": "Égides", "icon": "bouclier_foi", "color": "F2E28B", "desc": "Boucliers de Barrière et d'invocations."}],
       "effect_mult": 1.1
     },
     "necromancien": {
