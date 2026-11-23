@@ -7,7 +7,7 @@
 - **Points** : 1 par niveau à partir du niveau 2, plus 1 tous les 10 niveaux (calculés depuis le niveau).
 - **Paliers** : 0, 5, 10, 20 et 30 points investis dans la branche ouvrent les paliers 1 à 5.
 - **Clés de voûte** : 2 au plus.
-- **Réinitialisation** : gratuite la 1re fois, puis 100 or de plus à chaque fois. Elle passera à la Salle de méditation quand celle-ci existera.
+- **Réinitialisation** : gratuite la 1re fois, puis 100 or de plus à chaque fois. Elle est aussi proposée à la Salle de méditation (étape 13.4, [`27-meditation-compagnons.md`](27-meditation-compagnons.md)).
 
 | Palier | Pyromancie (Feu, brûlure) | Cryomancie (Givre, contrôle) |
 |---|---|---|

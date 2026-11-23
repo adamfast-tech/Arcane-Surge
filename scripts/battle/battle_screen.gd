@@ -1373,7 +1373,7 @@ func _open_end() -> void:
 	var win := sim.state == "victory"
 	if _rewards.is_empty():
 		Story.on_battle(_present)
-		_rewards = Profile.apply_battle(level_id, win, sim.stars, sim.time)
+		_rewards = Profile.apply_battle(level_id, win, sim.stars, sim.time, _present)
 		if Cloud.instance != null:
 			Cloud.instance.push()
 	var v := _modal("VICTOIRE" if win else "DÉFAITE", sim.end_reason, UiTheme.GOLD if win else UiTheme.DANGER)
@@ -1403,6 +1403,15 @@ func _open_end() -> void:
 	rv.add_child(UiTheme.label(line, 22, UiTheme.GOLD))
 	if int(_rewards.get("levels", 0)) > 0:
 		rv.add_child(UiTheme.label("NIVEAU %d ATTEINT ! (+%d point de compétence)" % [int(_rewards["level_after"]), int(_rewards["levels"])], 22, UiTheme.CYAN))
+	# Compagnons : XP gagnée (80 % en combat, 30 % à Havre-Aube) et montées de niveau.
+	var comp: Dictionary = _rewards.get("companions", {})
+	if not comp.is_empty():
+		var parts: Array[String] = []
+		for who in comp.keys():
+			var cr: Dictionary = comp[who]
+			parts.append("%s +%d XP%s" % [Dialogues.display_name(str(who)), int(cr["xp"]),
+				(" · niveau %d !" % int(cr["level"])) if int(cr["levels"]) > 0 else ""])
+		rv.add_child(_wrap_label("Compagnons : " + " · ".join(parts), 17, UiTheme.MUTED))
 	var mats: Dictionary = _rewards.get("materials", {})
 	if not mats.is_empty():
 		var names: Array[String] = []

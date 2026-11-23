@@ -35,9 +35,12 @@ func _rebuild() -> void:
 	tv.add_theme_constant_override("separation", 0)
 	col.add_child(tv)
 	tv.add_child(UiTheme.title("ENTRAÎNEMENT", 46, UiTheme.GOLD))
-	tv.add_child(UiTheme.title("ARBRE DU MAGE", 22, UiTheme.TEXT))
+	var cname := str((GameData.party()["classes"] as Dictionary).get(Profile.player_class(), {}).get("name", "Mage")).to_upper()
+	tv.add_child(UiTheme.title(("ARBRE DE L'" if cname.substr(0, 1) in ["A", "E", "É", "I", "O", "U"] else "ARBRE DU ") + cname, 22, UiTheme.TEXT))
 	col.add_child(UiTheme.wrap("Points : %d disponibles sur %d · Clés de voûte : %d / %d · 1 point par niveau à partir du niveau 2." % [
 		Profile.skill_points_free(), Profile.skill_points_total(), Profile.keystones_taken(), int(Profile.tree_db().get("keystone_limit", 2))], 18, UiTheme.MUTED))
+	if Profile.meditation_unlocked():
+		col.add_child(UiTheme.wrap("Changer de voie et enregistrer jusqu'à 3 configurations : Salle de méditation.", 16, UiTheme.TEAL))
 	# Onglets des branches.
 	var tabs := HBoxContainer.new()
 	tabs.add_theme_constant_override("separation", 8)

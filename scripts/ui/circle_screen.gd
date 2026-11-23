@@ -2,8 +2,10 @@ class_name CircleScreen
 extends Control
 ## Le Cercle : réglages des compagnons pour les prochaines parties (les 2 emmenés en combat,
 ## ordre par défaut, sort emporté, côtés), loyauté et bonus d'amitié (+5 % de stats à partir de 75).
+## Étape 13.4 : chaque compagnon a son niveau et son XP, sa voie (classe) et son équipement.
 
 signal back
+signal open_equipment(who: String)
 
 
 func _ready() -> void:
@@ -30,7 +32,7 @@ func _rebuild() -> void:
 	tv.add_child(UiTheme.title("TES COMPAGNONS", 22, UiTheme.TEXT))
 	var avail := Profile.companions_available()
 	var active := Profile.active_companions()
-	var intro := "Réglages des prochaines parties. Les compagnons ont ton niveau − 1. En combat, toucher un compagnon change encore son ordre."
+	var intro := "Réglages des prochaines parties. En combat, un compagnon gagne 80 %% de ton XP ; resté à Havre-Aube, 30 %% (jamais plus de %d niveaux sous toi). Toucher un compagnon en combat change son ordre." % Profile.COMPANION_FLOOR
 	if avail.size() > Profile.ACTIVE_MAX:
 		intro = "Tu emmènes %d compagnons en combat ; les autres restent à Havre-Aube. " % Profile.ACTIVE_MAX + intro
 	col.add_child(UiTheme.wrap(intro, 18, UiTheme.MUTED))
@@ -94,10 +96,20 @@ func _companion_card(bd: Dictionary, circ: Dictionary, is_active: bool = true) -
 	h.add_child(info)
 	info.add_child(UiTheme.title(str(bd.get("name", who)).to_upper(), 28, col))
 	var side := _side_of(who, bd, circ)
-	info.add_child(UiTheme.label("%s · %s · niveau %d · %s" % [str(party["races"].get(str(bd["race"]), {}).get("name", "")), str(party["classes"].get(str(bd["class"]), {}).get("name", "")),
-		maxi(1, Profile.level() - 1), ("à gauche" if side == "left" else "à droite") if is_active else "reste à Havre-Aube"], 18, UiTheme.MUTED))
-	if bd.has("role"):
-		info.add_child(UiTheme.wrap(str(bd["role"]), 16, UiTheme.TEXT))
+	var lv := Profile.companion_level(who)
+	info.add_child(UiTheme.label("%s · %s · niveau %d · %s" % [str(party["races"].get(str(bd["race"]), {}).get("name", "")),
+		str(party["classes"].get(Profile.companion_class(who), {}).get("name", "")), lv,
+		("à gauche" if side == "left" else "à droite") if is_active else "reste à Havre-Aube"], 18, UiTheme.MUTED))
+	var xr := HBoxContainer.new()
+	xr.add_theme_constant_override("separation", 10)
+	info.add_child(xr)
+	xr.add_child(UiTheme.label("XP %d / %d" % [Profile.companion_xp(who), Profile.xp_to_next(lv)], 16, UiTheme.MUTED))
+	var xb := UiTheme.bar(UiTheme.CYAN, 6)
+	xb.max_value = Profile.xp_to_next(lv)
+	xb.value = Profile.companion_xp(who)
+	xr.add_child(xb)
+	if Profile.companion_role(who) != "":
+		info.add_child(UiTheme.wrap(Profile.companion_role(who), 16, UiTheme.TEXT))
 	var loy := Story.loyalty(who)
 	var lr := HBoxContainer.new()
 	lr.add_theme_constant_override("separation", 10)
@@ -124,6 +136,22 @@ func _companion_card(bd: Dictionary, circ: Dictionary, is_active: bool = true) -
 				_save()
 				_rebuild.call_deferred())
 			rg.add_child(rb)
+	# Équipement et voie.
+	var er := HBoxContainer.new()
+	er.add_theme_constant_override("separation", 10)
+	v.add_child(er)
+	var n_eq := Profile.equipment_of(who).size()
+	var el := UiTheme.wrap("Puissance %d · %d objet%s équipé%s" % [Profile.companion_power(who), n_eq, "s" if n_eq > 1 else "", "s" if n_eq > 1 else ""]
+		+ ("" if Profile.meditation_unlocked() else " · voie fixe jusqu'à la Salle de méditation"), 17, UiTheme.MUTED)
+	el.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	er.add_child(el)
+	var eb := UiTheme.button("Équiper", 18)
+	eb.icon = Icons.tex("baton_chene", 40)
+	eb.add_theme_constant_override("icon_max_width", 20)
+	eb.custom_minimum_size = Vector2(140, 52)
+	eb.add_theme_color_override("font_color", col)
+	eb.pressed.connect(func() -> void: open_equipment.emit(who))
+	er.add_child(eb)
 	# Ordre par défaut.
 	v.add_child(UiTheme.section("Ordre par défaut"))
 	var og := GridContainer.new()
@@ -149,7 +177,7 @@ func _companion_card(bd: Dictionary, circ: Dictionary, is_active: bool = true) -
 	var sg := HBoxContainer.new()
 	sg.add_theme_constant_override("separation", 8)
 	v.add_child(sg)
-	for sid in Profile.COMPANION_SPELLS.get(who, []):
+	for sid in Profile.companion_spells(who):
 		var sp: Dictionary = GameData.spells().get(str(sid), {})
 		var on := str(mine.get("spell", "")) == str(sid)
 		var scol := Color(str(sp.get("color", "6fdccf")))

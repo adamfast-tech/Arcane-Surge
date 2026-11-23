@@ -31,7 +31,21 @@ const SPELL_PRICE_MIN := 40
 const SCHOOLS := {"feu": "Feu", "givre": "Givre", "foudre": "Foudre", "nature": "Nature", "ombre": "Ombre", "arcane": "Arcane", "terre": "Terre"}
 const DECK_MAX := 7
 ## Sorts que chaque compagnon peut emporter (Cercle).
-const COMPANION_SPELLS := {"brann": ["bouclier_leve", "charge_bastion"], "sylwen": ["tir_precision", "volee_fleches"], "krag": ["hache_tournoyante", "bond_furieux"], "nyx": ["linceul", "ossements"]}
+## Sorts qu'un compagnon peut emporter selon sa classe (le Cercle en choisit un).
+const CLASS_SPELLS := {"chevalier": ["bouclier_leve", "charge_bastion"], "archer": ["tir_precision", "volee_fleches"],
+	"berserker": ["hache_tournoyante", "bond_furieux"], "necromancien": ["linceul", "ossements"], "mage": ["boule_de_feu", "eclair_chaine"],
+	"clerc": ["priere", "lance_solaire"], "epeiste": ["fente", "tranche_orage"]}
+## Rôle affiché pour un compagnon qui a changé de voie.
+const CLASS_ROLES := {"chevalier": "Protecteur : boucliers et charges ; renforce la Barrière (Bouclier levé)",
+	"archer": "Tireur : ses archers frappent de loin, idéal contre les boss", "berserker": "Assaut : haches tournoyantes et bonds furieux",
+	"necromancien": "Ombre : squelettes, Linceul et ossements", "mage": "Arcaniste : boules de feu et éclairs en chaîne",
+	"clerc": "Soigneur : soigne la Barrière (Prière) et frappe de Lumière", "epeiste": "Lame : estocades et chaînes de foudre"}
+## XP des compagnons (04-classes-races §5) : 80 % de celle du héros en combat, 30 % sur le banc.
+const COMPANION_XP_ACTIVE := 0.8
+const COMPANION_XP_BENCH := 0.3
+## Rattrapage : un compagnon n'est jamais à plus de 5 niveaux sous le héros.
+const COMPANION_FLOOR := 5
+const CONFIG_SLOTS := 3
 ## Compagnons emmenés en combat : 2 au plus.
 const ACTIVE_MAX := 2
 
@@ -54,6 +68,8 @@ static func default_data() -> Dictionary:
 		"skills": {}, "skill_resets": 0,
 		"spells": {"known": BASE_SPELLS.duplicate(), "deck": BASE_SPELLS.duplicate()},
 		"circle": default_circle(),
+		"companions": {},
+		"meditation": {"configs": [{}, {}, {}], "harmony": 0},
 	}
 
 
@@ -304,32 +320,69 @@ static func equipped_slot(uid: String) -> String:
 
 
 static func equip(uid: String) -> void:
+	equip_to("player", uid)
+
+
+static func unequip(slot: String) -> void:
+	unequip_from("player", slot)
+
+
+## Équipement porté par le héros (« player ») ou par un compagnon (étape 13.4).
+static func equipment_of(who: String) -> Dictionary:
+	if who == "player" or who == "":
+		return data["equipped"]
+	return _comp(who)["equipped"]
+
+
+## Qui porte cet objet : « player », l'identifiant d'un compagnon, ou "" s'il est en réserve.
+static func holder_of(uid: String) -> String:
+	if equipped_slot(uid) != "":
+		return "player"
+	if data.get("companions") is Dictionary:
+		for who in (data["companions"] as Dictionary).keys():
+			var eq: Dictionary = (data["companions"][who] as Dictionary).get("equipped", {})
+			for sl in eq.keys():
+				if str(eq[sl]) == uid:
+					return str(who)
+	return ""
+
+
+## Équipe un objet sur le héros ou un compagnon (il quitte son porteur précédent).
+static func equip_to(who: String, uid: String) -> void:
 	var it := find_item(uid)
 	if it.is_empty():
 		return
+	var holder := holder_of(uid)
+	if holder != "":
+		var heq := equipment_of(holder)
+		for sl in heq.keys():
+			if str(heq[sl]) == uid:
+				heq.erase(sl)
+	var eq := equipment_of(who)
 	var slot := str(base_of(it).get("slot", ""))
 	if slot == "ring":
-		var eq: Dictionary = data["equipped"]
 		if not eq.has("ring1"):
 			slot = "ring1"
 		elif not eq.has("ring2"):
 			slot = "ring2"
 		else:
 			slot = "ring1"
-	var current := equipped_slot(uid)
-	if current != "":
-		data["equipped"].erase(current)
-	data["equipped"][slot] = uid
+	eq[slot] = uid
 
 
-static func unequip(slot: String) -> void:
-	data["equipped"].erase(slot)
+static func unequip_from(who: String, slot: String) -> void:
+	equipment_of(who).erase(slot)
 
 
 static func gear_stats() -> Dictionary:
+	return gear_stats_of("player")
+
+
+static func gear_stats_of(who: String) -> Dictionary:
 	var out := {}
-	for s in (data["equipped"] as Dictionary).keys():
-		var it := find_item(str(data["equipped"][s]))
+	var eq := equipment_of(who)
+	for s in eq.keys():
+		var it := find_item(str(eq[s]))
 		if it.is_empty():
 			continue
 		var st := item_stats(it)
@@ -339,7 +392,11 @@ static func gear_stats() -> Dictionary:
 
 
 static func weapon_element() -> String:
-	var uid := str(data["equipped"].get("weapon", ""))
+	return weapon_element_of("player")
+
+
+static func weapon_element_of(who: String) -> String:
+	var uid := str(equipment_of(who).get("weapon", ""))
 	if uid == "":
 		return "physique"
 	return str(base_of(find_item(uid)).get("element", "physique"))
@@ -371,7 +428,7 @@ static func salvage_value(item: Dictionary) -> int:
 
 
 static func salvage(uid: String) -> int:
-	if equipped_slot(uid) != "":
+	if holder_of(uid) != "":
 		return 0
 	var inv: Array = data["inventory"]
 	for i in range(inv.size()):
@@ -413,7 +470,7 @@ static func stars_total() -> int:
 
 
 ## Applique le résultat d'une partie et retourne le détail des récompenses.
-static func apply_battle(level_id: String, victory: bool, stars: int, time: float) -> Dictionary:
+static func apply_battle(level_id: String, victory: bool, stars: int, time: float, present: Array = []) -> Dictionary:
 	var lv := GameData.level(level_id)
 	var gl := int(lv.get("global_level", 1))
 	var zone := str(int(lv.get("zone", 1)))
@@ -455,12 +512,19 @@ static func apply_battle(level_id: String, victory: bool, stars: int, time: floa
 		gold_gain = 0.0
 	data["levels"][level_id] = rec
 	var before := level()
+	# Compagnons : 80 % de l'XP du héros s'ils ont combattu, 30 % s'ils sont restés à Havre-Aube.
+	var comps := {}
+	for who in companions_available():
+		var active := present.has(who)
+		var amount := int(round(xp_gain * (COMPANION_XP_ACTIVE if active else COMPANION_XP_BENCH)))
+		var up := add_companion_xp(who, amount)
+		comps[who] = {"xp": amount, "levels": up, "level": companion_level(who), "active": active}
 	xp_gain *= 1.0 + float(race_mods().get("xp_bonus", 0.0))
 	var gained := add_xp(int(round(xp_gain)))
 	data["gold"] = gold() + int(round(gold_gain))
 	save_local()
 	return {"victory": victory, "first": first, "xp": int(round(xp_gain)), "gold": int(round(gold_gain)),
-		"level_before": before, "level_after": level(), "levels": gained, "items": items, "materials": mats}
+		"level_before": before, "level_after": level(), "levels": gained, "items": items, "materials": mats, "companions": comps}
 
 
 static func _roll(table: Dictionary, rng: RandomNumberGenerator) -> String:
@@ -482,7 +546,15 @@ static func battle_opts() -> Dictionary:
 		"mods": all_mods(), "don": don_info(), "deck": deck() if spell_mode() == "deck" else drawer_spells(), "spell_mode": spell_mode(), "circle": circle(),
 		"player_race": race(), "look": look(), "player_class": player_class(),
 		"loyalty": {"brann": Story.loyalty("brann"), "sylwen": Story.loyalty("sylwen"), "krag": Story.loyalty("krag"), "nyx": Story.loyalty("nyx")},
-		"active": active_companions()}
+		"active": active_companions(), "bots": bots_opts()}
+
+
+## Niveau, classe et équipement de chaque compagnon recruté, pour la simulation.
+static func bots_opts() -> Dictionary:
+	var out := {}
+	for who in companions_available():
+		out[who] = {"level": companion_level(who), "class": companion_class(who), "gear": gear_stats_of(who), "weapon_element": weapon_element_of(who)}
+	return out
 
 
 # ---------------------------------------------------------------- arbre de compétences (Entraînement)
@@ -992,3 +1064,204 @@ static func set_circle(who: String, key: String, value: Variant) -> void:
 		c[key] = value
 	else:
 		(c[who] as Dictionary)[key] = value
+
+
+# ---------------------------------------------------------------- compagnons : niveaux, voies, équipement (étape 13.4)
+
+static func _bot_def(who: String) -> Dictionary:
+	for bd in GameData.party()["bots"]:
+		if str(bd.get("id", "")) == who:
+			return bd
+	return {}
+
+
+## État d'un compagnon (créé au besoin : niveau du héros − 1, classe d'origine, rien d'équipé).
+static func _comp(who: String) -> Dictionary:
+	if not (data.get("companions") is Dictionary):
+		data["companions"] = {}
+	var all: Dictionary = data["companions"]
+	if not (all.get(who) is Dictionary):
+		all[who] = {}
+	var c: Dictionary = all[who]
+	if not c.has("level"):
+		c["level"] = maxi(1, level() - 1)
+	if not c.has("xp"):
+		c["xp"] = 0
+	if not c.has("class"):
+		c["class"] = str(_bot_def(who).get("class", "chevalier"))
+	if not (c.get("equipped") is Dictionary):
+		c["equipped"] = {}
+	return c
+
+
+static func companion_level(who: String) -> int:
+	return clampi(maxi(int(_comp(who)["level"]), level() - COMPANION_FLOOR), 1, int(prog_db()["max_level"]))
+
+
+static func companion_xp(who: String) -> int:
+	var c := _comp(who)
+	return int(c["xp"]) if int(c["level"]) >= companion_level(who) else 0
+
+
+## Ajoute de l'XP à un compagnon et retourne le nombre de niveaux gagnés.
+static func add_companion_xp(who: String, amount: int) -> int:
+	var c := _comp(who)
+	var lv := companion_level(who)
+	if int(c["level"]) < lv:
+		c["level"] = lv
+		c["xp"] = 0
+	var x := int(c["xp"]) + maxi(0, amount)
+	var max_lv := int(prog_db()["max_level"])
+	var gained := 0
+	while lv < max_lv and x >= xp_to_next(lv):
+		x -= xp_to_next(lv)
+		lv += 1
+		gained += 1
+	c["xp"] = x
+	c["level"] = lv
+	return gained
+
+
+static func companion_class(who: String) -> String:
+	return str(_comp(who)["class"])
+
+
+## Change la voie d'un compagnon (Salle de méditation). Son sort passe au premier de sa nouvelle classe.
+static func set_companion_class(who: String, cls: String) -> bool:
+	var ci: Dictionary = (GameData.party()["classes"] as Dictionary).get(cls, {})
+	if ci.is_empty() or not bool(ci.get("playable", false)) or not meditation_unlocked() or _bot_def(who).is_empty():
+		return false
+	_comp(who)["class"] = cls
+	var circ := circle()
+	if circ.get(who) is Dictionary and not companion_spells(who).has(str((circ[who] as Dictionary).get("spell", ""))):
+		(circ[who] as Dictionary)["spell"] = companion_spells(who)[0]
+	return true
+
+
+static func companion_spells(who: String) -> Array[String]:
+	var out: Array[String] = []
+	for sid in CLASS_SPELLS.get(companion_class(who), []):
+		out.append(str(sid))
+	return out
+
+
+static func companion_role(who: String) -> String:
+	var bd := _bot_def(who)
+	if companion_class(who) == str(bd.get("class", "")):
+		return str(bd.get("role", ""))
+	return str(CLASS_ROLES.get(companion_class(who), ""))
+
+
+## Stats d'un compagnon : classe + progression par niveau + race + équipement (mêmes règles que le héros).
+static func companion_stats(who: String) -> Dictionary:
+	var party := GameData.party()
+	var cls: Dictionary = party["classes"].get(companion_class(who), {})
+	var race: Dictionary = party["races"].get(str(_bot_def(who).get("race", "")), {})
+	var l := companion_level(who)
+	var gear := gear_stats_of(who)
+	var out := {}
+	for k in STATS:
+		var b := float((cls.get("base", {}) as Dictionary).get(k, 0))
+		out[k] = b + b / 10.0 * float(l - 1) + float(race.get(k, 0)) + float(gear.get(k, 0))
+	return out
+
+
+static func companion_power(who: String) -> int:
+	var st := companion_stats(who)
+	var total := 0.0
+	for k in STATS:
+		total += float(st[k])
+	return int(round(total * 1.6))
+
+
+# ---------------------------------------------------------------- Salle de méditation (étape 13.4)
+
+## Ouverte à la fin de l'acte 1 (Sylvarche vaincue) : c'est aussi le début des changements de voie (acte 2).
+static func meditation_unlocked() -> bool:
+	return int(level_record("z01_l10")["clears"]) > 0
+
+
+## Changer de voie (classe du héros) à la Salle de méditation. Chaque classe garde son propre arbre.
+static func change_class(c: String) -> bool:
+	if not meditation_unlocked():
+		return false
+	return set_class(c)
+
+
+static func _med() -> Dictionary:
+	if not (data.get("meditation") is Dictionary):
+		data["meditation"] = {}
+	var m: Dictionary = data["meditation"]
+	if not (m.get("configs") is Array):
+		m["configs"] = []
+	while (m["configs"] as Array).size() < CONFIG_SLOTS:
+		(m["configs"] as Array).append({})
+	if not m.has("harmony"):
+		m["harmony"] = 0
+	return m
+
+
+static func configs() -> Array:
+	return _med()["configs"]
+
+
+## Noms des Clés de voûte prises dans l'arbre de la classe actuelle.
+static func keystone_names() -> Array[String]:
+	var out: Array[String] = []
+	for br in tree_db().get("branches", []):
+		for tier in br.get("tiers", []):
+			for node in tier["nodes"]:
+				if str(node.get("kind", "")) == "keystone" and skill_rank(str(node["id"])) > 0:
+					out.append(str(node["name"]))
+	return out
+
+
+## Enregistre la configuration actuelle : classe, arbre, deck et mode de sorts.
+static func save_config(i: int) -> void:
+	if i < 0 or i >= CONFIG_SLOTS:
+		return
+	configs()[i] = {"class": player_class(), "ranks": skill_ranks().duplicate(), "deck": deck().duplicate(), "mode": spell_mode(),
+		"keys": keystone_names(), "points": skill_points_spent()}
+
+
+## Recharge une configuration ; "" si tout va bien, sinon la raison.
+static func load_config(i: int) -> String:
+	if i < 0 or i >= CONFIG_SLOTS:
+		return "Emplacement inconnu"
+	var cfg: Dictionary = configs()[i]
+	if cfg.is_empty():
+		return "Emplacement vide"
+	if str(cfg.get("class", "")) != player_class() and not change_class(str(cfg.get("class", ""))):
+		return "Voie indisponible"
+	var ranks := skill_ranks()
+	ranks.clear()
+	var saved: Dictionary = cfg.get("ranks", {})
+	for id in saved.keys():
+		if not find_node(str(id)).is_empty():
+			ranks[str(id)] = int(saved[id])
+	if skill_points_spent() > skill_points_total():
+		ranks.clear()
+		return "Points de compétence insuffisants"
+	var known := known_spells()
+	var dk: Array = []
+	for sid in cfg.get("deck", []):
+		if known.has(str(sid)) and dk.size() < DECK_MAX:
+			dk.append(str(sid))
+	if not dk.is_empty():
+		_spells_state()["deck"] = dk
+	set_spell_mode(str(cfg.get("mode", spell_mode())))
+	return ""
+
+
+## Harmonie (Sœur Aelis) : méditer fait baisser la Corruption de 5. Coût : 100 or, +50 à chaque séance.
+static func harmony_cost() -> int:
+	return 100 + 50 * int(_med()["harmony"])
+
+
+static func harmony() -> int:
+	var cost := harmony_cost()
+	if Story.value("corruption") <= 0 or gold() < cost:
+		return 0
+	data["gold"] = gold() - cost
+	_med()["harmony"] = int(_med()["harmony"]) + 1
+	return -Story.add_value("corruption", -5)

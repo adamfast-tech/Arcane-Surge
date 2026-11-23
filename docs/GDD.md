@@ -172,5 +172,5 @@ iOS (iPhone 16 Pro Max, iPad), Android, PC (16:9, 16:10).
     - 13.3a ✅ 7 classes jouables : invocation, Champion, Ultime, arme du héros, 2 branches d'arbre et Clés de voûte par classe — [`design/25-classes.md`](design/25-classes.md)
     - 13.3b ✅ Voies du Surge des 6 nouvelles classes : 3ᵉ branche, sort et Clés Aube ou Cendres — [`design/25-classes.md`](design/25-classes.md)
     - 13.3c ✅ animations propres à chaque sort (84 signatures : projectiles, impacts, zones, glyphes) — [`design/26-animations-des-sorts.md`](design/26-animations-des-sorts.md)
-    - 13.4 changement de classe, Salle de méditation, compagnons améliorés
+    - 13.4 ✅ Salle de méditation (Sœur Aelis : voies du héros et des compagnons, 3 configurations, réinitialisation, Harmonie) ; compagnons avec niveau et XP propres, équipement et classe changeable — [`design/27-meditation-compagnons.md`](design/27-meditation-compagnons.md)
 14. Saison 2 : zones 11–15, niveau max 150, L'Ourdisseur (fils semés en saison 1)

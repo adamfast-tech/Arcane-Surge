@@ -2,12 +2,14 @@ class_name EquipmentScreen
 extends Control
 ## Équipement et Forge (concept UI) : puissance et stats, objets équipés avec leur icône,
 ## emplacements vides (un toucher filtre l'inventaire), inventaire avec Équiper, Améliorer, Recycler.
+## Étape 13.4 : le porteur se choisit en haut (toi ou un compagnon recruté).
 
 signal back
 signal changed
 
 var _col: VBoxContainer
 var _filter := "" ## emplacement filtré dans l'inventaire ("" : tout)
+var who := "player" ## porteur : « player » ou l'identifiant d'un compagnon
 
 
 func _ready() -> void:
@@ -33,13 +35,17 @@ func _rebuild() -> void:
 	tv.add_theme_constant_override("separation", 0)
 	_col.add_child(tv)
 	tv.add_child(UiTheme.title("ÉQUIPEMENT", 46, UiTheme.GOLD))
-	tv.add_child(UiTheme.title("& FORGE", 22, UiTheme.TEXT))
+	tv.add_child(UiTheme.title("& FORGE" if who == "player" else "& FORGE · %s" % Dialogues.display_name(who).to_upper(), 22, UiTheme.TEXT))
+	var comps := Profile.companions_available()
+	if not comps.is_empty():
+		_col.add_child(_wearer_tabs(comps))
 	_col.add_child(_stats_card())
 	var db := Profile.items_db()
 	var empty: Array[String] = []
 	var equipped: Array = []
+	var eqd := Profile.equipment_of(who)
 	for slot in db["slot_order"]:
-		var uid := str(Profile.data["equipped"].get(slot, ""))
+		var uid := str(eqd.get(slot, ""))
 		var it := Profile.find_item(uid) if uid != "" else {}
 		if it.is_empty():
 			empty.append(str(slot))
@@ -72,7 +78,7 @@ func _rebuild() -> void:
 		inv_head.add_child(fb)
 	var items: Array = []
 	for it in Profile.data["inventory"]:
-		if Profile.equipped_slot(str(it["uid"])) != "":
+		if Profile.holder_of(str(it["uid"])) != "":
 			continue
 		if _filter != "" and _slot_key(str(Profile.base_of(it).get("slot", ""))) != _slot_key(_filter):
 			continue
@@ -84,26 +90,50 @@ func _rebuild() -> void:
 		_col.add_child(_item_card(it))
 
 
+## Porteur de l'équipement : toi ou un compagnon.
+func _wearer_tabs(comps: Array[String]) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	var list: Array[String] = ["player"]
+	list.append_array(comps)
+	for w in list:
+		var on := w == who
+		var tc := UiTheme.TEAL if w == "player" else Dialogues.color(w)
+		var bt := UiTheme.button("Toi" if w == "player" else Dialogues.display_name(w), 18)
+		bt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		bt.custom_minimum_size = Vector2(0, 52)
+		if on:
+			bt.add_theme_color_override("font_color", tc)
+			bt.add_theme_stylebox_override("normal", UiTheme.box(Color(UiTheme.PANEL2, 0.96), tc, 10, 2, 6))
+		var target := w
+		bt.pressed.connect(func() -> void:
+			who = target
+			_filter = ""
+			_rebuild.call_deferred())
+		row.add_child(bt)
+	return row
+
+
 func _stats_card() -> PanelContainer:
 	var c: Array = UiTheme.card(UiTheme.BORDER, 16)
 	var v: VBoxContainer = c[1]
 	var row := HBoxContainer.new()
 	v.add_child(row)
-	var p := UiTheme.label("Puissance %d" % Profile.power(), 26, UiTheme.GOLD)
+	var p := UiTheme.label("Puissance %d" % (Profile.power() if who == "player" else Profile.companion_power(who)), 26, UiTheme.GOLD)
 	p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(p)
-	var el := Profile.weapon_element()
+	var el := Profile.weapon_element_of(who)
 	var ecol := Color(str(SpriteAtlas.ELEM[el][2])) if SpriteAtlas.ELEM.has(el) else UiTheme.MUTED
 	var info := HBoxContainer.new()
 	info.add_theme_constant_override("separation", 0)
 	row.add_child(info)
-	info.add_child(UiTheme.label("Niveau %d · " % Profile.level(), 19, UiTheme.MUTED))
+	info.add_child(UiTheme.label("Niveau %d · " % (Profile.level() if who == "player" else Profile.companion_level(who)), 19, UiTheme.MUTED))
 	info.add_child(UiTheme.label(str(BattleSim.ELEM_NAMES.get(el, "Physique")), 19, ecol))
 	var grid := GridContainer.new()
 	grid.columns = 5
 	grid.add_theme_constant_override("h_separation", 10)
 	v.add_child(grid)
-	var st := Profile.stats()
+	var st := Profile.stats() if who == "player" else Profile.companion_stats(who)
 	var names: Dictionary = Profile.items_db()["stat_names"]
 	for k in Profile.STATS:
 		var cell := VBoxContainer.new()
@@ -153,7 +183,7 @@ func _equipped_row(slot: String, it: Dictionary) -> PanelContainer:
 	var rm := UiTheme.button("Retirer", 18)
 	rm.custom_minimum_size = Vector2(110, 52)
 	rm.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	rm.pressed.connect(func() -> void: _act(func() -> void: Profile.unequip(slot)))
+	rm.pressed.connect(func() -> void: _act(func() -> void: Profile.unequip_from(who, slot)))
 	h.add_child(rm)
 	return c[0]
 
@@ -215,12 +245,12 @@ func _item_card(it: Dictionary) -> PanelContainer:
 	row.add_theme_constant_override("separation", 8)
 	v.add_child(row)
 	var uid := str(it["uid"])
-	var eq := UiTheme.button("Équiper", 19)
+	var eq := UiTheme.button("Équiper" if who == "player" else "Équiper sur %s" % Dialogues.display_name(who), 19)
 	eq.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	eq.custom_minimum_size = Vector2(0, 52)
 	eq.add_theme_color_override("font_color", UiTheme.GOLD)
 	eq.add_theme_stylebox_override("normal", UiTheme.box(Color(UiTheme.WARM, 0.94), Color(UiTheme.GOLD, 0.8), 12, 2, 8))
-	eq.pressed.connect(func() -> void: _act(func() -> void: Profile.equip(uid)))
+	eq.pressed.connect(func() -> void: _act(func() -> void: Profile.equip_to(who, uid)))
 	row.add_child(eq)
 	var max_up := int(rar.get("max_up", 5))
 	var up := UiTheme.button("Améliorer · %d or" % Profile.upgrade_cost(it) if int(it.get("up", 0)) < max_up else "Niveau max", 18)

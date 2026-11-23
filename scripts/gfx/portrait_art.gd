@@ -59,6 +59,8 @@ static func texture(who: String, mood: String = "neutre") -> Texture2D:
 			_aurele(img, mood)
 		"corvin":
 			_corvin(img, mood)
+		"aelis":
+			_aelis(img, mood)
 		_:
 			return null
 	_outline(img)
@@ -68,7 +70,7 @@ static func texture(who: String, mood: String = "neutre") -> Texture2D:
 
 
 static func has_portrait(who: String) -> bool:
-	return who in ["porteur", "sylwen", "brann", "ancien", "cerf", "sylvarche", "fee", "voix", "krag", "gharok", "prevote", "varg", "nyx", "vesper", "aurele", "corvin"] \
+	return who in ["porteur", "sylwen", "brann", "ancien", "cerf", "sylvarche", "fee", "voix", "krag", "gharok", "prevote", "varg", "nyx", "vesper", "aurele", "corvin", "aelis"] \
 		or ResourceLoader.exists("res://assets/portraits/%s.png" % who)
 
 
@@ -1002,3 +1004,35 @@ static func _corvin(img: Image, mood: String) -> void:
 	_eye(img, 36, 31, 1, mood, Color("6a4a2a"), Color("2a1a14"))
 	_mouth(img, 32, 40, mood, Color("8a5a4a"), Color("3a2020"))
 	_rim(img, 8, 58, 12, 63, Color("c8d8f0"))
+
+
+## Sœur Aelis : gardienne de la Salle de méditation (Ordre de l'Aube). Voile blanc, diadème solaire, regard serein.
+static func _aelis(img: Image, mood: String) -> void:
+	var skin := _ramp(["b88a72", "e2b89c", "f8dcc4"])
+	var veil := _ramp(["9a96a8", "d0ccdc", "eeeaf6", "ffffff"])
+	var robe := _ramp(["6a5a3a", "a8905a", "d8c08a", "f2e2b8"])
+	var gold := _ramp(["8a6a28", "c89a3a", "f2c46b", "fff0b0"])
+	_poly(img, PackedVector2Array([Vector2(3, 64), Vector2(7, 50), Vector2(19, 44), Vector2(45, 44), Vector2(57, 50), Vector2(61, 64)]), robe)
+	# Étole dorée.
+	_poly(img, PackedVector2Array([Vector2(24, 64), Vector2(26, 47), Vector2(30, 47), Vector2(29, 64)]), gold)
+	_poly(img, PackedVector2Array([Vector2(35, 64), Vector2(34, 47), Vector2(38, 47), Vector2(40, 64)]), gold)
+	# Voile qui tombe sur les épaules.
+	_poly(img, PackedVector2Array([Vector2(11, 58), Vector2(13, 34), Vector2(18, 20), Vector2(32, 12), Vector2(46, 20), Vector2(51, 34), Vector2(53, 58),
+		Vector2(44, 50), Vector2(20, 50)]), veil)
+	_ellipse(img, 32.0, 33.0, 10.0, 12.0, skin)
+	# Guimpe blanche sur le front.
+	_poly(img, PackedVector2Array([Vector2(21, 27), Vector2(22, 21), Vector2(32, 18), Vector2(42, 21), Vector2(43, 27), Vector2(38, 24), Vector2(26, 24)]), veil, 0.3)
+	# Diadème solaire.
+	_ellipse(img, 32.0, 21.0, 2.4, 2.4, gold)
+	for d in [Vector2i(0, -4), Vector2i(-4, 0), Vector2i(4, 0), Vector2i(-3, -3), Vector2i(3, -3)]:
+		_px(img, 32 + d.x, 21 + d.y, Color("f2c46b"))
+	_brow(img, 26, 28, -1, mood, Color("a08060"))
+	_brow(img, 37, 28, 1, mood, Color("a08060"))
+	_eye(img, 25, 30, -1, mood, Color("4a8a5a"), Color("3a2a2a"))
+	_eye(img, 36, 30, 1, mood, Color("4a8a5a"), Color("3a2a2a"))
+	_px(img, 32, 35, Color("c8907a"))
+	_mouth(img, 32, 39, "joie" if mood == "neutre" else mood, Color("a85a5a"), Color("4a2a2a"))
+	# Pendentif solaire.
+	_glow(img, 32, 55, 4, Color("f2c46b"), 0.35)
+	_ellipse(img, 32.0, 55.0, 2.0, 2.0, gold)
+	_rim(img, 3, 61, 12, 63, Color("fff6d8"))

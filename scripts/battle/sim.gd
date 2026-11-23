@@ -613,6 +613,15 @@ func _setup_casters(party: Dictionary, opts: Dictionary = {}) -> void:
 		var bdd: Dictionary = (bd as Dictionary).duplicate()
 		if opts.has("bot_level"):
 			bdd["level"] = int(opts["bot_level"])
+		# Progression propre du compagnon (étape 13.4) : niveau, voie (classe) et équipement.
+		var mine_bot: Dictionary = (opts.get("bots", {}) as Dictionary).get(str(bd.get("id", "")), {})
+		var bot_gear: Dictionary = mine_bot.get("gear", {})
+		if mine_bot.has("level"):
+			bdd["level"] = int(mine_bot["level"])
+		if mine_bot.has("class") and classes.has(str(mine_bot["class"])):
+			bdd["class"] = str(mine_bot["class"])
+		if mine_bot.has("weapon_element"):
+			bdd["weapon_element"] = str(mine_bot["weapon_element"])
 		# Réglages du Cercle : ordre par défaut, sort emporté, côtés échangés, amitié.
 		var circ: Dictionary = opts.get("circle", {})
 		var mine: Dictionary = circ.get(str(bd.get("id", "")), {})
@@ -620,7 +629,7 @@ func _setup_casters(party: Dictionary, opts: Dictionary = {}) -> void:
 			bdd["order"] = str(mine["order"])
 		if mine.has("spell") and spells_db.has(str(mine["spell"])):
 			bdd["spells"] = [str(mine["spell"])]
-		var c := _make_caster(casters.size(), bdd, classes, races)
+		var c := _make_caster(casters.size(), bdd, classes, races, bot_gear)
 		c.is_bot = true
 		c.side = str(bd.get("side", "left"))
 		if chosen.size() == 2:

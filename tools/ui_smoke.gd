@@ -160,6 +160,89 @@ func _classes_ok() -> bool:
 	return true
 
 
+## Salle de méditation et compagnons (étape 13.4), sur une copie de la progression restaurée ensuite.
+func _meditation_ok() -> bool:
+	var keep: Dictionary = Profile.data.duplicate(true)
+	var locked_before := not Profile.meditation_unlocked()
+	var refused := not Profile.change_class("chevalier")
+	Profile.data["levels"]["z01_l10"] = {"stars": 1, "best": 200.0, "clears": 1}
+	Profile.data["player"]["level"] = maxi(30, Profile.level())
+	Profile.data["gold"] = 5000
+	var opened := Profile.meditation_unlocked()
+	# Voies : chaque classe garde son arbre ; configurations enregistrées puis rechargées.
+	Profile.skill_ranks().clear()
+	var inv_m := Profile.invest("combustion")
+	var to_chev := Profile.change_class("chevalier")
+	var chev_empty := Profile.skill_points_spent() == 0
+	var inv_c := Profile.invest("armure_lourde")
+	Profile.save_config(0)
+	Profile.change_class("mage")
+	var mage_kept := Profile.skill_rank("combustion") == 1
+	Profile.change_class("chevalier")
+	Profile.reset_skills()
+	var err := Profile.load_config(0)
+	var cfg_ok := err == "" and Profile.player_class() == "chevalier" and Profile.skill_rank("armure_lourde") == 1
+	Profile.change_class("mage")
+	# Harmonie : −5 Corruption pour 100 or.
+	Story.add_value("corruption", 20 - Story.value("corruption"))
+	var g0 := Profile.gold()
+	var removed := Profile.harmony()
+	var harm_ok := removed == 5 and Story.value("corruption") == 15 and g0 - Profile.gold() == 100
+	print("méditation : fermée avant l'acte 2 ", locked_before and refused, " · ouverte ", opened, " · Mage ", inv_m, " -> Chevalier ", to_chev, " (arbre vierge ", chev_empty, ", ", inv_c,
+		") · arbre du Mage gardé ", mage_kept, " · configuration ", cfg_ok, " · Harmonie −", removed)
+	if not (locked_before and refused and opened and inv_m and to_chev and chev_empty and inv_c and mage_kept and cfg_ok and harm_ok):
+		push_error("Salle de méditation incorrecte")
+		return false
+	# Compagnons : XP 80 % en combat, 30 % à Havre-Aube ; équipement ; changement de voie.
+	var r := Profile.apply_battle("z01_l03", true, 3, 60.0, ["brann"])
+	var cr: Dictionary = r.get("companions", {})
+	var xp_ok: bool = cr.has("brann") and cr.has("sylwen") and bool(cr["brann"]["active"]) and not bool(cr["sylwen"]["active"]) \
+		and int(cr["brann"]["xp"]) > int(cr["sylwen"]["xp"]) * 2
+	var it := Profile.make_item("baton_chene", "rare", 10, RandomNumberGenerator.new())
+	(Profile.data["inventory"] as Array).append(it)
+	var uid := str(it["uid"])
+	var pg := Profile.gear_stats().duplicate()
+	Profile.equip_to("brann", uid)
+	var on_brann := Profile.holder_of(uid) == "brann" and not Profile.gear_stats_of("brann").is_empty() and Profile.gear_stats() == pg
+	Profile.equip_to("player", uid)
+	var moved := Profile.holder_of(uid) == "player" and Profile.equipment_of("brann").is_empty()
+	Profile.equip_to("brann", uid)
+	var cls_ok := Profile.set_companion_class("brann", "clerc") and Profile.companion_spells("brann")[0] == "priere" \
+		and str((Profile.circle()["brann"] as Dictionary).get("spell", "")) == "priere"
+	var sim := BattleSim.new()
+	sim.setup(GameData.level("z01_l05"), GameData.party(), 5, Profile.battle_opts())
+	var bot: BattleSim.Caster = null
+	for c in sim.casters:
+		if c.id == "brann":
+			bot = c
+	var sim_ok := bot != null and bot.class_id == "clerc" and bot.familiar == "familiar_acolyte" and bot.level == Profile.companion_level("brann") \
+		and bot.spells.has("priere") and float(bot.stats["pou"]) > 0.0
+	sim.terrain.sim = null
+	print("compagnons : XP Brann ", cr.get("brann", {}).get("xp", 0), " (combat) / Sylwen ", cr.get("sylwen", {}).get("xp", 0), " (Havre-Aube) · équipement ", on_brann, "/", moved,
+		" · Brann en Clerc ", cls_ok, " · en combat ", sim_ok, " (niv. ", bot.level if bot != null else -1, ", ", bot.familiar if bot != null else "", ")")
+	if not (xp_ok and on_brann and moved and cls_ok and sim_ok):
+		push_error("progression des compagnons incorrecte")
+		return false
+	# Écrans : Méditation, équipement d'un compagnon, Cercle.
+	main.call("_show_room", "meditation")
+	await _frames(3)
+	var med_ok := _screen() is MeditationScreen
+	main.call("_show_equipment", "brann", true)
+	await _frames(3)
+	var eq_ok := _screen() is EquipmentScreen and (_screen() as EquipmentScreen).who == "brann"
+	main.call("_show_room", "circle")
+	await _frames(3)
+	var circ_ok := _screen() is CircleScreen
+	print("écrans : Méditation ", med_ok, " · équipement de Brann ", eq_ok, " · Cercle ", circ_ok)
+	Profile.data = keep
+	main.call("_show_hub")
+	await _frames(3)
+	if not (med_ok and eq_ok and circ_ok):
+		push_error("écrans de la Salle de méditation ou des compagnons incorrects")
+		return false
+	return true
+
+
 func _run() -> void:
 	Profile.save_path = "user://smoke_save.json"
 	if FileAccess.file_exists(Profile.save_path):
@@ -206,6 +289,9 @@ func _run() -> void:
 		quit(1)
 		return
 	if not _classes_ok():
+		quit(1)
+		return
+	if not await _meditation_ok():
 		quit(1)
 		return
 	# Animations : chaque sort a sa signature déclarée dans SpellSig (scripts/battle/spell_sig.gd).

@@ -20,6 +20,14 @@ func _ready() -> void:
 		# Aperçu d'une scène de dialogue (« ?scene=z01_l10_outro »).
 		_show_dialogue([scene], _boot)
 		return
+	var room := str(_query().get("room", ""))
+	if room in ["meditation", "circle", "skills", "library"]:
+		# Aperçu d'une salle (« ?room=meditation »), sans passer par l'écran de chargement.
+		_show_room(room)
+		return
+	if room == "equipment":
+		_show_equipment(str(_query().get("who", "player")))
+		return
 	var direct := _level_from_url()
 	if direct != "":
 		var extra := {"healed": true} if _url_flag("healed") else {}
@@ -171,6 +179,7 @@ func _show_hub() -> void:
 	h.open_skills.connect(_show_room.bind("skills"))
 	h.open_library.connect(_show_room.bind("library"))
 	h.open_circle.connect(_show_room.bind("circle"))
+	h.open_meditation.connect(_show_room.bind("meditation"))
 	h.play_level.connect(func(id: String) -> void: _play(id, false, true))
 	_set_screen(h)
 
@@ -198,7 +207,7 @@ func _show_map() -> void:
 	_set_screen(m)
 
 
-## Salles de Havre-Aube : Entraînement (arbre), Bibliothèque (deck), Cercle (compagnons).
+## Salles de Havre-Aube : Entraînement (arbre), Bibliothèque (deck), Cercle (compagnons), Méditation.
 func _show_room(which: String) -> void:
 	var s: Control
 	match which:
@@ -206,8 +215,12 @@ func _show_room(which: String) -> void:
 			s = SkillTreeScreen.new()
 		"library":
 			s = LibraryScreen.new()
+		"meditation":
+			s = MeditationScreen.new()
 		_:
-			s = CircleScreen.new()
+			var cs := CircleScreen.new()
+			cs.open_equipment.connect(func(who: String) -> void: _show_equipment(who, true))
+			s = cs
 	s.connect("back", _show_hub)
 	_set_screen(s)
 
@@ -219,9 +232,14 @@ func _show_save() -> void:
 	_set_screen(s)
 
 
-func _show_equipment() -> void:
+## Équipement : du héros (depuis Havre-Aube) ou d'un compagnon (depuis le Cercle, qui reprend au retour).
+func _show_equipment(who: String = "player", from_circle: bool = false) -> void:
 	var e := EquipmentScreen.new()
-	e.back.connect(_show_hub)
+	e.who = who
+	if from_circle:
+		e.back.connect(_show_room.bind("circle"))
+	else:
+		e.back.connect(_show_hub)
 	_set_screen(e)
 
 

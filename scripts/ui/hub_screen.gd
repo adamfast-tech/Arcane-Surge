@@ -10,6 +10,7 @@ signal open_save
 signal open_skills
 signal open_library
 signal open_circle
+signal open_meditation
 signal play_level(level_id: String)
 signal open_mirror
 
@@ -55,16 +56,27 @@ func _ready() -> void:
 			zname = str(z["name"])
 	grid.add_child(_tile("map", "CARTE DU MONDE", zname, "Zone %d · %d / %d étoiles" % [zid, Profile.stars_total(), total], func() -> void: open_map.emit()))
 	grid.add_child(_tile("baton_chene", "ÉQUIPEMENT", "Équipement & Forge", "Puissance %d · %d objets" % [Profile.power(), (Profile.data["inventory"] as Array).size()], func() -> void: open_equipment.emit()))
-	# Salles : Entraînement (arbre), Bibliothèque (deck), Cercle (compagnons).
+	# Salles : Entraînement (arbre), Bibliothèque (deck), Cercle (compagnons), Méditation (voies, Harmonie).
 	var rooms := GridContainer.new()
-	rooms.columns = 3
+	rooms.columns = 2
 	rooms.add_theme_constant_override("h_separation", 10)
 	rooms.add_theme_constant_override("v_separation", 10)
 	col.add_child(rooms)
 	var free := Profile.skill_points_free()
 	rooms.add_child(_small_tile("target", "ENTRAÎNEMENT", "%d point%s" % [free, "s" if free > 1 else ""], UiTheme.GOLD if free > 0 else UiTheme.MUTED, func() -> void: open_skills.emit()))
 	rooms.add_child(_small_tile("book", "BIBLIOTHÈQUE", "Deck %d / %d" % [Profile.deck().size(), Profile.DECK_MAX], UiTheme.MUTED, func() -> void: open_library.emit()))
-	rooms.add_child(_small_tile("circle", "LE CERCLE", "Brann %d · Sylwen %d" % [Story.loyalty("brann"), Story.loyalty("sylwen")], UiTheme.MUTED, func() -> void: open_circle.emit()))
+	var crew: Array[String] = []
+	for who in Profile.active_companions():
+		crew.append("%s niv. %d" % [Dialogues.display_name(who), Profile.companion_level(who)])
+	rooms.add_child(_small_tile("circle", "LE CERCLE", " · ".join(crew), UiTheme.MUTED, func() -> void: open_circle.emit()))
+	var med_open := Profile.meditation_unlocked()
+	var cor := Story.value("corruption")
+	var med := _small_tile("moon", "MÉDITATION", ("Voies · Corruption %d" % cor if cor > 0 else "Voies · configurations") if med_open else "Fin de l'acte 1",
+		Color("D93CF2") if med_open and cor > 0 else UiTheme.MUTED, func() -> void: open_meditation.emit())
+	med.disabled = not med_open
+	if not med_open:
+		med.modulate = Color(1, 1, 1, 0.6)
+	rooms.add_child(med)
 	col.add_child(UiTheme.section("Prochainement"))
 	var soon := GridContainer.new()
 	soon.columns = 2
