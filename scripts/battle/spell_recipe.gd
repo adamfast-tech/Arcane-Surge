@@ -16,7 +16,7 @@ var fx: SpellFx
 var _rng := RandomNumberGenerator.new()
 
 const PHASE_KEY := {"spell": "cast", "explosion": "hit", "wave": "hit", "ring": "hit", "rally": "hit", "shield": "hit",
-	"trap": "trap", "ground": "set", "puff": "pop", "column": "col", "lightning": "chain", "pillar": "pure",
+	"trap": "trap", "ground": "set", "puff": "pop", "column": "col", "lightning": "chain", "pillar": "pure", "wall": "hit",
 	"rain": "zone", "roots": "zone", "vortex": "zone", "blaze": "zone", "storm": "zone", "zonefx": "zone"}
 
 
@@ -73,6 +73,8 @@ func play(ph: String, e: Dictionary, v: Dictionary) -> bool:
 				ctx["pos"] = e.get("from", Vector2(4.5, 1.0))
 				ctx["pts"] = e.get("pts", [])
 				ctx["r"] = 2.0
+			elif ph == "wall":
+				ctx["r"] = float(e.get("hw", 1.3))
 			ctx["dur"] = maxf(0.6, float(e.get("dur", 0.8))) if ph != "rally" else 1.2
 		"pop":
 			ctx["r"] = 0.5

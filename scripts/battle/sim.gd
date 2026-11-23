@@ -2484,6 +2484,7 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 				"ally_shield": float(sp.get("ally_shield", 0.0)) * c.hp_mult, "ally_heal": float(sp.get("ally_heal", 0.0)),
 				"c": c.idx, "spawn": str(sp.get("spawn", "")), "spawn_every": float(sp.get("spawn_every", 2.0)), "spawn_acc": 0.0,
 				"raise": bool(sp.get("raise", false)), "life": float(sp.get("life", 0.0)),
+				"ally_atk": float(sp.get("ally_atk", 0.0)),
 				"elem": str(sp.get("element", "")), "slow": zslow, "pull": float(sp.get("pull", 0.0)),
 				"stack_every": float(sp.get("stack_every", 0.0)), "stack_acc": 0.0})
 			_event({"t": str(sp.get("fx", "rain")), "pos": at, "r": zr, "dur": dur, "color": col})
@@ -2883,6 +2884,12 @@ func _update_zones() -> void:
 				z["spawn_acc"] = 0.0
 				var sp_pos: Vector2 = pos + Vector2.from_angle(rng.randf() * TAU) * sqrt(rng.randf()) * float(z["r"]) * 0.8
 				_raise_unit(str(z["spawn"]), int(z["c"]), sp_pos, float(z["life"]))
+		if float(z.get("ally_atk", 0.0)) > 0.0:
+			# Étendards : les invocations proches de la bannière frappent plus fort.
+			for a: Unit in _query(_grid_a, pos, float(z["r"])):
+				if a.alive:
+					a.buff_t = maxf(a.buff_t, 0.25)
+					a.buff_atk = maxf(a.buff_atk, float(z["ally_atk"]))
 		if float(z.get("ally_heal", 0.0)) > 0.0:
 			# Sanctuaires : les invocations dans la zone regagnent une part de leurs PV chaque seconde.
 			for a: Unit in _query(_grid_a, pos, float(z["r"])):

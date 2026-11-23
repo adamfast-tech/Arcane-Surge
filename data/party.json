@@ -93,7 +93,7 @@
       "desc": "Rempart et charge : fantassins solides, Barrière renforcée.",
       "playable": true,
       "champion": "champion_paladin",
-      "ultimate": "rempart_sacre",
+      "ultimate": "rempart_sacre", "disciplines": [{"id": "bouclier", "name": "Boucliers", "icon": "pavois", "color": "C8D0E0", "desc": "Boucliers de Barrière et d'invocations."}, {"id": "charge", "name": "Charges", "icon": "coup_bouclier", "color": "C8A070", "desc": "Charges et coups de bouclier qui repoussent loin."}, {"id": "etendard", "name": "Étendards", "icon": "fanion", "color": "6FA8E8", "desc": "Bannières plantées : les invocations proches frappent plus fort."}, {"id": "forteresse", "name": "Forteresse", "icon": "palissade", "color": "A8743A", "desc": "Palissades, herses, murailles et pieux."}, {"id": "ordre", "name": "Ordre", "icon": "ecuyers", "color": "C8A070", "desc": "Écuyers, arbalétriers, cavaliers, paladins."}, {"id": "justice", "name": "Justice", "icon": "frappe_juste", "color": "F2E28B", "desc": "Marteaux, lances et épées bénis : la Lumière frappe."}, {"id": "defi", "name": "Défi", "icon": "provocation", "color": "E86A3A", "desc": "Provocations : attirer, marquer et affaiblir l'ennemi."}, {"id": "serment", "name": "Serments", "icon": "serment_vaillance", "color": "D8B048", "desc": "Serments : dégâts, boucliers et riposte pour les invocations."}],
       "effect_mult": 1.0,
       "player_familiar": "familiar_templar"
     },

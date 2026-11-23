@@ -411,6 +411,11 @@ const SPRITES := {
 	"fly": ["K.K", ".K.", "KCK"],
 	"vial": [".KK.", ".KK.", "KLLK", "KCCK", "KCDK", ".KK."],
 	"claw": ["K.K.K", "KCKCK", "KCKCK", ".KCK.", ".KCK.", "..K.."],
+	# Grimoire du Chevalier.
+	"banner": ["K......", "KCCCCK.", "KCLLCK.", "KCLWCK.", "KCLLCK.", "KCCCK..", "KCK....", "Kw.....", "Kw.....", "Kw.....", "Kw.....", "KK....."],
+	"helm": [".KKKKK.", "KLLWLLK", "KLCCCLK", "KKKCKKK", "KCKCKCK", "KCCCCCK", ".KKKKK."],
+	"hammer": ["KKKKKKK", "KLLWLLK", "KCCCCCK", "KKKwKKK", "...w...", "...w...", "...w...", "...w...", "...w...", "..KwK..", "...K..."],
+	"horse": ["........KK..", ".......KCLK.", "KK....KCCCK.", "KCKKKKCCCK..", ".KCCCCCCCK..", ".KCCCCCCK...", ".KCK..KCK...", ".KK...KK...."],
 	"falcon": ["K.........K", "KCK.....KCK", ".KCKK.KKCK.", "..KCCLCCK..", "...KCWCK...", "....KyK....", ".....K....."],
 }
 const FIXED := {"K": "120e1a", "b": "e8dcc0", "B": "a89c80", "e": "1a0f0a", "g": "8a7a60", "G": "b8a888", "h": "5a4a3a",

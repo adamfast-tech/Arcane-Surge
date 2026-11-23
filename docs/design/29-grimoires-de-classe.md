@@ -130,6 +130,37 @@ Les sorts de l'arbre (Horde, Malédiction de masse, Sacrifice d'âmes) restent �
   - Abomination.
 - **Nouveaux sprites d'animation** : cercueil, mouche, fiole, griffe.
 
+## Chevalier : 60 techniques, 8 disciplines
+
+| Discipline | Novice | Intermédiaire | Apprenti | Mage | Maître | Archimage | Interdit |
+|---|---|---|---|---|---|---|---|
+| **Boucliers** | Pavois | Mur de boucliers | Bastion | Égide du croisé | Citadelle | Rempart inviolable | Dernier bastion |
+| **Charges** | Coup de bouclier | Charge de cavalerie | Charge lourde | Charge brisante | Charge héroïque | Galop de fer | Charge des damnés |
+| **Étendards** | Fanion | Étendard de guerre | Bannière sacrée | Étendard royal | Oriflamme | Étendard de la victoire | Étendard noir |
+| **Forteresse** | Palissade | Herse | Rempart, Rangée de pieux | Muraille | Donjon | Forteresse | Citadelle éternelle |
+| **Ordre** | Écuyers | Arbalétriers | Cavalier | Paladin, Phalange | Compagnie de croisés | Ost royal | Roi déchu |
+| **Justice** | Frappe juste, Lance bénie | Marteau sacré | Lame de justice | Châtiment du croisé | Marteau du ciel | Croisade | Ire du croisé |
+| **Défi** | Provocation | Défi, Ruée | Cri de défi | Provocation de masse | Ultimatum | Duel royal | Défi à la mort |
+| **Serments** | Serment de vaillance | Serment de protection | Serment de fer | Serment d'honneur | Serment éternel | Serment du roi | Serment de sang |
+
+Les sorts de l'arbre (Bouclier levé, Charge, Cercle runique) restent à part. Ils se débloquent par l'arbre du Chevalier.
+
+**Mécaniques ajoutées pour le Chevalier :**
+- **Étendards** (`ally_atk`) : tant qu'elles restent près de la bannière, les invocations frappent plus fort. Une bannière peut aussi soigner, protéger, ou brûler l'ennemi (Oriflamme).
+- **Murs du grimoire** :
+  - palissade, herse, rempart, muraille, donjon, forteresse ;
+  - ils ont leur propre animation (`wall`) ;
+  - un mur peut aussi porter un renfort (Citadelle éternelle).
+- **Provocations** : des zones qui attirent les ennemis vers le point visé (`pull`), avec marque et affaiblissement.
+- **Étourdissement** (`stun`) sur les marteaux.
+- **L'Ordre** :
+  - Écuyer ;
+  - Arbalétrier (à distance) ;
+  - Cavalier (rapide) ;
+  - Paladin (aura de soin) ;
+  - Roi déchu.
+- **Nouveaux sprites d'animation** : bannière, heaume, marteau, cheval.
+
 ## Nouvelles mécaniques
 
 Ces mécaniques servent à tous les grimoires de classe.
@@ -269,6 +300,27 @@ Réglages en cours de route :
 
 Le sacrifice (Récolte, Transfusion, Moisson) se vise sur ses propres invocations : l'IA, le smoke test et `cast_all.gd` le lancent là où elles se trouvent.
 
+### Chevalier
+
+| Niveau | Deck | Victoires | Durée | Barrière |
+|---|---|---|---|---|
+| 1-5 | Novice et Intermédiaire : Coup de bouclier, Fanion, Écuyers, Frappe juste, Lance bénie, Charge de cavalerie, Arbalétriers | 3/3 | 94 s | 81 % |
+| 2-10 (Gharok) | Apprenti et Mage : Charge lourde, Bannière sacrée, Cavalier, Lame de justice, Châtiment du croisé, Paladin, Serment d'honneur | 3/3 | 257 s | 90 % |
+| 2-10 (Gharok) | Deck de base (élémentaire) | 3/3 | 277 s | 89 % |
+| 4-6 | Maître et Archimage, sorts de dégâts en tête : Croisade, Galop de fer, Marteau du ciel, Charge héroïque, Compagnie de croisés, Oriflamme, Serment éternel | 3/3 | 128 s | 99 % |
+| 4-6 | Les mêmes sorts, Charge héroïque en tête | 2/3 | 223 s | 66 % |
+| 4-6 | Deck de base (élémentaire) | 2/3 | 169 s | 66 % |
+
+L'ordre du deck compte pour l'IA, qui dépense son mana dans les premiers sorts prêts.
+
+Réglages en cours de route :
+- Palissade réduite ;
+- Cavalier seul, et un peu moins fort ;
+- Ost royal avec un seul paladin ;
+- Oriflamme et Étendard noir brûlent moins ;
+- épées de la Croisade moins fortes ;
+- Dernier bastion : +140.
+
 ## Suite
 
-Les grimoires des 2 autres classes suivent, une classe à la fois : Chevalier, Berserker. Chacun aura environ 60 techniques en 8 disciplines.
+Le grimoire du Berserker suit : environ 60 techniques en 8 disciplines.

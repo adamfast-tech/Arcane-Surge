@@ -177,7 +177,8 @@ iOS (iPhone 16 Pro Max, iPad), Android, PC (16:9, 16:10).
         - ✅ Épéiste : 60 techniques (Taille, Estoc, Danse, Garde, Spectres, Tempête, Saignée, Acier), saignement, riposte et vol de vie en renfort, lames spectrales
         - ✅ Clerc : 60 techniques (Soins, Châtiment, Bénédictions, Sanctuaires, Purification, Anges, Rayons, Égides), soins de Barrière sur la durée, zones qui soignent les invocations, anges
         - ✅ Nécromancien : 60 techniques (Os, Morts-vivants, Maléfices, Fléaux, Âmes, Ténèbres, Sang, Nécropole), affaiblissement, cimetières, morts relevés, sacrifices qui soignent
-        - Chevalier, Berserker : à venir, une classe à la fois
+        - ✅ Chevalier : 60 techniques (Boucliers, Charges, Étendards, Forteresse, Ordre, Justice, Défi, Serments), étendards qui renforcent les invocations, murs, provocations, l'Ordre
+        - Berserker : à venir
     - 13.4 ✅ Salle de méditation (Sœur Aelis : voies du héros et des compagnons, 3 configurations, réinitialisation, Harmonie) ; compagnons avec niveau et XP propres, équipement et classe changeable — [`design/27-meditation-compagnons.md`](design/27-meditation-compagnons.md)
 14. Acte 4 :
     - 14.1 ✅ zone 4 jouable, Pics Gelés : 10 niveaux (31 à 40), bêtes des montagnes et élémentaires de givre, glace qui fait glisser, avalanches, Portes naines FORGE, Sentinelle runique et Colosse runique (runes corporelles) — [`design/28-zone4.md`](design/28-zone4.md)

@@ -49,7 +49,7 @@ const RECIPE_LAYERS := ["rain", "drop", "rise", "ring", "orbit", "fling", "flutt
 const RANK_COUNTS := {"novice": 9, "intermediaire": 9, "apprenti": 9, "mage": 9, "maitre": 8, "archimage": 8, "interdit": 8}
 
 
-const GRIMOIRES := ["archer", "epeiste", "clerc", "necromancien"] ## classes dont le grimoire est écrit (60 techniques chacune)
+const GRIMOIRES := ["archer", "epeiste", "clerc", "necromancien", "chevalier"] ## classes dont le grimoire est écrit (60 techniques chacune)
 
 
 func _grimoire_ok() -> bool:

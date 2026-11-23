@@ -953,6 +953,7 @@ static func spell_power(id: String) -> int:
 				p += d / maxf(0.3, float(sp.get("spawn_every", 2.0))) * uv * (2.0 if str(su.get("role", "")) == "elite" else 1.0)
 			if bool(sp.get("raise", false)):
 				p += d * 4.0 * a
+			p += float(sp.get("ally_atk", 0.0)) * d * 30.0 * minf(a, 2.5)
 		"chain":
 			var f := float(sp.get("falloff", 0.8))
 			for k in range(int(sp.get("bounces", 5))):

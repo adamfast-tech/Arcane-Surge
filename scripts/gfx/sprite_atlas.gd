@@ -25,6 +25,7 @@ const HEIGHT_M := {
 	"champion_ranger": 1.6, "champion_blademaster": 1.55, "champion_guardian": 1.6, "champion_bone": 1.7, "champion_paladin": 1.6, "champion_warlord": 1.75, "duelist": 0.72,
 	"bog_zombie": 0.72, "plague_rat": 0.42, "slime_abomination": 1.0, "spitting_toad": 0.5, "shield_skeleton": 0.74, "renegade_adept": 0.82, "mist_witch": 0.86, "croc_lich": 1.4, "hydra": 2.9, "hydra_head": 1.2, "barge": 1.2,
 	"blade_dancer": 0.72, "ronin": 1.2, "sword_guard": 1.05, "blade_master_ghost": 1.45, "flying_sword": 0.5,
+	"squire": 0.72, "crossbowman": 0.6, "cavalier": 0.8, "holy_paladin": 1.5, "fallen_king": 1.7,
 	"skeleton_archer": 0.7, "ghoul": 0.72, "wraith": 0.86, "bone_golem": 1.1, "death_knight": 0.9, "lich": 1.0, "abomination": 1.3,
 	"holy_wisp": 0.55, "cherub": 0.55, "seraph": 1.0, "archangel": 1.6, "crystal_guardian": 1.1,
 	"beast_wolf": 0.55, "beast_alpha": 0.8, "beast_bear": 0.95, "beast_void": 1.15, "beast_stag": 1.3, "beast_falcon": 0.42, "baliste": 0.85,
@@ -1910,6 +1911,12 @@ const DEFS := {
 	"death_knight": {"base": "shield_skeleton", "pal": {"o": "0a080e", "b": "5a5a6a", "e": "ff3a3a", "n": "3a3a4a", "W": "2a2030", "w": "1a1420", "R": "d93cf2"}},
 	"lich": {"base": "renegade_adept", "pal": {"o": "0a0e10", "h": "1a2a2a", "H": "3a4a4a", "s": "c8d8c8", "e": "6fdc8a", "p": "3a6a5a", "P": "a8f0c8"}},
 	"abomination": {"base": "slime_abomination", "pal": {"o": "180e18", "v": "8a4a6a", "V": "b86a8a", "e": "f03a3a", "m": "3a1a2a", "w": "e8c8d8", "B": "d88aa8"}},
+	# Grimoire du Chevalier : l'Ordre.
+	"squire": {"base": "knight", "pal": {"o": "1a120a", "d": "5a3a1a", "m": "8a5a2b", "l": "c8a070", "s": "b8a888", "S": "7a6a5a", "k": "3a2e2a", "b": "7a5230", "B": "d8b048"}},
+	"crossbowman": {"base": "slinger", "pal": {"o": "1a140e", "h": "7a849c", "H": "c8d0e0", "s": "e0a882", "e": "2a1a1a", "t": "8a6a3a", "b": "3a2a1a", "c": "c8b890", "l": "4a3a2a", "/": "8a5a2b", "|": "8a5a2b"}},
+	"cavalier": {"base": "wolf_rider", "pal": {"o": "16120e", "w": "8a5a2b", "W": "a8743a", "n": "3a2a1a", "e": "1a0f0a", "g": "c8d0e0", "G": "e8eef8", "x": "d8b048", "r": "7a5230", "k": "e8eef8"}},
+	"holy_paladin": {"base": "champion_paladin", "pal": {"o": "3a2a08", "d": "b89a3a", "m": "f5e7a0", "l": "fffbe8", "S": "c8a040", "s": "fff0c0", "b": "ffffff"}},
+	"fallen_king": {"base": "champion_paladin", "pal": {"o": "0a0610", "d": "2a1a3a", "m": "5a3a8a", "l": "b07cff", "S": "3a2a4a", "s": "8e62e0", "b": "f2c46b"}},
 	"white_wolf": {"pal": {"o": "1a1a24", "w": "e8ecf0", "W": "b8c0cc", "e": "4fe3d2", "n": "2a2a30"}, "frames": [[
 		"..............",
 		"oo............",
