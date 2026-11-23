@@ -224,6 +224,20 @@ static func backdrop(parent: Control, dim: float = 0.62, fade: float = 0.0, mood
 		parent.add_child(amb)
 
 
+## Change l'ambiance d'un écran déjà construit (carte : une ambiance par zone).
+static func set_mood(parent: Control, mood: String) -> void:
+	for ch in parent.get_children():
+		if ch is Ambience and (ch as Ambience).mood != mood:
+			var amb := Ambience.new()
+			amb.mood = mood
+			amb.art = (ch as Ambience).art
+			var at := ch.get_index()
+			ch.queue_free()
+			parent.add_child(amb)
+			parent.move_child(amb, at)
+			return
+
+
 ## Colonne centrée et défilante (largeur max 680 px) ; retourne le conteneur où ajouter le contenu.
 static func scroll_column(parent: Control, max_w: float = 680.0, top: float = 24.0, center_v: bool = false) -> VBoxContainer:
 	# Écran reconstruit (ex. après un clic) : on garde la position de défilement de l'ancienne liste.

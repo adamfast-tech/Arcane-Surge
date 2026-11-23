@@ -23,7 +23,7 @@ var _account_btn: Button
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	UiTheme.backdrop(self, 0.28, 0.94, "dawn")
+	UiTheme.backdrop(self, 0.28, 0.94, "havre")
 	var col := UiTheme.scroll_column(self, 680.0, 16.0)
 	col.add_theme_constant_override("separation", 16)
 	col.add_child(_profile_card())
@@ -45,7 +45,11 @@ func _ready() -> void:
 	title.add_theme_color_override("font_outline_color", Color(0.03, 0.05, 0.08))
 	title.add_theme_constant_override("outline_size", 8)
 	col.add_child(title)
-	var sub := UiTheme.label("Refuge des Canalisateurs", 22, UiTheme.TEXT)
+	var phase_txt := ""
+	if Profile.ambience_on():
+		# Havre-Aube suit l'heure réelle.
+		phase_txt = str({"aube": " · à l'aube", "jour": " · en plein jour", "crepuscule": " · au crépuscule", "nuit": " · à la nuit tombée"}.get(Ambience.havre_phase(), ""))
+	var sub := UiTheme.label("Refuge des Canalisateurs" + phase_txt, 22, UiTheme.TEXT)
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sub.add_theme_color_override("font_outline_color", Color(0.03, 0.05, 0.08))
 	sub.add_theme_constant_override("outline_size", 6)
@@ -68,8 +72,8 @@ func _ready() -> void:
 	for z in index.get("zones", []):
 		if int(z["id"]) == zid:
 			zname = str(z["name"])
-	grid.add_child(_tile("map", "CARTE DU MONDE", zname, "Zone %d · %d / %d étoiles" % [zid, Profile.stars_total(), total], func() -> void: open_map.emit()))
-	grid.add_child(_tile("baton_chene", "ÉQUIPEMENT", "Équipement & Forge", "Puissance %d · %d objets" % [Profile.power(), (Profile.data["inventory"] as Array).size()], func() -> void: open_equipment.emit()))
+	grid.add_child(_tile("map", "CARTE DU MONDE", zname, "Zone %d · %d / %d étoiles" % [zid, Profile.stars_total(), total], func() -> void: open_map.emit(), UiTheme.TEAL))
+	grid.add_child(_tile("baton_chene", "ÉQUIPEMENT", "Équipement & Forge", "Puissance %d · %d objets" % [Profile.power(), (Profile.data["inventory"] as Array).size()], func() -> void: open_equipment.emit(), UiTheme.FIRE))
 	# Salles : Entraînement (arbre), Bibliothèque (deck), Cercle (compagnons), Méditation (voies, Harmonie).
 	var rooms := GridContainer.new()
 	rooms.columns = 2
@@ -77,16 +81,16 @@ func _ready() -> void:
 	rooms.add_theme_constant_override("v_separation", 10)
 	col.add_child(rooms)
 	var free := Profile.skill_points_free()
-	rooms.add_child(_small_tile("target", "ENTRAÎNEMENT", "%d point%s" % [free, "s" if free > 1 else ""], UiTheme.GOLD if free > 0 else UiTheme.MUTED, func() -> void: open_skills.emit()))
-	rooms.add_child(_small_tile("book", "BIBLIOTHÈQUE", "Deck %d / %d" % [Profile.deck().size(), Profile.DECK_MAX], UiTheme.MUTED, func() -> void: open_library.emit()))
+	rooms.add_child(_small_tile("target", "ENTRAÎNEMENT", "%d point%s" % [free, "s" if free > 1 else ""], UiTheme.GOLD if free > 0 else UiTheme.MUTED, func() -> void: open_skills.emit(), UiTheme.GOLD))
+	rooms.add_child(_small_tile("book", "BIBLIOTHÈQUE", "Deck %d / %d" % [Profile.deck().size(), Profile.DECK_MAX], UiTheme.MUTED, func() -> void: open_library.emit(), UiTheme.VIOLET))
 	var crew: Array[String] = []
 	for who in Profile.active_companions():
 		crew.append("%s niv. %d" % [Dialogues.display_name(who), Profile.companion_level(who)])
-	rooms.add_child(_small_tile("circle", "LE CERCLE", " · ".join(crew), UiTheme.MUTED, func() -> void: open_circle.emit()))
+	rooms.add_child(_small_tile("circle", "LE CERCLE", " · ".join(crew), UiTheme.MUTED, func() -> void: open_circle.emit(), UiTheme.GOOD))
 	var med_open := Profile.meditation_unlocked()
 	var cor := Story.value("corruption")
 	var med := _small_tile("moon", "MÉDITATION", ("Voies · Corruption %d" % cor if cor > 0 else "Voies · configurations") if med_open else "Fin de l'acte 1",
-		Color("D93CF2") if med_open and cor > 0 else UiTheme.MUTED, func() -> void: open_meditation.emit())
+		Color("D93CF2") if med_open and cor > 0 else UiTheme.MUTED, func() -> void: open_meditation.emit(), Color("d8c0ff"))
 	med.disabled = not med_open
 	if not med_open:
 		med.modulate = Color(1, 1, 1, 0.6)
@@ -186,7 +190,59 @@ func _continue_button() -> Button:
 	return b
 
 
-func _tile(icon: String, title: String, line1: String, line2: String, cb: Callable) -> Button:
+## Icône d'une tuile ; avec l'ambiance enrichie, à la couleur de la salle, sur un halo qui palpite.
+func _glow_icon(icon: String, px: int, col: Color) -> Control:
+	if not Profile.ambience_on():
+		var plain := UiTheme.icon_rect(icon, px)
+		plain.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		return plain
+	var box := Control.new()
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.custom_minimum_size = Vector2(px, px)
+	box.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var halo := TextureRect.new()
+	halo.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	halo.texture = _halo_tex()
+	halo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	halo.stretch_mode = TextureRect.STRETCH_SCALE
+	var hs := float(px) * 2.6
+	halo.size = Vector2(hs, hs)
+	halo.position = Vector2(px, px) * 0.5 - halo.size * 0.5
+	halo.modulate = Color(col, 0.55)
+	var mat := CanvasItemMaterial.new()
+	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	halo.material = mat
+	box.add_child(halo)
+	var tw := halo.create_tween().set_loops()
+	tw.tween_property(halo, "modulate:a", 0.3, 1.6 + randf() * 0.6).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(halo, "modulate:a", 0.6, 1.6 + randf() * 0.6).set_trans(Tween.TRANS_SINE)
+	var ic := UiTheme.icon_rect(icon, px, col.lightened(0.15))
+	ic.position = Vector2.ZERO
+	ic.size = Vector2(px, px)
+	box.add_child(ic)
+	return box
+
+
+static var _halo: Texture2D
+
+
+static func _halo_tex() -> Texture2D:
+	if _halo == null:
+		var g := Gradient.new()
+		g.offsets = PackedFloat32Array([0.0, 0.35, 1.0])
+		g.colors = PackedColorArray([Color(1, 1, 1, 0.9), Color(1, 1, 1, 0.35), Color(1, 1, 1, 0.0)])
+		var t := GradientTexture2D.new()
+		t.gradient = g
+		t.fill = GradientTexture2D.FILL_RADIAL
+		t.fill_from = Vector2(0.5, 0.5)
+		t.fill_to = Vector2(1.0, 0.5)
+		t.width = 64
+		t.height = 64
+		_halo = t
+	return _halo
+
+
+func _tile(icon: String, title: String, line1: String, line2: String, cb: Callable, glow: Color = UiTheme.TEAL) -> Button:
 	var parts: Array = UiTheme.rich_button(168, "tile")
 	var b: Button = parts[0]
 	var h: HBoxContainer = parts[1]
@@ -196,9 +252,7 @@ func _tile(icon: String, title: String, line1: String, line2: String, cb: Callab
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	h.add_child(v)
-	var ic := UiTheme.icon_rect(icon, 44)
-	ic.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	v.add_child(ic)
+	v.add_child(_glow_icon(icon, 44, glow))
 	for t in [[title, 22, UiTheme.TEXT, true], [line1, 18, UiTheme.MUTED, false], [line2, 18, UiTheme.TEAL, false]]:
 		var l := UiTheme.title(str(t[0]), int(t[1]), t[2]) if bool(t[3]) else UiTheme.label(str(t[0]), int(t[1]), t[2])
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -209,7 +263,7 @@ func _tile(icon: String, title: String, line1: String, line2: String, cb: Callab
 	return b
 
 
-func _small_tile(icon: String, title: String, line: String, line_col: Color, cb: Callable) -> Button:
+func _small_tile(icon: String, title: String, line: String, line_col: Color, cb: Callable, glow: Color = UiTheme.TEAL) -> Button:
 	var parts: Array = UiTheme.rich_button(128, "tile")
 	var b: Button = parts[0]
 	var h: HBoxContainer = parts[1]
@@ -219,9 +273,7 @@ func _small_tile(icon: String, title: String, line: String, line_col: Color, cb:
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	h.add_child(v)
-	var ic := UiTheme.icon_rect(icon, 32)
-	ic.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	v.add_child(ic)
+	v.add_child(_glow_icon(icon, 32, glow))
 	for t in [[title, 18, UiTheme.TEXT, true], [line, 16, line_col, false]]:
 		var l := UiTheme.title(str(t[0]), int(t[1]), t[2]) if bool(t[3]) else UiTheme.label(str(t[0]), int(t[1]), t[2])
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

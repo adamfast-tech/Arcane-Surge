@@ -19,6 +19,9 @@ func _ready() -> void:
 		# Aperçu de l'ambiance enrichie (« &fx=1 »), sans changer la sauvegarde.
 		Profile._options()["ambience"] = true
 	RuneBox.rich = Profile.ambience_on()
+	if str(_query().get("hour", "")) != "":
+		# Aperçu de Havre-Aube à une autre heure (« &hour=22 »).
+		Ambience.hour_override = int(str(_query().get("hour", "")))
 	var scene := str(_query().get("scene", ""))
 	if Dialogues.has_scene(scene):
 		# Aperçu d'une scène de dialogue (« ?scene=z01_l10_outro »).
@@ -33,6 +36,10 @@ func _ready() -> void:
 		if room == "library" and str(_query().get("tab", "")) != "":
 			_screen.set("_school", str(_query().get("tab", "")))
 			_screen.call("_rebuild")
+		return
+	if room == "map":
+		# Aperçu de la carte (« ?room=map »).
+		_show_map()
 		return
 	if room == "hub":
 		# Aperçu de Havre-Aube (« ?room=hub ») : héros déjà créé, sans écran de connexion.
@@ -77,6 +84,9 @@ func _ready() -> void:
 		if qc != "":
 			# Aperçu : classe du héros (« &class=chevalier »).
 			extra["player_class"] = qc
+		if _url_flag("win"):
+			# Aperçu : victoire immédiate (écran de fin, butin).
+			extra["debug_win"] = true
 		if _url_flag("mana"):
 			# Aperçu : mana qui se recharge 20 fois plus vite (« &mana=1 »).
 			extra["debug_mana"] = true
@@ -105,6 +115,49 @@ func _boot() -> void:
 		_show_hub()
 	else:
 		_show_login(false)
+
+
+## Éclat au toucher (option) : une gerbe d'étincelles là où l'on touche, hors combat.
+var _spark_layer: CanvasLayer
+
+
+func _input(ev: InputEvent) -> void:
+	if not Profile.sparkle_on() or _screen is BattleScreen:
+		return
+	if ev is InputEventMouseButton and (ev as InputEventMouseButton).pressed and (ev as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
+		_sparkle((ev as InputEventMouseButton).position)
+
+
+func _sparkle(at: Vector2) -> void:
+	if _spark_layer == null:
+		_spark_layer = CanvasLayer.new()
+		_spark_layer.layer = 100
+		add_child(_spark_layer)
+	var p := CPUParticles2D.new()
+	p.texture = LootFx._soft()
+	var add := CanvasItemMaterial.new()
+	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	p.material = add
+	p.position = at
+	p.amount = 16
+	p.one_shot = true
+	p.explosiveness = 1.0
+	p.lifetime = 0.55
+	p.spread = 180.0
+	p.initial_velocity_min = 50.0
+	p.initial_velocity_max = 140.0
+	p.gravity = Vector2(0, 120)
+	p.damping_min = 40.0
+	p.damping_max = 80.0
+	p.scale_amount_min = 0.1
+	p.scale_amount_max = 0.28
+	var g := Gradient.new()
+	g.colors = PackedColorArray([Color(1, 1, 1, 1), Color(UiTheme.GOLD, 0.9), Color(UiTheme.TEAL, 0.0)])
+	g.offsets = PackedFloat32Array([0.0, 0.35, 1.0])
+	p.color_ramp = g
+	p.emitting = true
+	_spark_layer.add_child(p)
+	get_tree().create_timer(1.0).timeout.connect(p.queue_free)
 
 
 func _set_screen(c: Control) -> void:

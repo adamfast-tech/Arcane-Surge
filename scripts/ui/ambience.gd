@@ -13,7 +13,30 @@ const MOODS := {
 	"campfire": {"glow": "ff9b4a", "glow2": "ffd070", "rays": 0.3, "fog": 0.3, "kind": "embers", "motes": ["ffe8a0", "ff8a3a"], "amount": 30},
 	"mist": {"glow": "6fdccf", "glow2": "9fe3ff", "rays": 0.35, "fog": 0.55, "kind": "fireflies", "motes": ["c8f5a0", "9ff0ff"], "amount": 26},
 	"gold": {"glow": "f2c46b", "glow2": "6fdccf", "rays": 0.5, "fog": 0.25, "kind": "dust", "motes": ["fff1c4", "f2c46b"], "amount": 40},
+	# Havre-Aube suit l'heure réelle : aube, jour, crépuscule, nuit (teinte de l'illustration, lumière, particules).
+	"havre_aube": {"glow": "ff9bb0", "glow2": "ffc870", "rays": 0.7, "fog": 0.5, "kind": "fireflies", "motes": ["fff3b0", "ffc8d8"], "amount": 30, "tint": [1.05, 0.86, 0.86]},
+	"havre_jour": {"glow": "8fe3d2", "glow2": "fff0b0", "rays": 0.9, "fog": 0.25, "kind": "dust", "motes": ["fffbe0", "f2e28b"], "amount": 34, "tint": [1.2, 1.16, 1.06]},
+	"havre_crepuscule": {"glow": "ff7a5a", "glow2": "ffa84a", "rays": 0.65, "fog": 0.45, "kind": "dust", "motes": ["ffd8a0", "ff8a5a"], "amount": 36, "tint": [1.08, 0.78, 0.62]},
+	"havre_nuit": {"glow": "6a8aff", "glow2": "c8d8ff", "rays": 0.4, "fog": 0.4, "kind": "fireflies", "motes": ["fff3b0", "9ff0ff"], "amount": 46, "tint": "9aa8e8"},
+	# Carte : une ambiance par zone.
+	"steppe": {"glow": "e8b060", "glow2": "ffd8a0", "rays": 0.55, "fog": 0.35, "kind": "dust", "motes": ["ffe8c0", "d8a060"], "amount": 40},
+	"swamp": {"glow": "8fd16a", "glow2": "c8f5a0", "rays": 0.25, "fog": 0.8, "kind": "fireflies", "motes": ["d8ff8a", "8fd16a"], "amount": 30, "tint": "d8e8d0"},
+	"snow": {"glow": "9fe3ff", "glow2": "e8f6ff", "rays": 0.45, "fog": 0.45, "kind": "snow", "motes": ["ffffff", "cfefff"], "amount": 60, "tint": "e0ecff"},
 }
+
+## Phases de la journée à Havre-Aube, selon l'heure de l'appareil (« &hour=22 » pour un aperçu).
+static var hour_override := -1
+
+
+static func havre_phase() -> String:
+	var h := hour_override if hour_override >= 0 else int(Time.get_datetime_dict_from_system(false)["hour"])
+	if h >= 5 and h < 8:
+		return "aube"
+	if h >= 8 and h < 17:
+		return "jour"
+	if h >= 17 and h < 21:
+		return "crepuscule"
+	return "nuit"
 
 var mood := "dawn"
 var art: Control ## illustration de fond qui « respire » (zoom et dérive très lents)
@@ -29,7 +52,15 @@ static var _vignette_shader: Shader
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	if mood == "havre":
+		mood = "havre_" + havre_phase()
 	var m: Dictionary = MOODS.get(mood, MOODS["dawn"])
+	if art != null:
+		# Teinte de l'illustration (nuit bleutée, crépuscule orangé…), neutre sinon.
+		art.modulate = Color.WHITE
+		if m.has("tint"):
+			var tn: Variant = m["tint"]
+			art.modulate = Color(float(tn[0]), float(tn[1]), float(tn[2])) if tn is Array else Color(str(tn))
 	_t = randf() * 30.0
 	# Rayons et brume (additif).
 	if _glow_shader == null:
@@ -71,6 +102,10 @@ func _fit() -> void:
 		# Braises : elles montent depuis le bas de l'écran.
 		_parts.position = Vector2(size.x * 0.5, size.y + 10.0)
 		_parts.emission_rect_extents = Vector2(size.x * 0.5, 20.0)
+	elif str(m["kind"]) == "snow":
+		# Neige : elle tombe depuis le haut de l'écran.
+		_parts.position = Vector2(size.x * 0.5, -10.0)
+		_parts.emission_rect_extents = Vector2(size.x * 0.55, 10.0)
 	else:
 		# Lucioles et poussière : surtout dans l'illustration (les deux tiers du haut).
 		_parts.position = Vector2(size.x * 0.5, size.y * 0.36)
@@ -141,6 +176,17 @@ func _make_particles(m: Dictionary) -> CPUParticles2D:
 			p.scale_amount_max = 0.85
 			ramp.offsets = PackedFloat32Array([0.0, 0.15, 0.3, 0.45, 0.6, 0.8, 1.0])
 			ramp.colors = PackedColorArray([Color(c1, 0.0), Color(c1, 1.0), Color(c2, 0.25), Color(c1, 0.95), Color(c2, 0.3), Color(c1, 0.85), Color(c1, 0.0)])
+		"snow":
+			p.lifetime = 10.0
+			p.direction = Vector2(0.15, 1)
+			p.spread = 15.0
+			p.initial_velocity_min = 40.0
+			p.initial_velocity_max = 90.0
+			p.gravity = Vector2(6, 4)
+			p.scale_amount_min = 0.12
+			p.scale_amount_max = 0.32
+			ramp.offsets = PackedFloat32Array([0.0, 0.1, 0.85, 1.0])
+			ramp.colors = PackedColorArray([Color(c1, 0.0), Color(c1, 0.9), Color(c2, 0.7), Color(c2, 0.0)])
 		_:
 			# Poussière arcanique, éclats de lune : petites lueurs qui montent doucement.
 			p.lifetime = 9.0

@@ -916,6 +916,11 @@ func _process(delta: float) -> void:
 			_acc = 0.0
 		_keyboard_move(delta)
 		_demo_tick(delta)
+		if bool(_opts.get("debug_win", false)) and sim.time > 1.5:
+			# Aperçu de l'écran de victoire (« &win=1 ») : butin et faisceaux de rareté.
+			sim.state = "victory"
+			sim.stars = 3
+			sim.end_reason = "Aperçu de la victoire"
 	arena.alpha = clampf(_acc / BattleSim.TICK, 0.0, 1.0)
 	if not sim.events.is_empty():
 		arena.consume_events(sim.events)
@@ -1482,7 +1487,13 @@ func _open_end() -> void:
 		for m in mats.keys():
 			names.append("%s ×%d" % [str(mdb.get(m, {}).get("name", m)), int(mats[m])])
 		rv.add_child(UiTheme.label(" · ".join(names), 19, UiTheme.MUTED))
+	var loot_i := 0
 	for it in _rewards.get("items", []):
+		if Profile.ambience_on():
+			# Ambiance enrichie : chaque objet jaillit sur un faisceau à la couleur de sa rareté.
+			rv.add_child(LootFx.card(it, loot_i))
+			loot_i += 1
+			continue
 		var l := _wrap_label("%s  —  %s" % [Profile.item_name(it), Profile.stats_text(Profile.item_stats(it))], 19, Profile.item_color(it))
 		rv.add_child(l)
 	var row := HBoxContainer.new()

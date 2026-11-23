@@ -743,12 +743,21 @@ static func set_elem_for_all(v: bool) -> void:
 
 ## Ambiance enrichie des menus (rayons, brume, particules, panneaux en relief, titres dorés).
 static func ambience_on() -> bool:
-	return bool(_options().get("ambience", false))
+	return bool(_options().get("ambience", true))
 
 
 static func set_ambience(v: bool) -> void:
 	_options()["ambience"] = v
 	RuneBox.rich = v
+
+
+## Éclat au toucher (étincelles là où l'on touche, hors combat).
+static func sparkle_on() -> bool:
+	return bool(_options().get("sparkle", false))
+
+
+static func set_sparkle(v: bool) -> void:
+	_options()["sparkle"] = v
 
 
 static func difficulty() -> String:

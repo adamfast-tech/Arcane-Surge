@@ -17,11 +17,16 @@ const ZONE_BLURB := {
 }
 
 
+## Ambiance de chaque zone sur la carte (option « Enrichie »).
+const ZONE_MOOD := {1: "mist", 2: "steppe", 3: "swamp", 4: "snow"}
+static var _fog: Shader
+
+
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	UiTheme.backdrop(self, 0.72, 0.0, "mist")
 	if zone <= 0:
 		zone = int(GameData.level(Profile.next_level()).get("zone", 1))
+	UiTheme.backdrop(self, 0.72, 0.0, str(ZONE_MOOD.get(zone, "mist")))
 	_build()
 
 
@@ -68,6 +73,7 @@ func _build() -> void:
 			t.add_theme_stylebox_override("normal", UiTheme.box(Color(UiTheme.WARM, 0.94), Color(UiTheme.GOLD, 0.85), 12, 2, 8, UiTheme.GOLD))
 		t.pressed.connect(func() -> void:
 			zone = zid
+			UiTheme.set_mood(self, str(ZONE_MOOD.get(zid, "mist")))
 			_build.call_deferred())
 		tabs.add_child(t)
 	var title := UiTheme.title("ZONE %d · %s" % [zone, str(zd.get("name", "")).to_upper()], 40, UiTheme.GOLD)
@@ -81,8 +87,16 @@ func _build() -> void:
 	_solo.focus_mode = Control.FOCUS_NONE
 	_solo.add_theme_font_size_override("font_size", 22)
 	col.add_child(_solo)
-	for id in ids:
-		col.add_child(_level_card(str(id)))
+	var fx := Profile.ambience_on()
+	for i in range(ids.size()):
+		if fx and i > 0:
+			# Chemin lumineux entre deux niveaux.
+			var trail := MapTrail.new()
+			var prev_done := int(Profile.level_record(str(ids[i - 1]))["clears"]) > 0
+			var open := Profile.is_unlocked(str(ids[i]))
+			trail.state = "done" if prev_done and int(Profile.level_record(str(ids[i]))["clears"]) > 0 else ("next" if open else "locked")
+			col.add_child(trail)
+		col.add_child(_level_card(str(ids[i])))
 
 
 func _level_card(id: String) -> PanelContainer:
@@ -95,6 +109,16 @@ func _level_card(id: String) -> PanelContainer:
 	var v: VBoxContainer = c[1]
 	if not unlocked:
 		pc.modulate = Color(1, 1, 1, 0.55)
+		if Profile.ambience_on():
+			# Brume sur les niveaux encore verrouillés.
+			if _fog == null:
+				_fog = load("res://shaders/ui_fog.gdshader")
+			var fog := ColorRect.new()
+			fog.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			var fm := ShaderMaterial.new()
+			fm.shader = _fog
+			fog.material = fm
+			pc.add_child(fog)
 	var row := HBoxContainer.new()
 	v.add_child(row)
 	var nm := UiTheme.label("%s · %s" % [str(lv.get("number", "")), str(lv.get("name", ""))], 28, UiTheme.GOLD if unlocked else UiTheme.MUTED)

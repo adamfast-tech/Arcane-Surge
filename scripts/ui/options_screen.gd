@@ -54,6 +54,11 @@ func _rebuild() -> void:
 		Profile.set_ambience(false)
 		_changed("Ambiance sobre.")))
 
+	var sp := Profile.sparkle_on()
+	col.add_child(_choice("ÉCLAT AU TOUCHER : %s" % ("OUI" if sp else "NON"), "Une gerbe d'étincelles là où tu touches l'écran, dans les menus (jamais en combat).", "dust", sp, func() -> void:
+		Profile.set_sparkle(not Profile.sparkle_on())
+		_changed("Éclat au toucher : %s." % ("activé" if Profile.sparkle_on() else "désactivé"))))
+
 	# Grimoires : écoles élémentaires communes, ou chaque voie son grimoire.
 	col.add_child(UiTheme.section("Grimoires"))
 	var all := Profile.elem_for_all()
