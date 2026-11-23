@@ -32,7 +32,7 @@ func _rebuild() -> void:
 	tv.add_child(UiTheme.title("TES COMPAGNONS", 22, UiTheme.TEXT))
 	var avail := Profile.companions_available()
 	var active := Profile.active_companions()
-	var intro := "Réglages des prochaines parties. En combat, un compagnon gagne 80 %% de ton XP ; resté à Havre-Aube, 30 %% (jamais plus de %d niveaux sous toi). Toucher un compagnon en combat change son ordre." % Profile.COMPANION_FLOOR
+	var intro := "Réglages des prochaines parties. En combat, un compagnon gagne 80\u00a0%% de ton XP ; resté à Havre-Aube, 30\u00a0%% (jamais plus de %d niveaux sous toi). Toucher un compagnon en combat change son ordre." % Profile.COMPANION_FLOOR
 	if avail.size() > Profile.ACTIVE_MAX:
 		intro = "Tu emmènes %d compagnons en combat ; les autres restent à Havre-Aube. " % Profile.ACTIVE_MAX + intro
 	col.add_child(UiTheme.wrap(intro, 18, UiTheme.MUTED))
@@ -83,12 +83,15 @@ func _companion_card(bd: Dictionary, circ: Dictionary, is_active: bool = true) -
 	v.add_child(h)
 	var frame := PanelContainer.new()
 	frame.add_theme_stylebox_override("panel", UiTheme.box(Color("0a1019"), Color(col, 0.8), 10, 2, 4))
+	# Portrait carré, calé en haut : il ne s'étire plus sur la hauteur de la fiche.
+	frame.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	h.add_child(frame)
 	var pic := TextureRect.new()
 	pic.texture = PortraitArt.texture(who, "joie" if Story.loyalty(who) >= 75 else "neutre")
 	pic.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	pic.custom_minimum_size = Vector2(64, 64)
+	pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	pic.custom_minimum_size = Vector2(96, 96)
 	frame.add_child(pic)
 	var info := VBoxContainer.new()
 	info.add_theme_constant_override("separation", 2)
@@ -105,6 +108,8 @@ func _companion_card(bd: Dictionary, circ: Dictionary, is_active: bool = true) -
 	info.add_child(xr)
 	xr.add_child(UiTheme.label("XP %d / %d" % [Profile.companion_xp(who), Profile.xp_to_next(lv)], 16, UiTheme.MUTED))
 	var xb := UiTheme.bar(UiTheme.CYAN, 6)
+	xb.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	xb.custom_minimum_size.x = 150
 	xb.max_value = Profile.xp_to_next(lv)
 	xb.value = Profile.companion_xp(who)
 	xr.add_child(xb)
@@ -116,6 +121,8 @@ func _companion_card(bd: Dictionary, circ: Dictionary, is_active: bool = true) -
 	info.add_child(lr)
 	lr.add_child(UiTheme.label("Loyauté %d" % loy, 17, UiTheme.TEXT))
 	var bar := UiTheme.bar(col, 8)
+	bar.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	bar.custom_minimum_size.x = 150
 	bar.max_value = 100
 	bar.value = loy
 	lr.add_child(bar)

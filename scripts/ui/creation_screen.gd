@@ -85,11 +85,13 @@ func _preview(party: Dictionary) -> PanelContainer:
 	(c[1] as VBoxContainer).add_child(h)
 	var pf := PanelContainer.new()
 	pf.add_theme_stylebox_override("panel", UiTheme.box(Color("0a1019"), Color(UiTheme.TEAL, 0.7), 10, 2, 4))
+	pf.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	h.add_child(pf)
 	var pic := TextureRect.new()
 	pic.texture = PortraitArt.texture("porteur", "neutre")
 	pic.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	pic.custom_minimum_size = Vector2(128, 128)
 	pf.add_child(pic)
 	SpriteAtlas.set_player(Profile.look(), Profile.race(), Profile.player_class())
