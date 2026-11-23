@@ -30,6 +30,15 @@ const SPELL_PRICE_PER_POWER := 1.5
 const SPELL_PRICE_MIN := 40
 const SCHOOLS := {"feu": "Feu", "givre": "Givre", "foudre": "Foudre", "nature": "Nature", "ombre": "Ombre", "arcane": "Arcane", "terre": "Terre"}
 const DECK_MAX := 7
+## Difficultés (Options) : vitesse et dégâts des ennemis, PV du Nexus (et du boss), XP et butin.
+const DIFFICULTIES := [
+	{"id": "facile", "name": "Facile", "mult": 0.75, "color": "8FD16A"},
+	{"id": "normal", "name": "Normal", "mult": 1.0, "color": "C8D0E0"},
+	{"id": "serieux", "name": "Sérieux", "mult": 1.25, "color": "F2C46B"},
+	{"id": "difficile", "name": "Difficile", "mult": 1.5, "color": "FF9B4A"},
+	{"id": "fou", "name": "Ça va pas non !?", "mult": 2.0, "color": "FF5A5A"},
+	{"id": "impossible", "name": "Impossible", "mult": 3.0, "color": "D93CF2"},
+]
 ## Sorts que chaque compagnon peut emporter (Cercle).
 ## Sorts qu'un compagnon peut emporter selon sa classe (le Cercle en choisit un).
 const CLASS_SPELLS := {"chevalier": ["bouclier_leve", "charge_bastion"], "archer": ["tir_precision", "volee_fleches"],
@@ -490,15 +499,22 @@ static func apply_battle(level_id: String, victory: bool, stars: int, time: floa
 		xp_gain *= mult
 		gold_gain *= mult
 		var is_boss := str(lv.get("objective", "")) == "boss"
-		var chests := maxi(1, stars)
+		# Difficulté : plus (ou moins) de coffres, et des objets plus rares au-delà de Normal.
+		var loot := difficulty_mult()
+		var exp_chests := float(maxi(1, stars)) * loot
+		var chests := maxi(1, int(floor(exp_chests)) + (1 if rng.randf() < exp_chests - floor(exp_chests) else 0))
+		var better := clampf((loot - 1.0) * 0.25, 0.0, 0.6)
 		for c in range(chests):
 			var table: Dictionary = p["boss_rarity"][zone] if is_boss and c == 0 else p["zone_rarity"][zone]
 			var pool: Array = items_db()["loot_pool"][zone]
-			var it := make_item(str(pool[rng.randi_range(0, pool.size() - 1)]), _roll(table, rng), gl, rng)
+			var rar := _roll(table, rng)
+			if rng.randf() < better:
+				rar = _better_rarity(rar, _roll(table, rng))
+			var it := make_item(str(pool[rng.randi_range(0, pool.size() - 1)]), rar, gl, rng)
 			items.append(it)
 		for m in (p["materials"][zone] as Dictionary).keys():
 			var r: Array = p["materials"][zone][m]
-			var n := rng.randi_range(int(r[0]), int(r[1]))
+			var n := int(round(float(rng.randi_range(int(r[0]), int(r[1]))) * loot))
 			if n > 0:
 				mats[m] = n
 				data["materials"][m] = int(data["materials"].get(m, 0)) + n
@@ -512,6 +528,8 @@ static func apply_battle(level_id: String, victory: bool, stars: int, time: floa
 		gold_gain = 0.0
 	data["levels"][level_id] = rec
 	var before := level()
+	# Difficulté : de -25 % (Facile) à +200 % (Impossible) d'XP, compagnons compris.
+	xp_gain *= difficulty_mult()
 	# Compagnons : 80 % de l'XP du héros s'ils ont combattu, 30 % s'ils sont restés à Havre-Aube.
 	var comps := {}
 	for who in companions_available():
@@ -525,6 +543,12 @@ static func apply_battle(level_id: String, victory: bool, stars: int, time: floa
 	save_local()
 	return {"victory": victory, "first": first, "xp": int(round(xp_gain)), "gold": int(round(gold_gain)),
 		"level_before": before, "level_after": level(), "levels": gained, "items": items, "materials": mats, "companions": comps}
+
+
+## Plus rare des deux raretés (ordre de items.json).
+static func _better_rarity(a: String, b: String) -> String:
+	var order: Array = (items_db().get("rarities", {}) as Dictionary).keys()
+	return b if order.find(b) > order.find(a) else a
 
 
 static func _roll(table: Dictionary, rng: RandomNumberGenerator) -> String:
@@ -546,7 +570,7 @@ static func battle_opts() -> Dictionary:
 		"mods": all_mods(), "don": don_info(), "deck": deck() if spell_mode() == "deck" else drawer_spells(), "spell_mode": spell_mode(), "circle": circle(),
 		"player_race": race(), "look": look(), "player_class": player_class(),
 		"loyalty": {"brann": Story.loyalty("brann"), "sylwen": Story.loyalty("sylwen"), "krag": Story.loyalty("krag"), "nyx": Story.loyalty("nyx")},
-		"active": active_companions(), "bots": bots_opts()}
+		"active": active_companions(), "bots": bots_opts(), "difficulty": difficulty_mult()}
 
 
 ## Niveau, classe et équipement de chaque compagnon recruté, pour la simulation.
@@ -699,6 +723,65 @@ static func _spells_state() -> Dictionary:
 	return data["spells"]
 
 
+# ---------------------------------------------------------------- options (clé à molette de Havre-Aube)
+
+static func _options() -> Dictionary:
+	if not (data.get("options") is Dictionary):
+		data["options"] = {}
+	return data["options"]
+
+
+## Vrai : les écoles élémentaires (grimoire du Mage) servent à toutes les voies. Faux : chaque voie
+## n'emporte que son grimoire de classe (et les sorts sans école, comme Purifier).
+static func elem_for_all() -> bool:
+	return bool(_options().get("elem_all", true))
+
+
+static func set_elem_for_all(v: bool) -> void:
+	_options()["elem_all"] = v
+
+
+static func difficulty() -> String:
+	var d := str(_options().get("difficulty", "normal"))
+	for x in DIFFICULTIES:
+		if str(x["id"]) == d:
+			return d
+	return "normal"
+
+
+static func set_difficulty(id: String) -> void:
+	_options()["difficulty"] = id
+
+
+static func difficulty_info(id: String = "") -> Dictionary:
+	var d := difficulty() if id == "" else id
+	for x in DIFFICULTIES:
+		if str(x["id"]) == d:
+			return x
+	return DIFFICULTIES[1]
+
+
+## Multiplicateur de la difficulté : vitesse et dégâts ennemis, PV du Nexus, XP et butin.
+static func difficulty_mult() -> float:
+	return float(difficulty_info()["mult"])
+
+
+## Sort des écoles élémentaires (Feu à Terre, ou de rang sans grimoire de classe).
+static func is_elemental(id: String) -> bool:
+	var sp: Dictionary = GameData.spells().get(id, {})
+	return sp.has("school") and not sp.has("grimoire")
+
+
+## Sort que la voie actuelle peut emporter, selon l'option des écoles élémentaires.
+static func elem_allowed(id: String) -> bool:
+	return elem_for_all() or player_class() == "mage" or not is_elemental(id)
+
+
+## Techniques de départ d'une classe : apprises d'office.
+static func starter_spells(cls: String) -> Array:
+	return ((GameData.party()["classes"] as Dictionary).get(cls, {}) as Dictionary).get("starter_spells", [])
+
+
 ## Classe propriétaire d'un sort du grimoire de classe (« » pour le grimoire élémentaire, commun).
 static func grimoire_of(id: String) -> String:
 	return str((GameData.spells().get(id, {}) as Dictionary).get("grimoire", ""))
@@ -733,9 +816,12 @@ static func discipline_info(cls: String, disc: String) -> Dictionary:
 static func known_spells() -> Array[String]:
 	var out: Array[String] = []
 	var cls := player_class()
+	for id in starter_spells(cls):
+		if GameData.spells().has(str(id)):
+			out.append(str(id))
 	for id in _spells_state().get("known", []):
 		var g := grimoire_of(str(id))
-		if GameData.spells().has(str(id)) and not out.has(str(id)) and (g == "" or g == cls):
+		if GameData.spells().has(str(id)) and not out.has(str(id)) and (g == "" or g == cls) and elem_allowed(str(id)):
 			out.append(str(id))
 	for br in tree_db().get("branches", []):
 		for tier in br.get("tiers", []):
@@ -753,8 +839,11 @@ static func deck() -> Array[String]:
 	for id in GameData.spells().keys():
 		if chosen.has(id) and known.has(str(id)) and out.size() < DECK_MAX:
 			out.append(str(id))
-	if out.is_empty() and not known.is_empty():
-		out.append(known[0])
+	if out.size() < mini(3, known.size()):
+		# Deck presque vide (option des écoles changée, nouvelle voie) : complété par les sorts connus.
+		for id in known:
+			if out.size() < DECK_MAX and not out.has(id):
+				out.append(id)
 	return out
 
 
@@ -1065,6 +1154,8 @@ static func learn_block(id: String) -> String:
 	var l := learn_info(id)
 	if l.is_empty():
 		return "Ne s'apprend pas à la Bibliothèque"
+	if not elem_allowed(id):
+		return "Réservé au Mage (Options)"
 	if known_spells().has(id) or learned(id):
 		return "Déjà appris"
 	var g := grimoire_of(id)

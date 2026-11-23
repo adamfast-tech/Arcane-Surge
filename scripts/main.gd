@@ -21,7 +21,7 @@ func _ready() -> void:
 		_show_dialogue([scene], _boot)
 		return
 	var room := str(_query().get("room", ""))
-	if room in ["meditation", "circle", "skills", "library"]:
+	if room in ["meditation", "circle", "skills", "library", "options"]:
 		# Aperçu d'une salle (« ?room=meditation », « ?room=library&tab=classes&class=archer »), sans écran de chargement.
 		if str(_query().get("class", "")) != "":
 			Profile.data["player"]["class"] = str(_query().get("class", ""))
@@ -29,6 +29,11 @@ func _ready() -> void:
 		if room == "library" and str(_query().get("tab", "")) != "":
 			_screen.set("_school", str(_query().get("tab", "")))
 			_screen.call("_rebuild")
+		return
+	if room == "hub":
+		# Aperçu de Havre-Aube (« ?room=hub ») : héros déjà créé, sans écran de connexion.
+		Profile.data["player"]["created"] = true
+		_show_hub()
 		return
 	if room == "equipment":
 		_show_equipment(str(_query().get("who", "player")))
@@ -185,6 +190,7 @@ func _show_hub() -> void:
 	h.open_library.connect(_show_room.bind("library"))
 	h.open_circle.connect(_show_room.bind("circle"))
 	h.open_meditation.connect(_show_room.bind("meditation"))
+	h.open_options.connect(_show_room.bind("options"))
 	h.play_level.connect(func(id: String) -> void: _play(id, false, true))
 	_set_screen(h)
 
@@ -222,6 +228,8 @@ func _show_room(which: String) -> void:
 			s = LibraryScreen.new()
 		"meditation":
 			s = MeditationScreen.new()
+		"options":
+			s = OptionsScreen.new()
 		_:
 			var cs := CircleScreen.new()
 			cs.open_equipment.connect(func(who: String) -> void: _show_equipment(who, true))

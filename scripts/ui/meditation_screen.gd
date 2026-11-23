@@ -43,7 +43,7 @@ func _rebuild() -> void:
 		col.add_child(UiTheme.wrap(_msg, 18, UiTheme.GOLD))
 	# Voie du héros.
 	col.add_child(UiTheme.section("Ta voie"))
-	col.add_child(UiTheme.wrap("Le Sceau d'Écho te laisse emprunter d'autres voies. Chaque classe garde son propre arbre, et tes points dépendent de ton niveau : changer ne coûte rien. Le grimoire reste le même.", 17, UiTheme.MUTED))
+	col.add_child(UiTheme.wrap("Le Sceau d'Écho te laisse emprunter d'autres voies. Chaque classe garde son propre arbre, et tes points dépendent de ton niveau : changer ne coûte rien. Chaque voie a son grimoire de techniques ; les écoles élémentaires suivent toutes les voies, sauf si les Options les réservent au Mage.", 17, UiTheme.MUTED))
 	var g := GridContainer.new()
 	g.columns = 2
 	g.add_theme_constant_override("h_separation", 8)

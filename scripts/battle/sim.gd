@@ -88,6 +88,7 @@ var autoplay := false
 var solo := false
 var next_id := 1
 var enemy_mult := 1.0
+var diff := 1.0 ## difficulté (Options) : vitesse et dégâts des ennemis, PV du Nexus et du boss
 
 var nexus_hp := 1000.0
 var nexus_max := 1000.0
@@ -223,6 +224,7 @@ func setup(level_data: Dictionary, party: Dictionary, seed_value: int, opts: Dic
 	autoplay = bool(opts.get("autoplay", false))
 	solo = bool(opts.get("solo", false)) or bool(level.get("solo", false))
 	enemy_mult = pow(1.045, float(level.get("global_level", 1)) - 1.0)
+	diff = clampf(float(opts.get("difficulty", 1.0)), 0.25, 5.0)
 	objective = str(level.get("objective", "nexus"))
 	par_time = float(level.get("par_time", 150))
 	for i in range(GRID_W * GRID_H):
@@ -254,7 +256,7 @@ func setup(level_data: Dictionary, party: Dictionary, seed_value: int, opts: Dic
 func _setup_nexi() -> void:
 	if objective == "boss":
 		return
-	var hp := float((level.get("nexus", {}) as Dictionary).get("hp", 10000)) * OBJECTIVE_HP_MULT
+	var hp := float((level.get("nexus", {}) as Dictionary).get("hp", 10000)) * OBJECTIVE_HP_MULT * diff
 	var spots: Array = level.get("nexi", [{"x": NEXUS_POS.x, "y": NEXUS_POS.y}])
 	for sp in spots:
 		nexi.append({"pos": Vector2(float(sp["x"]), float(sp["y"])), "hp": hp, "max": hp, "alive": true, "flash": 0.0, "wither": 0.0})
@@ -264,7 +266,7 @@ func _setup_objective() -> void:
 	if objective == "boss":
 		var bd: Dictionary = level["boss"]
 		boss = _make_unit(str(bd["kind"]), 1, Vector2(float(bd.get("x", 4.5)), float(bd.get("y", 14.4))))
-		boss.hp = float(bd["hp"]) * OBJECTIVE_HP_MULT
+		boss.hp = float(bd["hp"]) * OBJECTIVE_HP_MULT * diff
 		boss.max_hp = boss.hp
 		boss.hold_y = boss.pos.y
 		boss.elite = true
@@ -552,7 +554,7 @@ func _setup_towers() -> void:
 		var hp := float(td.get("hp", 300)) * enemy_mult
 		towers.append({
 			"pos": Vector2(float(td["x"]), float(td["y"])), "hp": hp, "max": hp,
-			"atk": float(td.get("atk", 12)) * enemy_mult, "range": float(td.get("range", 3.0)),
+			"atk": float(td.get("atk", 12)) * enemy_mult * diff, "range": float(td.get("range", 3.0)),
 			"interval": float(td.get("interval", 1.0)), "cd": 1.0, "r": 0.45, "alive": true, "flash": 0.0,
 		})
 
@@ -1071,9 +1073,9 @@ func _make_unit(kind: String, team: int, p: Vector2) -> Unit:
 	var m := enemy_mult if team == 1 else 1.0
 	u.hp = float(d.get("hp", 10)) * m
 	u.max_hp = u.hp
-	u.atk = float(d.get("atk", 10)) * m
+	u.atk = float(d.get("atk", 10)) * m * (diff if team == 1 else 1.0)
 	u.defense = float(d.get("def", 0))
-	u.speed = float(d.get("speed", 2.0))
+	u.speed = float(d.get("speed", 2.0)) * (diff if team == 1 else 1.0)
 	u.radius = float(d.get("radius", 0.22))
 	u.weight = float(d.get("weight", 1))
 	u.element = str(d.get("element", "physique"))
@@ -1511,7 +1513,7 @@ func _nexus_pulse() -> void:
 		var hit_b := false
 		var br := boss.radius + 1.1
 		for a in _query(_grid_a, boss.pos, br):
-			_damage(a, NEXUS_PULSE_DMG * 1.4 * enemy_mult * 100.0 / (100.0 + a.defense), "")
+			_damage(a, NEXUS_PULSE_DMG * 1.4 * enemy_mult * diff * 100.0 / (100.0 + a.defense), "")
 			hit_b = true
 		if hit_b:
 			_event({"t": "ring", "pos": boss.pos, "r": br, "color": "D93CF2", "dur": 0.4})
@@ -1522,7 +1524,7 @@ func _nexus_pulse() -> void:
 		for a in _query(_grid_a, n["pos"], NEXUS_PULSE_RANGE):
 			if a.role == "escort":
 				continue
-			_damage(a, NEXUS_PULSE_DMG * enemy_mult * 100.0 / (100.0 + a.defense), "")
+			_damage(a, NEXUS_PULSE_DMG * enemy_mult * diff * 100.0 / (100.0 + a.defense), "")
 			hit = true
 		if hit:
 			_event({"t": "ring", "pos": n["pos"], "r": NEXUS_PULSE_RANGE, "color": "B07CFF", "dur": 0.4})
@@ -1596,7 +1598,7 @@ func _reach_checks() -> void:
 	for e in enemies:
 		if e.alive and e.pos.y <= BARRIER_Y:
 			e.alive = false
-			_hurt_barrier(e.weight * (0.7 if e.weak_t > 0.0 else 1.0))
+			_hurt_barrier(e.weight * diff * (0.7 if e.weak_t > 0.0 else 1.0))
 	_nexus_dmg_t += TICK
 	if _nexus_dmg_t >= 0.4:
 		_nexus_dmg_t = 0.0
@@ -1852,7 +1854,7 @@ func shield_word() -> String:
 
 
 func _telegraph(r: Rect2, delay: float, dmg: float, barrier_dmg: float, venom: bool = false) -> void:
-	telegraphs.append({"rect": r, "t": delay, "dur": delay, "dmg": dmg * enemy_mult, "barrier": barrier_dmg, "venom": venom})
+	telegraphs.append({"rect": r, "t": delay, "dur": delay, "dmg": dmg * enemy_mult * diff, "barrier": barrier_dmg * diff, "venom": venom})
 
 
 func _update_telegraphs() -> void:

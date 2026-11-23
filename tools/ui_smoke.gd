@@ -139,17 +139,65 @@ func _grimoire_class_ok(cls: String, recipes: Dictionary, errs: Array[String]) -
 
 
 ## Achat réservé à la voie ; technique d'une autre voie gardée mais hors du deck ; Bibliothèque.
+## Options (clé à molette) : difficulté appliquée au combat, écoles élémentaires réservées au Mage,
+## techniques de départ, écran Options.
+func _options_ok() -> bool:
+	var errs: Array[String] = []
+	var cls0 := Profile.player_class()
+	var lv := GameData.level("z01_l03")
+	Profile.set_difficulty("fou")
+	var o := Profile.battle_opts()
+	var s1 := BattleSim.new()
+	s1.setup(lv, GameData.party(), 3, {"solo": true, "difficulty": 1.0})
+	var s2 := BattleSim.new()
+	s2.setup(lv, GameData.party(), 3, {"solo": true, "difficulty": float(o["difficulty"])})
+	var e1 := s1._make_unit("goblin", 1, Vector2(4.0, 10.0)) if GameData.units().has("goblin") else s1._make_unit("mushroom", 1, Vector2(4.0, 10.0))
+	var e2 := s2._make_unit(e1.kind, 1, Vector2(4.0, 10.0))
+	var nx1 := float(s1.nexi[0]["max"]) if not s1.nexi.is_empty() else 1.0
+	var nx2 := float(s2.nexi[0]["max"]) if not s2.nexi.is_empty() else 2.0
+	if not is_equal_approx(float(o["difficulty"]), 2.0) or not is_equal_approx(e2.speed, e1.speed * 2.0) or not is_equal_approx(e2.atk, e1.atk * 2.0) or not is_equal_approx(nx2, nx1 * 2.0):
+		errs.append("difficulté : mult %s, vitesse %.2f/%.2f, attaque %.1f/%.1f, Nexus %d/%d" % [o["difficulty"], e2.speed, e1.speed, e2.atk, e1.atk, int(nx2), int(nx1)])
+	s1.terrain.sim = null
+	s2.terrain.sim = null
+	Profile.set_difficulty("normal")
+	# Chaque voie son grimoire : l'Archer perd les écoles élémentaires mais garde ses techniques de départ.
+	Profile.data["player"]["class"] = "archer"
+	Profile.set_elem_for_all(false)
+	var known := Profile.known_spells()
+	var deck := Profile.deck()
+	var elem_left := 0
+	for id in deck:
+		if Profile.is_elemental(id):
+			elem_left += 1
+	var block := Profile.learn_block("comete")
+	var starters_ok := known.has("fleche_vive") and known.has("salve") and known.has("marque_chasseur") and known.has("purifier")
+	Profile.set_elem_for_all(true)
+	var back_ok := Profile.known_spells().has("boule_de_feu")
+	Profile.data["player"]["class"] = cls0
+	if known.has("boule_de_feu") or elem_left > 0 or deck.is_empty() or block != "Réservé au Mage (Options)" or not starters_ok or not back_ok:
+		errs.append("grimoires séparés : connus %s · deck %s · %s" % [known, deck, block])
+	var scr := OptionsScreen.new()
+	root.add_child(scr)
+	await _frames(2)
+	scr.queue_free()
+	print("options : difficulté ×%s (vitesse %.2f → %.2f, Nexus %d → %d) · Archer sans écoles : %d sorts, deck %d · %s" % [o["difficulty"], e1.speed, e2.speed, int(nx1), int(nx2), known.size(), deck.size(), block])
+	if not errs.is_empty():
+		push_error("options : %s" % [errs])
+		return false
+	return true
+
+
 func _grimoire_buy_ok() -> bool:
 	var errs: Array[String] = []
 	var cls0 := Profile.player_class()
 	var gold0 := Profile.gold()
 	Profile.data["player"]["class"] = "mage"
-	var block_mage := Profile.learn_block("fleche_vive")
+	var block_mage := Profile.learn_block("collet")
 	Profile.data["player"]["class"] = "archer"
 	Profile.data["gold"] = 100000
-	var learned_ok := Profile.learn("fleche_vive") and Profile.known_spells().has("fleche_vive")
+	var learned_ok := Profile.learn("collet") and Profile.known_spells().has("collet")
 	Profile.data["player"]["class"] = "mage"
-	var hidden := not Profile.known_spells().has("fleche_vive") and Profile.learned("fleche_vive")
+	var hidden := not Profile.known_spells().has("collet") and Profile.learned("collet")
 	Profile.data["player"]["class"] = "archer"
 	var lib := LibraryScreen.new()
 	root.add_child(lib)
@@ -162,7 +210,7 @@ func _grimoire_buy_ok() -> bool:
 		if (GameData.spells()[cid] as Dictionary).has("grimoire"):
 			lib_elem += 1
 	lib.queue_free()
-	(Profile._spells_state()["known"] as Array).erase("fleche_vive")
+	(Profile._spells_state()["known"] as Array).erase("collet")
 	Profile.data["player"]["class"] = cls0
 	Profile.data["gold"] = gold0
 	if not block_mage.begins_with("Voie") or not learned_ok or not hidden or lib_elem != 0:
@@ -535,6 +583,9 @@ func _run() -> void:
 		quit(1)
 		return
 	if not await _grimoire_ok():
+		quit(1)
+		return
+	if not await _options_ok():
 		quit(1)
 		return
 	# Animations : chaque sort a sa signature déclarée dans SpellSig (scripts/battle/spell_sig.gd),

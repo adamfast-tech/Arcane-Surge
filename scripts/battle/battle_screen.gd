@@ -95,6 +95,7 @@ var _by_school: Dictionary = {} ## école (« feu »…) ou discipline du grimoi
 var _groups: Array = DRAWER ## cases du tiroir fermé : les écoles, ou les disciplines de la classe
 var _page_btn: Button ## Tiroir : bascule écoles / disciplines de la classe
 var _class_groups: Array = []
+var _drawer_class_only := false ## Tiroir sans écoles élémentaires : pas de bouton de bascule
 var _drawer := ""
 var _hold := false
 var _hold_moved := false
@@ -160,6 +161,14 @@ func _ready() -> void:
 				any_class = true
 		if not any_class:
 			_class_groups.clear()
+		var any_elem := false
+		for g in DRAWER:
+			if _by_school.has(g):
+				any_elem = true
+		if not any_elem and not _class_groups.is_empty():
+			# Option « chaque voie son grimoire » : le tiroir s'ouvre sur les disciplines, sans bascule.
+			_groups = _class_groups
+			_drawer_class_only = true
 	for c in sim.casters:
 		if c.is_bot and c.id != "":
 			_present.append(c.id)
@@ -326,7 +335,7 @@ func _build_portrait() -> void:
 		ult_btn = _ult_button()
 		ult_btn.custom_minimum_size = Vector2(0, 76)
 		r1.add_child(ult_btn)
-		if not _class_groups.is_empty():
+		if not _class_groups.is_empty() and not _drawer_class_only:
 			r1.add_child(_page_button())
 	for c in sim.casters:
 		if c.is_bot and c.side == "right":
@@ -410,7 +419,7 @@ func _build_landscape() -> void:
 	ult_btn = _ult_button()
 	ult_btn.custom_minimum_size = Vector2(0, 80)
 	grid.add_child(ult_btn)
-	if _mode == "drawer" and not _class_groups.is_empty():
+	if _mode == "drawer" and not _class_groups.is_empty() and not _drawer_class_only:
 		var pb := _page_button()
 		pb.custom_minimum_size = Vector2(0, 80)
 		grid.add_child(pb)

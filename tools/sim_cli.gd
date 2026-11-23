@@ -13,6 +13,7 @@ func _init() -> void:
 	var krag := false
 	var active: Array = ["sylwen", "krag"]
 	var deck: Array = []
+	var diffm := 1.0
 	var cls := "mage"
 	var mods := {}
 	for a in OS.get_cmdline_user_args():
@@ -31,6 +32,8 @@ func _init() -> void:
 					mods[p[0]] = float(p[1])
 		elif a == "--krag":
 			krag = true
+		elif a.begins_with("--diff="):
+			diffm = float(a.trim_prefix("--diff="))
 		elif a.begins_with("--deck="):
 			deck = Array(a.trim_prefix("--deck=").split(","))
 		elif a.begins_with("--active="):
@@ -55,6 +58,7 @@ func _init() -> void:
 		var o := {"autoplay": true, "solo": solo, "player_level": gl, "bot_level": maxi(1, gl - 1), "gear": gear, "player_class": cls, "mods": mods}
 		if not deck.is_empty():
 			o["deck"] = deck
+		o["difficulty"] = diffm
 		if krag:
 			o["flags"] = ["s1.krag_allie"]
 			o["active"] = active

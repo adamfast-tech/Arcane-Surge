@@ -62,6 +62,8 @@ func _rebuild() -> void:
 	if _msg != "":
 		col.add_child(UiTheme.wrap(_msg, 18, UiTheme.GOLD))
 	col.add_child(_school_tabs())
+	if _school != "classes" and not Profile.elem_for_all() and Profile.player_class() != "mage":
+		col.add_child(UiTheme.wrap("Option « Chaque voie son grimoire » : les écoles élémentaires sont réservées au Mage. Tes sorts élémentaires appris restent ici et reviendront si tu changes d'option ou de voie (clé à molette de Havre-Aube).", 16, Color("D9A0F2")))
 	if _school == "classes":
 		_class_sections(col, known, deck)
 		return

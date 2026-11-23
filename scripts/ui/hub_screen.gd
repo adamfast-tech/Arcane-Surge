@@ -13,6 +13,7 @@ signal open_circle
 signal open_meditation
 signal play_level(level_id: String)
 signal open_mirror
+signal open_options
 
 var _status_icon: TextureRect
 var _status_label: Label
@@ -26,6 +27,19 @@ func _ready() -> void:
 	var col := UiTheme.scroll_column(self, 680.0, 16.0)
 	col.add_theme_constant_override("separation", 16)
 	col.add_child(_profile_card())
+	# Options (clé à molette) : Deck ou Tiroir, écoles élémentaires, difficulté.
+	var orow := HBoxContainer.new()
+	col.add_child(orow)
+	orow.add_child(UiTheme.spacer())
+	var opt := UiTheme.button(Profile.difficulty_info()["name"], 16)
+	opt.icon = Icons.tex("wrench", 48)
+	opt.add_theme_constant_override("icon_max_width", 24)
+	opt.add_theme_color_override("icon_normal_color", UiTheme.GOLD)
+	opt.add_theme_color_override("font_color", Color(str(Profile.difficulty_info()["color"])))
+	opt.tooltip_text = "Options : Deck ou Tiroir, grimoires, difficulté"
+	opt.custom_minimum_size = Vector2(0, 48)
+	opt.pressed.connect(func() -> void: open_options.emit())
+	orow.add_child(opt)
 	var title := UiTheme.title("HAVRE-AUBE", 54, UiTheme.GOLD)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_color_override("font_outline_color", Color(0.03, 0.05, 0.08))
