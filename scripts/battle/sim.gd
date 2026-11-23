@@ -1242,6 +1242,7 @@ func _tick_status() -> void:
 		u.rooted_t = maxf(0.0, u.rooted_t - TICK)
 		u.wither_t = maxf(0.0, u.wither_t - TICK)
 		u.marked_t = maxf(0.0, u.marked_t - TICK)
+		u.weak_t = maxf(0.0, u.weak_t - TICK)
 	var regen := _mod("unit_regen")
 	_dance_budget = minf(1.0, _dance_budget + TICK)
 	var last_stand := _mod("rage_low") > 0.0 and barrier_hp < barrier_max * 0.25
@@ -1595,7 +1596,7 @@ func _reach_checks() -> void:
 	for e in enemies:
 		if e.alive and e.pos.y <= BARRIER_Y:
 			e.alive = false
-			_hurt_barrier(e.weight)
+			_hurt_barrier(e.weight * (0.7 if e.weak_t > 0.0 else 1.0))
 	_nexus_dmg_t += TICK
 	if _nexus_dmg_t >= 0.4:
 		_nexus_dmg_t = 0.0
@@ -1999,6 +2000,8 @@ func _hit(src: Unit, tgt: Unit, mult: float = 1.0) -> void:
 		tgt.pos.y = minf(H - 0.6, tgt.pos.y + 0.12)
 	if src.buff_t > 0.0:
 		mult *= 1.0 + src.buff_atk
+	if src.team == 1 and src.weak_t > 0.0:
+		mult *= 0.7
 	if src.frenzy_t > 0.0:
 		mult *= 2.2 if (src.owner_idx == 0 and _mod("blood_rage") > 0.0) else 1.4
 	if src.team == 0 and src.owner_idx == 0 and _mod("low_barrier_atk") > 0.0 and barrier_hp < barrier_max * 0.5:
@@ -2177,6 +2180,12 @@ func _kill(u: Unit) -> void:
 		_log("%s est %s !" % [boss_name, _defeated_word()])
 	if u == escort:
 		_log(_escort_text(u.kind, false))
+	if u.team == 1:
+		for z in zones:
+			if bool(z.get("raise", false)) and u.pos.distance_to(z["pos"]) <= float(z["r"]) + 0.2:
+				# Terre des morts : l'ennemi tombé dans la zone se relève en squelette.
+				_raise_unit("skeleton", int(z["c"]), u.pos, float(z.get("life", 0.0)))
+				break
 	if u.team == 1 and u.burn_t > 0.0 and _mod("embrasement") > 0.0:
 		# Clé de voûte Embrasement : la brûlure se propage aux ennemis proches.
 		for e in _query(_grid_e, u.pos, 1.5):
@@ -2473,6 +2482,8 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 				zslow = minf(0.9, zslow + _mod("zone_slow"))
 			zones.append({"pos": at, "r": zr, "t": dur, "dps": float(sp.get("dps", 0)) * c.atk_mult * _elem_mult(c, sp),
 				"ally_shield": float(sp.get("ally_shield", 0.0)) * c.hp_mult, "ally_heal": float(sp.get("ally_heal", 0.0)),
+				"c": c.idx, "spawn": str(sp.get("spawn", "")), "spawn_every": float(sp.get("spawn_every", 2.0)), "spawn_acc": 0.0,
+				"raise": bool(sp.get("raise", false)), "life": float(sp.get("life", 0.0)),
 				"elem": str(sp.get("element", "")), "slow": zslow, "pull": float(sp.get("pull", 0.0)),
 				"stack_every": float(sp.get("stack_every", 0.0)), "stack_acc": 0.0})
 			_event({"t": str(sp.get("fx", "rain")), "pos": at, "r": zr, "dur": dur, "color": col})
@@ -2578,6 +2589,12 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 			if n2 == 0:
 				return false
 			sacrificed += n2
+			if float(sp.get("heal_per", 0.0)) > 0.0:
+				# Transfusion : chaque invocation sacrifiée soigne la Barrière.
+				barrier_hp = minf(barrier_max, barrier_hp + float(sp["heal_per"]) * float(n2))
+				_event({"t": "shield", "dur": 0.8, "color": col})
+			if float(sp.get("surge_gain", 0.0)) > 0.0 and c.idx == 0:
+				surge = minf(100.0, surge + float(sp["surge_gain"]))
 			if c.idx == 0 and _mod("harvest_barrier") > 0.0:
 				# Clé de voûte (Aube) de la Liche : 20 sacrifiés → Barrière +10.
 				barrier_hp = minf(barrier_max, barrier_hp + 0.5 * float(n2))
@@ -2754,6 +2771,10 @@ func _strike(c: Caster, sp: Dictionary, e: Unit, dmg: float, elem: String, origi
 		e.pos = Vector2(clampf(e.pos.x + away.x * float(sp["knock"]) * 0.4, 0.3, W - 0.3), minf(H - 0.6, e.pos.y + away.y * float(sp["knock"])))
 	for st in sp.get("status", []):
 		_apply_status(e, str(st))
+	if sp.has("weak"):
+		e.weak_t = maxf(e.weak_t, float(sp["weak"]))
+	if sp.has("stun") and e.role != "boss":
+		e.rooted_t = maxf(e.rooted_t, float(sp["stun"]))
 	if sp.has("bleed") and e.alive:
 		# Saignement : 3,5 % des PV (plafonnés) par seconde.
 		e.bleed_t = maxf(e.bleed_t, float(sp["bleed"]))
@@ -2855,6 +2876,13 @@ func _update_zones() -> void:
 				_damage(e, _calc(dps, elem, 0.0, e, false) * TICK, elem)
 			if stack and e.alive:
 				_apply_status(e, elem)
+		if str(z.get("spawn", "")) != "":
+			# Cimetière, Ossuaire, Nécropole : des morts sortent de terre à intervalle régulier.
+			z["spawn_acc"] = float(z["spawn_acc"]) + TICK
+			if float(z["spawn_acc"]) >= float(z["spawn_every"]):
+				z["spawn_acc"] = 0.0
+				var sp_pos: Vector2 = pos + Vector2.from_angle(rng.randf() * TAU) * sqrt(rng.randf()) * float(z["r"]) * 0.8
+				_raise_unit(str(z["spawn"]), int(z["c"]), sp_pos, float(z["life"]))
 		if float(z.get("ally_heal", 0.0)) > 0.0:
 			# Sanctuaires : les invocations dans la zone regagnent une part de leurs PV chaque seconde.
 			for a: Unit in _query(_grid_a, pos, float(z["r"])):
@@ -3330,6 +3358,26 @@ func densest_enemy(r: float, max_y: float = H) -> Dictionary:
 			best_n = n
 			best_pos = e.pos
 	return {"pos": best_pos, "n": best_n}
+
+
+## Invocation relevée par un sort (Cimetière, Terre des morts) : comme une armée, au compte du lanceur.
+func _raise_unit(kind: String, ci: int, p: Vector2, life: float) -> void:
+	if not units_db.has(kind) or allies.size() >= 600:
+		return
+	var c := casters[clampi(ci, 0, casters.size() - 1)]
+	p = Vector2(clampf(p.x, 0.4, W - 0.4), clampf(p.y, BARRIER_Y + 0.6, H - 1.0))
+	var u := _make_unit(kind, 0, p)
+	u.owner_idx = c.idx
+	u.atk *= c.atk_mult
+	u.hp *= c.hp_mult
+	if c.idx == 0:
+		_player_unit_mods(u)
+	u.max_hp = u.hp
+	u.crit = c.crit
+	u.life_t = life
+	summoned += 1
+	_add_ally(u)
+	_event({"t": "puff", "pos": p, "color": "B07CFF"})
 
 
 ## Plus grosse cible à portée (boss, élite, brute) : visée des tirs uniques du grimoire.

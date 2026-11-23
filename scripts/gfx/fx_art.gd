@@ -406,6 +406,11 @@ const SPRITES := {
 	"bell": ["...K...", "..KLK..", ".KLWLK.", ".KLWLK.", ".KCLCK.", "KCCCCCK", "KKKKKKK", "...K..."],
 	"candle": ["..y..", ".yWy.", "..y..", ".KbK.", ".KbK.", ".KbK.", ".KbK.", "KKbKK", "KKKKK"],
 	"wing": ["......KK", "....KKLK", "..KKLLWK", ".KLLLWLK", "KLLLWLK.", "KLLWLK..", ".KLLK...", "..KLK...", "...K...."],
+	# Grimoire du Nécromancien.
+	"coffin": ["..KKK..", ".KgGgK.", "KgGGGgK", "KgGhGgK", "KgGhGgK", ".KgGgK.", ".KgggK.", "..KKK.."],
+	"fly": ["K.K", ".K.", "KCK"],
+	"vial": [".KK.", ".KK.", "KLLK", "KCCK", "KCDK", ".KK."],
+	"claw": ["K.K.K", "KCKCK", "KCKCK", ".KCK.", ".KCK.", "..K.."],
 	"falcon": ["K.........K", "KCK.....KCK", ".KCKK.KKCK.", "..KCCLCCK..", "...KCWCK...", "....KyK....", ".....K....."],
 }
 const FIXED := {"K": "120e1a", "b": "e8dcc0", "B": "a89c80", "e": "1a0f0a", "g": "8a7a60", "G": "b8a888", "h": "5a4a3a",

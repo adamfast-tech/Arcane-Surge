@@ -946,6 +946,13 @@ static func spell_power(id: String) -> int:
 			var d := float(sp.get("dur", 3.0))
 			p = float(sp.get("dps", 0)) * d * a + float(sp.get("slow", 0.0)) * d * 12.0 * a + float(sp.get("pull", 0.0)) * d * 8.0 + dmg * a
 			p += float(sp.get("ally_heal", 0.0)) * d * 150.0 * a + float(sp.get("ally_shield", 0.0)) * a * 1.5
+			if str(sp.get("spawn", "")) != "":
+				# Cimetière : une invocation toutes les « spawn_every » s.
+				var su: Dictionary = GameData.units().get(str(sp["spawn"]), {})
+				var uv := float(su.get("hp", 10)) * 0.4 + float(su.get("atk", 10)) / maxf(0.3, float(su.get("atk_interval", 0.5))) * 1.5
+				p += d / maxf(0.3, float(sp.get("spawn_every", 2.0))) * uv * (2.0 if str(su.get("role", "")) == "elite" else 1.0)
+			if bool(sp.get("raise", false)):
+				p += d * 4.0 * a
 		"chain":
 			var f := float(sp.get("falloff", 0.8))
 			for k in range(int(sp.get("bounces", 5))):
@@ -960,6 +967,11 @@ static func spell_power(id: String) -> int:
 			p = float(sp.get("amount", 15)) * 12.0
 		"rally":
 			p = _rally_power(sp)
+		"harvest":
+			# Sacrifice : chaque invocation sacrifiée explose (Ombre, 0,9 m).
+			p = float(sp.get("count", 20)) * (float(sp.get("damage", 25)) + 20.0) * 0.6
+		"mirror":
+			p = float(sp.get("count", 10)) * 15.0
 		"army":
 			# Invocations : PV, dégâts par seconde, aura de soin ; une élite compte double ; durée de vie limitée.
 			var kinds: Array = sp.get("kinds", [])
@@ -996,6 +1008,7 @@ static func spell_power(id: String) -> int:
 					p = float(sp.get("count", 1)) * (float(sp.get("blast", 60)) * float(area.call(float(sp.get("blast_r", 1.4)))) + float(sp.get("root", 0.0)) * 15.0)
 	p += dmg * float(sp.get("nexus_ratio", 0.0)) * 2.0 + float(sp.get("surge_gain", 0.0)) * 20.0
 	# Effets du grimoire de classe : marque, givre, recul, exécution, gros gibier, critique, renfort.
+	p += float(sp.get("weak", 0.0)) * 6.0 + float(sp.get("stun", 0.0)) * 12.0 + float(sp.get("heal_per", 0.0)) * float(sp.get("count", 0)) * 6.0
 	p += float(sp.get("mark", 0.0)) * 5.0 + float(sp.get("chill", 0)) * 15.0 + float(sp.get("knock", 0.0)) * 20.0 + float(sp.get("bleed", 0.0)) * 8.0
 	if bool(sp.get("chain_bolt", false)):
 		p += dmg * 0.4 * 2.0

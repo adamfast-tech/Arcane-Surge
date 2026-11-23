@@ -1061,6 +1061,8 @@ func _tint(u: Unit) -> Color:
 		return Color(0.85, 1.2, 0.6)
 	if u.burn_t > 0.0 and int(t * 10.0) % 2 == 0:
 		return Color(1.5, 0.95, 0.6)
+	if u.weak_t > 0.0 and int(t * 6.0) % 3 == 0:
+		return Color(0.85, 0.7, 1.3)
 	if u.bleed_t > 0.0 and int(t * 9.0) % 3 == 0:
 		return Color(1.55, 0.6, 0.6)
 	if u.poison_t > 0.0 and int(t * 8.0) % 3 == 0:

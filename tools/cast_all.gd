@@ -25,6 +25,12 @@ func _init() -> void:
 		var big := s.strongest_enemy()
 		if big != null:
 			target = big.pos
+		if str((GameData.spells()[id] as Dictionary)["type"]) in ["harvest", "mirror"]:
+			# Sacrifice, dédoublement : viser ses propres invocations.
+			for a in s.allies:
+				if a.alive and a.owner_idx == 0 and a.role == "familier":
+					target = a.pos
+					break
 		var ok := s.cast_spell(c, id, target)
 		var kinds := {}
 		for e in s.events:

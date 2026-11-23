@@ -25,6 +25,7 @@ const HEIGHT_M := {
 	"champion_ranger": 1.6, "champion_blademaster": 1.55, "champion_guardian": 1.6, "champion_bone": 1.7, "champion_paladin": 1.6, "champion_warlord": 1.75, "duelist": 0.72,
 	"bog_zombie": 0.72, "plague_rat": 0.42, "slime_abomination": 1.0, "spitting_toad": 0.5, "shield_skeleton": 0.74, "renegade_adept": 0.82, "mist_witch": 0.86, "croc_lich": 1.4, "hydra": 2.9, "hydra_head": 1.2, "barge": 1.2,
 	"blade_dancer": 0.72, "ronin": 1.2, "sword_guard": 1.05, "blade_master_ghost": 1.45, "flying_sword": 0.5,
+	"skeleton_archer": 0.7, "ghoul": 0.72, "wraith": 0.86, "bone_golem": 1.1, "death_knight": 0.9, "lich": 1.0, "abomination": 1.3,
 	"holy_wisp": 0.55, "cherub": 0.55, "seraph": 1.0, "archangel": 1.6, "crystal_guardian": 1.1,
 	"beast_wolf": 0.55, "beast_alpha": 0.8, "beast_bear": 0.95, "beast_void": 1.15, "beast_stag": 1.3, "beast_falcon": 0.42, "baliste": 0.85,
 	"ice_goblin": 0.6, "white_wolf": 0.55, "yeti": 1.1, "stalactite_kobold": 0.55, "ice_golem": 0.85, "blizzard_elemental": 0.9, "aurora_spirit": 0.9, "ancient_sentinel": 1.2, "rune_sentinel": 1.6, "rune_colossus": 3.2, "body_rune": 0.7, "rune_cart": 1.1,
@@ -1901,6 +1902,14 @@ const DEFS := {
 	"seraph": {"base": "aurora_spirit", "pal": {"o": "4a3a10", "L": "fffbe8", "c": "f2c46b", "e": "ffffff", "m": "b89a3a", "g": "fff0a0", "v": "f5e7a0"}},
 	"archangel": {"base": "champion_guardian", "pal": {"o": "3a2a08", "d": "b89a3a", "m": "f5e7a0", "l": "fffbe8", "y": "ffffff", "g": "f2c46b", "k": "4a3a10"}},
 	"crystal_guardian": {"base": "golem", "pal": {"o": "1a2a3a", "d": "6ab0d8", "m": "b0e8ff", "l": "ffffff", "S": "8ac8e8", "s": "d8f6ff"}},
+	# Grimoire du Nécromancien : morts-vivants.
+	"skeleton_archer": {"base": "skeleton", "pal": {"o": "2a3a30", "b": "d8e8c8", "p": "6fdc8a"}},
+	"ghoul": {"base": "bog_zombie", "pal": {"o": "141018", "s": "7a6a8a", "S": "9a8aaa", "e": "ff3a5a", "m": "3a2a3a", "r": "4a3a5a", "b": "5a4a3a", "g": "2a2a30"}},
+	"wraith": {"base": "mist_witch", "pal": {"o": "100a18", "h": "2a1a3a", "s": "8e62e0", "e": "e8d0ff", "f": "5a3a8a", "F": "8e62e0", "L": "c8b0ff"}},
+	"bone_golem": {"base": "golem", "pal": {"o": "2a2430", "d": "a89c80", "m": "d8d4c8", "l": "ffffff", "S": "8a8678", "s": "e8e4d8"}},
+	"death_knight": {"base": "shield_skeleton", "pal": {"o": "0a080e", "b": "5a5a6a", "e": "ff3a3a", "n": "3a3a4a", "W": "2a2030", "w": "1a1420", "R": "d93cf2"}},
+	"lich": {"base": "renegade_adept", "pal": {"o": "0a0e10", "h": "1a2a2a", "H": "3a4a4a", "s": "c8d8c8", "e": "6fdc8a", "p": "3a6a5a", "P": "a8f0c8"}},
+	"abomination": {"base": "slime_abomination", "pal": {"o": "180e18", "v": "8a4a6a", "V": "b86a8a", "e": "f03a3a", "m": "3a1a2a", "w": "e8c8d8", "B": "d88aa8"}},
 	"white_wolf": {"pal": {"o": "1a1a24", "w": "e8ecf0", "W": "b8c0cc", "e": "4fe3d2", "n": "2a2a30"}, "frames": [[
 		"..............",
 		"oo............",

@@ -77,7 +77,7 @@
       "desc": "Armées d'os et malédictions : squelettes, flétrissure, liche.",
       "playable": true,
       "champion": "champion_bone",
-      "ultimate": "armee_des_morts",
+      "ultimate": "armee_des_morts", "disciplines": [{"id": "os", "name": "Os", "icon": "eclat_os", "color": "E8E4D8", "desc": "Éclats, piques, prisons et pluies d'os."}, {"id": "morts", "name": "Morts-vivants", "icon": "relever_morts", "color": "B07CFF", "desc": "Squelettes, archers, goules, spectres, golems, liches."}, {"id": "malefices", "name": "Maléfices", "icon": "affaiblissement", "color": "9A6AE0", "desc": "Malédictions : les ennemis frappent moins fort, sont marqués et ralentis."}, {"id": "fleaux", "name": "Fléaux", "icon": "contagion", "color": "8AB85A", "desc": "Pestes, mouches et contagions qui empoisonnent."}, {"id": "ames", "name": "Âmes", "icon": "siphon_ame", "color": "C8B0FF", "desc": "Siphons et moissons : Surge, Barrière, invocations sacrifiées."}, {"id": "tenebres", "name": "Ténèbres", "icon": "trait_tenebreux", "color": "8E62E0", "desc": "Traits, vagues, orbes et abîmes d'Ombre."}, {"id": "sang", "name": "Sang", "icon": "pacte_sang", "color": "D84A5A", "desc": "Magie du sang : la Barrière paie, les invocations deviennent voraces."}, {"id": "necropole", "name": "Nécropole", "icon": "tombe_ouverte", "color": "A89CC0", "desc": "Tombes et cimetières d'où les morts se relèvent."}],
       "effect_mult": 1.1
     },
     "chevalier": {

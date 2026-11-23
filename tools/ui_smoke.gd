@@ -49,7 +49,7 @@ const RECIPE_LAYERS := ["rain", "drop", "rise", "ring", "orbit", "fling", "flutt
 const RANK_COUNTS := {"novice": 9, "intermediaire": 9, "apprenti": 9, "mage": 9, "maitre": 8, "archimage": 8, "interdit": 8}
 
 
-const GRIMOIRES := ["archer", "epeiste", "clerc"] ## classes dont le grimoire est écrit (60 techniques chacune)
+const GRIMOIRES := ["archer", "epeiste", "clerc", "necromancien"] ## classes dont le grimoire est écrit (60 techniques chacune)
 
 
 func _grimoire_ok() -> bool:
@@ -120,7 +120,14 @@ func _grimoire_class_ok(cls: String, recipes: Dictionary, errs: Array[String]) -
 		c.spell_cd.clear()
 		sim.barrier_hp = sim.barrier_max * 0.5
 		var big := sim.strongest_enemy()
-		if not sim.cast_spell(c, id, big.pos if big != null else Vector2(4.5, 7.0)):
+		var target: Vector2 = big.pos if big != null else Vector2(4.5, 7.0)
+		if str((GameData.spells()[id] as Dictionary)["type"]) in ["harvest", "mirror"]:
+			# Sacrifice, dédoublement : viser ses propres invocations.
+			for a in sim.allies:
+				if a.alive and a.owner_idx == 0 and a.role == "familier":
+					target = a.pos
+					break
+		if not sim.cast_spell(c, id, target):
 			refused.append(id)
 		for k in range(90):
 			sim.step()

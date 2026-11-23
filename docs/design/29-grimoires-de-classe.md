@@ -96,6 +96,40 @@ Les sorts de l'arbre (Prière, Lance solaire, Exorcisme) restent à part. Ils se
   - Archange (forte aura de soin).
 - **Nouveaux sprites d'animation** : colombe, cloche, cierge, aile.
 
+## Nécromancien : 60 techniques, 8 disciplines
+
+| Discipline | Novice | Intermédiaire | Apprenti | Mage | Maître | Archimage | Interdit |
+|---|---|---|---|---|---|---|---|
+| **Os** | Éclat d'os, Pique d'os | Prison d'os | Lances d'os | Tempête d'os | Pluie d'os | Colonne vertébrale | Ossuaire infini |
+| **Morts-vivants** | Relever les morts | Archers squelettes, Goules | Spectres | Golem d'os | Légion des morts | Liche | Abomination |
+| **Maléfices** | Affaiblissement | Malédiction | Flétrissure | Sceau de faiblesse | Malédiction de mort | Malédiction éternelle | Condamnation |
+| **Fléaux** | Contagion | Peste | Nuée de mouches | Pestilence | Grande peste | Pandémie | Fin des temps |
+| **Âmes** | Siphon d'âme | Drain d'âme | Récolte d'âmes | Chaîne d'âmes | Moisson sanglante | Âmes damnées | Grande moisson |
+| **Ténèbres** | Trait ténébreux | Vague d'ombre | Orbe de néant | Nova d'ombre | Abîme | Nuit éternelle | Néant absolu |
+| **Sang** | Pacte de sang | Sang bouillant | Transfusion, Armure de sang | Rituel de sang | Calice de sang | Festin de sang | Océan de sang |
+| **Nécropole** | Tombe ouverte | Cimetière | Terre des morts | Ossuaire, Chevalier de la mort | Nécropole | Royaume des morts | Jour des morts |
+
+Les sorts de l'arbre (Horde, Malédiction de masse, Sacrifice d'âmes) restent à part. Ils se débloquent par l'arbre du Nécromancien.
+
+**Mécaniques ajoutées pour le Nécromancien :**
+- **Affaiblissement** (`weak`) : l'ennemi frappe 30 % moins fort (invocations et Barrière). Les ennemis affaiblis clignotent en violet.
+- **Cimetières** (`spawn`, `spawn_every`) : une zone fait sortir une invocation à intervalle régulier (squelettes, archers squelettes, chevaliers de la mort).
+- **Terre des morts** (`raise`) : tout ennemi tué dans la zone se relève en squelette.
+- **Sacrifices** :
+  - `heal_per` : chaque invocation sacrifiée soigne la Barrière (Transfusion, Grande moisson) ;
+  - `surge_gain` : chaque sacrifice remplit aussi la Surge.
+- **Immobilisation** (`stun`) sur une colonne (Colonne vertébrale).
+- **Magie du sang** : même hors rang Interdit, certaines techniques se paient en PV de Barrière (Pacte, Sang bouillant, Rituel, Calice, Festin).
+- **Morts-vivants** :
+  - Archer squelette ;
+  - Goule (vol de vie) ;
+  - Spectre ;
+  - Golem d'os ;
+  - Chevalier de la mort ;
+  - Liche (à distance) ;
+  - Abomination.
+- **Nouveaux sprites d'animation** : cercueil, mouche, fiole, griffe.
+
 ## Nouvelles mécaniques
 
 Ces mécaniques servent à tous les grimoires de classe.
@@ -218,6 +252,23 @@ Réglages en cours de route :
 - Jardin céleste et Sanctum moins forts ;
 - rayons d'Anathème et de la Grande purification réduits.
 
+### Nécromancien
+
+| Niveau | Deck | Victoires | Durée | Barrière |
+|---|---|---|---|---|
+| 1-5 | Novice et Intermédiaire : Éclat d'os, Relever les morts, Affaiblissement, Contagion, Pique d'os, Cimetière, Malédiction | 3/3 | 93 s | 57 % |
+| 2-10 (Gharok) | Apprenti et Mage : Lances d'os, Récolte d'âmes, Terre des morts, Tempête d'os, Golem d'os, Nova d'ombre, Ossuaire | 3/3 | 273 s | 55 % (3 étoiles) |
+| 2-10 (Gharok) | Deck de base (élémentaire) | 3/3 | 273 s | 40 % (1,7 étoile) |
+| 4-6 | Maître et Archimage : Pluie d'os, Légion des morts, Malédiction de mort, Grande peste, Abîme, Nécropole, Nuit éternelle | 3/3 | 113 s | 97 % |
+
+Réglages en cours de route :
+- cimetières et Terre des morts réévalués (prix selon le nombre de morts relevés) ;
+- Liche renforcée (360 PV, 70 d'attaque) ;
+- 3 spectres et 4 archers squelettes au lieu de 2 et 3 ;
+- Jour des morts : un chevalier toutes les 3 s pendant 12 s.
+
+Le sacrifice (Récolte, Transfusion, Moisson) se vise sur ses propres invocations : l'IA, le smoke test et `cast_all.gd` le lancent là où elles se trouvent.
+
 ## Suite
 
-Les grimoires des 3 autres classes suivent, une classe à la fois : Nécromancien, Chevalier, Berserker. Chacun aura environ 60 techniques en 8 disciplines.
+Les grimoires des 2 autres classes suivent, une classe à la fois : Chevalier, Berserker. Chacun aura environ 60 techniques en 8 disciplines.
