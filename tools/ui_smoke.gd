@@ -49,12 +49,25 @@ const RECIPE_LAYERS := ["rain", "drop", "rise", "ring", "orbit", "fling", "flutt
 const RANK_COUNTS := {"novice": 9, "intermediaire": 9, "apprenti": 9, "mage": 9, "maitre": 8, "archimage": 8, "interdit": 8}
 
 
+const GRIMOIRES := ["archer", "epeiste"] ## classes dont le grimoire est écrit (60 techniques chacune)
+
+
 func _grimoire_ok() -> bool:
-	var ids := Profile.class_grimoire("archer")
-	var ranks := {}
-	var discs := {}
 	var recipes := {}
 	var errs: Array[String] = []
+	for cls in GRIMOIRES:
+		if not _grimoire_class_ok(str(cls), recipes, errs):
+			break
+	if not errs.is_empty():
+		push_error("grimoire de classe : %s" % [errs])
+		return false
+	return await _grimoire_buy_ok()
+
+
+func _grimoire_class_ok(cls: String, recipes: Dictionary, errs: Array[String]) -> bool:
+	var ids := Profile.class_grimoire(cls)
+	var ranks := {}
+	var discs := {}
 	for id in ids:
 		var sp: Dictionary = GameData.spells()[id]
 		ranks[str(sp["rank"])] = int(ranks.get(str(sp["rank"]), 0)) + 1
@@ -68,12 +81,13 @@ func _grimoire_ok() -> bool:
 			if part in ["shot", "c2"]:
 				continue
 			for layer in v[part]:
-				var kind := str(layer).split(":")[0]
-				if kind == "each":
-					kind = str(layer).split(":")[1]
+				var bits := str(layer).split(":")
+				if bits[0] == "each":
+					bits = bits.slice(1)
+				var kind := bits[0]
 				if not RECIPE_LAYERS.has(kind):
 					errs.append("%s : couche inconnue %s" % [id, layer])
-				var a1 := str(layer).split(":")[1] if str(layer).split(":").size() > 1 else ""
+				var a1 := bits[1] if bits.size() > 1 else ""
 				if kind in ["rain", "drop", "rise", "ring", "orbit", "fling", "flutter", "sweep", "allies", "streak", "hop"] and not FxArt.SPRITES.has(a1):
 					errs.append("%s : sprite inconnu %s" % [id, layer])
 		if v.has("shot") and not FxArt.SPRITES.has(str((v["shot"] as Dictionary).get("sp", "arrow"))):
@@ -85,12 +99,41 @@ func _grimoire_ok() -> bool:
 	for r in RANK_COUNTS.keys():
 		if int(ranks.get(r, 0)) != int(RANK_COUNTS[r]):
 			errs.append("rang %s : %d techniques" % [r, int(ranks.get(r, 0))])
-	if discs.size() != 8 or Profile.disciplines("archer").size() != 8:
-		errs.append("disciplines : %d" % discs.size())
-	for d in Profile.disciplines("archer"):
+	if discs.size() != 8 or Profile.disciplines(cls).size() != 8:
+		errs.append("%s, disciplines : %d" % [cls, discs.size()])
+	for d in Profile.disciplines(cls):
 		if int(discs.get(str((d as Dictionary)["id"]), 0)) > 8:
 			errs.append("discipline %s : plus de 8 techniques (cases du Tiroir)" % str(d["id"]))
-	# Achat réservé à la voie ; technique d'une autre voie gardée mais hors du deck.
+		if not GameData.spells().has(str(d["icon"])):
+			errs.append("discipline %s : icône inconnue" % str(d["id"]))
+	# Chaque technique se lance en combat.
+	var refused: Array[String] = []
+	var lv := GameData.level("z01_l05")
+	for id in ids:
+		var sim := BattleSim.new()
+		sim.setup(lv, GameData.party(), 7, {"solo": true, "player_level": 30, "player_class": cls, "deck": [id]})
+		sim.player().firing = true
+		for k in range(120):
+			sim.step()
+		var c := sim.player()
+		c.mana = c.mana_max
+		c.spell_cd.clear()
+		sim.barrier_hp = sim.barrier_max * 0.5
+		var big := sim.strongest_enemy()
+		if not sim.cast_spell(c, id, big.pos if big != null else Vector2(4.5, 7.0)):
+			refused.append(id)
+		for k in range(90):
+			sim.step()
+		sim.terrain.sim = null
+	if not refused.is_empty():
+		errs.append("%s, refusés en combat : %s" % [cls, refused])
+	print("grimoire %s : %d techniques · rangs %s · %d disciplines · %d animations uniques (tous grimoires)" % [cls, ids.size(), ranks, discs.size(), recipes.size()])
+	return errs.is_empty()
+
+
+## Achat réservé à la voie ; technique d'une autre voie gardée mais hors du deck ; Bibliothèque.
+func _grimoire_buy_ok() -> bool:
+	var errs: Array[String] = []
 	var cls0 := Profile.player_class()
 	var gold0 := Profile.gold()
 	Profile.data["player"]["class"] = "mage"
@@ -117,28 +160,7 @@ func _grimoire_ok() -> bool:
 	Profile.data["gold"] = gold0
 	if not block_mage.begins_with("Voie") or not learned_ok or not hidden or lib_elem != 0:
 		errs.append("achat : %s · appris %s · caché hors voie %s · techniques dans le catalogue élémentaire %d" % [block_mage, learned_ok, hidden, lib_elem])
-	# Chaque technique se lance en combat.
-	var refused: Array[String] = []
-	var lv := GameData.level("z01_l05")
-	for id in ids:
-		var sim := BattleSim.new()
-		sim.setup(lv, GameData.party(), 7, {"solo": true, "player_level": 30, "player_class": "archer", "deck": [id]})
-		sim.player().firing = true
-		for k in range(120):
-			sim.step()
-		var c := sim.player()
-		c.mana = c.mana_max
-		c.spell_cd.clear()
-		sim.barrier_hp = sim.barrier_max * 0.5
-		var big := sim.strongest_enemy()
-		if not sim.cast_spell(c, id, big.pos if big != null else Vector2(4.5, 7.0)):
-			refused.append(id)
-		for k in range(90):
-			sim.step()
-		sim.terrain.sim = null
-	if not refused.is_empty():
-		errs.append("refusés en combat : %s" % [refused])
-	print("grimoire de l'Archer : %d techniques · rangs %s · %d disciplines · %d animations uniques · achat %s" % [ids.size(), ranks, discs.size(), recipes.size(), block_mage])
+	print("grimoires : achat hors voie « %s »" % block_mage)
 	if not errs.is_empty():
 		push_error("grimoire de classe : %s" % [errs])
 		return false

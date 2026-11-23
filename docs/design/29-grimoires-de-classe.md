@@ -42,6 +42,33 @@ Chaque classe a son propre grimoire : une soixantaine de techniques, du rang Nov
 
 Les sorts de l'arbre (Tir de précision, Volée de flèches, Constellation) restent à part. Ils se débloquent par l'arbre de l'Archer.
 
+## Épéiste : 60 techniques, 8 disciplines
+
+| Discipline | Novice | Intermédiaire | Apprenti | Mage | Maître | Archimage | Interdit |
+|---|---|---|---|---|---|---|---|
+| **Taille** | Entaille | Tranche large, Fauchage | Moulinet | Tourbillon d'acier | Taille de lune | Fend-montagne | Coupe-monde |
+| **Estoc** | Estoc rapide | Fente perçante | Coup droit | Iaidō | Mille estocs | Estoc céleste | Estoc de l'âme |
+| **Danse** | Pas de danse | Valse des lames | Danse des lames, Pas du vent | Frénésie du duel | Ballet mortel | Danse éternelle | Danse de la mort |
+| **Garde** | Parade | Contre-attaque | Garde haute | Riposte parfaite | Bastion de lames | Égide des lames | Lame inébranlable |
+| **Spectres** | Lame volante | Duellistes | Rōnin spectral | Gardien d'acier, Vol de lames | Compagnie spectrale | Maître spectral | Légion des lames |
+| **Tempête** | Lame-éclair | Taille-foudre | Tranche-tonnerre | Lame d'orage | Orage d'acier | Jugement de la lame | Lame divine |
+| **Saignée** | Coupure | Saignée | Hémorragie | Lacérations | Saignée écarlate | Pluie de sang | Fleuve de sang |
+| **Acier** | Pluie de dagues, Jeté de lame | Dagues obliques | Lames orbitales | Pluie d'épées | Épées dansantes | Tempête d'acier | Mille ciels |
+
+Les sorts de l'arbre (Fente, Tranche-orage, Lames miroirs) restent à part. Ils se débloquent par l'arbre de l'Épéiste.
+
+**Mécaniques ajoutées pour l'Épéiste :**
+- **Saignement** (`bleed`) : 3,5 % des PV (plafonnés) par seconde, en dégâts physiques. Les ennemis qui saignent clignotent en rouge.
+- **Renfort** : il gagne le vol de vie (`steal`) et la riposte (`thorns`), qui renvoie une part des coups reçus.
+- Un renfort peut aussi accompagner un bouclier ou un soin de Barrière (Garde haute, Bastion de lames, Égide, Lame inébranlable).
+- **Lames spectrales** :
+  - Épée volante (20 s) ;
+  - Danseuse de lames ;
+  - Rōnin spectral ;
+  - Gardien d'acier (tank) ;
+  - Maître spectral (vol de vie).
+- **Nouveaux sprites d'animation** : katana, rapière, dague, pétale.
+
 ## Nouvelles mécaniques
 
 Ces mécaniques servent à tous les grimoires de classe.
@@ -111,7 +138,9 @@ Chaque technique décrit son animation dans `spells.json` (« vfx »), en couche
 - achat réservé à la voie ;
 - chaque technique se lance en combat.
 
-## Équilibrage (simulateur, IA aux commandes, classe Archer)
+## Équilibrage (simulateur, IA aux commandes)
+
+### Archer
 
 Commande : `tools/sim_cli.gd -- --level=X --runs=3 --class=archer --deck=a,b,…`. Pour lancer chaque technique une fois : `tools/cast_all.gd -- --class=archer`.
 
@@ -131,6 +160,21 @@ Réglages en cours de route :
 - Baliste, Esprit de la forêt et Bête du Néant renforcés pour leur rang ;
 - l'IA lance un renfort dès que 8 invocations sont au contact (au lieu de dépendre de la menace sur la Barrière).
 
+### Épéiste
+
+| Niveau | Deck | Victoires | Durée | Barrière |
+|---|---|---|---|---|
+| 1-5 | Novice et Intermédiaire : Entaille, Estoc rapide, Coupure, Lame volante, Jeté de lame, Tranche large, Dagues obliques | 3/3 | 116 s | 50 % |
+| 2-10 (Gharok) | Apprenti et Mage : Moulinet, Coup droit, Danse des lames, Hémorragie, Iaidō, Pluie d'épées, Lame d'orage | 3/3 | 268 s | 54 % |
+| 2-10 (Gharok) | Deck de base (élémentaire) | 3/3 | 234 s | 48 % |
+| 4-6 | Maître et Archimage : Taille de lune, Mille estocs, Compagnie spectrale, Orage d'acier, Épées dansantes, Jugement de la lame, Tempête d'acier | 3/3 | 104 s | 97 % |
+
+L'IA vide son mana dans les premiers sorts du deck : à Gharok, Pluie d'épées et Lame d'orage ne partent presque jamais.
+
+Réglages en cours de route :
+- boucliers de Parade, Garde haute et Égide réduits pour leur rang ;
+- Rōnin spectral : 140 PV et 26 d'attaque.
+
 ## Suite
 
-Les grimoires des 5 autres classes suivent, une classe à la fois : Épéiste, Clerc, Nécromancien, Chevalier, Berserker. Chacun aura environ 60 techniques en 8 disciplines.
+Les grimoires des 4 autres classes suivent, une classe à la fois : Clerc, Nécromancien, Chevalier, Berserker. Chacun aura environ 60 techniques en 8 disciplines.

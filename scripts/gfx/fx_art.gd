@@ -396,6 +396,11 @@ const SPRITES := {
 	"wolf": ["K...........", "KCK.........", "KCCKKKKKKK..", ".KCCCCCCCCKK", "KWCCCCCCCK..", ".KKCKKKKCK..", "...KK...KK.."],
 	"flame": ["..K..", ".KLK.", ".KLK.", "KLWLK", "KCLCK", "KCCCK", ".KDK.", "..K.."],
 	"drop": ["..K..", ".KLK.", ".KLK.", "KLWCK", "KCCCK", "KCCDK", ".KKK."],
+	# Grimoire de l'Épéiste.
+	"katana": ["..K...", ".KwK..", ".KwK..", "KyyyK.", ".KCK..", ".KCWK.", "..KCK.", "..KCK.", "..KCWK", "...KCK", "...KCK", "....KK"],
+	"rapier": ["..K..", ".KwK.", "KyyyK", "KyKyK", "..C..", "..C..", "..W..", "..C..", "..C..", "..C..", "..W..", "..C..", "..K.."],
+	"dagger": [".K.", "KwK", "KyK", "KCK", "KWK", "KCK", ".K."],
+	"petal": ["..KK.", ".KLLK", "KLWLK", "KCLK.", ".KK.."],
 	"falcon": ["K.........K", "KCK.....KCK", ".KCKK.KKCK.", "..KCCLCCK..", "...KCWCK...", "....KyK....", ".....K....."],
 }
 const FIXED := {"K": "120e1a", "b": "e8dcc0", "B": "a89c80", "e": "1a0f0a", "g": "8a7a60", "G": "b8a888", "h": "5a4a3a",

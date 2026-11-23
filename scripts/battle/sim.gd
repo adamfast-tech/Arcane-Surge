@@ -1218,6 +1218,9 @@ func _tick_status() -> void:
 			_damage(u, u.burn_dps * TICK, "feu")
 			if u.burn_t <= 0.0:
 				u.burn_dps = 0.0
+		if u.bleed_t > 0.0 and u.alive:
+			u.bleed_t -= TICK
+			_damage(u, u.bleed_dps * TICK, "physique")
 		if u.poison_t > 0.0 and u.alive:
 			u.poison_t -= TICK
 			_damage(u, u.poison_unit * float(u.poison_stacks) * TICK, "nature")
@@ -1248,6 +1251,8 @@ func _tick_status() -> void:
 				u.buff_atk = 0.0
 				u.buff_crit = 0.0
 				u.buff_aspd = 0.0
+				u.buff_steal = 0.0
+				u.buff_thorns = 0.0
 		if u.life_t > 0.0:
 			u.life_t -= TICK
 			if u.life_t <= 0.0:
@@ -1997,14 +2002,16 @@ func _hit(src: Unit, tgt: Unit, mult: float = 1.0) -> void:
 	if src.team == 0:
 		_on_hit_effects(src, tgt, dmg, src.element)
 		_class_on_hit(src, tgt, dmg, crit)
-	elif tgt.owner_idx == 0 and _mod("riposte") > 0.0 and src.alive:
-		# Riposte (Épéiste) : les invocations du joueur renvoient une part des coups reçus.
-		_damage(src, dmg * _mod("riposte"), "physique")
+	else:
+		var thorns := (_mod("riposte") if tgt.owner_idx == 0 else 0.0) + (tgt.buff_thorns if tgt.buff_t > 0.0 else 0.0)
+		if thorns > 0.0 and src.alive:
+			# Riposte (Épéiste, arbre ou renfort) : les invocations renvoient une part des coups reçus.
+			_damage(src, dmg * thorns, "physique")
 
 
 ## Effets des arbres de classe sur un coup porté par une invocation (étape 13.3).
 func _class_on_hit(src: Unit, tgt: Unit, dmg: float, crit: bool) -> void:
-	var steal := src.lifesteal + (0.1 if src.frenzy_t > 0.0 else 0.0)
+	var steal := src.lifesteal + (0.1 if src.frenzy_t > 0.0 else 0.0) + (src.buff_steal if src.buff_t > 0.0 else 0.0)
 	if steal > 0.0 and src.alive:
 		var h := dmg * steal
 		src.hp = minf(src.max_hp, src.hp + h)
@@ -2731,6 +2738,10 @@ func _strike(c: Caster, sp: Dictionary, e: Unit, dmg: float, elem: String, origi
 		e.pos = Vector2(clampf(e.pos.x + away.x * float(sp["knock"]) * 0.4, 0.3, W - 0.3), minf(H - 0.6, e.pos.y + away.y * float(sp["knock"])))
 	for st in sp.get("status", []):
 		_apply_status(e, str(st))
+	if sp.has("bleed") and e.alive:
+		# Saignement : 3,5 % des PV (plafonnés) par seconde.
+		e.bleed_t = maxf(e.bleed_t, float(sp["bleed"]))
+		e.bleed_dps = maxf(e.bleed_dps, 0.035 * _dot_base(e) * effect_mult)
 
 
 ## Tir unique : la plus grosse cible de la zone (élite, boss), sinon la plus proche du centre.
@@ -2760,6 +2771,8 @@ func _rally(c: Caster, r: Dictionary, at: Vector2, col: String) -> int:
 		a.buff_atk = maxf(a.buff_atk, float(r.get("atk", 0.0)))
 		a.buff_crit = maxf(a.buff_crit, float(r.get("crit", 0.0)))
 		a.buff_aspd = maxf(a.buff_aspd, float(r.get("aspd", 0.0)))
+		a.buff_steal = maxf(a.buff_steal, float(r.get("steal", 0.0)))
+		a.buff_thorns = maxf(a.buff_thorns, float(r.get("thorns", 0.0)))
 		if r.has("shield"):
 			a.shield = maxf(a.shield, a.max_hp * float(r["shield"]))
 		if r.has("heal"):

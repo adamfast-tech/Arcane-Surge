@@ -174,7 +174,8 @@ iOS (iPhone 16 Pro Max, iPad), Android, PC (16:9, 16:10).
     - 13.3c ✅ animations propres à chaque sort (84 signatures : projectiles, impacts, zones, glyphes) — [`design/26-animations-des-sorts.md`](design/26-animations-des-sorts.md)
     - 13.5 grimoires de classe : ~60 techniques par classe, de Novice à Interdit, en 8 disciplines — [`design/29-grimoires-de-classe.md`](design/29-grimoires-de-classe.md)
         - ✅ Archer : 60 techniques (Tir, Volées, Pièges, Traque, Bêtes, Poisons, Éléments, Astral), renforts, pièges, bêtes, animations par recettes
-        - Épéiste, Clerc, Nécromancien, Chevalier, Berserker : à venir, une classe à la fois
+        - ✅ Épéiste : 60 techniques (Taille, Estoc, Danse, Garde, Spectres, Tempête, Saignée, Acier), saignement, riposte et vol de vie en renfort, lames spectrales
+        - Clerc, Nécromancien, Chevalier, Berserker : à venir, une classe à la fois
     - 13.4 ✅ Salle de méditation (Sœur Aelis : voies du héros et des compagnons, 3 configurations, réinitialisation, Harmonie) ; compagnons avec niveau et XP propres, équipement et classe changeable — [`design/27-meditation-compagnons.md`](design/27-meditation-compagnons.md)
 14. Acte 4 :
     - 14.1 ✅ zone 4 jouable, Pics Gelés : 10 niveaux (31 à 40), bêtes des montagnes et élémentaires de givre, glace qui fait glisser, avalanches, Portes naines FORGE, Sentinelle runique et Colosse runique (runes corporelles) — [`design/28-zone4.md`](design/28-zone4.md)

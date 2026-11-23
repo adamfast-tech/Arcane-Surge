@@ -995,7 +995,9 @@ static func spell_power(id: String) -> int:
 					p = float(sp.get("count", 1)) * (float(sp.get("blast", 60)) * float(area.call(float(sp.get("blast_r", 1.4)))) + float(sp.get("root", 0.0)) * 15.0)
 	p += dmg * float(sp.get("nexus_ratio", 0.0)) * 2.0 + float(sp.get("surge_gain", 0.0)) * 20.0
 	# Effets du grimoire de classe : marque, givre, recul, exécution, gros gibier, critique, renfort.
-	p += float(sp.get("mark", 0.0)) * 5.0 + float(sp.get("chill", 0)) * 15.0 + float(sp.get("knock", 0.0)) * 20.0
+	p += float(sp.get("mark", 0.0)) * 5.0 + float(sp.get("chill", 0)) * 15.0 + float(sp.get("knock", 0.0)) * 20.0 + float(sp.get("bleed", 0.0)) * 8.0
+	if bool(sp.get("chain_bolt", false)):
+		p += dmg * 0.4 * 2.0
 	p += dmg * (float(sp.get("execute", 0.0)) * 0.3 + float(sp.get("big_game", 0.0)) * 0.3 + float(sp.get("crit_add", 0.0)) + float(sp.get("marked_bonus", 0.0)) * 0.3)
 	if sp.get("rally", null) is Dictionary:
 		p += _rally_power(sp["rally"])
@@ -1010,7 +1012,7 @@ static func spell_power(id: String) -> int:
 static func _rally_power(r: Dictionary) -> float:
 	var reach := 1.0 if float(r.get("radius", 0.0)) <= 0.0 else minf(1.0, float(r["radius"]) / 3.0)
 	return (float(r.get("atk", 0.0)) + float(r.get("aspd", 0.0)) * 0.9 + float(r.get("crit", 0.0)) * 1.2 + float(r.get("shield", 0.0)) * 0.8
-		+ float(r.get("heal", 0.0)) * 0.6) * float(r.get("dur", 6.0)) * 90.0 * reach
+		+ float(r.get("heal", 0.0)) * 0.6 + float(r.get("steal", 0.0)) * 1.0 + float(r.get("thorns", 0.0)) * 0.5) * float(r.get("dur", 6.0)) * 90.0 * reach
 
 
 ## Prix d'un sort à la Bibliothèque : proportionnel à sa puissance (arrondi à 10 or, à 50 or au-delà de 1 000).

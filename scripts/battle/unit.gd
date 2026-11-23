@@ -62,7 +62,11 @@ var buff_t := 0.0 ## Renfort (grimoire de classe : Cor de chasse, Œil d'aigle�
 var buff_atk := 0.0 ## part de dégâts en plus pendant le renfort
 var buff_crit := 0.0 ## chance de critique en plus
 var buff_aspd := 0.0 ## cadence d'attaque en plus
+var buff_steal := 0.0 ## vol de vie pendant le renfort (Danse de la mort)
+var buff_thorns := 0.0 ## part des coups reçus renvoyée pendant le renfort (Contre-attaque, Égide)
 var life_t := 0.0 ## > 0 : invocation temporaire (s'efface à 0)
+var bleed_t := 0.0 ## saignement (grimoire de l'Épéiste) : dégâts physiques sur la durée
+var bleed_dps := 0.0
 
 # Rendu
 var flash_t := 0.0

@@ -45,7 +45,7 @@
       "desc": "Lames rapides et foudre : duellistes, riposte, lames spectrales.",
       "playable": true,
       "champion": "champion_blademaster",
-      "ultimate": "mille_lames",
+      "ultimate": "mille_lames", "disciplines": [{"id": "taille", "name": "Taille", "icon": "entaille", "color": "E8EEF8", "desc": "Tranches larges, moulinets et tourbillons : frapper les foules."}, {"id": "estoc", "name": "Estoc", "icon": "estoc_rapide", "color": "D8E0F0", "desc": "Fentes et estocs : la plus grosse cible, les colonnes, les critiques."}, {"id": "danse", "name": "Danse", "icon": "pas_de_danse", "color": "F8B8D0", "desc": "Pas et valses : les invocations frappent plus vite et plus juste."}, {"id": "garde", "name": "Garde", "icon": "parade", "color": "C8D8F0", "desc": "Parades et ripostes : boucliers de Barrière et d'invocations, coups renvoyés."}, {"id": "spectres", "name": "Spectres", "icon": "lame_volante", "color": "9AD8FF", "desc": "Épées volantes, danseuses, rōnins et maîtres spectraux."}, {"id": "tempete", "name": "Tempête", "icon": "lame_eclair", "color": "FFE45C", "desc": "Lames de foudre : ricochets, colonnes et orages."}, {"id": "saignee", "name": "Saignée", "icon": "coupure", "color": "D84A5A", "desc": "Coupures qui font saigner : dégâts physiques sur la durée."}, {"id": "acier", "name": "Acier", "icon": "pluie_dagues", "color": "C8D0E0", "desc": "Dagues et épées qui pleuvent du ciel."}],
       "effect_mult": 1.0
     },
     "clerc": {
