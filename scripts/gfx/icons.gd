@@ -139,7 +139,12 @@ static var _cache: Dictionary = {}
 
 
 static func has(name: String) -> bool:
-	return SHAPES.has(name)
+	return SHAPES.has(name) or _svg_of(name) != ""
+
+
+## Icône d'une technique de grimoire de classe : son tracé est dans data/spells.json (« svg »).
+static func _svg_of(name: String) -> String:
+	return str((GameData.spells().get(name, {}) as Dictionary).get("svg", ""))
 
 
 ## Icône blanche de « px » pixels de côté (à teinter). Trait plus épais pour les petites tailles.
@@ -147,7 +152,11 @@ static func tex(name: String, px: int = 48, stroke: float = 1.5) -> Texture2D:
 	var key := "%s|%d|%.2f" % [name, px, stroke]
 	if _cache.has(key):
 		return _cache[key]
-	var body := str(SHAPES.get(name, SHAPES["rune"]))
+	var body := str(SHAPES.get(name, ""))
+	if body == "":
+		body = _svg_of(name)
+	if body == "":
+		body = str(SHAPES["rune"])
 	var svg := (HEAD % str(stroke)) + body + "</svg>"
 	var img := Image.new()
 	if img.load_svg_from_string(svg, float(px) / 24.0) != OK:

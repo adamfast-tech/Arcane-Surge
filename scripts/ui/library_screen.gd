@@ -9,6 +9,8 @@ signal back
 var _msg := ""
 var _school := "" ## école filtrée ; « classes » : sorts propres à chaque classe
 var _class_view := "" ## classe affichée dans l'onglet Classes
+var _class_part := "grimoire" ## onglet Classes : « grimoire » (techniques par rang) ou « voie » (Ultime, arbre, compagnons)
+var _disc := "" ## discipline filtrée dans le grimoire de classe
 
 
 func _ready() -> void:
@@ -26,6 +28,8 @@ static func catalogue() -> Array[String]:
 		var sp: Dictionary = GameData.spells()[id]
 		if not (Profile.BASE_SPELLS.has(id) or sp.has("learn") or sp.has("source") or sp.has("rank")):
 			continue
+		if sp.has("grimoire"):
+			continue # grimoires de classe : onglet Classes
 		if sp.has("tree_class") and not sp.has("rank") and str(sp["tree_class"]) != Profile.player_class() and not known.has(str(id)):
 			continue
 		out.append(str(id))
@@ -206,6 +210,24 @@ func _class_sections(col: VBoxContainer, known: Array[String], deck: Array[Strin
 		g.add_child(bt)
 	var cls := _class_view
 	var mine_cls := cls == Profile.player_class()
+	var parts := HBoxContainer.new()
+	parts.add_theme_constant_override("separation", 6)
+	col.add_child(parts)
+	for pt in [["grimoire", "Grimoire (%d)" % maxi(Profile.class_grimoire(cls).size(), 0)], ["voie", "Ultime, arbre, compagnons"]]:
+		var pid := str(pt[0])
+		var pb := UiTheme.button(str(pt[1]), 16)
+		pb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		pb.custom_minimum_size = Vector2(0, 46)
+		if pid == _class_part:
+			pb.add_theme_color_override("font_color", UiTheme.GOLD)
+			pb.add_theme_stylebox_override("normal", UiTheme.box(Color(UiTheme.PANEL2, 0.96), UiTheme.GOLD, 10, 2, 4))
+		pb.pressed.connect(func() -> void:
+			_class_part = pid
+			_rebuild.call_deferred())
+		parts.add_child(pb)
+	if _class_part == "grimoire":
+		_grimoire_sections(col, cls, known, deck)
+		return
 	var info := class_spells(cls)
 	var intro := "En turquoise : ta voie actuelle. Les sorts d'arbre se débloquent en investissant des points dans l'arbre de la classe (Entraînement)."
 	if not mine_cls:
@@ -233,6 +255,75 @@ func _class_sections(col: VBoxContainer, known: Array[String], deck: Array[Strin
 		col.add_child(UiTheme.wrap("Un compagnon qui suit cette voie emporte l'un de ces sorts (au choix, au Cercle).", 16, UiTheme.MUTED))
 		for sid in info["companion"]:
 			col.add_child(_spell_card(str(sid), false, false, "Choisi au Cercle pour un compagnon %s." % _class_name(cls), true))
+
+
+## Grimoire d'une classe : ses techniques par rang (Novice à Interdit), filtrables par discipline.
+func _grimoire_sections(col: VBoxContainer, cls: String, known: Array[String], deck: Array[String]) -> void:
+	var ids := Profile.class_grimoire(cls)
+	var mine := cls == Profile.player_class()
+	if ids.is_empty():
+		if cls == "mage":
+			col.add_child(UiTheme.wrap("Le grimoire du Mage, ce sont les sept écoles élémentaires (onglets Feu à Terre) : 56 sorts, de Novice à Interdit. Ces sorts restent ouverts à toutes les voies.", 17, UiTheme.MUTED))
+		else:
+			col.add_child(UiTheme.wrap("Le grimoire de cette voie s'écrit encore : ses techniques arrivent bientôt.", 17, UiTheme.MUTED))
+		return
+	var learned := 0
+	for id in ids:
+		if Profile.learned(id):
+			learned += 1
+	var intro := "%d techniques en 8 disciplines, de Novice à Interdit : %d apprises. Elles s'achètent en or et ne servent qu'en suivant cette voie ; le deck mêle librement grimoire de classe et écoles élémentaires." % [ids.size(), learned]
+	if not mine:
+		intro += " Tu suis la voie : %s. Change de voie à la Salle de méditation (dès l'acte 2) pour les apprendre." % _class_name(Profile.player_class())
+	col.add_child(UiTheme.wrap(intro, 17, UiTheme.MUTED))
+	var g := GridContainer.new()
+	g.columns = 3
+	g.add_theme_constant_override("h_separation", 6)
+	g.add_theme_constant_override("v_separation", 6)
+	col.add_child(g)
+	var tabs: Array = [{"id": "", "name": "Toutes", "icon": "book", "color": "6fdccf"}]
+	tabs.append_array(Profile.disciplines(cls))
+	for t in tabs:
+		var did := str(t["id"])
+		var tc := Color(str(t["color"]))
+		var on := did == _disc
+		var bt := UiTheme.button(str(t["name"]), 15)
+		bt.icon = Icons.tex(str(t["icon"]), 40)
+		bt.add_theme_constant_override("icon_max_width", 18)
+		bt.add_theme_color_override("icon_normal_color", tc if on else Color(tc, 0.7))
+		bt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		bt.custom_minimum_size = Vector2(0, 46)
+		if on:
+			bt.add_theme_color_override("font_color", tc)
+			bt.add_theme_stylebox_override("normal", UiTheme.box(Color(UiTheme.PANEL2, 0.96), tc, 10, 2, 4))
+		bt.pressed.connect(func() -> void:
+			_disc = did
+			_rebuild.call_deferred())
+		g.add_child(bt)
+	if _disc != "":
+		var di := Profile.discipline_info(cls, _disc)
+		if not di.is_empty():
+			col.add_child(UiTheme.wrap(str(di.get("desc", "")), 16, Color(str(di["color"]))))
+	for rank in Profile.SPELL_RANKS:
+		var rids: Array[String] = []
+		for id in ids:
+			var sp: Dictionary = GameData.spells()[id]
+			if str(sp.get("rank", "")) == rank and (_disc == "" or str(sp.get("disc", "")) == _disc):
+				rids.append(id)
+		if rids.is_empty():
+			continue
+		var ri: Dictionary = Profile.RANK_INFO[rank]
+		var lo := 1 << 30
+		var hi := 0
+		for id in rids:
+			lo = mini(lo, Profile.spell_price(id))
+			hi = maxi(hi, Profile.spell_price(id))
+		col.add_child(UiTheme.section("%s · %s" % [str(ri["name"]), ("%d or" % lo) if lo == hi else "%d à %d or" % [lo, hi]], Color(str(ri["color"]))))
+		for id in rids:
+			if mine:
+				col.add_child(_spell_card(id, known.has(id), deck.has(id)))
+			else:
+				var how := "Apprise : sert en suivant la voie %s." % _class_name(cls) if Profile.learned(id) else "Prix : %d or · voie %s requise" % [Profile.spell_price(id), _class_name(cls)]
+				col.add_child(_spell_card(id, Profile.learned(id), false, how, true))
 
 
 func _spell_card(id: String, known: bool, in_deck: bool, how: String = "", info_only: bool = false) -> PanelContainer:
@@ -266,6 +357,8 @@ func _spell_card(id: String, known: bool, in_deck: bool, how: String = "", info_
 		tags.append(str(ri["name"]))
 	if sp.has("school"):
 		tags.append(str(Profile.SCHOOLS.get(str(sp["school"]), "")))
+	elif sp.has("disc"):
+		tags.append(str(Profile.discipline_info(str(sp["grimoire"]), str(sp["disc"])).get("name", "")))
 	if sp.has("rank"):
 		tags.append("puissance %d" % Profile.spell_power(id))
 	if int(sp.get("mana", 0)) > 0 or int(sp.get("cd", 0)) > 0:
@@ -316,6 +409,8 @@ func _spell_card(id: String, known: bool, in_deck: bool, how: String = "", info_
 		_rebuild.call_deferred())
 	h.add_child(lb)
 	var req := "Prix : %d or" % int(l.get("gold", 0))
+	if block.begins_with("Voie"):
+		req = block + " · " + req
 	if l.has("level"):
 		req = "Niveau %d requis · " % int(l["level"]) + req
 	if poor:

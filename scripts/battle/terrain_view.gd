@@ -179,6 +179,11 @@ func _update_surfaces(delta: float) -> void:
 		match kind:
 			"rune":
 				a *= 0.7 + 0.3 * sin(t * 5.0 + float(id))
+			"piege":
+				a *= 0.75 + 0.25 * sin(t * 4.0 + float(id))
+				var pc := Color(str(s.get("color", "C8F5A0")))
+				(sn["mat"] as StandardMaterial3D).albedo_color = Color(pc.r, pc.g, pc.b, a)
+				continue
 			"statique":
 				a *= 0.75 + 0.25 * sin(t * 31.0 + float(id) * 3.0)
 			"braises":

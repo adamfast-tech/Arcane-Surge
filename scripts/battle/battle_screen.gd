@@ -91,7 +91,10 @@ const DRAWER_INFO := {
 }
 const HOLD_MOVE := 12.0
 var _mode := "deck"
-var _by_school: Dictionary = {}
+var _by_school: Dictionary = {} ## école (« feu »…) ou discipline du grimoire de classe (« d:pieges »…) -> sorts
+var _groups: Array = DRAWER ## cases du tiroir fermé : les écoles, ou les disciplines de la classe
+var _page_btn: Button ## Tiroir : bascule écoles / disciplines de la classe
+var _class_groups: Array = []
 var _drawer := ""
 var _hold := false
 var _hold_moved := false
@@ -143,9 +146,20 @@ func _ready() -> void:
 		for id in sim.player().spells:
 			var sd: Dictionary = sim.spells_db[id]
 			var sc := str(sd.get("school", "lumiere"))
+			if sd.has("grimoire"):
+				sc = "d:" + str(sd.get("disc", ""))
 			if not _by_school.has(sc):
 				_by_school[sc] = []
 			(_by_school[sc] as Array).append(id)
+	if _mode == "drawer":
+		for d in Profile.disciplines(str(_opts.get("player_class", "mage"))):
+			_class_groups.append("d:" + str((d as Dictionary)["id"]))
+		var any_class := false
+		for g in _class_groups:
+			if _by_school.has(g):
+				any_class = true
+		if not any_class:
+			_class_groups.clear()
 	for c in sim.casters:
 		if c.is_bot and c.id != "":
 			_present.append(c.id)
@@ -312,6 +326,8 @@ func _build_portrait() -> void:
 		ult_btn = _ult_button()
 		ult_btn.custom_minimum_size = Vector2(0, 76)
 		r1.add_child(ult_btn)
+		if not _class_groups.is_empty():
+			r1.add_child(_page_button())
 	for c in sim.casters:
 		if c.is_bot and c.side == "right":
 			r1.add_child(_bot_cycle_button(c))
@@ -394,6 +410,10 @@ func _build_landscape() -> void:
 	ult_btn = _ult_button()
 	ult_btn.custom_minimum_size = Vector2(0, 80)
 	grid.add_child(ult_btn)
+	if _mode == "drawer" and not _class_groups.is_empty():
+		var pb := _page_button()
+		pb.custom_minimum_size = Vector2(0, 80)
+		grid.add_child(pb)
 	rv.add_child(_barrier_row())
 	rv.add_child(UiTheme.label("JOURNAL", 26, UiTheme.MUTED))
 	journal_label = _wrap_label("", 19, UiTheme.MUTED)
@@ -531,6 +551,40 @@ func _spell_button(i: int) -> Button:
 	return b
 
 
+## Tiroir : bascule entre les 8 écoles élémentaires et les 8 disciplines du grimoire de classe.
+func _page_button() -> Button:
+	var b := UiTheme.button("", 15)
+	b.custom_minimum_size = Vector2(96, 76)
+	b.add_theme_color_override("font_color", UiTheme.TEAL)
+	b.icon = Icons.tex("book", 40)
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	b.add_theme_constant_override("icon_max_width", 20)
+	b.add_theme_color_override("icon_normal_color", UiTheme.TEAL)
+	b.pressed.connect(func() -> void:
+		_groups = DRAWER if _groups != DRAWER else _class_groups
+		_close_drawer()
+		_style_page_button())
+	_page_btn = b
+	_style_page_button()
+	return b
+
+
+func _style_page_button() -> void:
+	if _page_btn == null:
+		return
+	var cls := str((GameData.party()["classes"] as Dictionary).get(str(_opts.get("player_class", "mage")), {}).get("name", "Classe"))
+	_page_btn.text = cls.to_upper() if _groups == DRAWER else "ÉCOLES"
+
+
+## Nom, icône et couleur d'une case du tiroir fermé (école ou discipline).
+func _group_info(key: String) -> Array:
+	if key.begins_with("d:"):
+		var di := Profile.discipline_info(str(_opts.get("player_class", "mage")), key.substr(2))
+		return [str(di.get("name", "?")), str(di.get("icon", "rune")), str(di.get("color", "C8F5A0"))]
+	return DRAWER_INFO.get(key, ["?", "rune", "FFFFFF"])
+
+
 ## Case du tiroir : une école (fermé) ou un de ses sorts (ouvert). Réagit dès l'appui.
 func _cell_button(i: int) -> Button:
 	var b := UiTheme.button("", 17)
@@ -569,14 +623,14 @@ func _update_drawer() -> void:
 		var b := spell_btns[i]
 		var shown := ""
 		if _drawer == "":
-			shown = "@" + str(DRAWER[i])
+			shown = "@" + str(_groups[i]) if i < _groups.size() else ""
 		else:
 			var list: Array = _by_school.get(_drawer, [])
 			shown = str(list[i]) if i < list.size() else ""
 		if shown != _cell_ids[i]:
 			_cell_ids[i] = shown
 			if shown.begins_with("@"):
-				var info: Array = DRAWER_INFO[shown.substr(1)]
+				var info: Array = _group_info(shown.substr(1))
 				_style_cell(b, str(info[1]), Color(str(info[2])), false)
 			elif shown != "":
 				_style_cell(b, shown, Color(str(sim.spells_db[shown].get("color", "FFFFFF"))), true)
@@ -590,7 +644,7 @@ func _update_drawer() -> void:
 			for id in list:
 				if sim.spell_ready(c, str(id)):
 					ready += 1
-			txt = "%s\n%s" % [str(DRAWER_INFO[sc][0]).to_upper(), ("%d/%d prêts" % [ready, list.size()]) if not list.is_empty() else "—"]
+			txt = "%s\n%s" % [str(_group_info(sc)[0]).to_upper(), ("%d/%d prêts" % [ready, list.size()]) if not list.is_empty() else "—"]
 			b.disabled = list.is_empty()
 			b.modulate = Color.WHITE if ready > 0 else Color(1, 1, 1, 0.7)
 		elif shown != "":
@@ -629,10 +683,10 @@ func _on_cell_down(i: int) -> void:
 	_hover_cell = i
 	_drag_spell = ""
 	if _drawer == "":
-		var sc := str(DRAWER[i])
+		var sc := str(_groups[i])
 		if (_by_school.get(sc, []) as Array).is_empty():
 			_hold = false
-			_toast("Aucun sort de %s : apprends-en à la Bibliothèque" % str(DRAWER_INFO[sc][0]))
+			_toast("Aucun sort de %s : apprends-en à la Bibliothèque" % str(_group_info(sc)[0]))
 			return
 		if aiming != "" and aiming != "ultimate":
 			aiming = ""
@@ -1144,7 +1198,7 @@ func _unhandled_input(ev: InputEvent) -> void:
 			if _mode == "drawer":
 				# Tiroir au clavier : 1-8 ouvre une école, puis 1-8 lance son sort au curseur.
 				if _drawer == "":
-					var sc := str(DRAWER[i])
+					var sc := str(_groups[i])
 					if not (_by_school.get(sc, []) as Array).is_empty():
 						_open_drawer(sc)
 				else:

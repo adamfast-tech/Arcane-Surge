@@ -58,6 +58,11 @@ var lifesteal := 0.0 ## part des dégâts infligés rendue en PV (Enragé, Seign
 var crit_mult := 1.5 ## multiplicateur des coups critiques (Œil du faucon : ×2,5)
 var frenzy_t := 0.0 ## Déchaînement (Berserker) : +40 % de dégâts, vol de vie
 var marked_t := 0.0 ## Marque du chasseur (Archer, Pisteur) : dégâts subis accrus
+var buff_t := 0.0 ## Renfort (grimoire de classe : Cor de chasse, Œil d'aigle…) : durée restante
+var buff_atk := 0.0 ## part de dégâts en plus pendant le renfort
+var buff_crit := 0.0 ## chance de critique en plus
+var buff_aspd := 0.0 ## cadence d'attaque en plus
+var life_t := 0.0 ## > 0 : invocation temporaire (s'efface à 0)
 
 # Rendu
 var flash_t := 0.0

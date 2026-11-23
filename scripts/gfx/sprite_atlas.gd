@@ -24,6 +24,7 @@ const HEIGHT_M := {
 	"pillard": 0.62, "slinger": 0.6, "wolf_rider": 0.78, "ogre": 1.05, "clan_guard": 0.72, "storm_shaman": 0.85, "bonesetter": 0.8, "varg": 1.45, "gharok": 2.7, "war_banner": 1.6, "storm_totem": 1.2, "caravan": 1.3, "pylon": 1.6,
 	"champion_ranger": 1.6, "champion_blademaster": 1.55, "champion_guardian": 1.6, "champion_bone": 1.7, "champion_paladin": 1.6, "champion_warlord": 1.75, "duelist": 0.72,
 	"bog_zombie": 0.72, "plague_rat": 0.42, "slime_abomination": 1.0, "spitting_toad": 0.5, "shield_skeleton": 0.74, "renegade_adept": 0.82, "mist_witch": 0.86, "croc_lich": 1.4, "hydra": 2.9, "hydra_head": 1.2, "barge": 1.2,
+	"beast_wolf": 0.55, "beast_alpha": 0.8, "beast_bear": 0.95, "beast_void": 1.15, "beast_stag": 1.3, "beast_falcon": 0.42, "baliste": 0.85,
 	"ice_goblin": 0.6, "white_wolf": 0.55, "yeti": 1.1, "stalactite_kobold": 0.55, "ice_golem": 0.85, "blizzard_elemental": 0.9, "aurora_spirit": 0.9, "ancient_sentinel": 1.2, "rune_sentinel": 1.6, "rune_colossus": 3.2, "body_rune": 0.7, "rune_cart": 1.1,
 }
 ## Sprites dont les lettres o/d/m/l prennent les couleurs de l'élément.
@@ -1810,6 +1811,54 @@ const DEFS := {
 		"..ob....ob..",
 		".ooo....ooo.",
 	]]},
+	# Grimoire de l'Archer : bêtes alliées (recoloriages) et baliste.
+	"beast_wolf": {"base": "white_wolf", "pal": {"o": "1a1410", "w": "8a7a68", "W": "5a4a3a", "e": "8fe36a", "n": "2a2018"}},
+	"beast_alpha": {"base": "white_wolf", "pal": {"o": "101828", "w": "c8d4ec", "W": "7a8ab0", "e": "f2c46b", "n": "1a2238"}},
+	"beast_bear": {"base": "bear", "pal": {"o": "1a100a", "M": "6a4228", "g": "a8743a", "e": "8fe36a", "n": "140c08", "w": "c8a070"}},
+	"beast_void": {"base": "bear", "pal": {"o": "0a0614", "M": "3b2a6b", "g": "8e62e0", "e": "ff3af0", "n": "05030a", "w": "d0b0ff"}},
+	"beast_stag": {"base": "stag", "pal": {"o": "1a1810", "a": "fff6c8", "b": "e8e0c8", "B": "f5f0e0", "e": "8fe36a", "n": "4a4030", "w": "ffffff", "m": "8fd16a"}},
+	"beast_falcon": {"pal": {"o": "1a120a", "b": "8a5a2b", "B": "c8a070", "w": "e8dcc0", "y": "f2c46b", "e": "1a0f0a"}, "frames": [[
+		"o........o",
+		"bo......ob",
+		"Bbo.oo.obB",
+		".Bbobbobb.",
+		"..bwwbye..",
+		"...bwwb...",
+		"....bb....",
+		"...o..o...",
+	], [
+		"..........",
+		"..........",
+		"oo..oo..oo",
+		"bBobbbbobB",
+		".bbwwbyeb.",
+		"...bwwb...",
+		"....bb....",
+		"...o..o...",
+	]]},
+	"baliste": {"pal": {"o": "1a120a", "w": "8a5a2b", "W": "c8a070", "m": "c8d0e0", "M": "7a8090", "r": "c83a2a"}, "frames": [[
+		"......m.......",
+		"o....oMo....o.",
+		"Wo..owmwo..oW.",
+		".Wwwwwmwwwww..",
+		"..o..owo..o...",
+		".....owo......",
+		"....owWwo.....",
+		"...owWrWwo....",
+		"..oWWWWWWWo...",
+		"..oo.....oo...",
+	], [
+		"..............",
+		"o....omo....o.",
+		".Wo.owMwo..oW.",
+		"..WwwwmwwwwW..",
+		"..o..owo..o...",
+		".....owo......",
+		"....owWwo.....",
+		"...owWrWwo....",
+		"..oWWWWWWWo...",
+		"..oo.....oo...",
+	]]},
 	"white_wolf": {"pal": {"o": "1a1a24", "w": "e8ecf0", "W": "b8c0cc", "e": "4fe3d2", "n": "2a2a30"}, "frames": [[
 		"..............",
 		"oo............",
@@ -2318,7 +2367,8 @@ static func _images_for(name: String, element: String) -> Array[Image]:
 		pal["l"] = ec[3]
 	if not pal.has("o"):
 		pal["o"] = "120e1a"
-	for rows in d["frames"]:
+	var frames: Array = d["frames"] if d.has("frames") else (DEFS[str(d["base"])] as Dictionary)["frames"]
+	for rows in frames:
 		out.append(_rasterize(rows, pal))
 	return out
 

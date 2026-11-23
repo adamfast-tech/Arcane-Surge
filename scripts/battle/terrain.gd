@@ -13,6 +13,8 @@ const KINDS := {
 	"miasme": {"name": "Miasme", "expose": true, "dur": 6.0},
 	"statique": {"name": "Champ statique", "elem": "foudre", "conduct": true, "dur": 7.0},
 	"rune": {"name": "Rune piège", "dur": 25.0},
+	# Grimoire de l'Archer : pièges posés (collet, mines, épines…), déclenchés au passage d'un ennemi.
+	"piege": {"name": "Piège", "dur": 30.0},
 	"cratere": {"name": "Cratère", "slow": 0.2, "permanent": true},
 	"gravats": {"name": "Gravats", "slow": 0.3, "dur": 25.0},
 	"fissure": {"name": "Fissure", "slow": 0.25, "dur": 12.0},
@@ -25,6 +27,7 @@ const KINDS := {
 const MAX_SURFACES := 48
 const MAX_CRATERS := 14
 const MAX_RUNES := 3
+const MAX_TRAPS := 6
 ## Hausse des dégâts subis dans le Miasme.
 const EXPOSE_MULT := 1.3
 
@@ -161,6 +164,10 @@ func _surface_tick(s: Dictionary, dt: float) -> void:
 					sim._event({"t": "beam", "a": (s["pos"] as Vector2) + Vector2(sim.rng.randf_range(-0.4, 0.4), 0.0), "b": e.pos, "color": "FFF6A8", "dur": 0.15, "w": 2.0})
 					n += 1
 			return
+		"piege":
+			if not hits.is_empty():
+				_spring_trap(s)
+			return
 		"rune":
 			if not hits.is_empty():
 				# La rune explose au passage d'un ennemi.
@@ -263,6 +270,8 @@ func cast(c: BattleSim.Caster, sp: Dictionary, at: Vector2) -> bool:
 			var r := float(sp.get("radius", 2.0)) * (1.0 + sim._spell_mod(c, "radius.", sp))
 			# Le sol déclenche aussi les réactions (ex. Terre brûlée sur un Marais : vapeur).
 			_reactions(c, sp, at, r, float(sp.get("damage", sp.get("dps", 10))) * c.atk_mult, Rect2())
+			if kind == "piege":
+				return _place_traps(c, sp, at)
 			if kind == "rune":
 				var runes: Array = []
 				for s in surfaces:
@@ -286,6 +295,55 @@ func cast(c: BattleSim.Caster, sp: Dictionary, at: Vector2) -> bool:
 			sim._event({"t": "ground", "pos": at, "r": r, "kind": kind, "color": col})
 			return true
 	return false
+
+
+## Pièges du grimoire de l'Archer : « count » pièges autour du point visé (6 au plus sur le terrain).
+func _place_traps(c: BattleSim.Caster, sp: Dictionary, at: Vector2) -> bool:
+	var n := int(sp.get("count", 1))
+	var spread := float(sp.get("spread", 1.2))
+	var col := str(sp.get("color", "C8F5A0"))
+	for k in range(n):
+		var p := at
+		if n > 1:
+			p = at + Vector2.from_angle(TAU * float(k) / float(n) + 0.4) * spread * (0.6 + 0.4 * float(k % 2))
+		p = Vector2(clampf(p.x, 0.4, BattleSim.W - 0.4), clampf(p.y, BattleSim.BARRIER_Y + 0.8, BattleSim.H - 0.6))
+		var traps: Array = []
+		for o in surfaces:
+			if str(o["kind"]) == "piege":
+				traps.append(o)
+		while traps.size() >= MAX_TRAPS:
+			surfaces.erase(traps.pop_front())
+		var s := _add_surface("piege", p, float(sp.get("radius", 0.7)), float(sp.get("dur", 30.0)))
+		s["c"] = c.idx
+		s["sp"] = sp
+		s["blast"] = float(sp.get("blast", 60.0)) * c.atk_mult * sim._elem_mult(c, sp)
+		s["blast_r"] = float(sp.get("blast_r", 1.4))
+		s["sid"] = str(sp.get("id", ""))
+		s["color"] = col
+		sim._event({"t": "ground", "pos": p, "r": float(sp.get("radius", 0.7)), "kind": "piege", "color": col})
+	return true
+
+
+## Un ennemi marche sur le piège : coup de zone, avec les effets du sort (immobilisation, marque, givre, recul).
+func _spring_trap(s: Dictionary) -> void:
+	var sp: Dictionary = s["sp"]
+	var pos: Vector2 = s["pos"]
+	var r := float(s["blast_r"])
+	var c: BattleSim.Caster = sim.casters[clampi(int(s.get("c", 0)), 0, sim.casters.size() - 1)]
+	var elem := str(sp.get("element", "physique"))
+	var prev := sim._sid
+	sim._sid = str(s.get("sid", ""))
+	for e: Unit in sim._query(sim._grid_e, pos, r + 0.3):
+		if not e.alive:
+			continue
+		sim._strike(c, sp, e, float(s["blast"]), elem, pos)
+		if e.alive:
+			sim._apply_status(e, elem)
+			if sp.has("root") and e.role != "boss":
+				e.rooted_t = maxf(e.rooted_t, float(sp["root"]))
+	sim._event({"t": "trap", "pos": pos, "r": r, "color": str(s.get("color", "C8F5A0")), "dur": 0.7})
+	sim._sid = prev
+	s["gone"] = true
 
 
 # ---------------------------------------------------------------- impacts des sorts
@@ -480,7 +538,7 @@ func _add_surface(kind: String, pos: Vector2, r: float, dur: float, rect: Rect2 
 	# Même sol tout proche : on le ravive au lieu d'en empiler un autre.
 	if rect.size == Vector2.ZERO:
 		for s in surfaces:
-			if str(s["kind"]) == kind and not s.has("rect") and (s["pos"] as Vector2).distance_to(pos) < 0.6:
+			if str(s["kind"]) == kind and kind != "piege" and not s.has("rect") and (s["pos"] as Vector2).distance_to(pos) < 0.6:
 				s["r"] = maxf(float(s["r"]), r)
 				s["t"] = maxf(float(s["t"]), dur)
 				return s

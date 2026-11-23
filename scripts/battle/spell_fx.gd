@@ -92,6 +92,10 @@ func handle(e: Dictionary) -> bool:
 				[Color.WHITE, Color("eaf4fb"), Color(0.7, 0.85, 1.0, 0.0)])
 			dust(c3, ext, Color("dcecf8"), 120)
 			_line_fx.append({"kind": "shock", "pos": r.get_center(), "r": r.size.x * 0.5, "age": 0.0, "dur": 0.5, "color": Color("eaf4fb")})
+		"trap":
+			_explosion(e, col)
+		"rally":
+			_line_fx.append({"kind": "shock", "pos": e.get("from", e["pos"]), "r": 2.5, "age": 0.0, "dur": 0.6, "color": col})
 		"storm":
 			_rain(e, col)
 			_line_fx.append({"kind": "storm", "pos": e["pos"], "r": float(e["r"]), "age": 0.0, "dur": float(e["dur"]), "color": col})

@@ -89,6 +89,12 @@ func _use_abilities(sim: BattleSim, c: BattleSim.Caster) -> void:
 					return
 			"ground":
 				var gk := str(sp.get("ground_kind", ""))
+				if gk == "piege":
+					# Pièges : sur le chemin d'une masse qui approche (les ennemis descendent vers la Barrière).
+					var tc := sim.densest_enemy(float(sp.get("blast_r", 1.4)) + 0.6, 10.0)
+					if int(tc["n"]) >= 3 and sim.cast_spell(c, id, (tc["pos"] as Vector2) - Vector2(0.0, 0.9)):
+						return
+					continue
 				var cl := sim.densest_enemy(float(sp.get("radius", 2.0)) + (1.0 if gk == "rune" else 0.0), 9.0 if gk == "rune" else 12.0)
 				if int(cl["n"]) >= (3 if gk == "rune" else 5) and sim.cast_spell(c, id, cl["pos"]):
 					return
@@ -108,7 +114,24 @@ func _use_abilities(sim: BattleSim, c: BattleSim.Caster) -> void:
 				var col := sim.best_column(float(sp.get("width", 0.8)))
 				if int(col["n"]) >= 5 and sim.cast_spell(c, id, Vector2(float(col["x"]), 8.0)):
 					return
+			"rally":
+				# Renfort : quand l'armée est nombreuse et au contact.
+				var fighting := 0
+				for a in sim.allies:
+					if a.alive and a.engaged:
+						fighting += 1
+				if fighting >= 8 and sim.cast_spell(c, id, Vector2(c.x, 4.0)):
+					return
 			"aoe":
+				if bool(sp.get("single", false)):
+					# Tir unique : la plus grosse cible (soigneur d'abord).
+					var hp0 := sim.healer_pos()
+					var big := sim.strongest_enemy(12.5)
+					if hp0.x >= 0.0 and sim.cast_spell(c, id, hp0):
+						return
+					if big != null and (big.max_hp >= 60.0 or float(sp.get("mana", 0)) <= 20.0) and sim.cast_spell(c, id, big.pos):
+						return
+					continue
 				var hp := sim.healer_pos()
 				if hp.x >= 0.0 and sim.cast_spell(c, id, hp):
 					return

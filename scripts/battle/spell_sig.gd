@@ -10,16 +10,22 @@ extends RefCounted
 var fx: SpellFx
 var _rng := RandomNumberGenerator.new()
 var _links: Array[Dictionary] = [] ## Constellation : points d'impact récents reliés par des traits
+var recipe: SpellRecipe ## animations des grimoires de classe, décrites dans spells.json (« vfx »)
 
 
 func _init(owner: SpellFx) -> void:
 	fx = owner
 	_rng.seed = 9137
+	recipe = SpellRecipe.new(self)
 
 
 func play(e: Dictionary) -> bool:
-	var m := "s_" + str(e.get("sid", ""))
+	var sid := str(e.get("sid", ""))
+	var m := "s_" + sid
 	if not has_method(m):
+		var sp: Dictionary = GameData.spells().get(sid, {})
+		if sp.has("vfx"):
+			return recipe.play(str(e["t"]), e, sp["vfx"])
 		return false
 	return bool(call(m, str(e["t"]), e))
 
@@ -523,6 +529,8 @@ func draw(lf: Dictionary, lines: Array, points: Array, k: float) -> void:
 			seg(lines, w3(a, 0.05), w3(q, 0.05), Color(col, fade))
 			seg(lines, w3(a + Vector2(0.05, 0.0), 0.07), w3(q + Vector2(0.05, 0.0), 0.07), Color(Color("ffe0a0"), fade * 0.7))
 			seg(lines, w3(a - Vector2(0.05, 0.0), 0.04), w3(q - Vector2(0.05, 0.0), 0.04), Color(col.darkened(0.4), fade))
+		"net", "moon":
+			recipe.draw(lf, lines, points, k, fade)
 		"bubbles":
 			var c: Vector2 = lf["pos"]
 			var r := float(lf["r"])
@@ -619,6 +627,41 @@ func _glyph(lines: Array, lf: Dictionary, col: Color, k: float, fade: float, t: 
 			ring3(lines, c, r, cc, h)
 			poly.call(3, r, rot, 1)
 			poly.call(3, r * 0.5, -rot, 1)
+		"target":
+			# Mire de chasseur : deux cercles, quatre traits, qui se resserrent.
+			var rr := r * (1.3 - 0.3 * minf(1.0, k * 2.0))
+			ring3(lines, c, rr, cc, h)
+			ring3(lines, c, rr * 0.4, cc, h)
+			for i in range(4):
+				var a := rot + TAU * float(i) / 4.0
+				var d := Vector2(cos(a), sin(a))
+				seg(lines, w3(c + d * rr * 0.55, h), w3(c + d * rr * 1.15, h), cc)
+		"eye":
+			for i in range(16):
+				var f0 := -1.0 + 2.0 * float(i) / 16.0
+				var f1 := -1.0 + 2.0 * float(i + 1) / 16.0
+				for sgn: float in [1.0, -1.0]:
+					seg(lines, w3(c + Vector2(f0 * r, sgn * r * 0.45 * (1.0 - f0 * f0)), h), w3(c + Vector2(f1 * r, sgn * r * 0.45 * (1.0 - f1 * f1)), h), cc)
+			ring3(lines, c, r * 0.26, cc, h)
+			poly.call(6, r * 0.1, rot, 1)
+		"web":
+			for i in range(8):
+				var a := rot + TAU * float(i) / 8.0
+				seg(lines, w3(c, h), w3(c + Vector2(cos(a), sin(a)) * r, h), cc)
+			for f: float in [0.35, 0.65, 0.95]:
+				poly.call(8, r * f, rot, 1)
+		"star":
+			poly.call(5, r, rot - PI * 0.5, 2)
+			ring3(lines, c, r * 0.3, cc, h)
+		"fang":
+			# Mâchoires d'un piège : couronne de dents.
+			ring3(lines, c, r * 0.55, cc, h)
+			for i in range(14):
+				var a0 := TAU * float(i) / 14.0
+				var a1 := TAU * (float(i) + 0.5) / 14.0
+				var a2 := TAU * float(i + 1) / 14.0
+				seg(lines, w3(c + Vector2(cos(a0), sin(a0)) * r * 0.55, h), w3(c + Vector2(cos(a1), sin(a1)) * r, h), cc)
+				seg(lines, w3(c + Vector2(cos(a1), sin(a1)) * r, h), w3(c + Vector2(cos(a2), sin(a2)) * r * 0.55, h), cc)
 
 
 # ================================================================ FEU

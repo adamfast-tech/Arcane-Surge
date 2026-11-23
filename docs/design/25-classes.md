@@ -2,13 +2,14 @@
 
 > Ébauche : [`04-classes-races.md`](04-classes-races.md) §1 et §3.2. Données : `data/party.json` (`familiar`, `player_familiar`, `champion`, `ultimate`, `effect_mult`, `playable`), `data/units.json`, `data/spells.json`, `data/skill_trees/<classe>.json`. Code : `BattleSim._setup_casters` (classe du héros via `player_class`), `_class_on_hit`, `_wrath`, `_charge_line`, types de sorts `army` et `frenzy`, `SpriteAtlas._draw_weapon`.
 
-Les 7 classes se choisissent à la création du personnage. Le grimoire (Bibliothèque, Deck ou Tiroir) est commun à toutes les classes. La classe change :
+Les 7 classes se choisissent à la création du personnage. Les écoles élémentaires (Bibliothèque, Deck ou Tiroir) sont communes à toutes les classes ; chaque classe a en plus son propre grimoire d'une soixantaine de techniques, de Novice à Interdit ([`29-grimoires-de-classe.md`](29-grimoires-de-classe.md)). La classe change :
 - l'invocation du Flux ;
 - le Champion ;
 - l'Ultime ;
 - les statistiques de base ;
 - l'arme du héros sur son sprite ;
-- l'arbre de compétences, gardé séparément pour chaque classe.
+- l'arbre de compétences, gardé séparément pour chaque classe ;
+- le grimoire de classe (techniques achetées à la Bibliothèque, utilisables sur cette voie seulement).
 
 ## Invocations, Champions, Ultimes
 
@@ -114,7 +115,7 @@ Commande : `tools/sim_cli.gd -- --level=X --runs=N --class=<classe>`.
 
 ## Bibliothèque : onglet Classes
 
-L'onglet « Classes » de la Bibliothèque montre, pour chacune des 7 classes :
+L'onglet « Classes » de la Bibliothèque a deux volets. **Grimoire** : les techniques de la classe par rang, filtrables par discipline, à acheter sur sa voie. **Ultime, arbre, compagnons** montre, pour chacune des 7 classes :
 - son **Ultime** ;
 - les **sorts de son arbre**, avec la branche et le nombre de points requis (Voie du Surge signalée) ;
 - les **sorts qu'un compagnon de cette voie** peut emporter (choisis au Cercle).

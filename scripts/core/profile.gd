@@ -699,11 +699,43 @@ static func _spells_state() -> Dictionary:
 	return data["spells"]
 
 
-## Sorts connus : appris (base, Bibliothèque) et débloqués par l'arbre.
+## Classe propriétaire d'un sort du grimoire de classe (« » pour le grimoire élémentaire, commun).
+static func grimoire_of(id: String) -> String:
+	return str((GameData.spells().get(id, {}) as Dictionary).get("grimoire", ""))
+
+
+## Grimoire d'une classe (docs/design/29-grimoires-de-classe.md) : ses techniques, du rang Novice à Interdit.
+## Le Mage a pour grimoire les écoles élémentaires, communes à toutes les voies.
+static func class_grimoire(cls: String) -> Array[String]:
+	var out: Array[String] = []
+	for rank in SPELL_RANKS:
+		for id in GameData.spells().keys():
+			var sp: Dictionary = GameData.spells()[id]
+			if str(sp.get("grimoire", "")) == cls and str(sp.get("rank", "")) == rank:
+				out.append(str(id))
+	return out
+
+
+## Disciplines du grimoire d'une classe (8 au plus : une case du Tiroir chacune).
+static func disciplines(cls: String) -> Array:
+	return ((GameData.party()["classes"] as Dictionary).get(cls, {}) as Dictionary).get("disciplines", [])
+
+
+static func discipline_info(cls: String, disc: String) -> Dictionary:
+	for d in disciplines(cls):
+		if str((d as Dictionary)["id"]) == disc:
+			return d
+	return {}
+
+
+## Sorts connus et utilisables : appris (base, Bibliothèque) et débloqués par l'arbre. Les techniques
+## du grimoire d'une autre classe restent apprises mais ne servent qu'en suivant cette voie.
 static func known_spells() -> Array[String]:
 	var out: Array[String] = []
+	var cls := player_class()
 	for id in _spells_state().get("known", []):
-		if GameData.spells().has(str(id)) and not out.has(str(id)):
+		var g := grimoire_of(str(id))
+		if GameData.spells().has(str(id)) and not out.has(str(id)) and (g == "" or g == cls):
 			out.append(str(id))
 	for br in tree_db().get("branches", []):
 		for tier in br.get("tiers", []):
@@ -907,12 +939,12 @@ static func spell_power(id: String) -> int:
 	var p := 0.0
 	match str(sp.get("type", "")):
 		"aoe":
-			var a: float = area.call(float(sp.get("radius", 1.0)))
-			p = dmg * a + float(sp.get("freeze", 0.0)) * 25.0 * a
+			var a: float = 0.9 if bool(sp.get("single", false)) else area.call(float(sp.get("radius", 1.0)))
+			p = dmg * a + float(sp.get("freeze", 0.0)) * 25.0 * a + float(sp.get("root", 0.0)) * 12.0 * a
 		"zone":
 			var a: float = area.call(float(sp.get("radius", 1.5)))
 			var d := float(sp.get("dur", 3.0))
-			p = float(sp.get("dps", 0)) * d * a + float(sp.get("slow", 0.0)) * d * 12.0 * a + float(sp.get("pull", 0.0)) * d * 8.0
+			p = float(sp.get("dps", 0)) * d * a + float(sp.get("slow", 0.0)) * d * 12.0 * a + float(sp.get("pull", 0.0)) * d * 8.0 + dmg * a
 		"chain":
 			var f := float(sp.get("falloff", 0.8))
 			for k in range(int(sp.get("bounces", 5))):
@@ -925,6 +957,17 @@ static func spell_power(id: String) -> int:
 			p = float(sp.get("damage", 20)) * float(area.call(float(sp.get("radius", 2.0)))) + float(sp.get("push", 2.0)) * 20.0
 		"barrier_heal", "barrier_shield":
 			p = float(sp.get("amount", 15)) * 12.0
+		"rally":
+			p = _rally_power(sp)
+		"army":
+			# Invocations : PV, dégâts par seconde, aura de soin ; une élite compte double ; durée de vie limitée.
+			var kinds: Array = sp.get("kinds", [])
+			var life := float(sp.get("life", 0.0))
+			for k in range(int(sp.get("count", 6))):
+				var ud: Dictionary = GameData.units().get(str(kinds[k % kinds.size()]) if not kinds.is_empty() else str(sp.get("kind", "skeleton")), {})
+				var u := float(ud.get("hp", 10)) * 0.4 + float(ud.get("atk", 10)) / maxf(0.3, float(ud.get("atk_interval", 0.5))) * 1.5 + float(ud.get("heal_aura", 0.0)) * 20.0
+				p += u * (2.0 if str(ud.get("role", "")) == "elite" else 1.0) * (minf(1.0, life / 30.0) if life > 0.0 else 1.0)
+			p += dmg * float(area.call(float(sp.get("radius", 2.0))))
 		"purify":
 			p = 100.0
 		"wall":
@@ -948,12 +991,26 @@ static func spell_power(id: String) -> int:
 					p = d * a * 12.0
 				"rune":
 					p = float(sp.get("blast", 120)) * float(area.call(float(sp.get("blast_r", 2.0))))
+				"piege":
+					p = float(sp.get("count", 1)) * (float(sp.get("blast", 60)) * float(area.call(float(sp.get("blast_r", 1.4)))) + float(sp.get("root", 0.0)) * 15.0)
 	p += dmg * float(sp.get("nexus_ratio", 0.0)) * 2.0 + float(sp.get("surge_gain", 0.0)) * 20.0
+	# Effets du grimoire de classe : marque, givre, recul, exécution, gros gibier, critique, renfort.
+	p += float(sp.get("mark", 0.0)) * 5.0 + float(sp.get("chill", 0)) * 15.0 + float(sp.get("knock", 0.0)) * 20.0
+	p += dmg * (float(sp.get("execute", 0.0)) * 0.3 + float(sp.get("big_game", 0.0)) * 0.3 + float(sp.get("crit_add", 0.0)) + float(sp.get("marked_bonus", 0.0)) * 0.3)
+	if sp.get("rally", null) is Dictionary:
+		p += _rally_power(sp["rally"])
 	var g: Variant = sp.get("ground", null)
 	if g is Dictionary:
 		# Sol laissé par le sort (gravats, faille…).
 		p += dmg * float((g as Dictionary).get("dps", 0.0)) * float((g as Dictionary).get("dur", 0.0)) * 2.0 + float((g as Dictionary).get("dur", 0.0)) * 5.0
 	return int(round(p))
+
+
+## Valeur d'un renfort : dégâts, cadence, critique, bouclier et soin des invocations, selon la durée.
+static func _rally_power(r: Dictionary) -> float:
+	var reach := 1.0 if float(r.get("radius", 0.0)) <= 0.0 else minf(1.0, float(r["radius"]) / 3.0)
+	return (float(r.get("atk", 0.0)) + float(r.get("aspd", 0.0)) * 0.9 + float(r.get("crit", 0.0)) * 1.2 + float(r.get("shield", 0.0)) * 0.8
+		+ float(r.get("heal", 0.0)) * 0.6) * float(r.get("dur", 6.0)) * 90.0 * reach
 
 
 ## Prix d'un sort à la Bibliothèque : proportionnel à sa puissance (arrondi à 10 or, à 50 or au-delà de 1 000).
@@ -979,12 +1036,20 @@ static func learn_info(id: String) -> Dictionary:
 	return out
 
 
+## Techniques apprises, quelle que soit la voie suivie.
+static func learned(id: String) -> bool:
+	return (_spells_state().get("known", []) as Array).has(id)
+
+
 static func learn_block(id: String) -> String:
 	var l := learn_info(id)
 	if l.is_empty():
 		return "Ne s'apprend pas à la Bibliothèque"
-	if known_spells().has(id):
+	if known_spells().has(id) or learned(id):
 		return "Déjà appris"
+	var g := grimoire_of(id)
+	if g != "" and g != player_class():
+		return "Voie %s requise" % str(((GameData.party()["classes"] as Dictionary).get(g, {}) as Dictionary).get("name", g))
 	if level() < int(l.get("level", 1)):
 		return "Niveau %d requis" % int(l["level"])
 	if gold() < int(l.get("gold", 0)):

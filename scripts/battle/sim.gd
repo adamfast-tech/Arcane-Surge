@@ -1241,7 +1241,20 @@ func _tick_status() -> void:
 	for u in allies:
 		if not u.alive:
 			continue
-		u.atk_cd -= TICK
+		u.atk_cd -= TICK * (1.0 + u.buff_aspd)
+		if u.buff_t > 0.0:
+			u.buff_t -= TICK
+			if u.buff_t <= 0.0:
+				u.buff_atk = 0.0
+				u.buff_crit = 0.0
+				u.buff_aspd = 0.0
+		if u.life_t > 0.0:
+			u.life_t -= TICK
+			if u.life_t <= 0.0:
+				# Invocation temporaire (Baliste, bêtes) : elle s'efface.
+				u.alive = false
+				_event({"t": "puff", "pos": u.pos, "color": "C8F5A0"})
+				continue
 		u.frenzy_t = maxf(0.0, u.frenzy_t - TICK)
 		if last_stand:
 			# Clé de voûte (Aube) : sous 25 % de Barrière, Rage permanente.
@@ -1971,12 +1984,14 @@ func _hit(src: Unit, tgt: Unit, mult: float = 1.0) -> void:
 		mult *= 1.2
 	if src.team == 0 and charge_t > 0.0 and tgt.role not in ["boss", "banniere", "tete"] and tgt.hold_y <= 0.0:
 		tgt.pos.y = minf(H - 0.6, tgt.pos.y + 0.12)
+	if src.buff_t > 0.0:
+		mult *= 1.0 + src.buff_atk
 	if src.frenzy_t > 0.0:
 		mult *= 2.2 if (src.owner_idx == 0 and _mod("blood_rage") > 0.0) else 1.4
 	if src.team == 0 and src.owner_idx == 0 and _mod("low_barrier_atk") > 0.0 and barrier_hp < barrier_max * 0.5:
 		# Au bord du gouffre (Fureur primordiale) : plus la Barrière vacille, plus on frappe fort.
 		mult *= 1.0 + _mod("low_barrier_atk")
-	var dmg := _calc(src.atk * mult, src.element, src.crit, tgt, src.team == 0, src.crit_mult)
+	var dmg := _calc(src.atk * mult, src.element, src.crit + src.buff_crit, tgt, src.team == 0, src.crit_mult)
 	var crit := _last_crit
 	_damage(tgt, dmg, src.element)
 	if src.team == 0:
@@ -2372,6 +2387,9 @@ func cast_spell(c: Caster, id: String, at: Vector2) -> bool:
 	_sid = id
 	_event({"t": "spell", "pos": at, "from": Vector2(c.x, CASTER_Y + 0.3), "r": float(sp.get("radius", 1.0)), "color": str(sp.get("color", "FFFFFF"))})
 	var ok := _apply_spell(c, sp, at)
+	if ok and sp.has("rally") and str(sp["type"]) != "rally":
+		# Sort de grimoire qui porte aussi un renfort (Curée, Marque de mort).
+		_rally(c, sp["rally"], at, str(sp.get("color", "FFFFFF")))
 	_sid = ""
 	if not ok:
 		return false
@@ -2413,10 +2431,23 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 			var sub := sp.duplicate()
 			sub["type"] = "aoe"
 			sub.erase("barrier_cost")
+			sub.erase("rally")
+			var elems: Array = sp.get("multi_elem", [])
+			var cols: Array = sp.get("multi_color", [])
 			for k in range(n):
 				var p := at + Vector2.from_angle(rng.randf() * TAU) * sqrt(rng.randf()) * spread
+				if bool(sp.get("line", false)):
+					# Tirs alignés (Ceinture d'Orion) : en travers du point visé.
+					p = at + Vector2((float(k) - float(n - 1) * 0.5) * spread / maxf(1.0, float(n - 1)) * 2.0, 0.0)
 				p = Vector2(clampf(p.x, 0.3, W - 0.3), clampf(p.y, BARRIER_Y + 0.8, H - 0.5))
-				pending_impacts.append({"t": 0.45 + float(k) * float(sp.get("interval", 0.25)), "c": c.idx, "sp": sub, "at": p,
+				var one := sub
+				if not elems.is_empty():
+					# Flèches trinité, du chaos : chaque impact a son élément.
+					one = sub.duplicate()
+					one["element"] = str(elems[k % elems.size()])
+					if not cols.is_empty():
+						one["color"] = str(cols[k % cols.size()])
+				pending_impacts.append({"t": 0.45 + float(k) * float(sp.get("interval", 0.25)), "c": c.idx, "sp": one, "at": p,
 					"fx": str(sp.get("fx", "meteor")), "lead": 0.45, "from": from})
 			return true
 		"zone":
@@ -2430,8 +2461,17 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 				"elem": str(sp.get("element", "")), "slow": zslow, "pull": float(sp.get("pull", 0.0)),
 				"stack_every": float(sp.get("stack_every", 0.0)), "stack_acc": 0.0})
 			_event({"t": str(sp.get("fx", "rain")), "pos": at, "r": zr, "dur": dur, "color": col})
+			if float(sp.get("damage", 0.0)) > 0.0:
+				# Fleur de mort : un premier coup, puis la zone.
+				var burst := sp.duplicate()
+				burst["type"] = "aoe"
+				burst["radius"] = zr
+				_resolve_aoe(c, burst, at)
 			terrain.on_impact(c, sp, at, zr, float(sp.get("dps", 0)) * c.atk_mult * 2.0)
 			return true
+		"rally":
+			# Renfort (Cor de chasse, Œil d'aigle…) : les invocations frappent plus fort, plus vite, plus juste.
+			return _rally(c, sp, at, col) > 0 or float(sp.get("damage", 0.0)) > 0.0
 		"chain":
 			return _chain(c, sp, at, from)
 		"wall", "quake", "ground":
@@ -2463,10 +2503,13 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 				var hit := sp.duplicate()
 				hit["type"] = "aoe"
 				_resolve_aoe(c, hit, at)
-			for k in range(int(sp.get("count", 6)) + int(_mod("army_count")) * (1 if c.idx == 0 else 0)):
+			var extra := int(_mod("army_count")) * (1 if c.idx == 0 and str(sp.get("kind", "skeleton")) == "skeleton" else 0)
+			var kinds: Array = sp.get("kinds", [])
+			for k in range(int(sp.get("count", 6)) + extra):
 				var p := at + Vector2.from_angle(rng.randf() * TAU) * sqrt(rng.randf()) * ar
 				p = Vector2(clampf(p.x, 0.4, W - 0.4), clampf(p.y, BARRIER_Y + 0.6, H - 1.0))
-				var sk := _make_unit(str(sp.get("kind", "skeleton")), 0, p)
+				var sk := _make_unit(str(kinds[k % kinds.size()]) if not kinds.is_empty() else str(sp.get("kind", "skeleton")), 0, p)
+				sk.life_t = float(sp.get("life", 0.0))
 				sk.owner_idx = c.idx
 				sk.atk *= c.atk_mult
 				sk.hp *= c.hp_mult
@@ -2572,7 +2615,9 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 			var elem := str(sp.get("element", ""))
 			for e in enemies:
 				if e.alive and absf(e.pos.x - at.x) <= w * 0.5 + e.radius:
-					_damage(e, _calc(dmg, elem, c.crit, e, false), elem)
+					_strike(c, sp, e, dmg, elem, Vector2(at.x, BARRIER_Y))
+					if e.alive and elem in ["feu", "givre", "nature", "ombre"] and sp.has("grimoire"):
+						_apply_status(e, elem)
 			_event({"t": "beam", "a": Vector2(at.x, BARRIER_Y), "b": Vector2(at.x, H - 0.4), "color": col, "dur": 0.3, "w": 3.0})
 			_event({"t": "arrow", "a": Vector2(at.x, BARRIER_Y), "b": Vector2(at.x, H - 0.4), "color": col, "dur": 0.3})
 			_event({"t": "column", "fx": str(sp.get("fx", "beam")), "x": at.x, "w": w, "y0": BARRIER_Y, "y1": H - 0.4, "color": col})
@@ -2601,12 +2646,15 @@ func _resolve_aoe(c: Caster, sp: Dictionary, at: Vector2) -> void:
 	var r := float(sp.get("radius", 1.0)) * (1.0 + _spell_mod(c, "radius.", sp))
 	var dmg := float(sp.get("damage", 0)) * c.atk_mult * _elem_mult(c, sp)
 	var elem := str(sp.get("element", ""))
-	for e in _query(_grid_e, at, r + 0.3):
-		_damage(e, _calc(dmg, elem, c.crit, e, false), elem)
+	var targets: Array = _query(_grid_e, at, r + 0.3)
+	if bool(sp.get("single", false)):
+		targets = _single_target(targets)
+	for e: Unit in targets:
+		_strike(c, sp, e, dmg, elem, at)
 		if not e.alive:
 			continue
 		_apply_status(e, elem)
-		if sp.has("root"):
+		if sp.has("root") and e.role != "boss":
 			e.rooted_t = maxf(e.rooted_t, float(sp["root"]))
 		if sp.has("freeze") and e.role != "boss":
 			e.frozen_t = maxf(e.frozen_t, float(sp["freeze"]) + _mod("frozen_dur"))
@@ -2657,6 +2705,70 @@ func _resolve_aoe(c: Caster, sp: Dictionary, at: Vector2) -> void:
 	if big:
 		_event({"t": "flash"})
 		_event({"t": "shake"})
+
+
+## Coup d'un sort sur un ennemi, avec les effets du grimoire de classe : exécution (cible affaiblie),
+## gros gibier (élites et boss), proie marquée, critique en plus ; puis marque, givre, recul, statuts.
+func _strike(c: Caster, sp: Dictionary, e: Unit, dmg: float, elem: String, origin: Vector2) -> void:
+	var d := dmg
+	if sp.has("execute") and e.hp < e.max_hp * 0.35:
+		d *= 1.0 + float(sp["execute"])
+	if sp.has("big_game") and (e.role in ["boss", "elite", "brute", "tete"] or e.max_hp >= 200.0):
+		d *= 1.0 + float(sp["big_game"])
+	if sp.has("marked_bonus") and e.marked_t > 0.0:
+		d *= 1.0 + float(sp["marked_bonus"])
+	_damage(e, _calc(d, elem, c.crit + float(sp.get("crit_add", 0.0)), e, false), elem)
+	if not e.alive:
+		return
+	if sp.has("mark"):
+		e.marked_t = maxf(e.marked_t, float(sp["mark"]))
+	if sp.has("chill") and e.role != "boss":
+		e.slow_stacks = mini(4, e.slow_stacks + int(sp["chill"]))
+		e.slow_t = maxf(e.slow_t, 3.0)
+	if sp.has("knock") and e.role not in ["boss", "tete", "banniere", "rune"] and e.hold_y <= 0.0:
+		var away := (e.pos - origin).normalized() if e.pos.distance_squared_to(origin) > 0.01 else Vector2(0.0, 1.0)
+		away.y = maxf(away.y, 0.35)
+		e.pos = Vector2(clampf(e.pos.x + away.x * float(sp["knock"]) * 0.4, 0.3, W - 0.3), minf(H - 0.6, e.pos.y + away.y * float(sp["knock"])))
+	for st in sp.get("status", []):
+		_apply_status(e, str(st))
+
+
+## Tir unique : la plus grosse cible de la zone (élite, boss), sinon la plus proche du centre.
+func _single_target(targets: Array) -> Array:
+	var best: Unit = null
+	for e: Unit in targets:
+		if e.alive and (best == null or e.max_hp > best.max_hp):
+			best = e
+	return [best] if best != null else []
+
+
+## Renfort du grimoire de classe : les invocations (toutes, ou celles du rayon) gagnent dégâts, cadence,
+## critique, bouclier ou soin pendant « dur » s. Retourne le nombre d'invocations renforcées.
+func _rally(c: Caster, r: Dictionary, at: Vector2, col: String) -> int:
+	var dur := float(r.get("dur", 6.0))
+	var rad := float(r.get("radius", 0.0))
+	var n := 0
+	var pts: Array = []
+	for a in allies:
+		if not a.alive or a.role == "escort":
+			continue
+		if rad > 0.0 and a.pos.distance_to(at) > rad:
+			continue
+		if pts.size() < 24 and n % 2 == 0:
+			pts.append(a.pos)
+		a.buff_t = maxf(a.buff_t, dur)
+		a.buff_atk = maxf(a.buff_atk, float(r.get("atk", 0.0)))
+		a.buff_crit = maxf(a.buff_crit, float(r.get("crit", 0.0)))
+		a.buff_aspd = maxf(a.buff_aspd, float(r.get("aspd", 0.0)))
+		if r.has("shield"):
+			a.shield = maxf(a.shield, a.max_hp * float(r["shield"]))
+		if r.has("heal"):
+			a.hp = minf(a.max_hp, a.hp + a.max_hp * float(r["heal"]))
+		n += 1
+	_event({"t": "rally", "pos": at, "from": Vector2(c.x, CASTER_Y + 0.3), "r": rad if rad > 0.0 else 4.0, "color": col, "n": n, "dur": dur, "pts": pts})
+	if n > 0:
+		_event({"t": "text", "pos": Vector2(c.x, CASTER_Y + 1.6), "text": str(r.get("label", "RENFORT !")), "color": col})
+	return n
 
 
 func _update_impacts() -> void:
@@ -2744,7 +2856,9 @@ func _chain(c: Caster, sp: Dictionary, at: Vector2, from: Vector2) -> bool:
 	for k in range(int(sp.get("bounces", 5)) + (int(_mod("chain_bonus")) if c.idx == 0 else 0)):
 		pts.append(tgt.pos)
 		hit[tgt.id] = true
-		_damage(tgt, _calc(dmg, elem, c.crit, tgt, false), elem)
+		_strike(c, sp, tgt, dmg, elem, pts[pts.size() - 2])
+		if tgt.alive and elem in ["feu", "givre", "nature", "ombre"] and sp.has("grimoire"):
+			_apply_status(tgt, elem)
 		dmg *= float(sp.get("falloff", 0.8))
 		var next: Unit = null
 		var bd := reach
@@ -3180,6 +3294,15 @@ func densest_enemy(r: float, max_y: float = H) -> Dictionary:
 			best_n = n
 			best_pos = e.pos
 	return {"pos": best_pos, "n": best_n}
+
+
+## Plus grosse cible à portée (boss, élite, brute) : visée des tirs uniques du grimoire.
+func strongest_enemy(max_y: float = H) -> Unit:
+	var best: Unit = null
+	for e in enemies:
+		if e.alive and e.pos.y <= max_y and e.role not in ["escort"] and (best == null or e.max_hp > best.max_hp):
+			best = e
+	return best
 
 
 func best_column(w: float) -> Dictionary:

@@ -25,6 +25,7 @@ Les sorts d'ombre en souffraient le plus : Vortex, Brume funeste, Puits du néan
   - Tracés : faux, âmes, fissures, marée, tentacules, couronne verticale, disque d'accrétion, lucioles, rayon épais, entaille, ondes sonores, constellation, rafales, alvéoles, arcs électriques, lianes, bulles.
 - **Lisibilité.** Les tracés sont épaissis (trois traits) pour rester lisibles sur un écran de téléphone.
 - **Garantie.** Le smoke test vérifie que chaque sort du jeu a sa signature déclarée.
+- **Grimoires de classe.** Leurs techniques décrivent leur animation dans `spells.json` (« vfx ») : des couches assemblées par `SpellRecipe`. Le smoke test vérifie que chaque recette est unique ([`29-grimoires-de-classe.md`](29-grimoires-de-classe.md)).
 
 Certains sorts gardent l'animation générique de leur phase, dont ils sont désormais les seuls utilisateurs :
 - Boule de feu, Brasier, Mur de flammes, Météore arcanique ;

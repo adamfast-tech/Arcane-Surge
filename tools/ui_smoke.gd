@@ -39,6 +39,112 @@ func _through_dialogues(pick: int = 0) -> int:
 
 
 ## Classes jouables (étape 13.3) : invocation, Champion, Ultime et Clés de voûte, en simulation pure.
+## Grimoires de classe (docs/design/29-grimoires-de-classe.md) : 60 techniques de l'Archer, 7 rangs,
+## 8 disciplines ; recettes d'animation uniques et valides ; icônes ; achat réservé à la voie ; chaque
+## technique se lance en combat ; Bibliothèque (onglet Classes, grimoire).
+const RECIPE_LAYERS := ["rain", "drop", "rise", "ring", "orbit", "fling", "flutter", "sweep", "twinkle", "paws", "allies", "allyburst",
+	"glyph", "glyph2", "hglyph", "rays", "cracks", "vring", "swirl", "bubbles", "tide", "accretion", "tentacles", "sound", "crescent",
+	"slash", "arc", "crackle", "fireflies", "vines", "hexwall", "burst", "puffs", "dust", "flash", "orb", "fall", "pillar", "pillars",
+	"shock", "zone", "mist", "embers", "snow", "spores", "net", "moon", "thick", "streak", "rings", "hop", "links", "each"]
+const RANK_COUNTS := {"novice": 9, "intermediaire": 9, "apprenti": 9, "mage": 9, "maitre": 8, "archimage": 8, "interdit": 8}
+
+
+func _grimoire_ok() -> bool:
+	var ids := Profile.class_grimoire("archer")
+	var ranks := {}
+	var discs := {}
+	var recipes := {}
+	var errs: Array[String] = []
+	for id in ids:
+		var sp: Dictionary = GameData.spells()[id]
+		ranks[str(sp["rank"])] = int(ranks.get(str(sp["rank"]), 0)) + 1
+		discs[str(sp["disc"])] = int(discs.get(str(sp["disc"]), 0)) + 1
+		var v: Dictionary = sp.get("vfx", {})
+		var key := JSON.stringify(v, "", true)
+		if recipes.has(key):
+			errs.append("%s : même animation que %s" % [id, recipes[key]])
+		recipes[key] = id
+		for part in v.keys():
+			if part in ["shot", "c2"]:
+				continue
+			for layer in v[part]:
+				var kind := str(layer).split(":")[0]
+				if kind == "each":
+					kind = str(layer).split(":")[1]
+				if not RECIPE_LAYERS.has(kind):
+					errs.append("%s : couche inconnue %s" % [id, layer])
+				var a1 := str(layer).split(":")[1] if str(layer).split(":").size() > 1 else ""
+				if kind in ["rain", "drop", "rise", "ring", "orbit", "fling", "flutter", "sweep", "allies", "streak", "hop"] and not FxArt.SPRITES.has(a1):
+					errs.append("%s : sprite inconnu %s" % [id, layer])
+		if v.has("shot") and not FxArt.SPRITES.has(str((v["shot"] as Dictionary).get("sp", "arrow"))):
+			errs.append("%s : sprite de tir inconnu" % id)
+		if not Icons.has(id) or Icons.tex(id, 48) == null:
+			errs.append("%s : icône illisible" % id)
+		if Profile.spell_price(id) < Profile.SPELL_PRICE_MIN:
+			errs.append("%s : prix" % id)
+	for r in RANK_COUNTS.keys():
+		if int(ranks.get(r, 0)) != int(RANK_COUNTS[r]):
+			errs.append("rang %s : %d techniques" % [r, int(ranks.get(r, 0))])
+	if discs.size() != 8 or Profile.disciplines("archer").size() != 8:
+		errs.append("disciplines : %d" % discs.size())
+	for d in Profile.disciplines("archer"):
+		if int(discs.get(str((d as Dictionary)["id"]), 0)) > 8:
+			errs.append("discipline %s : plus de 8 techniques (cases du Tiroir)" % str(d["id"]))
+	# Achat réservé à la voie ; technique d'une autre voie gardée mais hors du deck.
+	var cls0 := Profile.player_class()
+	var gold0 := Profile.gold()
+	Profile.data["player"]["class"] = "mage"
+	var block_mage := Profile.learn_block("fleche_vive")
+	Profile.data["player"]["class"] = "archer"
+	Profile.data["gold"] = 100000
+	var learned_ok := Profile.learn("fleche_vive") and Profile.known_spells().has("fleche_vive")
+	Profile.data["player"]["class"] = "mage"
+	var hidden := not Profile.known_spells().has("fleche_vive") and Profile.learned("fleche_vive")
+	Profile.data["player"]["class"] = "archer"
+	var lib := LibraryScreen.new()
+	root.add_child(lib)
+	lib.set("_school", "classes")
+	lib.set("_class_view", "archer")
+	lib.call("_rebuild")
+	await _frames(2)
+	var lib_elem := 0
+	for cid in LibraryScreen.catalogue():
+		if (GameData.spells()[cid] as Dictionary).has("grimoire"):
+			lib_elem += 1
+	lib.queue_free()
+	(Profile._spells_state()["known"] as Array).erase("fleche_vive")
+	Profile.data["player"]["class"] = cls0
+	Profile.data["gold"] = gold0
+	if not block_mage.begins_with("Voie") or not learned_ok or not hidden or lib_elem != 0:
+		errs.append("achat : %s · appris %s · caché hors voie %s · techniques dans le catalogue élémentaire %d" % [block_mage, learned_ok, hidden, lib_elem])
+	# Chaque technique se lance en combat.
+	var refused: Array[String] = []
+	var lv := GameData.level("z01_l05")
+	for id in ids:
+		var sim := BattleSim.new()
+		sim.setup(lv, GameData.party(), 7, {"solo": true, "player_level": 30, "player_class": "archer", "deck": [id]})
+		sim.player().firing = true
+		for k in range(120):
+			sim.step()
+		var c := sim.player()
+		c.mana = c.mana_max
+		c.spell_cd.clear()
+		sim.barrier_hp = sim.barrier_max * 0.5
+		var big := sim.strongest_enemy()
+		if not sim.cast_spell(c, id, big.pos if big != null else Vector2(4.5, 7.0)):
+			refused.append(id)
+		for k in range(90):
+			sim.step()
+		sim.terrain.sim = null
+	if not refused.is_empty():
+		errs.append("refusés en combat : %s" % [refused])
+	print("grimoire de l'Archer : %d techniques · rangs %s · %d disciplines · %d animations uniques · achat %s" % [ids.size(), ranks, discs.size(), recipes.size(), block_mage])
+	if not errs.is_empty():
+		push_error("grimoire de classe : %s" % [errs])
+		return false
+	return true
+
+
 func _classes_ok() -> bool:
 	var classes: Dictionary = GameData.party()["classes"]
 	var lv := GameData.level("z01_l05")
@@ -399,11 +505,15 @@ func _run() -> void:
 		push_error("onglet Classes de la Bibliothèque incorrect")
 		quit(1)
 		return
-	# Animations : chaque sort a sa signature déclarée dans SpellSig (scripts/battle/spell_sig.gd).
+	if not await _grimoire_ok():
+		quit(1)
+		return
+	# Animations : chaque sort a sa signature déclarée dans SpellSig (scripts/battle/spell_sig.gd),
+	# ou sa recette (« vfx », grimoires de classe : scripts/battle/spell_recipe.gd).
 	var sig := SpellSig.new(null)
 	var sans: Array[String] = []
 	for sid in GameData.spells().keys():
-		if not sig.has_method("s_" + str(sid)):
+		if not sig.has_method("s_" + str(sid)) and not (GameData.spells()[sid] as Dictionary).has("vfx"):
 			sans.append(str(sid))
 	print("animations : ", GameData.spells().size() - sans.size(), "/", GameData.spells().size(), " sorts avec signature", (" · sans : %s" % [sans]) if not sans.is_empty() else "")
 	if not sans.is_empty():

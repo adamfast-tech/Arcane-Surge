@@ -22,7 +22,9 @@ func _ready() -> void:
 		return
 	var room := str(_query().get("room", ""))
 	if room in ["meditation", "circle", "skills", "library"]:
-		# Aperçu d'une salle (« ?room=meditation », « ?room=library&tab=classes »), sans écran de chargement.
+		# Aperçu d'une salle (« ?room=meditation », « ?room=library&tab=classes&class=archer »), sans écran de chargement.
+		if str(_query().get("class", "")) != "":
+			Profile.data["player"]["class"] = str(_query().get("class", ""))
 		_show_room(room)
 		if room == "library" and str(_query().get("tab", "")) != "":
 			_screen.set("_school", str(_query().get("tab", "")))

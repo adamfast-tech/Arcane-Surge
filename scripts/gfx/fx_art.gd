@@ -222,6 +222,25 @@ static func ground(kind: String) -> ImageTexture:
 							var px := clampi(int(q.x) + x, 0, n - 1)
 							var py := clampi(int(q.y) + y, 0, n - 1)
 							img.set_pixel(px, py, img.get_pixel(px, py).lerp(Color(0.55, 0.3, 0.85, 0.55), 0.4))
+		"piege":
+			# Piège posé (grimoire de l'Archer) : mâchoires en couronne, teintées à la couleur du sort.
+			for a in range(0, 360, 2):
+				var v := Vector2.from_angle(deg_to_rad(float(a)))
+				var q: Vector2 = v * c * 0.62 + Vector2(c, c)
+				img.set_pixel(int(q.x), int(q.y), Color(0.85, 0.85, 0.85))
+			for k in range(12):
+				var a0 := float(k) * TAU / 12.0
+				var a1 := (float(k) + 0.5) * TAU / 12.0
+				var a2 := float(k + 1) * TAU / 12.0
+				for st in range(14):
+					var f := float(st) / 13.0
+					var q1 := (Vector2.from_angle(a0) * c * 0.62).lerp(Vector2.from_angle(a1) * c * 0.9, f) + Vector2(c, c)
+					var q2 := (Vector2.from_angle(a1) * c * 0.9).lerp(Vector2.from_angle(a2) * c * 0.62, f) + Vector2(c, c)
+					img.set_pixel(int(q1.x), int(q1.y), Color.WHITE)
+					img.set_pixel(int(q2.x), int(q2.y), Color.WHITE)
+			for k in range(4):
+				var v2 := Vector2.from_angle(float(k) * TAU / 4.0 + 0.4) * c * 0.25 + Vector2(c, c)
+				img.set_pixel(int(v2.x), int(v2.y), Color.WHITE)
 		"rune":
 			for a in range(0, 360, 2):
 				var v := Vector2.from_angle(deg_to_rad(float(a)))
@@ -366,6 +385,18 @@ const SPRITES := {
 	"spark": ["..L..", ".LWL.", "LWWWL", ".LWL.", "..L.."],
 	"slab": ["KKKKKKKKK", "KWLLLLLCK", "KLLCCCCDK", "KLCCCCCDK", "KLCCCCDDK", "KLCCCCDDK", "KLCCCDDDK", "KCCCCDDDK", "KCCCDDDDK", "KKKKKKKKK"],
 	"shield": [".KKKKK.", "KLWWWLK", "KLWCWLK", "KLCCCLK", "KLWCWLK", ".KLCLK.", "..KLK..", "...K..."],
+	# Grimoire de l'Archer.
+	"paw": [".K.K.K.", "KCKCKCK", ".K.K.K.", "..KKK..", ".KCCCK.", ".KCLCK.", "..KKK.."],
+	"horn": ["........KK", "......KKLK", "KK..KKCCCK", "KLKKCCCCDK", "KCCCCCDDK.", ".KKKDDKK..", "....KK...."],
+	"eye": ["..KKKKK..", ".KLLKLLK.", "KLLKCKLLK", ".KLLKLLK.", "..KKKKK.."],
+	"moon": ["..KKK..", ".KLLK..", "KLLK...", "KLK....", "KLK....", "KLK....", "KLLK...", ".KLLK..", "..KKK.."],
+	"caltrop": ["...K...", "..KLK..", "K.KLK.K", ".KLWLK.", "K.KCK.K", "..KCK..", "...K..."],
+	"jaw": ["K.K.K.K.K.K", "KLKLKLKLKLK", "KLLLLLLLLLK", "KCCCCCCCCCK", ".KKKKKKKKK.", "....KwK...."],
+	"stag": [".K.K........", "KLKLK.......", ".KLK........", "..KLK.......", "..KCCK......", "...KCCKKKKK.", "...KCCCCCCCK", "....KCCCCCK.", "....KCK.KCK.", "....KK..KK.."],
+	"wolf": ["K...........", "KCK.........", "KCCKKKKKKK..", ".KCCCCCCCCKK", "KWCCCCCCCK..", ".KKCKKKKCK..", "...KK...KK.."],
+	"flame": ["..K..", ".KLK.", ".KLK.", "KLWLK", "KCLCK", "KCCCK", ".KDK.", "..K.."],
+	"drop": ["..K..", ".KLK.", ".KLK.", "KLWCK", "KCCCK", "KCCDK", ".KKK."],
+	"falcon": ["K.........K", "KCK.....KCK", ".KCKK.KKCK.", "..KCCLCCK..", "...KCWCK...", "....KyK....", ".....K....."],
 }
 const FIXED := {"K": "120e1a", "b": "e8dcc0", "B": "a89c80", "e": "1a0f0a", "g": "8a7a60", "G": "b8a888", "h": "5a4a3a",
 	"w": "8a5a2b", "m": "c8d0e0", "M": "7a8090", "y": "e0b850", "v": "6fbf4a", "n": "2f5a24", "p": "d87ab0", "r": "c83a2a"}

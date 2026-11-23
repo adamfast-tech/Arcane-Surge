@@ -29,7 +29,7 @@
       "desc": "Tirs précis et pièges : archers spectraux, critiques, Flèches astrales.",
       "playable": true,
       "champion": "champion_ranger",
-      "ultimate": "pluie_etoiles",
+      "ultimate": "pluie_etoiles", "disciplines": [{"id": "tir", "name": "Tir", "icon": "fleche_vive", "color": "D8E8C0", "desc": "Tirs précis : la plus grosse cible, les colonnes, les critiques."}, {"id": "volees", "name": "Volées", "icon": "salve", "color": "C8F5A0", "desc": "Pluies de flèches sur de larges zones."}, {"id": "pieges", "name": "Pièges", "icon": "collet", "color": "C8A070", "desc": "Collets, mines et fosses, déclenchés au passage."}, {"id": "traque", "name": "Traque", "icon": "marque_chasseur", "color": "FF6A5A", "desc": "Marques et cors : la proie subit plus, la meute frappe plus."}, {"id": "betes", "name": "Bêtes", "icon": "meute", "color": "A89880", "desc": "Faucons, loups, ours et esprits de la forêt."}, {"id": "poisons", "name": "Poisons", "icon": "nuage_spores", "color": "8FD16A", "desc": "Flèches et brumes qui empoisonnent."}, {"id": "elements", "name": "Éléments", "icon": "fleche_ardente", "color": "FF8A3A", "desc": "Flèches de Feu, de Givre et de Foudre."}, {"id": "astral", "name": "Astral", "icon": "etoile_filante", "color": "FFF6C8", "desc": "Étoiles et lune : Lumière, soins de Barrière."}],
       "effect_mult": 1.0
     },
     "epeiste": {
