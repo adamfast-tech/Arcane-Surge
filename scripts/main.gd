@@ -22,8 +22,11 @@ func _ready() -> void:
 		return
 	var room := str(_query().get("room", ""))
 	if room in ["meditation", "circle", "skills", "library"]:
-		# Aperçu d'une salle (« ?room=meditation »), sans passer par l'écran de chargement.
+		# Aperçu d'une salle (« ?room=meditation », « ?room=library&tab=classes »), sans écran de chargement.
 		_show_room(room)
+		if room == "library" and str(_query().get("tab", "")) != "":
+			_screen.set("_school", str(_query().get("tab", "")))
+			_screen.call("_rebuild")
 		return
 	if room == "equipment":
 		_show_equipment(str(_query().get("who", "player")))

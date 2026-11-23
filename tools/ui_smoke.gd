@@ -380,6 +380,25 @@ func _run() -> void:
 	if not _zone4_ok():
 		quit(1)
 		return
+	# Bibliothèque, onglet Classes : Ultime, sorts d'arbre et sorts de compagnon de chaque classe.
+	var cs := LibraryScreen.class_spells("chevalier")
+	var tree_ids: Array[String] = []
+	for tsp in cs["tree"]:
+		tree_ids.append(str(tsp["id"]))
+	var lib := LibraryScreen.new()
+	root.add_child(lib)
+	lib.set("_school", "classes")
+	lib.set("_class_view", "chevalier")
+	lib.call("_rebuild")
+	await _frames(2)
+	var lib_ok: bool = str(cs["ultimate"]) == "rempart_sacre" and tree_ids.has("bouclier_leve") and tree_ids.has("charge_bastion") and tree_ids.has("cercle_runique") \
+		and (cs["companion"] as Array).has("bouclier_leve")
+	print("bibliothèque, classes : Chevalier ", cs["ultimate"], " · arbre ", tree_ids, " · compagnon ", cs["companion"])
+	lib.queue_free()
+	if not lib_ok:
+		push_error("onglet Classes de la Bibliothèque incorrect")
+		quit(1)
+		return
 	# Animations : chaque sort a sa signature déclarée dans SpellSig (scripts/battle/spell_sig.gd).
 	var sig := SpellSig.new(null)
 	var sans: Array[String] = []

@@ -7,7 +7,8 @@ extends Control
 signal back
 
 var _msg := ""
-var _school := ""
+var _school := "" ## école filtrée ; « classes » : sorts propres à chaque classe
+var _class_view := "" ## classe affichée dans l'onglet Classes
 
 
 func _ready() -> void:
@@ -57,6 +58,9 @@ func _rebuild() -> void:
 	if _msg != "":
 		col.add_child(UiTheme.wrap(_msg, 18, UiTheme.GOLD))
 	col.add_child(_school_tabs())
+	if _school == "classes":
+		_class_sections(col, known, deck)
+		return
 	var cat := catalogue()
 	for rank in Profile.SPELL_RANKS:
 		var ids: Array[String] = []
@@ -125,7 +129,7 @@ func _school_tabs() -> GridContainer:
 	g.add_theme_constant_override("h_separation", 6)
 	var tabs := [["", "Tous", "rune", "6fdccf"], ["feu", "Feu", "boule_de_feu", "FF9B4A"], ["givre", "Givre", "pluie_de_givre", "9FE3FF"],
 		["foudre", "Foudre", "eclair_chaine", "F0D23C"], ["nature", "Nature", "racines", "8FD16A"], ["ombre", "Ombre", "vortex_ombre", "8E62E0"],
-		["arcane", "Arcane", "onde_arcanique", "B07CFF"], ["terre", "Terre", "seisme", "C8A070"]]
+		["arcane", "Arcane", "onde_arcanique", "B07CFF"], ["terre", "Terre", "seisme", "C8A070"], ["classes", "Classes", "target", "F2C46B"]]
 	for t in tabs:
 		var id := str(t[0])
 		var tc := Color(str(t[3]))
@@ -148,7 +152,90 @@ func _school_tabs() -> GridContainer:
 	return g
 
 
-func _spell_card(id: String, known: bool, in_deck: bool) -> PanelContainer:
+## Sorts propres à une classe : son Ultime, les sorts débloqués par son arbre (branche, palier, verrou)
+## et ceux qu'un compagnon de cette voie peut emporter.
+static func class_spells(cls: String) -> Dictionary:
+	var classes: Dictionary = GameData.party()["classes"]
+	var cd: Dictionary = classes.get(cls, {})
+	var tree: Array = []
+	var td: Dictionary = GameData.load_json("res://data/skill_trees/%s.json" % cls)
+	for br in td.get("branches", []):
+		for tier in br.get("tiers", []):
+			for node in tier["nodes"]:
+				if node.has("unlock") and GameData.spells().has(str(node["unlock"])):
+					tree.append({"id": str(node["unlock"]), "branch": str(br.get("name", "")), "req": int(tier.get("req", 0)),
+						"surge": br.has("unlock_flag"), "locked": Profile.branch_locked(br) if cls == Profile.player_class() else ""})
+	var comp: Array[String] = []
+	for sid in Profile.CLASS_SPELLS.get(cls, []):
+		comp.append(str(sid))
+	return {"ultimate": str(cd.get("ultimate", "")), "tree": tree, "companion": comp}
+
+
+func _class_name(cls: String) -> String:
+	return str((GameData.party()["classes"] as Dictionary).get(cls, {}).get("name", cls))
+
+
+## Onglet Classes : choix de la classe, puis son Ultime, ses sorts d'arbre et ses sorts de compagnon.
+func _class_sections(col: VBoxContainer, known: Array[String], deck: Array[String]) -> void:
+	if _class_view == "":
+		_class_view = Profile.player_class()
+	var g := GridContainer.new()
+	g.columns = 4
+	g.add_theme_constant_override("h_separation", 6)
+	g.add_theme_constant_override("v_separation", 6)
+	col.add_child(g)
+	var classes: Dictionary = GameData.party()["classes"]
+	for cid in classes.keys():
+		if not bool((classes[cid] as Dictionary).get("playable", false)):
+			continue
+		var on := str(cid) == _class_view
+		var mine := str(cid) == Profile.player_class()
+		var bt := UiTheme.button(_class_name(str(cid)), 15)
+		bt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		bt.custom_minimum_size = Vector2(0, 50)
+		if mine:
+			bt.add_theme_color_override("font_color", UiTheme.TEAL)
+		if on:
+			if not mine:
+				bt.add_theme_color_override("font_color", UiTheme.GOLD)
+			bt.add_theme_stylebox_override("normal", UiTheme.box(Color(UiTheme.PANEL2, 0.96), UiTheme.GOLD, 10, 2, 4))
+		var target := str(cid)
+		bt.pressed.connect(func() -> void:
+			_class_view = target
+			_rebuild.call_deferred())
+		g.add_child(bt)
+	var cls := _class_view
+	var mine_cls := cls == Profile.player_class()
+	var info := class_spells(cls)
+	var intro := "En turquoise : ta voie actuelle. Les sorts d'arbre se débloquent en investissant des points dans l'arbre de la classe (Entraînement)."
+	if not mine_cls:
+		intro = "Tu suis la voie : %s. Pour obtenir ces sorts, change de voie à la Salle de méditation (dès l'acte 2), puis investis dans l'arbre de cette classe." % _class_name(Profile.player_class())
+	col.add_child(UiTheme.wrap(intro, 17, UiTheme.MUTED))
+	# Ultime.
+	col.add_child(UiTheme.section("Ultime"))
+	var ult := str(info["ultimate"])
+	if ult != "":
+		col.add_child(_spell_card(ult, mine_cls, false, "Se lance quand la jauge Surge est pleine (bouton ULTIME).", true))
+	# Sorts de l'arbre.
+	col.add_child(UiTheme.section("Sorts de l'arbre"))
+	for t in info["tree"]:
+		var sid := str(t["id"])
+		var how := "Arbre : %s · branche %s · %d points dans la branche" % [_class_name(cls), str(t["branch"]), int(t["req"])]
+		if bool(t["surge"]):
+			how += " · Voie du Surge (fin de l'acte 3)"
+		if GameData.spells()[sid].has("rank"):
+			how += " · aussi en vente dans son école"
+		var is_known := mine_cls and known.has(sid)
+		col.add_child(_spell_card(sid, is_known, is_known and deck.has(sid), how, not is_known))
+	# Sorts de compagnon.
+	if not (info["companion"] as Array).is_empty():
+		col.add_child(UiTheme.section("Sorts d'un compagnon de cette voie"))
+		col.add_child(UiTheme.wrap("Un compagnon qui suit cette voie emporte l'un de ces sorts (au choix, au Cercle).", 16, UiTheme.MUTED))
+		for sid in info["companion"]:
+			col.add_child(_spell_card(str(sid), false, false, "Choisi au Cercle pour un compagnon %s." % _class_name(cls), true))
+
+
+func _spell_card(id: String, known: bool, in_deck: bool, how: String = "", info_only: bool = false) -> PanelContainer:
 	var sp: Dictionary = GameData.spells()[id]
 	var scol := Color(str(sp.get("color", "6fdccf")))
 	var rank := str(sp.get("rank", ""))
@@ -181,10 +268,19 @@ func _spell_card(id: String, known: bool, in_deck: bool) -> PanelContainer:
 		tags.append(str(Profile.SCHOOLS.get(str(sp["school"]), "")))
 	if sp.has("rank"):
 		tags.append("puissance %d" % Profile.spell_power(id))
-	tags.append("%d mana" % int(sp.get("mana", 0)))
-	tags.append("recharge %d s" % int(sp.get("cd", 0)))
+	if int(sp.get("mana", 0)) > 0 or int(sp.get("cd", 0)) > 0:
+		tags.append("%d mana" % int(sp.get("mana", 0)))
+		tags.append("recharge %d s" % int(sp.get("cd", 0)))
+	else:
+		tags.append("Ultime")
 	v.add_child(UiTheme.label(" · ".join(tags), 16, Color(str(ri.get("color", "8a9bb0"))) if not ri.is_empty() else UiTheme.MUTED))
 	v.add_child(UiTheme.wrap(str(sp.get("desc", "")), 17, UiTheme.TEXT))
+	if how != "":
+		v.add_child(UiTheme.wrap(how, 15, UiTheme.TEAL))
+	if info_only:
+		if not known:
+			h.add_child(UiTheme.icon_rect("lock" if not sp.has("rank") else "book", 22, UiTheme.MUTED))
+		return pc
 	if known:
 		var t := UiTheme.button("Dans le deck" if in_deck else "Ajouter", 18)
 		t.custom_minimum_size = Vector2(130, 54)

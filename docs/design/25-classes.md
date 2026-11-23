@@ -111,3 +111,12 @@ Commande : `tools/sim_cli.gd -- --level=X --runs=N --class=<classe>`.
 
 - L'Hydre et les créatures du marais sont de Nature : le Météore de Feu (×1,5) y reste la meilleure Ultime.
 - Le Chevalier avec Brann manque de dégâts. Avec Krag, il passe à 3/3 en 406 s ; le Cercle le conseille.
+
+## Bibliothèque : onglet Classes
+
+L'onglet « Classes » de la Bibliothèque montre, pour chacune des 7 classes :
+- son **Ultime** ;
+- les **sorts de son arbre**, avec la branche et le nombre de points requis (Voie du Surge signalée) ;
+- les **sorts qu'un compagnon de cette voie** peut emporter (choisis au Cercle).
+
+La classe actuelle est en turquoise. Pour une autre classe, la Bibliothèque rappelle qu'il faut changer de voie à la Salle de méditation (dès l'acte 2), puis investir dans son arbre. Aperçu : `?room=library&tab=classes`.
