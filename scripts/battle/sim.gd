@@ -190,6 +190,7 @@ var _thirst_budget := 2.0 ## Soif : PV de Barrière rendus au plus par seconde
 var _wrath_acc := 0.0 ## Courroux céleste : soins en excès à convertir en dégâts
 var _legion_count := 0 ## Légion : squelettes invoqués depuis le dernier Colosse
 var _last_crit := false
+var _sid := "" ## sort en cours de résolution : chaque évènement émis porte son identifiant (animations propres)
 var frenzy_until := 0.0 ## fin de la dernière frénésie lancée (Rage de sang : la Barrière paie)
 var sacrificed := 0 ## invocations sacrifiées (Moisson d'âmes)
 ## Sorts à impact différé (projectile, météore) et zones actives (pluie, racines, vortex).
@@ -2201,7 +2202,11 @@ func cast_spell(c: Caster, id: String, at: Vector2) -> bool:
 	if not spell_ready(c, id):
 		return false
 	var sp: Dictionary = spells_db[id]
-	if not _apply_spell(c, sp, at):
+	_sid = id
+	_event({"t": "spell", "pos": at, "from": Vector2(c.x, CASTER_Y + 0.3), "r": float(sp.get("radius", 1.0)), "color": str(sp.get("color", "FFFFFF"))})
+	var ok := _apply_spell(c, sp, at)
+	_sid = ""
+	if not ok:
 		return false
 	c.mana -= spell_cost(c, id)
 	c.spell_cd[id] = float(sp.get("cd", 0))
@@ -2403,8 +2408,7 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 					_damage(e, _calc(dmg, elem, c.crit, e, false), elem)
 			_event({"t": "beam", "a": Vector2(at.x, BARRIER_Y), "b": Vector2(at.x, H - 0.4), "color": col, "dur": 0.3, "w": 3.0})
 			_event({"t": "arrow", "a": Vector2(at.x, BARRIER_Y), "b": Vector2(at.x, H - 0.4), "color": col, "dur": 0.3})
-			if sp.has("fx"):
-				_event({"t": "column", "fx": str(sp["fx"]), "x": at.x, "w": w, "y0": BARRIER_Y, "y1": H - 0.4, "color": col})
+			_event({"t": "column", "fx": str(sp.get("fx", "beam")), "x": at.x, "w": w, "y0": BARRIER_Y, "y1": H - 0.4, "color": col})
 			terrain.on_impact(c, sp, at, w * 0.5, dmg, Rect2(Vector2(at.x - w * 0.5, BARRIER_Y), Vector2(w, H - 0.4 - BARRIER_Y)))
 			return true
 	return false
@@ -2496,12 +2500,16 @@ func _update_impacts() -> void:
 		if p.has("lead") and float(p["t"]) <= float(p["lead"]):
 			# Barrage : l'animation de chute part juste avant l'impact.
 			var sp: Dictionary = p["sp"]
+			_sid = str(sp.get("id", ""))
 			_event({"t": str(p["fx"]), "from": p["from"], "to": p["at"], "pos": p["at"], "dur": maxf(0.05, float(p["t"])),
 				"r": float(sp.get("radius", 1.0)), "color": str(sp.get("color", "FFFFFF")), "tint": bool(sp.get("tint", false))})
 			p.erase("lead")
+			_sid = ""
 		if float(p["t"]) <= 0.0:
 			pending_impacts.remove_at(i)
+			_sid = str((p["sp"] as Dictionary).get("id", ""))
 			_resolve_aoe(casters[int(p["c"])], p["sp"], p["at"])
+			_sid = ""
 		else:
 			i += 1
 
@@ -2766,7 +2774,10 @@ func cast_ultimate(at: Vector2) -> bool:
 	if _mod("ult_chain") > 0.0:
 		sp["chain_bolt"] = true
 	sp["is_ult"] = true
+	_sid = ultimate_id
+	_event({"t": "spell", "pos": at, "from": Vector2(casters[0].x, CASTER_Y + 0.3), "r": float(sp["radius"]), "color": str(sp.get("color", "FFFFFF")), "ult": true})
 	_apply_spell(casters[0], sp, at)
+	_sid = ""
 	# Toute Ultime cautérise les moignons de l'hydre pendant 6 s dans sa zone (comme les braises du Météore).
 	ult_wards.append({"pos": at, "r": maxf(float(sp["radius"]), float(sp.get("spread", 0.0)) + 0.5), "t": 6.0})
 	surge = 0.0
@@ -3022,6 +3033,8 @@ func purify_target() -> Vector2:
 # ---------------------------------------------------------------- utilitaires
 
 func _event(e: Dictionary) -> void:
+	if _sid != "" and not e.has("sid"):
+		e["sid"] = _sid
 	if events.size() < 400:
 		events.append(e)
 

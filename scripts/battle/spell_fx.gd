@@ -13,6 +13,7 @@ var _nodes: Array[Dictionary] = []
 var _line_fx: Array[Dictionary] = []
 var _pmesh: Dictionary = {}
 var _rng := RandomNumberGenerator.new()
+var sig: SpellSig ## signatures propres à chaque sort (scripts/battle/spell_sig.gd)
 
 
 static func w3(p: Vector2, h: float = 0.0) -> Vector3:
@@ -21,10 +22,19 @@ static func w3(p: Vector2, h: float = 0.0) -> Vector3:
 
 func _ready() -> void:
 	_rng.seed = 4321
+	sig = SpellSig.new(self)
 
 
 ## Prend en charge un évènement de la simulation ; retourne faux s'il ne concerne pas un sort.
 func handle(e: Dictionary) -> bool:
+	if e.has("sid") and sig != null:
+		# Animation propre au sort ; à défaut, l'animation générique de la phase.
+		if sig.play(e):
+			return true
+		if str(e["t"]) == "spell":
+			return true
+	elif str(e["t"]) == "spell":
+		return true
 	var col := Color(str(e.get("color", "FFFFFF")))
 	match str(e["t"]):
 		"fireball", "meteor":
@@ -583,6 +593,9 @@ func _particle_mat() -> StandardMaterial3D:
 	m.vertex_color_use_as_albedo = true
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	# Garder l'échelle : les particules inactives (échelle nulle) restent invisibles au lieu de s'afficher
+	# en carré noir, et la variation de taille des particules est respectée.
+	m.billboard_keep_scale = true
 	return m
 
 
@@ -663,6 +676,7 @@ func _process(delta: float) -> void:
 			"scorch":
 				(f["mat"] as StandardMaterial3D).albedo_color = Color(1, 1, 1, clampf((1.0 - k) * 1.6, 0.0, 1.0))
 			"root":
+				node.visible = age >= 0.0
 				var g := clampf(age / float(f["grow"]), 0.0, 1.0)
 				var s := g * clampf((dur - age) / 0.3, 0.0, 1.0)
 				node.scale = Vector3(1.0, maxf(0.01, s * (1.0 + 0.04 * sin(t * 7.0 + node.position.x * 3.0))), 1.0)
@@ -677,6 +691,8 @@ func _process(delta: float) -> void:
 					(node as CPUParticles3D).emitting = false
 				elif age < 0.05:
 					(node as CPUParticles3D).emitting = true
+			_:
+				sig.animate(f, age, k, node)
 		if age >= dur:
 			node.queue_free()
 			_nodes.remove_at(i)
@@ -741,6 +757,8 @@ func collect(lines: Array, points: Array) -> void:
 				var p1 := w3(a.lerp(b, clampf(k * 1.1, 0.0, 1.0)), 0.55)
 				lines.append([p0, p1, Color(1, 1, 1, 1.0 - k * 0.5)])
 				lines.append([p0 + Vector3(0, 0.04, 0), p1 + Vector3(0, 0.04, 0), Color(col, 1.0 - k * 0.5)])
+			_:
+				sig.draw(lf, lines, points, k)
 
 
 ## Éclair vertical, du ciel jusqu'au sol.

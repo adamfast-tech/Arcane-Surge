@@ -326,3 +326,63 @@ static func root(variant: int) -> ImageTexture:
 					img.set_pixel(x, y, Color("120e1a"))
 					break
 	return _store(key, img)
+
+
+# ---------------------------------------------------------------- éléments des animations de sorts
+
+## Petits sprites des animations propres à chaque sort (scripts/battle/spell_sig.gd). Lettres :
+## K contour, D/C/L/W teinte du sort (sombre, base, claire, blanc), b/B os, e orbites, g/G/h pierre,
+## w bois, m/M métal, y or, v/n végétal, p rose, r baie rouge.
+const SPRITES := {
+	"shard": ["..K..", ".KLK.", ".KWK.", "KLWCK", "KLCCK", "KCCDK", "KCCDK", ".KCK.", ".KCK.", ".KDK.", "..K.."],
+	"crystal": ["...K...", "..KWK..", "..KLK..", ".KLWCK.", ".KLCCK.", ".KLCCK.", ".KLCDK.", "KLWCCDK", "KLCCCDK", "KLCCCDK",
+		"KLCCDDK", "KLCCDDK", "KCCCDDK", "KCCDDDK", "KKKKKKK"],
+	"rock": ["..KKKK...", ".KLLCCK..", "KLLCCCDKK", "KLCCCDDDK", "KCCCDDDDK", ".KCDDDDK.", "..KKDDK..", "....KK..."],
+	"bone": [".KK.....KK.", "KbbKKKKKbbK", ".KbbbbbbbK.", "KbBKKKKKBbK", ".KK.....KK."],
+	"skull": [".KKKKKK.", "KbbbbbbK", "KbbbbbbK", "KeebbeeK", "KeebbeeK", "KbbbebbK", ".KbbbbK.", ".KbKbKK."],
+	"star": ["....K....", "...KWK...", "...KWK...", "KKKLWLKKK", "KLWWWWWLK", "KKKLWLKKK", "...KWK...", "...KWK...", "....K...."],
+	"blade": ["..K..", ".KyK.", "..K..", "KyyyK", ".KmK.", ".KmK.", ".KWK.", ".KmK.", ".KWK.", ".KmK.", ".KmK.", ".KWK.", ".KMK.", "..K..", "..K.."],
+	"arrow": ["K...K", "KC.CK", ".KCK.", "..w..", "..w..", "..w..", "..w..", "..w..", "..w..", ".KmK.", ".KmK.", "..K.."],
+	"feather": ["...KK.", "..KWLK", ".KWLLK", ".KWLCK", "KWLLCK", "KWLCK.", "KLLCK.", "KLCK..", ".KCK..", ".KK...", "K....."],
+	"leaf": ["....KK.", "..KKLK.", ".KLLCK.", "KLCCK..", "KCCK...", "KK....."],
+	"bulb": ["..KKKKK..", ".KpCpCpK.", "KpCWCpCpK", "KCpCpCpCK", ".KpCpCpK.", "..KKKKK..", "....v....", "...Kv....", "....vK...", "...KvK...", "..KvvvK.."],
+	"axe": ["........KKK.", ".......KmmmK", "......KmmWmK", ".....KwKmmmK", "....KwK.KmK.", "...KwK...K..", "..KwK.......", ".KwK........", "KwK.........", "KK.........."],
+	"tomb": ["..KKKK..", ".KgGGgK.", "KgGGGGgK", "KgGhhGgK", "KghhhhgK", "KghhhhgK", "KgGhhGgK", "KgGhhGgK", "KggggggK", "KhhhhhhK", "KKKKKKKK"],
+	"hand": ["K.K.K..", "b.b.bK.", "b.b.b.b", "bKbKbKb", "bbbbbbK", ".bbbbb.", ".KbbbK.", "..bbb..", "..KbK..", "..bbb.."],
+	"ghost": ["...KKKK...", "..KWWLLK..", ".KWWLLLLK.", ".KWeLLeLK.", ".KWeLLeLK.", "KWWLLLLLLK", "KWLLLLLLCK", "KWLLLLLLCK",
+		"KLLLLLLCCK", "KLLLLLCCCK", "KLLCLLCLCK", "KLK.KCK.KK", ".K...K...."],
+	"spear": [".W.", "KLK", "KLK", "KCK", "KCK", "KCK", "DCD", ".D.", ".D.", ".D.", ".D.", ".D.", ".D.", ".D."],
+	"bramble": ["...K....", "..KnK.r.", "..KvK.K.", ".rKvKKvK", ".KvvKvK.", "..KvvK..", "KvK.vK..", ".KvKvK.r", "..KvvKKv", "...KvvK.",
+		"...KvK..", "..KvvK..", "..KnnK..", "..KnnK.."],
+	"spark": ["..L..", ".LWL.", "LWWWL", ".LWL.", "..L.."],
+	"slab": ["KKKKKKKKK", "KWLLLLLCK", "KLLCCCCDK", "KLCCCCCDK", "KLCCCCDDK", "KLCCCCDDK", "KLCCCDDDK", "KCCCCDDDK", "KCCCDDDDK", "KKKKKKKKK"],
+	"shield": [".KKKKK.", "KLWWWLK", "KLWCWLK", "KLCCCLK", "KLWCWLK", ".KLCLK.", "..KLK..", "...K..."],
+}
+const FIXED := {"K": "120e1a", "b": "e8dcc0", "B": "a89c80", "e": "1a0f0a", "g": "8a7a60", "G": "b8a888", "h": "5a4a3a",
+	"w": "8a5a2b", "m": "c8d0e0", "M": "7a8090", "y": "e0b850", "v": "6fbf4a", "n": "2f5a24", "p": "d87ab0", "r": "c83a2a"}
+
+
+## Sprite d'animation teinté à la couleur du sort ; « quarter » le tourne de 90° × n (rotations).
+static func sprite(name: String, col: Color, quarter: int = 0) -> ImageTexture:
+	var key := "spr_%s_%s_%d" % [name, col.to_html(false), quarter]
+	if _cache.has(key):
+		return _cached(key)
+	var rows: Array = SPRITES.get(name, SPRITES["spark"])
+	var h := rows.size()
+	var w := 0
+	for r in rows:
+		w = maxi(w, str(r).length())
+	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var tint := {"D": col.darkened(0.45), "C": col, "L": col.lightened(0.45), "W": col.lightened(0.85)}
+	for y in range(h):
+		var r := str(rows[y])
+		for x in range(r.length()):
+			var ch := r[x]
+			if tint.has(ch):
+				img.set_pixel(x, y, tint[ch])
+			elif FIXED.has(ch):
+				img.set_pixel(x, y, Color(str(FIXED[ch])))
+	for i in range(posmod(quarter, 4)):
+		img.rotate_90(CLOCKWISE)
+	return _store(key, img)

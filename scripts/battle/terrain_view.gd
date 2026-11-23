@@ -250,6 +250,7 @@ func _make_surface(s: Dictionary) -> Dictionary:
 		pm2.vertex_color_use_as_albedo = true
 		pm2.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		pm2.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+		pm2.billboard_keep_scale = true
 		q.material = pm2
 		parts.mesh = q
 		var g := Gradient.new()

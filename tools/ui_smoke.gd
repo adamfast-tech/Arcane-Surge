@@ -208,6 +208,17 @@ func _run() -> void:
 	if not _classes_ok():
 		quit(1)
 		return
+	# Animations : chaque sort a sa signature déclarée dans SpellSig (scripts/battle/spell_sig.gd).
+	var sig := SpellSig.new(null)
+	var sans: Array[String] = []
+	for sid in GameData.spells().keys():
+		if not sig.has_method("s_" + str(sid)):
+			sans.append(str(sid))
+	print("animations : ", GameData.spells().size() - sans.size(), "/", GameData.spells().size(), " sorts avec signature", (" · sans : %s" % [sans]) if not sans.is_empty() else "")
+	if not sans.is_empty():
+		push_error("sorts sans animation propre")
+		quit(1)
+		return
 	# Dialogues : prologue + intro de 1-1, lus jusqu'au bout (tap), avec l'historique.
 	main.call("_play", "z01_l01", false)
 	await _frames(5)

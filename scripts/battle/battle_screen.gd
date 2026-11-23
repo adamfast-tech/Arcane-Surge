@@ -799,6 +799,44 @@ func _bot_card(c: BattleSim.Caster) -> PanelContainer:
 
 # ---------------------------------------------------------------- boucle
 
+## Aperçu des animations (« &demo=eclipse,linceul ») : lance les sorts donnés tour à tour au même point.
+var _demo_t := 1.5
+var _demo_i := 0
+
+
+func _demo_tick(delta: float) -> void:
+	var ids: Array = _opts.get("demo", [])
+	if ids.is_empty():
+		return
+	_demo_t -= delta
+	if _demo_t > 0.0:
+		return
+	_demo_t = float(_opts.get("demo_every", 3.0))
+	var id := str(ids[_demo_i % ids.size()])
+	_demo_i += 1
+	var at := Vector2(4.5, 7.5)
+	print("DEMO_CAST ", id)
+	if id == "ultime":
+		sim.surge = 100.0
+		sim.cast_ultimate(at)
+		return
+	var c := sim.player()
+	if not c.spells.has(id):
+		c.spells.append(id)
+	c.mana = c.mana_max
+	c.spell_cd.erase(id)
+	sim.barrier_hp = sim.barrier_max * 0.7
+	sim.set_player_firing(true)
+	# Quelques cibles autour du point visé (sorts en chaîne, Exorcisme…).
+	for k in range(5):
+		var foe := sim._spawn_enemy("mushroom", at + Vector2(float(k % 3) - 1.0, float(k / 3) * 0.8))
+		foe.hp *= 6.0
+		foe.max_hp = foe.hp
+	sim._flush()
+	sim._build_grids()
+	sim.cast_spell(c, id, at)
+
+
 func _process(delta: float) -> void:
 	if sim == null:
 		return
@@ -814,6 +852,7 @@ func _process(delta: float) -> void:
 		if steps >= 4:
 			_acc = 0.0
 		_keyboard_move(delta)
+		_demo_tick(delta)
 	arena.alpha = clampf(_acc / BattleSim.TICK, 0.0, 1.0)
 	if not sim.events.is_empty():
 		arena.consume_events(sim.events)

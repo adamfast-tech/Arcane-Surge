@@ -42,6 +42,15 @@ func _ready() -> void:
 			extra["spell_mode"] = "drawer"
 			if not extra.has("deck"):
 				extra["deck"] = Profile.drawer_spells()
+		var slow := float(str(_query().get("slow", "1")))
+		if slow > 0.0 and slow < 1.0:
+			# Aperçu au ralenti (« &slow=0.3 ») : vérifier les animations image par image.
+			Engine.time_scale = slow
+		var qd := str(_query().get("demo", ""))
+		if qd != "":
+			# Aperçu des animations : « &demo=eclipse,linceul&every=3 » (sorts lancés tour à tour).
+			extra["demo"] = Array(qd.split(",", false))
+			extra["demo_every"] = float(str(_query().get("every", "3")))
 		var qc := str(_query().get("class", ""))
 		if qc != "":
 			# Aperçu : classe du héros (« &class=chevalier »).

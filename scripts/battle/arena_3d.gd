@@ -469,6 +469,7 @@ func _particle_mesh(size: float) -> QuadMesh:
 	m.vertex_color_use_as_albedo = true
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	m.billboard_keep_scale = true
 	q.material = m
 	return q
 
