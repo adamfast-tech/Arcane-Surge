@@ -176,6 +176,12 @@ var fog_cfg: Dictionary = {}
 var heads: Array[Unit] = []
 var stumps: Array[Dictionary] = [] ## {pos, t}
 var ult_wards: Array[Dictionary] = [] ## {pos, r, t} : zones d'Ultime qui cautérisent les moignons
+# Zone 4 : avalanches, runes du Colosse, portes corrompues.
+var avalanche_cfg: Dictionary = {}
+var avalanche_t := 0.0
+var runes: Array[Unit] = []
+var _gate_curses: Array[Dictionary] = [] ## {portal, t, kind, value, element}
+var _immune_txt_t := 0.0
 # Don racial (étape 13.2) : {id, name, cd, power} ; effets temporaires.
 var don: Dictionary = {}
 var don_t := 0.0
@@ -233,6 +239,8 @@ func setup(level_data: Dictionary, party: Dictionary, seed_value: int, opts: Dic
 	don_t = float(don.get("cd", 60.0)) * 0.3
 	for pd in level.get("pools", []):
 		terrain.add_poison(Vector2(float(pd["x"]), float(pd["y"])), float(pd.get("r", 1.2)), 0.0, true)
+	for idd in level.get("ice", []):
+		terrain.add_ice(Vector2(float(idd["x"]), float(idd["y"])), float(idd.get("r", 1.3)))
 	for e in level.get("initial_enemies", []):
 		_spawn_enemy(str(e["kind"]), Vector2(float(e["x"]), float(e["y"])))
 	wave_t = float(level["waves"].get("first", 3.0))
@@ -303,6 +311,9 @@ func _setup_zone_mechanics() -> void:
 	for pd in level.get("pylons", []):
 		pylons.append({"pos": Vector2(float(pd["x"]), float(pd["y"])), "portal": int(pd.get("portal", 0)),
 			"every": float(pd.get("every", 14.0)), "dur": float(pd.get("dur", 5.0)), "t": float(pd.get("first", 6.0))})
+	avalanche_cfg = level.get("avalanche", {})
+	if not avalanche_cfg.is_empty():
+		avalanche_t = float(avalanche_cfg.get("first", 12.0))
 
 
 ## Vent des steppes : calme, puis rafale annoncée (l'herbe ploie), puis poussée latérale.
@@ -358,6 +369,8 @@ func _escort_text(kind: String, arrived: bool) -> String:
 			return "La Lanterne de l'Aube purifie le Nexus !" if arrived else "La Lanterne s'est éteinte…"
 		"barge":
 			return "La barque des passeurs a traversé le marais !" if arrived else "La barque a sombré…"
+		"rune_cart":
+			return "Le chariot runique a atteint la forteresse !" if arrived else "Le chariot runique est brisé…"
 	return "Le chariot de vivres est arrivé !" if arrived else "Le chariot est détruit…"
 
 
@@ -712,6 +725,8 @@ func step() -> void:
 	_update_waves()
 	_update_wind()
 	_update_pylons()
+	_update_avalanche()
+	_update_gate_curses()
 	_move_units()
 	_cross_portals()
 	_tick_status()
@@ -826,7 +841,8 @@ func _queue_wave() -> void:
 			continue
 		var cap := int(units_db[pick].get("max_alive", 0))
 		if cap > 0 and _count_kind(pick) >= cap:
-			pick = "mushroom" if units_db.has("mushroom") else pick
+			# Soigneur au plafond : on le remplace par l'unité la plus courante de la vague.
+			pick = str(kinds[0])
 			cost = float(units_db[pick].get("cost", 1))
 		budget -= cost
 		var cx: float = clusters[n % clusters.size()]
@@ -868,6 +884,7 @@ func _move_units() -> void:
 		var sf := u.speed_factor()
 		if sf <= 0.0:
 			continue
+		sf *= _slide(u)
 		if u.pos.y > HOMING_Y:
 			u.vx = clampf((_homing_target_x(u) - u.pos.x) * 1.5, -1.8, 1.8)
 		u.pos.x = clampf(u.pos.x + u.vx * sf * TICK + _wind_push(u) * TICK, 0.2, W - 0.2)
@@ -881,7 +898,7 @@ func _move_units() -> void:
 			continue
 		if e.hold_y > 0.0 and e.pos.y <= e.hold_y:
 			continue
-		var sf_e := e.speed_factor()
+		var sf_e := e.speed_factor() * _slide(e)
 		if escort != null and escort.alive and e.pos.y > escort.pos.y and e.pos.y - escort.pos.y < 4.0:
 			# Les ennemis convergent vers la Lanterne de l'Aube.
 			e.pos.x = clampf(e.pos.x + clampf(escort.pos.x - e.pos.x, -0.9, 0.9) * sf_e * TICK, 0.3, W - 0.3)
@@ -894,6 +911,10 @@ func _homing_target_x(u: Unit) -> float:
 		if t["alive"] and absf(u.pos.x - (t["pos"] as Vector2).x) < 1.3:
 			return (t["pos"] as Vector2).x
 	if boss != null and boss.alive:
+		# Colosse runique : une invocation de l'élément d'une rune va droit sur elle.
+		for ru in runes:
+			if ru.alive and ru.element == u.element:
+				return ru.pos.x
 		return boss.pos.x
 	var best := NEXUS_POS.x
 	var bd := 1e9
@@ -965,6 +986,11 @@ func _apply_portal(p: Portal, u: Unit) -> void:
 			u.speed *= 1.4
 		"aegis":
 			u.shield += 10.0
+		"forge":
+			# Porte naine (zone 4) : l'invocation ressort cuirassée.
+			u.defense += 10.0
+			u.hp *= 1.25
+			u.max_hp *= 1.25
 		"sub":
 			if p.charges > 0:
 				p.charges -= 1
@@ -1248,6 +1274,7 @@ func _tick_status() -> void:
 		_wrath(_wrath_acc)
 		_wrath_acc = 0.0
 	barrier_flash = maxf(0.0, barrier_flash - TICK)
+	_immune_txt_t = maxf(0.0, _immune_txt_t - TICK)
 	_heal_log_t = maxf(0.0, _heal_log_t - TICK)
 	_shield_fx_t = maxf(0.0, _shield_fx_t - TICK)
 	for t in towers:
@@ -1311,7 +1338,7 @@ func _resolve_contacts() -> void:
 		for yy in range(maxi(0, cy - 1), mini(GRID_H - 1, cy + 1) + 1):
 			for xx in range(maxi(0, cx - 1), mini(GRID_W - 1, cx + 1) + 1):
 				for e in _grid_e[yy * GRID_W + xx]:
-					if not e.alive:
+					if not e.alive or (e.role == "rune" and e.element != a.element):
 						continue
 					var rr: float = a.radius + e.radius
 					var d2: float = a.pos.distance_squared_to(e.pos)
@@ -1342,6 +1369,8 @@ func _ranged_attacks() -> void:
 		if not a.alive or a.attack_range <= 0.0 or a.engaged or a.atk_cd > 0.0:
 			continue
 		var t := _nearest(_grid_e, a.pos, a.attack_range)
+		if t != null and t.role == "rune" and t.element != a.element:
+			t = boss if boss != null and boss.alive and boss.pos.distance_to(a.pos) <= a.attack_range + boss.radius else null
 		if t != null:
 			a.atk_cd = a.atk_interval
 			_event({"t": "beam", "a": a.pos, "b": t.pos, "color": "C8F5A0", "dur": 0.08})
@@ -1411,7 +1440,7 @@ func _enemy_abilities() -> void:
 					_event({"t": "text", "pos": (target["pos"] as Vector2) + Vector2(1.0, -0.2), "text": "+%d" % int(float(target["hp"]) - before), "color": "6FE39A"})
 					if _heal_log_t <= 0.0:
 						_heal_log_t = 8.0
-						_log("Une Dryade soigne le Nexus !")
+						_log("Soin ennemi : %s régénère le Nexus !" % str(d.get("name", "un soigneur")))
 			var hu := float(d.get("heal_units", 0.0)) * (1.0 - clampf(_mod("anti_heal"), 0.0, 0.8))
 			if hu > 0.0:
 				for o in _query(_grid_e, e.pos, 1.5):
@@ -1423,8 +1452,13 @@ func _enemy_abilities() -> void:
 				continue
 			e.cast_cd = e.cast_interval
 			var r := float(d.get("cast_radius", 1.0))
+			var chill := float(d.get("cast_chill", 0.0))
 			for a in _query(_grid_a, tgt.pos, r):
 				_damage(a, e.atk * (1.3 if e.enraged_t > 0.0 else 1.0) * affinity(e.element, a.element), "")
+				if chill > 0.0 and a.alive:
+					# Élémentaire de blizzard : les invocations touchées sont engourdies.
+					a.slow_stacks = maxi(a.slow_stacks, 3)
+					a.slow_t = maxf(a.slow_t, chill)
 			_event({"t": "ring", "pos": tgt.pos, "r": r, "color": "FFF2A8", "dur": 0.35})
 
 
@@ -1626,7 +1660,7 @@ func _boss_ability(ab: Dictionary) -> void:
 				var x := _target_lane(used_x)
 				used_x.append(x)
 				var hw := float(ab.get("width", 1.4)) * 0.5
-				_telegraph(Rect2(x - hw, BARRIER_Y, hw * 2.0, boss.pos.y - 0.6 - BARRIER_Y), float(ab.get("delay", 1.2)), float(ab.get("dmg", 40)), 3.0)
+				_telegraph(Rect2(x - hw, BARRIER_Y, hw * 2.0, boss.pos.y - 0.6 - BARRIER_Y), float(ab.get("delay", 1.2)), float(ab.get("dmg", 40)), float(ab.get("barrier", 3.0)))
 			_log("%s charge !" % boss_name)
 		"summon":
 			var kind := str(ab.get("kind", "mushroom"))
@@ -1675,6 +1709,51 @@ func _boss_ability(ab: Dictionary) -> void:
 				var hw := float(ab.get("width", 1.4)) * 0.5
 				_telegraph(Rect2(x - hw, BARRIER_Y, hw * 2.0, boss.pos.y - 0.6 - BARRIER_Y), float(ab.get("delay", 1.3)), float(ab.get("dmg", 40)), 2.0, true)
 			_log("%s crache son venin !" % boss_name)
+		"runes":
+			# Colosse runique : des runes corporelles protègent son corps ; chacune ne craint qu'un élément.
+			var els: Array = ab.get("elements", ["feu", "nature"])
+			var xs: Array = ab.get("xs", [3.4, 5.6])
+			for k in range(mini(els.size(), xs.size())):
+				var ru := _spawn_enemy("body_rune", Vector2(float(xs[k]), float(ab.get("y", boss.pos.y - 1.7))))
+				ru.element = str(els[k])
+				ru.hp *= float(ab.get("hp_mult", 1.0))
+				ru.max_hp = ru.hp
+				ru.hold_y = ru.pos.y
+				runes.append(ru)
+			_log("Des runes s'allument sur %s : chacune ne craint qu'un élément !" % boss_name)
+			_event({"t": "ring", "pos": boss.pos, "r": 3.0, "color": "8FD0FF", "dur": 0.7})
+		"rotate_runes":
+			var cycle := ["feu", "nature", "givre"]
+			var names: Array[String] = []
+			for ru in runes:
+				if ru.alive:
+					ru.element = str(cycle[(cycle.find(ru.element) + 1) % cycle.size()])
+					names.append(str(ELEM_NAMES.get(ru.element, ru.element)))
+					_event({"t": "ring", "pos": ru.pos, "r": 0.9, "color": str(SpriteAtlas.ELEM.get(ru.element, ["", "", "ffffff"])[2]), "dur": 0.5})
+			if not names.is_empty():
+				_log("Les runes tournent : %s." % ", ".join(names))
+		"corrupt_gates":
+			# Le Colosse corrompt des Portes runiques : un portail positif devient ÷2 un moment.
+			var cands: Array[Portal] = []
+			for pt in portals:
+				if not pt.is_negative() and not pt.is_seal:
+					var cursed := false
+					for gc in _gate_curses:
+						if gc["portal"] == pt:
+							cursed = true
+					if not cursed:
+						cands.append(pt)
+			for k in range(mini(int(ab.get("count", 1)), cands.size())):
+				var pt: Portal = cands[rng.randi() % cands.size()]
+				cands.erase(pt)
+				_gate_curses.append({"portal": pt, "t": float(ab.get("dur", 10.0)), "kind": pt.kind, "value": pt.value, "element": pt.element})
+				pt.kind = "div"
+				pt.value = 2
+				pt.flash_t = 0.5
+				_event({"t": "ring", "pos": Vector2(pt.x, pt.y), "r": 1.4, "color": "D93CF2", "dur": 0.6})
+			_log("%s corrompt une Porte runique !" % boss_name)
+		"avalanche":
+			_avalanche(float(ab.get("band", 1.6)), float(ab.get("dmg", 40.0)), float(ab.get("warn", 1.8)))
 		"flood":
 			for k in range(int(ab.get("count", 6))):
 				terrain.add_poison(Vector2(rng.randf_range(0.8, W - 0.8), rng.randf_range(2.5, 11.5)), rng.randf_range(0.9, 1.4), float(ab.get("dur", 14.0)), false)
@@ -1683,8 +1762,66 @@ func _boss_ability(ab: Dictionary) -> void:
 		"shield":
 			boss_shield_t = float(ab.get("dur", 8.0))
 			boss_shield_elem = str(ab.get("element", "feu"))
-			_log("Écorce : seul le %s blesse %s !" % [str(ELEM_NAMES.get(boss_shield_elem, boss_shield_elem)), boss_name])
+			_log("%s : seul le %s blesse %s !" % [shield_word().capitalize(), str(ELEM_NAMES.get(boss_shield_elem, boss_shield_elem)), boss_name])
 			_event({"t": "ring", "pos": boss.pos, "r": 2.0, "color": "8A5A30", "dur": 0.6})
+
+
+## Avalanche (zone 4) : une rangée entière, annoncée, frappe amis et ennemis et les ensevelit 1 s.
+func _avalanche(band: float, dmg: float, warn: float) -> void:
+	var y := rng.randf_range(4.2, 12.4)
+	var r := Rect2(0.0, y - band * 0.5, W, band)
+	telegraphs.append({"rect": r, "t": warn, "dur": warn, "dmg": dmg, "barrier": 0.0, "avalanche": true})
+	_event({"t": "text", "pos": Vector2(W * 0.5, y + 0.6), "text": "AVALANCHE !", "color": "EAF4FB"})
+	_log("La montagne gronde : avalanche !")
+
+
+func _update_avalanche() -> void:
+	if avalanche_cfg.is_empty():
+		return
+	avalanche_t -= TICK
+	if avalanche_t > 0.0:
+		return
+	var ev: Array = avalanche_cfg.get("every", [16, 20])
+	avalanche_t = rng.randf_range(float(ev[0]), float(ev[1]))
+	_avalanche(float(avalanche_cfg.get("band", 1.6)), float(avalanche_cfg.get("dmg", 40.0)), float(avalanche_cfg.get("warn", 1.8)))
+
+
+## Portes runiques corrompues par le Colosse : elles redeviennent elles-mêmes après un temps.
+func _update_gate_curses() -> void:
+	var i := 0
+	while i < _gate_curses.size():
+		var gc: Dictionary = _gate_curses[i]
+		gc["t"] = float(gc["t"]) - TICK
+		if float(gc["t"]) <= 0.0:
+			var pt: Portal = gc["portal"]
+			pt.kind = str(gc["kind"])
+			pt.value = int(gc["value"])
+			pt.element = str(gc["element"])
+			pt.flash_t = 0.4
+			_event({"t": "ring", "pos": Vector2(pt.x, pt.y), "r": 1.2, "color": "8FD0FF", "dur": 0.5})
+			_gate_curses.remove_at(i)
+			continue
+		i += 1
+
+
+## Glace : vitesse ×1,6 sur la glace, ×1,3 pendant l'élan (0,8 s après en être sorti).
+func _slide(u: Unit) -> float:
+	if u.slide_t <= 0.0 or u.role in ["boss", "escort", "rune", "tete", "banniere"]:
+		return 1.0
+	u.slide_t = maxf(0.0, u.slide_t - TICK)
+	return 1.6 if u.slide_t > 0.65 else 1.3
+
+
+func runes_alive() -> int:
+	var n := 0
+	for ru in runes:
+		if ru.alive:
+			n += 1
+	return n
+
+
+func shield_word() -> String:
+	return "écorce" if boss != null and boss.kind == "sylvarche" else "runes"
 
 
 func _telegraph(r: Rect2, delay: float, dmg: float, barrier_dmg: float, venom: bool = false) -> void:
@@ -1700,10 +1837,23 @@ func _update_telegraphs() -> void:
 			i += 1
 			continue
 		var r: Rect2 = tg["rect"]
+		var aval := bool(tg.get("avalanche", false))
 		for a in allies:
 			if a.alive and r.has_point(a.pos):
 				var dmg := float(tg["dmg"]) * 100.0 / (100.0 + a.defense)
 				_damage(a, dmg * (0.4 if a.role == "escort" else 1.0), "")
+				if aval and a.alive:
+					a.slow_stacks = maxi(a.slow_stacks, 4)
+					a.slow_t = maxf(a.slow_t, 1.5)
+		if aval:
+			# L'avalanche n'épargne personne : les ennemis de la rangée sont blessés et ensevelis.
+			for e in enemies:
+				if e.alive and r.has_point(e.pos) and e.role not in ["boss", "rune", "tete", "banniere"]:
+					_damage(e, float(tg["dmg"]) * enemy_mult * 100.0 / (100.0 + e.defense), "givre")
+					if e.alive:
+						e.rooted_t = maxf(e.rooted_t, 1.0)
+			_event({"t": "avalanche", "rect": r, "dur": 0.6})
+			_event({"t": "shake"})
 		if float(tg["barrier"]) > 0.0:
 			_hurt_barrier(float(tg["barrier"]))
 		if bool(tg.get("venom", false)):
@@ -1918,6 +2068,14 @@ func _damage(tgt: Unit, amount: float, elem: String) -> void:
 		amount *= 0.2
 	if tgt == boss and heads_alive() > 0:
 		amount *= 0.25
+	if tgt == boss and runes_alive() > 0:
+		amount *= 0.3
+	if tgt.role == "rune" and elem != tgt.element and (_sid == "" or _sid != ultimate_id):
+		# Rune corporelle : seul son élément la blesse (une Ultime, elle, la brise quel que soit l'élément).
+		if _immune_txt_t <= 0.0:
+			_immune_txt_t = 1.2
+			_event({"t": "text", "pos": tgt.pos + Vector2(0.0, 0.5), "text": "IMMUNISÉE : %s" % str(ELEM_NAMES.get(tgt.element, tgt.element)).to_upper(), "color": "C8D8FF"})
+		return
 	if tgt.team == 0 and elem == "feu" and _mod("fire_resist") > 0.0:
 		amount *= 1.0 - _mod("fire_resist")
 	if tgt.shield > 0.0:
@@ -2838,6 +2996,12 @@ func portal_value_at(x: float) -> float:
 			"elem":
 				light = p.element == "lumiere"
 				v += 1.0
+				for ru in runes:
+					if ru.alive and ru.element == p.element:
+						v += 4.0
+						break
+			"forge":
+				v += 1.5
 			_:
 				v += 1.0
 	return v
@@ -2928,16 +3092,22 @@ func objective_info() -> String:
 				parts.append("%d / %d" % [int(ceil(maxf(0.0, boss.hp))), int(boss.max_hp)])
 				parts.append("phase %d/3" % (boss_phase + 1))
 				if boss_shield_t > 0.0:
-					parts.append("ÉCORCE : seul le %s blesse" % str(ELEM_NAMES.get(boss_shield_elem, boss_shield_elem)))
+					parts.append("%s : seul le %s blesse" % [shield_word().to_upper(), str(ELEM_NAMES.get(boss_shield_elem, boss_shield_elem))])
 				if banners_alive() > 0:
 					parts.append("ARMURE : %d bannière%s" % [banners_alive(), "s" if banners_alive() > 1 else ""])
 				if heads_alive() > 0:
 					parts.append("TÊTES : %d (corps protégé)" % heads_alive())
+				if runes_alive() > 0:
+					var rel: Array[String] = []
+					for ru in runes:
+						if ru.alive:
+							rel.append(str(ELEM_NAMES.get(ru.element, ru.element)))
+					parts.append("RUNES : %s (corps protégé)" % ", ".join(rel))
 				if not stumps.is_empty():
 					parts.append("BRÛLE %d plaie%s !" % [stumps.size(), "s" if stumps.size() > 1 else ""])
 		"escort":
 			if escort != null:
-				parts.append("%s %d / %d PV" % [{"lantern": "Lanterne", "caravan": "Chariot", "barge": "Barque"}.get(escort.kind, "Escorte"), int(ceil(maxf(0.0, escort.hp))), int(escort.max_hp)])
+				parts.append("%s %d / %d PV" % [{"lantern": "Lanterne", "caravan": "Chariot", "barge": "Barque", "rune_cart": "Chariot runique"}.get(escort.kind, "Escorte"), int(ceil(maxf(0.0, escort.hp))), int(escort.max_hp)])
 				parts.append("trajet %d %%" % int((1.0 - objective_ratio()) * 100.0))
 		_:
 			parts.append("%d / %d" % [int(ceil(nexus_hp)), int(nexus_max)])

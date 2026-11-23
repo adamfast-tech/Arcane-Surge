@@ -1,0 +1,119 @@
+{
+  "id": "z04_l09",
+  "name": "La Forteresse",
+  "zone": 4,
+  "number": "4-9",
+  "global_level": 39,
+  "type": "Siège",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "desc": "La forteresse Forgecœur. Deux Nexus de givre, une tour au centre, et des Sentinelles anciennes qui s'éveillent. Le lac gelé couvre l'avant-cour.",
+  "par_time": 168,
+  "nexus": {
+    "hp": 14000
+  },
+  "nexi": [
+    {
+      "x": 2.4,
+      "y": 14.9
+    },
+    {
+      "x": 6.6,
+      "y": 14.9
+    }
+  ],
+  "towers": [
+    {
+      "x": 4.5,
+      "y": 14.0,
+      "hp": 540
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "foudre"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 2,
+      "motion": "slide",
+      "range": 1.6,
+      "speed": 0.5
+    },
+    {
+      "kind": "add",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 5
+    },
+    {
+      "kind": "forge",
+      "x": 2.4,
+      "y": 10.4,
+      "width": 2.0
+    },
+    {
+      "kind": "mult",
+      "x": 6.6,
+      "y": 10.4,
+      "width": 2.0,
+      "value": 2
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 33,
+    "budget_per_level": 9,
+    "local_level": 9,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "ice_goblin": 6,
+      "white_wolf": 3,
+      "yeti": 1,
+      "ice_golem": 1,
+      "blizzard_elemental": 1,
+      "stalactite_kobold": 1,
+      "ancient_sentinel": 0.15
+    }
+  },
+  "ice": [
+    {
+      "x": 2.6,
+      "y": 7.8,
+      "r": 1.4
+    },
+    {
+      "x": 6.4,
+      "y": 7.8,
+      "r": 1.4
+    }
+  ],
+  "avalanche": {
+    "first": 14,
+    "every": [
+      17,
+      22
+    ],
+    "warn": 1.8,
+    "band": 1.6,
+    "dmg": 40
+  },
+  "initial_enemies": []
+}

@@ -66,6 +66,8 @@ func base_label() -> String:
 			return "HÂTE"
 		"aegis":
 			return "ÉGIDE"
+		"forge":
+			return "FORGE"
 		"corrupt":
 			return "CORRUPTION"
 		"entrave":
@@ -83,6 +85,8 @@ func color() -> Color:
 			return Color(str(SpriteAtlas.ELEM.get(element, ["", "", "ffffff", ""])[2]))
 		"power", "giant", "haste", "aegis":
 			return Color("f2c46b")
+		"forge":
+			return Color("ff9a4a")
 	return Color("d93cf2")
 
 

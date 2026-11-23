@@ -1,0 +1,117 @@
+{
+  "id": "z04_l08",
+  "name": "Les Portes scellées",
+  "zone": 4,
+  "number": "4-8",
+  "global_level": 38,
+  "type": "Purification",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "desc": "La corruption a scellé les Portes runiques de la forteresse. Fais passer des invocations de Lumière par les deux sceaux (ou lance Purifier) pour exposer le Nexus. Des Esprits d'aurore le soignent.",
+  "par_time": 160,
+  "nexus": {
+    "hp": 14000
+  },
+  "towers": [
+    {
+      "x": 1.4,
+      "y": 14.1,
+      "hp": 390
+    },
+    {
+      "x": 7.6,
+      "y": 14.1,
+      "hp": 390
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "element": "foudre",
+      "x": 1.7,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "elem",
+      "element": "lumiere",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "motion": "slide",
+      "range": 2.6,
+      "speed": 0.45
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 7.3,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "corrupt",
+      "x": 2.0,
+      "y": 10.4,
+      "width": 2.2,
+      "seal": true,
+      "purity": 8
+    },
+    {
+      "kind": "forge",
+      "x": 4.5,
+      "y": 10.4,
+      "width": 1.8
+    },
+    {
+      "kind": "corrupt",
+      "x": 7.0,
+      "y": 10.4,
+      "width": 2.2,
+      "seal": true,
+      "purity": 8
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 20,
+    "budget_per_level": 6,
+    "local_level": 8,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "ice_goblin": 6,
+      "white_wolf": 3,
+      "yeti": 0.6,
+      "ice_golem": 0.8
+    }
+  },
+  "initial_enemies": [
+    {
+      "kind": "aurora_spirit",
+      "x": 2.6,
+      "y": 13.3
+    },
+    {
+      "kind": "aurora_spirit",
+      "x": 6.4,
+      "y": 13.3
+    }
+  ],
+  "corrupt_spawn": "ice_goblin",
+  "ice": [
+    {
+      "x": 4.5,
+      "y": 7.6,
+      "r": 1.3
+    }
+  ]
+}

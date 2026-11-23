@@ -219,7 +219,7 @@ func _make_surface(s: Dictionary) -> Dictionary:
 	match kind:
 		"braises":
 			pc = [Color("ffd070"), Color("ff8a3a"), Color(0.6, 0.15, 0.05, 0.0)]
-		"verglas":
+		"verglas", "glace":
 			pc = [Color.WHITE, Color("cff4ff"), Color(0.8, 0.95, 1.0, 0.0)]
 		"miasme":
 			pc = [Color(0.7, 0.5, 1.0, 0.6), Color("5a2a9a"), Color(0.2, 0.05, 0.3, 0.0)]
@@ -234,7 +234,7 @@ func _make_surface(s: Dictionary) -> Dictionary:
 	if not pc.is_empty():
 		parts = CPUParticles3D.new()
 		var area := r * r
-		parts.amount = clampi(int(area * (5.0 if kind == "verglas" else 9.0)), 6, 60)
+		parts.amount = clampi(int(area * (5.0 if kind in ["verglas", "glace"] else 9.0)), 6, 60)
 		parts.lifetime = 0.5 if kind == "statique" else 1.4
 		parts.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
 		parts.emission_box_extents = Vector3(r * 0.65, 0.05, r * 0.65)

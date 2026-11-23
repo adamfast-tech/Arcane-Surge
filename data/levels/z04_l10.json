@@ -1,0 +1,198 @@
+{
+  "id": "z04_l10",
+  "name": "Le Colosse runique",
+  "zone": 4,
+  "number": "4-10",
+  "global_level": 40,
+  "type": "Boss",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "objective": "boss",
+  "desc": "Le Colosse runique, gardien de la forteresse, corrompu. Ses runes corporelles protègent son corps : chaque rune ne craint qu'un élément. Fais passer tes invocations par le portail du même élément.",
+  "par_time": 500,
+  "boss": {
+    "kind": "rune_colossus",
+    "hp": 28000,
+    "x": 4.5,
+    "y": 14.3,
+    "on_phase": [
+      [
+        {
+          "type": "runes",
+          "elements": [
+            "feu",
+            "nature"
+          ],
+          "xs": [
+            3.4,
+            5.6
+          ]
+        }
+      ],
+      [
+        {
+          "type": "runes",
+          "elements": [
+            "feu",
+            "nature",
+            "givre"
+          ],
+          "xs": [
+            2.8,
+            4.5,
+            6.2
+          ]
+        }
+      ],
+      [
+        {
+          "type": "runes",
+          "elements": [
+            "feu",
+            "nature",
+            "givre"
+          ],
+          "xs": [
+            2.8,
+            4.5,
+            6.2
+          ]
+        },
+        {
+          "type": "corrupt_gates",
+          "count": 1,
+          "dur": 12
+        }
+      ]
+    ],
+    "phases": [
+      [
+        {
+          "type": "lane_strike",
+          "cd": 8,
+          "delay": 1.3,
+          "dmg": 50,
+          "width": 1.5,
+          "barrier": 1.5,
+          "count": 1
+        },
+        {
+          "type": "summon",
+          "cd": 14,
+          "kind": "ice_goblin",
+          "count": 3
+        }
+      ],
+      [
+        {
+          "type": "rotate_runes",
+          "cd": 14
+        },
+        {
+          "type": "lane_strike",
+          "cd": 8,
+          "delay": 1.3,
+          "dmg": 50,
+          "width": 1.5,
+          "count": 1,
+          "barrier": 1.5
+        },
+        {
+          "type": "summon",
+          "cd": 13,
+          "kind": "white_wolf",
+          "count": 3
+        }
+      ],
+      [
+        {
+          "type": "corrupt_gates",
+          "cd": 22,
+          "count": 1,
+          "dur": 10
+        },
+        {
+          "type": "rotate_runes",
+          "cd": 14
+        },
+        {
+          "type": "lane_strike",
+          "cd": 7,
+          "delay": 1.2,
+          "dmg": 50,
+          "width": 1.5,
+          "count": 1,
+          "barrier": 1.5
+        },
+        {
+          "type": "avalanche",
+          "cd": 20,
+          "band": 1.6,
+          "dmg": 44
+        }
+      ]
+    ]
+  },
+  "towers": [],
+  "portals": [
+    {
+      "kind": "elem",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "feu"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 1.8,
+      "value": 2,
+      "motion": "slide",
+      "range": 1.2,
+      "speed": 0.5
+    },
+    {
+      "kind": "elem",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "nature"
+    },
+    {
+      "kind": "elem",
+      "x": 2.4,
+      "y": 10.4,
+      "width": 2.0,
+      "element": "givre"
+    },
+    {
+      "kind": "forge",
+      "x": 6.6,
+      "y": 10.4,
+      "width": 2.0
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      9,
+      13
+    ],
+    "budget_base": 16,
+    "budget_per_level": 5,
+    "local_level": 10,
+    "growth": 0.02,
+    "spawn_y": 14.6,
+    "pool": {
+      "ice_goblin": 6,
+      "white_wolf": 3,
+      "stalactite_kobold": 1
+    }
+  },
+  "initial_enemies": []
+}

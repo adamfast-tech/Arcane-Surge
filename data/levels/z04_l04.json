@@ -1,0 +1,109 @@
+{
+  "id": "z04_l04",
+  "name": "Le Lac gelé",
+  "zone": 4,
+  "number": "4-4",
+  "global_level": 34,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "desc": "Un lac gelé couvre tout le centre de l'arène : on y glisse loin. Les Yétis y chargent. Un sort de Feu fait fondre la glace un moment.",
+  "par_time": 150,
+  "nexus": {
+    "hp": 20000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 320
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 320
+    }
+  ],
+  "portals": [
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 2,
+      "motion": "slide",
+      "range": 2.0,
+      "speed": 0.5
+    },
+    {
+      "kind": "forge",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "add",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 5
+    },
+    {
+      "kind": "elem",
+      "x": 4.5,
+      "y": 10.4,
+      "width": 2.2,
+      "element": "foudre"
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 30,
+    "budget_per_level": 9,
+    "local_level": 4,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "ice_goblin": 5,
+      "white_wolf": 2.5,
+      "yeti": 0.6,
+      "ice_golem": 0.6
+    }
+  },
+  "ice": [
+    {
+      "x": 3.0,
+      "y": 7.8,
+      "r": 1.6
+    },
+    {
+      "x": 6.0,
+      "y": 7.8,
+      "r": 1.6
+    },
+    {
+      "x": 4.5,
+      "y": 9.6,
+      "r": 1.5
+    }
+  ],
+  "avalanche": {
+    "first": 18,
+    "every": [
+      20,
+      26
+    ],
+    "warn": 1.8,
+    "band": 1.6,
+    "dmg": 40
+  },
+  "initial_enemies": []
+}

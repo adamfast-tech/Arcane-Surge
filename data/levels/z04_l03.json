@@ -1,0 +1,104 @@
+{
+  "id": "z04_l03",
+  "name": "La Porte naine",
+  "zone": 4,
+  "number": "4-3",
+  "global_level": 33,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "desc": "Une Porte naine du clan Forgecœur, encore vivante. Le portail FORGE cuirasse les invocations qui le traversent : plus de défense et de PV. Les Golems de glace bloquent de face.",
+  "par_time": 180,
+  "nexus": {
+    "hp": 24000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 320
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 320
+    }
+  ],
+  "portals": [
+    {
+      "kind": "add",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 5
+    },
+    {
+      "kind": "forge",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.2
+    },
+    {
+      "kind": "elem",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "foudre"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 10.4,
+      "width": 2.2,
+      "value": 2,
+      "motion": "slide",
+      "range": 2.2,
+      "speed": 0.45
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 29,
+    "budget_per_level": 8,
+    "local_level": 3,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "ice_goblin": 5,
+      "white_wolf": 2,
+      "stalactite_kobold": 1,
+      "ice_golem": 0.8
+    }
+  },
+  "ice": [
+    {
+      "x": 2.0,
+      "y": 8.4,
+      "r": 1.2
+    },
+    {
+      "x": 7.0,
+      "y": 8.4,
+      "r": 1.2
+    }
+  ],
+  "avalanche": {
+    "first": 16,
+    "every": [
+      18,
+      23
+    ],
+    "warn": 1.8,
+    "band": 1.6,
+    "dmg": 40
+  },
+  "initial_enemies": []
+}

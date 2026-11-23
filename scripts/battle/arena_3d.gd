@@ -55,6 +55,7 @@ var _terrain_view: TerrainView
 var _moss_cap: StandardMaterial3D
 var day := false ## Zone 2 : Collines d'Ambre en plein jour.
 var swamp := false ## Zone 3 : Marais Murmurants au crépuscule.
+var frost := false ## Zone 4 : Pics Gelés, nuit d'aurore boréale.
 var _fog_nodes: Array[Dictionary] = []
 ## Forêt guérie (la Sylvarche a été purifiée) : sol plus vert, veines dorées, lucioles.
 var healed := false
@@ -70,6 +71,7 @@ func setup(s: BattleSim, f: Font, forest_healed: bool = false) -> void:
 	healed = forest_healed
 	day = WorldArt.zone == 2
 	swamp = WorldArt.zone == 3
+	frost = WorldArt.zone == 4
 	_billboard = load("res://shaders/billboard_atlas.gdshader")
 	_stone_mat = _triplanar(WorldArt.stone_texture(), 0.55)
 	_build_environment()
@@ -164,6 +166,9 @@ func _build_environment() -> void:
 	elif swamp:
 		_env.ambient_light_color = Color("9a8ab8")
 		_env.ambient_light_energy = 0.95
+	elif frost:
+		_env.ambient_light_color = Color("9ab8e0")
+		_env.ambient_light_energy = 1.05
 	_env.fog_enabled = true
 	_env.fog_mode = Environment.FOG_MODE_DEPTH
 	_env.fog_light_color = Color("26405a") if healed else Color("2d2c5e")
@@ -171,6 +176,8 @@ func _build_environment() -> void:
 		_env.fog_light_color = Color("d8b880")
 	elif swamp:
 		_env.fog_light_color = Color("6e7f6a")
+	elif frost:
+		_env.fog_light_color = Color("4a6a8e")
 	_env.fog_depth_begin = 40.0
 	_env.fog_depth_end = 80.0
 	_env.glow_enabled = true
@@ -181,7 +188,7 @@ func _build_environment() -> void:
 	we.environment = _env
 	add_child(we)
 	var moon := DirectionalLight3D.new()
-	moon.light_color = Color("fff0d0") if day else (Color("d0c8e8") if swamp else Color("b4c0ff"))
+	moon.light_color = Color("fff0d0") if day else (Color("d0c8e8") if swamp else (Color("c8f0ff") if frost else Color("b4c0ff")))
 	moon.light_energy = 1.1
 	moon.rotation_degrees = Vector3(-55.0, -35.0, 0.0)
 	add_child(moon)
@@ -257,6 +264,8 @@ func _build_terrain() -> void:
 		layers = [[-1.4, Color("f0d8a8"), 0.3, Vector2(0.02, 0.003)], [-3.0, Color("d8b888"), 0.4, Vector2(-0.012, 0.005)]]
 	elif swamp:
 		layers = [[-1.2, Color("c9d1c4"), 0.6, Vector2(0.01, 0.004)], [-2.6, Color("6e7f6a"), 0.7, Vector2(-0.008, 0.005)]]
+	elif frost:
+		layers = [[-1.3, Color("eaf4fb"), 0.45, Vector2(0.018, 0.004)], [-2.8, Color("7fb7e0"), 0.55, Vector2(-0.012, 0.006)]]
 	for l in layers:
 		var mi := MeshInstance3D.new()
 		var mp := PlaneMesh.new()
@@ -318,7 +327,7 @@ func _trees_mm_instance() -> MultiMeshInstance3D:
 
 
 func _build_props() -> void:
-	var moss_cap := _unshaded(Color("a09048") if day else (Color("4a5a48") if swamp else Color("3f6a3a")))
+	var moss_cap := _unshaded(Color("a09048") if day else (Color("4a5a48") if swamp else (Color("dcecf8") if frost else Color("3f6a3a"))))
 	moss_cap.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
 	# Piliers en ruine le long de la chaussée : construits par TerrainView (ils peuvent s'effondrer).
 	_moss_cap = moss_cap
@@ -378,6 +387,21 @@ func _build_props() -> void:
 		ramp.set_color(0, Color(0.6, 1.0, 0.5, 0.0))
 		ramp.set_color(1, Color(0.6, 1.0, 0.5, 0.0))
 		ramp.add_point(0.5, Color(0.7, 1.0, 0.55, 0.9))
+	if frost:
+		# Neige qui tombe doucement sur les Pics.
+		ramp = Gradient.new()
+		ramp.set_color(0, Color(1.0, 1.0, 1.0, 0.0))
+		ramp.set_color(1, Color(1.0, 1.0, 1.0, 0.0))
+		ramp.add_point(0.15, Color(0.95, 0.98, 1.0, 0.9))
+		ramp.add_point(0.85, Color(0.9, 0.95, 1.0, 0.8))
+		ff.amount = 120
+		ff.position = Vector3(4.5, 4.0, -8.0)
+		ff.emission_box_extents = Vector3(11.0, 2.0, 11.0)
+		ff.direction = Vector3(0.2, -1.0, 0.0)
+		ff.spread = 20.0
+		ff.initial_velocity_min = 0.4
+		ff.initial_velocity_max = 0.8
+		ff.gravity = Vector3(0.05, -0.1, 0.0)
 	if day:
 		# Pollen et poussière dorée dans la lumière de midi.
 		ramp = Gradient.new()
@@ -1114,7 +1138,8 @@ func _draw_fx(delta: float) -> void:
 	for tg in sim.telegraphs:
 		var k2 := 1.0 - float(tg["t"]) / maxf(0.01, float(tg["dur"]))
 		var pulse := 0.5 + 0.5 * sin(t * (10.0 + 14.0 * k2))
-		_rect(lines, tg["rect"], Color(1.0, 0.25, 0.3, 0.45 + 0.5 * pulse), true)
+		var tcol := Color(0.85, 0.95, 1.0) if bool(tg.get("avalanche", false)) else Color(1.0, 0.25, 0.3)
+		_rect(lines, tg["rect"], Color(tcol, 0.45 + 0.5 * pulse), true)
 	# Plaies de l'Hydre : cercle orange qui se resserre (brûle-les avant 5 s).
 	for st in sim.stumps:
 		var left := clampf(float(st["t"]) / BattleSim.STUMP_TIME, 0.0, 1.0)

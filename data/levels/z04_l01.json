@@ -1,0 +1,97 @@
+{
+  "id": "z04_l01",
+  "name": "La Route du Col",
+  "zone": 4,
+  "number": "4-1",
+  "global_level": 31,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "desc": "Les Pics Gelés. Gobelins des glaces et loups blancs descendent la route du col. Sur la glace, tout glisse : tes invocations comme les ennemis vont plus vite. La Foudre brise le Givre.",
+  "par_time": 120,
+  "nexus": {
+    "hp": 32000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 320
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 320
+    }
+  ],
+  "portals": [
+    {
+      "kind": "add",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 5
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 2,
+      "motion": "slide",
+      "range": 1.6,
+      "speed": 0.5
+    },
+    {
+      "kind": "elem",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "foudre"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 10.4,
+      "width": 2.2,
+      "value": 2,
+      "motion": "slide",
+      "range": 2.2,
+      "speed": 0.45
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 26,
+    "budget_per_level": 7,
+    "local_level": 1,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "ice_goblin": 5,
+      "white_wolf": 2.5,
+      "stalactite_kobold": 0.6
+    }
+  },
+  "ice": [
+    {
+      "x": 2.2,
+      "y": 8.2,
+      "r": 1.3
+    },
+    {
+      "x": 6.8,
+      "y": 8.6,
+      "r": 1.3
+    }
+  ],
+  "initial_enemies": []
+}

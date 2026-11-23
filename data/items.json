@@ -1,48 +1,275 @@
 {
   "slots": {
-    "weapon": "Arme", "offhand": "Main secondaire", "head": "Tête", "armor": "Armure", "hands": "Gants",
-    "feet": "Bottes", "amulet": "Médaillon", "ring1": "Anneau", "ring2": "Anneau", "charm": "Charme"
+    "weapon": "Arme",
+    "offhand": "Main secondaire",
+    "head": "Tête",
+    "armor": "Armure",
+    "hands": "Gants",
+    "feet": "Bottes",
+    "amulet": "Médaillon",
+    "ring1": "Anneau",
+    "ring2": "Anneau",
+    "charm": "Charme"
   },
-  "slot_order": ["weapon", "offhand", "head", "armor", "hands", "feet", "amulet", "ring1", "ring2", "charm"],
+  "slot_order": [
+    "weapon",
+    "offhand",
+    "head",
+    "armor",
+    "hands",
+    "feet",
+    "amulet",
+    "ring1",
+    "ring2",
+    "charm"
+  ],
   "rarities": {
-    "commun":     {"name": "Commun", "letter": "C", "color": "B8B8C8", "mult": 1.0, "affixes": 0, "max_up": 5, "value": 1},
-    "rare":       {"name": "Rare", "letter": "R", "color": "5AA9FF", "mult": 1.25, "affixes": 1, "max_up": 10, "value": 3},
-    "epique":     {"name": "Épique", "letter": "É", "color": "B07CFF", "mult": 1.55, "affixes": 2, "max_up": 15, "value": 8},
-    "legendaire": {"name": "Légendaire", "letter": "L", "color": "F2C46B", "mult": 1.9, "affixes": 3, "max_up": 20, "value": 20}
+    "commun": {
+      "name": "Commun",
+      "letter": "C",
+      "color": "B8B8C8",
+      "mult": 1.0,
+      "affixes": 0,
+      "max_up": 5,
+      "value": 1
+    },
+    "rare": {
+      "name": "Rare",
+      "letter": "R",
+      "color": "5AA9FF",
+      "mult": 1.25,
+      "affixes": 1,
+      "max_up": 10,
+      "value": 3
+    },
+    "epique": {
+      "name": "Épique",
+      "letter": "É",
+      "color": "B07CFF",
+      "mult": 1.55,
+      "affixes": 2,
+      "max_up": 15,
+      "value": 8
+    },
+    "legendaire": {
+      "name": "Légendaire",
+      "letter": "L",
+      "color": "F2C46B",
+      "mult": 1.9,
+      "affixes": 3,
+      "max_up": 20,
+      "value": 20
+    }
   },
-  "stat_names": {"pou": "Puissance", "vig": "Vigueur", "esp": "Esprit", "cel": "Célérité", "des": "Destin"},
+  "stat_names": {
+    "pou": "Puissance",
+    "vig": "Vigueur",
+    "esp": "Esprit",
+    "cel": "Célérité",
+    "des": "Destin"
+  },
   "bases": {
-    "baton_chene":     {"name": "Bâton de chêne", "slot": "weapon", "stats": {"pou": 4, "esp": 1}, "element": "physique"},
-    "baguette_saule":  {"name": "Baguette de saule", "slot": "weapon", "stats": {"pou": 3, "cel": 2}, "element": "physique"},
-    "baton_lune":      {"name": "Bâton de bois-lune", "slot": "weapon", "stats": {"pou": 4, "esp": 2}, "element": "lumiere"},
-    "orbe_luciole":    {"name": "Orbe de lucioles", "slot": "offhand", "stats": {"esp": 3}},
-    "capuche_toile":   {"name": "Capuche de toile", "slot": "head", "stats": {"vig": 2, "esp": 1}},
-    "robe_apprenti":   {"name": "Robe d'apprenti", "slot": "armor", "stats": {"vig": 3, "esp": 2}},
-    "gants_cuir":      {"name": "Gants de cuir", "slot": "hands", "stats": {"cel": 2, "pou": 1}},
-    "bottes_marche":   {"name": "Bottes de marche", "slot": "feet", "stats": {"cel": 2, "vig": 1}},
-    "amulette_mousse": {"name": "Médaillon de mousse", "slot": "amulet", "stats": {"esp": 3}},
-    "anneau_cuivre":   {"name": "Anneau de cuivre", "slot": "ring", "stats": {"des": 2, "pou": 1}},
-    "charme_luciole":  {"name": "Charme de luciole", "slot": "charm", "stats": {"des": 2, "esp": 1}},
-    "croc_gharok":     {"name": "Croc de Gharok", "slot": "charm", "stats": {"pou": 7, "cel": 5}, "unique": true,
-                        "lore": "Arraché au seigneur de guerre des Collines d'Ambre. La foudre y gronde encore."},
-    "baton_seve":      {"name": "Bâton de la Première Sève", "slot": "weapon", "stats": {"pou": 8, "esp": 4}, "element": "nature", "unique": true,
-                        "lore": "Taillé dans la première branche tombée de la Sylvarche."}
+    "baton_chene": {
+      "name": "Bâton de chêne",
+      "slot": "weapon",
+      "stats": {
+        "pou": 4,
+        "esp": 1
+      },
+      "element": "physique"
+    },
+    "baguette_saule": {
+      "name": "Baguette de saule",
+      "slot": "weapon",
+      "stats": {
+        "pou": 3,
+        "cel": 2
+      },
+      "element": "physique"
+    },
+    "baton_lune": {
+      "name": "Bâton de bois-lune",
+      "slot": "weapon",
+      "stats": {
+        "pou": 4,
+        "esp": 2
+      },
+      "element": "lumiere"
+    },
+    "orbe_luciole": {
+      "name": "Orbe de lucioles",
+      "slot": "offhand",
+      "stats": {
+        "esp": 3
+      }
+    },
+    "capuche_toile": {
+      "name": "Capuche de toile",
+      "slot": "head",
+      "stats": {
+        "vig": 2,
+        "esp": 1
+      }
+    },
+    "robe_apprenti": {
+      "name": "Robe d'apprenti",
+      "slot": "armor",
+      "stats": {
+        "vig": 3,
+        "esp": 2
+      }
+    },
+    "gants_cuir": {
+      "name": "Gants de cuir",
+      "slot": "hands",
+      "stats": {
+        "cel": 2,
+        "pou": 1
+      }
+    },
+    "bottes_marche": {
+      "name": "Bottes de marche",
+      "slot": "feet",
+      "stats": {
+        "cel": 2,
+        "vig": 1
+      }
+    },
+    "amulette_mousse": {
+      "name": "Médaillon de mousse",
+      "slot": "amulet",
+      "stats": {
+        "esp": 3
+      }
+    },
+    "anneau_cuivre": {
+      "name": "Anneau de cuivre",
+      "slot": "ring",
+      "stats": {
+        "des": 2,
+        "pou": 1
+      }
+    },
+    "charme_luciole": {
+      "name": "Charme de luciole",
+      "slot": "charm",
+      "stats": {
+        "des": 2,
+        "esp": 1
+      }
+    },
+    "croc_gharok": {
+      "name": "Croc de Gharok",
+      "slot": "charm",
+      "stats": {
+        "pou": 7,
+        "cel": 5
+      },
+      "unique": true,
+      "lore": "Arraché au seigneur de guerre des Collines d'Ambre. La foudre y gronde encore."
+    },
+    "baton_seve": {
+      "name": "Bâton de la Première Sève",
+      "slot": "weapon",
+      "stats": {
+        "pou": 8,
+        "esp": 4
+      },
+      "element": "nature",
+      "unique": true,
+      "lore": "Taillé dans la première branche tombée de la Sylvarche."
+    }
   },
   "loot_pool": {
-    "1": ["baton_chene", "baguette_saule", "baton_lune", "orbe_luciole", "capuche_toile", "robe_apprenti", "gants_cuir", "bottes_marche", "amulette_mousse", "anneau_cuivre", "charme_luciole"],
-    "2": ["baton_chene", "baguette_saule", "baton_lune", "orbe_luciole", "capuche_toile", "robe_apprenti", "gants_cuir", "bottes_marche", "amulette_mousse", "anneau_cuivre", "charme_luciole"],
-    "3": ["baton_chene", "baguette_saule", "baton_lune", "orbe_luciole", "capuche_toile", "robe_apprenti", "gants_cuir", "bottes_marche", "amulette_mousse", "anneau_cuivre", "charme_luciole"]
+    "1": [
+      "baton_chene",
+      "baguette_saule",
+      "baton_lune",
+      "orbe_luciole",
+      "capuche_toile",
+      "robe_apprenti",
+      "gants_cuir",
+      "bottes_marche",
+      "amulette_mousse",
+      "anneau_cuivre",
+      "charme_luciole"
+    ],
+    "2": [
+      "baton_chene",
+      "baguette_saule",
+      "baton_lune",
+      "orbe_luciole",
+      "capuche_toile",
+      "robe_apprenti",
+      "gants_cuir",
+      "bottes_marche",
+      "amulette_mousse",
+      "anneau_cuivre",
+      "charme_luciole"
+    ],
+    "3": [
+      "baton_chene",
+      "baguette_saule",
+      "baton_lune",
+      "orbe_luciole",
+      "capuche_toile",
+      "robe_apprenti",
+      "gants_cuir",
+      "bottes_marche",
+      "amulette_mousse",
+      "anneau_cuivre",
+      "charme_luciole"
+    ],
+    "4": [
+      "baton_chene",
+      "baguette_saule",
+      "baton_lune",
+      "orbe_luciole",
+      "capuche_toile",
+      "robe_apprenti",
+      "gants_cuir",
+      "bottes_marche",
+      "amulette_mousse",
+      "anneau_cuivre",
+      "charme_luciole"
+    ]
   },
   "materials": {
-    "bois_lune": {"name": "Bois-lune"},
-    "luciole": {"name": "Luciole séchée"},
-    "ambre": {"name": "Éclat d'ambre"},
-    "crin_loup": {"name": "Crin de loup"},
-    "tourbe": {"name": "Mousse de tourbière"},
-    "ecaille_liche": {"name": "Écaille de liche"}
+    "bois_lune": {
+      "name": "Bois-lune"
+    },
+    "luciole": {
+      "name": "Luciole séchée"
+    },
+    "ambre": {
+      "name": "Éclat d'ambre"
+    },
+    "crin_loup": {
+      "name": "Crin de loup"
+    },
+    "tourbe": {
+      "name": "Mousse de tourbière"
+    },
+    "ecaille_liche": {
+      "name": "Écaille de liche"
+    },
+    "cristal_givre": {
+      "name": "Cristal de givre"
+    },
+    "rune_brisee": {
+      "name": "Rune brisée"
+    }
   },
   "starter": [
-    {"base": "baton_chene", "rarity": "commun", "ilvl": 1},
-    {"base": "robe_apprenti", "rarity": "commun", "ilvl": 1}
+    {
+      "base": "baton_chene",
+      "rarity": "commun",
+      "ilvl": 1
+    },
+    {
+      "base": "robe_apprenti",
+      "rarity": "commun",
+      "ilvl": 1
+    }
   ]
 }

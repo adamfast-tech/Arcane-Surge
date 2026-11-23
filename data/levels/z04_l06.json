@@ -1,0 +1,101 @@
+{
+  "id": "z04_l06",
+  "name": "L'Aurore",
+  "zone": 4,
+  "number": "4-6",
+  "global_level": 36,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "desc": "Sous l'aurore boréale, des Esprits d'aurore soignent le Nexus et les Élémentaires de blizzard figent tes invocations. Abats les esprits en premier.",
+  "par_time": 220,
+  "nexus": {
+    "hp": 20000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 340
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 340
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "foudre"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 2,
+      "motion": "slide",
+      "range": 1.6,
+      "speed": 0.5
+    },
+    {
+      "kind": "add",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 5
+    },
+    {
+      "kind": "forge",
+      "x": 4.5,
+      "y": 10.4,
+      "width": 2.2
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 26,
+    "budget_per_level": 8,
+    "local_level": 6,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "ice_goblin": 6,
+      "white_wolf": 2.5,
+      "blizzard_elemental": 0.5,
+      "stalactite_kobold": 1,
+      "aurora_spirit": 0.3
+    }
+  },
+  "initial_enemies": [
+    {
+      "kind": "aurora_spirit",
+      "x": 2.6,
+      "y": 13.3
+    },
+    {
+      "kind": "aurora_spirit",
+      "x": 6.4,
+      "y": 13.3
+    }
+  ],
+  "ice": [
+    {
+      "x": 4.5,
+      "y": 8.2,
+      "r": 1.3
+    }
+  ]
+}

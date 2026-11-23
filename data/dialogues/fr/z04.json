@@ -1,0 +1,50 @@
+{
+ "characters": {
+  "narrateur": {
+   "name": "",
+   "color": "A99FD0"
+  },
+  "porteur": {
+   "name": "{pseudo}",
+   "title": "Canalisateur",
+   "title_flag": {
+    "s1.sceau_echo": "Porteur d'Écho"
+   },
+   "color": "4FE3D2",
+   "portrait": "porteur"
+  },
+  "sylwen": {
+   "name": "Sylwen",
+   "title": "Vigiles Sylvestres",
+   "color": "8FD16A",
+   "portrait": "sylwen",
+   "loyalty": true
+  },
+  "brann": {
+   "name": "Brann",
+   "title": "Bastion d'Argent",
+   "color": "B8C6E8",
+   "portrait": "brann",
+   "loyalty": true
+  },
+  "krag": {
+   "name": "Krag",
+   "title": "Enfants de la Fureur",
+   "color": "E8703A",
+   "portrait": "krag",
+   "loyalty": true,
+   "loyalty_if": "s1.krag_allie"
+  },
+  "nyx": {
+   "name": "Nyx",
+   "title": "Cercle des Cendres",
+   "color": "C87CF0",
+   "portrait": "nyx",
+   "loyalty": true,
+   "loyalty_if": "s1.nyx_allie"
+  }
+ },
+ "scenes": {},
+ "barks": {},
+ "barks_level": {}
+}

@@ -47,6 +47,35 @@ static func _swamp(img: Image, lift: float = 1.0) -> void:
 			img.set_pixel(x, y, out)
 
 
+## Zone 4 : Pics Gelés de nuit. Herbe -> neige bleutée, pierre -> granit bleu glacier, teintes froides.
+static func _frost(img: Image, lift: float = 1.0) -> void:
+	for y in range(img.get_height()):
+		for x in range(img.get_width()):
+			var c := img.get_pixel(x, y)
+			if c.a <= 0.0:
+				continue
+			var h := c.h
+			var out: Color
+			if c.s > 0.12 and h > 0.18 and h < 0.5:
+				out = Color.from_hsv(0.56, clampf(c.s * 0.25 + 0.06, 0.0, 0.3), clampf(c.v * 1.6 * lift + 0.18, 0.0, 0.92), c.a)
+			elif h >= 0.5 and h < 0.9 or c.s <= 0.12:
+				out = Color.from_hsv(0.6, clampf(c.s * 0.4 + 0.12, 0.0, 0.45), clampf(c.v * 1.08 * lift + 0.05, 0.0, 0.75), c.a)
+			else:
+				out = Color.from_hsv(h, c.s * 0.6, c.v, c.a)
+			img.set_pixel(x, y, out)
+
+
+## Recoloriage du décor selon la zone (2 : jour, 3 : marais, 4 : glace).
+static func _zone_tint(img: Image, warm_h: float = 0.115, lift: float = 1.0) -> void:
+	match zone:
+		2:
+			_warm(img, warm_h, lift)
+		3:
+			_swamp(img)
+		4:
+			_frost(img, lift)
+
+
 static func _tex(img: Image, mipmaps: bool = false) -> ImageTexture:
 	if mipmaps:
 		img.generate_mipmaps()
@@ -141,10 +170,7 @@ static func ground_texture(healed: bool = false) -> ImageTexture:
 				_px(img, ex0 - 3 - k, y, Color("4f7a3a"))
 			if rng.randf() < 0.45:
 				_px(img, ex1 + 2 + k, y, Color("4f7a3a"))
-	if zone == 2:
-		_warm(img)
-	if zone == 3:
-		_swamp(img)
+	_zone_tint(img)
 	return _tex(img, true)
 
 
@@ -193,10 +219,7 @@ static func stone_texture() -> ImageTexture:
 		_px(img, x, y, Color("4f7a3a"))
 		if rng.randf() < 0.5:
 			_px(img, x, y + 1, Color("3f6a32"))
-	if zone == 2:
-		_warm(img)
-	if zone == 3:
-		_swamp(img)
+	_zone_tint(img)
 	return _tex(img, true)
 
 
@@ -212,10 +235,7 @@ static func rock_texture() -> ImageTexture:
 		_px(img, x, y, Color("2f3350") if rng.randf() < 0.6 else Color("1a1c2c"))
 	for i in range(60):
 		_px(img, rng.randi_range(0, 31), rng.randi_range(0, 31), Color("35553a"))
-	if zone == 2:
-		_warm(img, 0.115, 0.85)
-	if zone == 3:
-		_swamp(img)
+	_zone_tint(img, 0.115, 0.85)
 	return _tex(img, true)
 
 
@@ -229,10 +249,7 @@ static func moss_texture() -> ImageTexture:
 		_px(img, rng.randi_range(0, 31), rng.randi_range(0, 31), Color("2e5238") if rng.randf() < 0.6 else Color("1a3022"))
 	for i in range(8):
 		_px(img, rng.randi_range(0, 31), rng.randi_range(0, 31), Color("d8d4f8"))
-	if zone == 2:
-		_warm(img)
-	if zone == 3:
-		_swamp(img)
+	_zone_tint(img)
 	return _tex(img, true)
 
 
@@ -268,10 +285,7 @@ static func pine_texture() -> ImageTexture:
 						continue
 					_px(img, cx + x, y, c)
 		_px(img, cx, 1, lit[v])
-	if zone == 2:
-		_warm(img, 0.2, 0.9)
-	if zone == 3:
-		_swamp(img)
+	_zone_tint(img, 0.2, 0.9)
 	return _tex(img)
 
 
@@ -447,6 +461,8 @@ static func backdrop(size: Vector2i) -> ImageTexture:
 		return _backdrop_day(size)
 	if zone == 3:
 		return _backdrop_swamp(size)
+	if zone == 4:
+		return _backdrop_frost(size)
 	var w := maxi(8, size.x)
 	var h := maxi(8, size.y)
 	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
@@ -633,6 +649,68 @@ static func _backdrop_swamp(size: Vector2i) -> ImageTexture:
 		var x := rng.randi_range(-40, w)
 		for dx in range(rng.randi_range(30, 100)):
 			_px(img, x + dx, y, Color(0.8, 0.85, 0.82, 0.12))
+	return _tex(img)
+
+
+## Zone 4 : nuit glacée, aurore boréale ondoyante, sommets enneigés, forteresse naine aux runes cyan.
+static func _backdrop_frost(size: Vector2i) -> ImageTexture:
+	var w := maxi(8, size.x)
+	var h := maxi(8, size.y)
+	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 4404
+	var stops := [[0.0, Color("060a1c")], [0.3, Color("102044")], [0.5, Color("23395b")], [0.62, Color("4a6a8e")], [1.0, Color("1a2a44")]]
+	for y in range(h):
+		var k := float(y) / float(h - 1)
+		var c: Color = stops[0][1]
+		for i in range(stops.size() - 1):
+			var a: Array = stops[i]
+			var b: Array = stops[i + 1]
+			if k >= float(a[0]) and k <= float(b[0]):
+				c = (a[1] as Color).lerp(b[1], (k - float(a[0])) / (float(b[0]) - float(a[0])))
+		img.fill_rect(Rect2i(0, y, w, 1), c)
+	for i in range(w * h / 300):
+		_px(img, rng.randi_range(0, w - 1), rng.randi_range(0, int(h * 0.42)), Color(0.9, 0.95, 1.0, rng.randf_range(0.25, 0.9)))
+	# Aurore boréale : rideaux verts et cyan, frangés de violet.
+	var cols: Array[Color] = [Color(0.31, 0.89, 0.82), Color(0.56, 0.82, 0.42), Color(0.69, 0.49, 1.0)]
+	for band in range(3):
+		var y0 := float(h) * (0.08 + 0.07 * float(band))
+		var amp := float(h) * 0.05
+		var ph := rng.randf() * TAU
+		var col: Color = cols[band]
+		for x in range(w):
+			var cy := y0 + sin(float(x) / float(w) * TAU * 1.3 + ph) * amp + sin(float(x) * 0.07 + ph) * amp * 0.25
+			var tall := maxi(2, int(float(h) * (0.06 + 0.04 * sin(float(x) * 0.05 + ph * 2.0))))
+			for d in range(tall):
+				var a := 0.16 * (1.0 - float(d) / float(tall)) * (0.6 + 0.4 * sin(float(x) * 0.21 + ph))
+				var yy := int(cy) + d
+				if yy >= 0 and yy < h:
+					img.set_pixel(x, yy, img.get_pixel(x, yy).lerp(col, a))
+	# Sommets enneigés.
+	_ridge(img, rng, int(h * 0.42), int(h * 0.06), Color("2a3a5a"), Color("eaf4fb"))
+	_ridge(img, rng, int(h * 0.5), int(h * 0.04), Color("3a5070"), Color("cfe6f8"))
+	# Forteresse naine taillée dans la montagne, runes cyan.
+	var fx := int(w * 0.62)
+	var fb := int(h * 0.56)
+	var fw := maxi(24, int(w * 0.18))
+	img.fill_rect(Rect2i(fx, fb - int(h * 0.1), fw, int(h * 0.1)), Color("1e2a3e"))
+	for t in range(3):
+		var tx := fx + int(float(fw) * (0.1 + 0.4 * float(t)))
+		img.fill_rect(Rect2i(tx, fb - int(h * 0.15), maxi(4, fw / 6), int(h * 0.05)), Color("24324a"))
+	img.fill_rect(Rect2i(fx + fw / 2 - 4, fb - 12, 8, 12), Color("0e1420"))
+	for r in range(6):
+		var rx := fx + rng.randi_range(4, fw - 4)
+		var ry := fb - rng.randi_range(4, maxi(5, int(h * 0.09)))
+		for k in range(3, 0, -1):
+			_disc(img, rx, ry, k, Color(0.31, 0.89, 0.82, 0.08))
+		_px(img, rx, ry, Color("4fe3d2"))
+	# Plaine enneigée et poudrerie.
+	img.fill_rect(Rect2i(0, int(h * 0.58), w, h - int(h * 0.58)), Color("1a2a44"))
+	for i in range(int(w * h / 500.0)):
+		var y := rng.randi_range(int(h * 0.5), h - 1)
+		var x := rng.randi_range(-40, w)
+		for dx in range(rng.randi_range(20, 80)):
+			_px(img, x + dx, y, Color(0.85, 0.92, 1.0, 0.1))
 	return _tex(img)
 
 

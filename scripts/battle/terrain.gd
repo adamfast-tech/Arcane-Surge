@@ -19,6 +19,8 @@ const KINDS := {
 	"faille": {"name": "Faille", "elem": "physique", "slow": 0.5, "dur": 8.0},
 	# Zone 3 : les mares de poison frappent les invocations alliées (les bêtes du marais y sont immunisées).
 	"poison": {"name": "Mare de poison", "ally": true, "slow": 0.3, "dur": 8.0},
+	# Zone 4 : la glace fait glisser tout le monde (invocations et ennemis) ; le Feu la fait fondre un moment.
+	"glace": {"name": "Glace", "slide": true, "conduct": true, "permanent": true},
 }
 const MAX_SURFACES := 48
 const MAX_CRATERS := 14
@@ -79,6 +81,14 @@ func update() -> void:
 		if not bool(s.get("permanent", false)):
 			s["t"] = float(s["t"]) - dt
 		if float(s["t"]) <= 0.0:
+			if bool(s.get("refreeze", false)):
+				# La glace fondue regèle.
+				s["kind"] = "glace"
+				s["permanent"] = true
+				s["t"] = 1e9
+				s.erase("refreeze")
+				i += 1
+				continue
 			surfaces.remove_at(i)
 			continue
 		_surface_tick(s, dt)
@@ -106,6 +116,14 @@ func update() -> void:
 func _surface_tick(s: Dictionary, dt: float) -> void:
 	var kind := str(s["kind"])
 	var info: Dictionary = KINDS[kind]
+	if bool(info.get("slide", false)):
+		var pos: Vector2 = s["pos"]
+		var r := float(s["r"])
+		for grid in [sim._grid_a, sim._grid_e]:
+			for u: Unit in sim._query(grid, pos, r + 0.3):
+				if u.alive and u.pos.distance_to(pos) <= r:
+					u.slide_t = 0.8
+		return
 	if bool(info.get("ally", false)):
 		# Mare de poison : ralentit et empoisonne les invocations (sauf Revenant : immunité au poison).
 		if sim._mod("poison_immune") > 0.0:
@@ -332,7 +350,15 @@ func _reactions(c: BattleSim.Caster, sp: Dictionary, at: Vector2, r: float, dmg:
 			s["permanent"] = false
 			s["t"] = 8.0
 			label = "GEL !"
-		elif (elem == "feu" and kind in ["verglas", "eau"]) or (elem == "givre" and kind == "braises"):
+		elif elem == "feu" and kind == "glace":
+			# Le feu fait fondre la glace : de l'eau pendant 12 s, puis elle regèle.
+			sim._event({"t": "steam", "pos": s["pos"], "r": float(s["r"])})
+			s["kind"] = "eau"
+			s["permanent"] = false
+			s["t"] = 12.0
+			s["refreeze"] = true
+			label = "DÉGEL !"
+		elif (elem == "feu" and kind in ["verglas", "eau"] and not bool(s.get("refreeze", false))) or (elem == "givre" and kind == "braises"):
 			# Vapeur : le feu et la glace s'annulent dans une explosion de vapeur brûlante.
 			for e in _enemies_in(s):
 				sim._damage(e, sim._calc(dmg * 0.5, "physique", 0.0, e, false), "physique")
@@ -418,6 +444,11 @@ func _leave_ground(c: BattleSim.Caster, sp: Dictionary, at: Vector2, r: float, d
 
 
 ## Mare de poison (marais, mort d'un Rat de peste, venin et inondation de l'Hydre).
+## Plaque de glace permanente (zone 4).
+func add_ice(pos: Vector2, r: float) -> void:
+	_add_surface("glace", pos, r, 0.0)
+
+
 func add_poison(pos: Vector2, r: float, dur: float, permanent: bool) -> void:
 	var s := _add_surface("poison", pos, r, dur)
 	if permanent:

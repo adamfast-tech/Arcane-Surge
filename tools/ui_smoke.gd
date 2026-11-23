@@ -243,6 +243,89 @@ func _meditation_ok() -> bool:
 	return true
 
 
+## Zone 4 (étape 14.1) : glace, Porte Forge, avalanche, runes du Colosse, portes corrompues, dégel.
+func _zone4_ok() -> bool:
+	var s := BattleSim.new()
+	s.setup(GameData.level("z04_l01"), GameData.party(), 3, {"solo": true})
+	var ice := 0
+	for sf in s.terrain.surfaces:
+		if str(sf["kind"]) == "glace":
+			ice += 1
+	var spot: Vector2 = s.terrain.surfaces[0]["pos"]
+	var u := s._spawn_familiar(s.player(), spot - Vector2(0.0, 0.2))
+	s._flush()
+	s._build_grids()
+	var y0 := u.pos.y
+	s.terrain.update()
+	s._move_units()
+	var slid := u.slide_t > 0.0 and u.pos.y - y0 > u.speed * BattleSim.TICK * 1.2
+	# Porte Forge.
+	var forge := Portal.new()
+	forge.kind = "forge"
+	var d0 := u.defense
+	s._apply_portal(forge, u)
+	var forged := u.defense >= d0 + 9.9 and forge.label() == "FORGE"
+	# Dégel : le Feu fait fondre la glace, qui regèle 12 s plus tard.
+	s.terrain.on_impact(s.player(), {"element": "feu", "type": "aoe"}, spot, 0.8, 50.0)
+	var melted := str(s.terrain.surfaces[0]["kind"]) == "eau"
+	for k in range(int(12.5 / BattleSim.TICK)):
+		s.terrain.update()
+	var refrozen := str(s.terrain.surfaces[0]["kind"]) == "glace"
+	# Avalanche : la rangée annoncée frappe aussi les ennemis et les ensevelit.
+	var foe := s._spawn_enemy("yeti", Vector2(4.5, 8.0))
+	s._flush()
+	s.telegraphs.clear()
+	s._avalanche(1.6, 40.0, 0.1)
+	var tg: Dictionary = s.telegraphs[0]
+	tg["rect"] = Rect2(0.0, 7.2, BattleSim.W, 1.6)
+	var hp0 := foe.hp
+	for k in range(6):
+		s._update_telegraphs()
+	var buried := foe.hp < hp0 and foe.rooted_t > 0.0
+	s.terrain.sim = null
+	# Colosse runique : runes, immunités, protection du corps, rotation, portes corrompues.
+	var b := BattleSim.new()
+	b.setup(GameData.level("z04_l10"), GameData.party(), 4, {"solo": true})
+	b._flush()
+	b._build_grids()
+	var n_runes := b.runes_alive()
+	var ru: Unit = b.runes[0]
+	var rh := ru.hp
+	b._damage(ru, 100.0, "foudre" if ru.element != "foudre" else "givre")
+	var immune := ru.hp == rh
+	b._damage(ru, 100.0, ru.element)
+	var hurt := ru.hp < rh
+	var bh := b.boss.hp
+	b._damage(b.boss, 100.0, "physique")
+	var shielded := absf((bh - b.boss.hp) - 30.0) < 0.01
+	var e0 := ru.element
+	b._boss_ability({"type": "rotate_runes"})
+	var rotated := ru.element != e0
+	var pos_before := 0
+	for pt in b.portals:
+		if not pt.is_negative():
+			pos_before += 1
+	b._boss_ability({"type": "corrupt_gates", "count": 1, "dur": 0.2})
+	var pos_cursed := 0
+	for pt in b.portals:
+		if not pt.is_negative():
+			pos_cursed += 1
+	for k in range(10):
+		b._update_gate_curses()
+	var pos_after := 0
+	for pt in b.portals:
+		if not pt.is_negative():
+			pos_after += 1
+	b.terrain.sim = null
+	var gates := pos_cursed == pos_before - 1 and pos_after == pos_before
+	print("zone 4 : glace ", ice, " plaques, glisse ", slid, " · Forge ", forged, " · dégel ", melted, "/", refrozen, " · avalanche ", buried,
+		" · Colosse : ", n_runes, " runes, immunité ", immune, ", bon élément ", hurt, ", corps protégé ", shielded, ", rotation ", rotated, ", portes ", gates)
+	if not (ice >= 2 and slid and forged and melted and refrozen and buried and n_runes == 2 and immune and hurt and shielded and rotated and gates):
+		push_error("mécaniques de la zone 4 incorrectes")
+		return false
+	return true
+
+
 func _run() -> void:
 	Profile.save_path = "user://smoke_save.json"
 	if FileAccess.file_exists(Profile.save_path):
@@ -292,6 +375,9 @@ func _run() -> void:
 		quit(1)
 		return
 	if not await _meditation_ok():
+		quit(1)
+		return
+	if not _zone4_ok():
 		quit(1)
 		return
 	# Animations : chaque sort a sa signature déclarée dans SpellSig (scripts/battle/spell_sig.gd).

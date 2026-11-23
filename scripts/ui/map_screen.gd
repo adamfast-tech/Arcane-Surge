@@ -13,6 +13,7 @@ const ZONE_BLURB := {
 	1: "Niveaux 1 à 10 · le Surge frappe le village de Lysbourg.",
 	2: "Niveaux 11 à 20 · acte 2, les Alliances : pillards, clans orcs possédés et vent des steppes.",
 	3: "Niveaux 21 à 30 · acte 3, les Cendres : morts du marais, brume qui cache les ennemis, mares de poison.",
+	4: "Niveaux 31 à 40 · acte 4, les Runes : bêtes des montagnes et élémentaires de givre, glace qui fait glisser, avalanches, Portes naines « Forge ».",
 }
 
 

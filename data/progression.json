@@ -28,6 +28,11 @@
       "commun": 55,
       "rare": 34,
       "epique": 11
+    },
+    "4": {
+      "commun": 48,
+      "rare": 38,
+      "epique": 14
     }
   },
   "boss_rarity": {
@@ -42,6 +47,10 @@
     "3": {
       "rare": 50,
       "epique": 50
+    },
+    "4": {
+      "rare": 45,
+      "epique": 55
     }
   },
   "materials": {
@@ -71,6 +80,16 @@
         3
       ],
       "ecaille_liche": [
+        0,
+        2
+      ]
+    },
+    "4": {
+      "cristal_givre": [
+        1,
+        3
+      ],
+      "rune_brisee": [
         0,
         2
       ]

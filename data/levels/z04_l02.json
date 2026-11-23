@@ -1,0 +1,99 @@
+{
+  "id": "z04_l02",
+  "name": "Les Congères",
+  "zone": 4,
+  "number": "4-2",
+  "global_level": 32,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "desc": "La neige s'accumule au-dessus du chemin. Quand la montagne gronde, une avalanche balaie une rangée entière : écarte-toi de la zone annoncée, elle ensevelit amis et ennemis.",
+  "par_time": 140,
+  "nexus": {
+    "hp": 28000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 320
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 320
+    }
+  ],
+  "portals": [
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 2,
+      "motion": "slide",
+      "range": 2.0,
+      "speed": 0.5
+    },
+    {
+      "kind": "elem",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "foudre"
+    },
+    {
+      "kind": "add",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 5
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 10.4,
+      "width": 2.2,
+      "value": 2
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 27,
+    "budget_per_level": 8,
+    "local_level": 2,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "ice_goblin": 5,
+      "white_wolf": 2.5,
+      "stalactite_kobold": 1.2
+    }
+  },
+  "avalanche": {
+    "first": 12,
+    "every": [
+      15,
+      19
+    ],
+    "warn": 1.8,
+    "band": 1.6,
+    "dmg": 40
+  },
+  "ice": [
+    {
+      "x": 4.5,
+      "y": 8.0,
+      "r": 1.4
+    }
+  ],
+  "initial_enemies": []
+}

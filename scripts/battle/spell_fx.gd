@@ -83,6 +83,15 @@ func handle(e: Dictionary) -> bool:
 			var gp := w3(e["pos"], 0.15)
 			_burst(gp, 26, [Color.WHITE, col, Color(col, 0.0)], 1.8, 0.1, 0.6, -2.0, 70.0)
 			_line_fx.append({"kind": "shock", "pos": e["pos"], "r": float(e.get("r", 1.5)), "age": 0.0, "dur": 0.5, "color": col})
+		"avalanche":
+			# Avalanche : une coulée de neige dévale toute la rangée.
+			var r: Rect2 = e["rect"]
+			var c3 := w3(r.get_center(), 0.3)
+			var ext := Vector3(r.size.x * 0.5, 0.2, r.size.y * 0.5)
+			sig.emit(c3 + Vector3(0, 1.2, 0), ext, 160, 0.9, Vector3(0.2, -1.0, 0.0), 25.0, Vector2(2.0, 5.0), -6.0, 0.16,
+				[Color.WHITE, Color("eaf4fb"), Color(0.7, 0.85, 1.0, 0.0)])
+			dust(c3, ext, Color("dcecf8"), 120)
+			_line_fx.append({"kind": "shock", "pos": r.get_center(), "r": r.size.x * 0.5, "age": 0.0, "dur": 0.5, "color": Color("eaf4fb")})
 		"storm":
 			_rain(e, col)
 			_line_fx.append({"kind": "storm", "pos": e["pos"], "r": float(e["r"]), "age": 0.0, "dur": float(e["dur"]), "color": col})

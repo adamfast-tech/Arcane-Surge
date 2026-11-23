@@ -1,0 +1,100 @@
+{
+  "id": "z04_l07",
+  "name": "Le Chariot runique",
+  "zone": 4,
+  "number": "4-7",
+  "global_level": 37,
+  "type": "Escorte",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "objective": "escort",
+  "desc": "Un chariot de runes naines doit franchir le col jusqu'à la forteresse. Les loups le guettent en embuscade, et les avalanches n'épargnent personne.",
+  "par_time": 175,
+  "nexus": {
+    "hp": 30000
+  },
+  "escort": {
+    "kind": "rune_cart",
+    "x": 4.5,
+    "y": 1.6,
+    "goal_y": 13.0,
+    "speed": 0.1,
+    "hp": 4400
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 340
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 340
+    }
+  ],
+  "portals": [
+    {
+      "kind": "forge",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 1.8,
+      "value": 2,
+      "motion": "slide",
+      "range": 1.2,
+      "speed": 0.5
+    },
+    {
+      "kind": "add",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 5
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 10.4,
+      "width": 2.2,
+      "value": 2,
+      "motion": "slide",
+      "range": 2.4,
+      "speed": 0.4
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 27,
+    "budget_per_level": 8,
+    "local_level": 7,
+    "growth": 0.04,
+    "spawn_y": 14.6,
+    "pool": {
+      "ice_goblin": 6,
+      "white_wolf": 3,
+      "ice_golem": 1,
+      "stalactite_kobold": 1
+    }
+  },
+  "ambush": {
+    "every": 17,
+    "count": 2,
+    "kind": "white_wolf",
+    "ahead": 2.6
+  },
+  "initial_enemies": []
+}
