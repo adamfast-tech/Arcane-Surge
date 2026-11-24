@@ -28,7 +28,7 @@ func _through_dialogues(pick: int = 0) -> int:
 		if d.get("_waiting_choice"):
 			var btns: Array = []
 			for ch in d.choice_box.get_children():
-				if ch is Button:
+				if ch is Button and not (ch as Button).disabled:
 					btns.append(ch)
 			(btns[mini(pick, btns.size() - 1)] as Button).pressed.emit()
 		else:
@@ -835,6 +835,9 @@ func _run() -> void:
 		push_error("acte 3 incorrect")
 		quit(1)
 		return
+	if not await _act4_ok():
+		quit(1)
+		return
 	main.call("_show_room", "circle")
 	await _frames(5)
 	Profile.swap_active("krag", "brann")
@@ -1001,3 +1004,124 @@ func _run() -> void:
 		print("scènes vues : ", (Story.st()["seen"] as Dictionary).size(), " · forêt guérie : ", Profile.battle_opts()["healed"])
 	print("OK smoke")
 	quit()
+
+
+## Acte 4 (docs/design/32-narration-zone4.md) : 20 scènes, feu de camp, 4-9 (option [Brann · loyauté 60]
+## ouverte à un Mage elfe, sinon montrée verrouillée), ✦ 4-10 « Briser son cœur » (Enclume-Cœur,
+## matériaux), honneur de Forgecœur (titre de Brann), effets en combat (portails FORGE ×2, vagues).
+func _act4_ok() -> bool:
+	for n in range(1, 11):
+		for part in ["intro", "outro"]:
+			if not Dialogues.has_scene("z04_l%02d_%s" % [n, part]):
+				push_error("acte 4 : scène manquante z04_l%02d_%s" % [n, part])
+				return false
+	for who in ["durgan", "ysolde", "orrin"]:
+		for mood in ["neutre", "joie", "triste", "colere", "surpris"]:
+			if PortraitArt.texture(who, mood) == null:
+				push_error("acte 4 : portrait %s/%s absent" % [who, mood])
+				return false
+	for kind in ["pics", "porte", "lac", "forteresse", "colosse", "forge"]:
+		if StoryArt.plate(kind, Vector2i(320, 180)) == null:
+			push_error("acte 4 : planche %s absente" % kind)
+			return false
+	var saved: Dictionary = (Story.st() as Dictionary).duplicate(true)
+	var inv0: Array = (Profile.data["inventory"] as Array).duplicate(true)
+	var mats0: Dictionary = (Profile.data["materials"] as Dictionary).duplicate(true)
+	var race0 := str(Profile.data["player"].get("race", ""))
+	Profile.data["player"]["race"] = "elfe"
+	Story.st()["loyalty"]["brann"] = 55
+	var givre0 := int(Profile.data["materials"].get("cristal_givre", 0))
+	main.call("_show_dialogue", ["z04_l06_outro"], Callable(main, "_show_map"))
+	await _frames(3)
+	await _through_dialogues(1)
+	main.call("_show_dialogue", ["z04_l08_outro"], Callable(main, "_show_map"))
+	await _frames(3)
+	await _through_dialogues(0)
+	var loy8 := Story.loyalty("brann")
+	# 4-9 : Brann à 70 -> l'option [Brann · loyauté 60] est ouverte, l'option [Nain] reste masquée.
+	main.call("_show_dialogue", ["z04_l09_outro"], Callable(main, "_show_map"))
+	await _frames(3)
+	var open9 := 0
+	var locked9 := 0
+	var guard := 0
+	while guard < 40 and _screen() is DialogueScreen and not bool((_screen() as DialogueScreen).get("_waiting_choice")):
+		(_screen() as DialogueScreen)._skip()
+		guard += 1
+		await _frames(3)
+	if _screen() is DialogueScreen:
+		for ch in (_screen() as DialogueScreen).choice_box.get_children():
+			if ch is Button:
+				if (ch as Button).disabled:
+					locked9 += 1
+				else:
+					open9 += 1
+	await _through_dialogues(0)
+	main.call("_show_dialogue", ["z04_l10_outro"], Callable(main, "_show_map"))
+	await _frames(3)
+	await _through_dialogues(1)
+	var anvil := false
+	for it in Profile.data["inventory"]:
+		anvil = anvil or str(it["base"]) == "enclume_coeur"
+	var givre := int(Profile.data["materials"].get("cristal_givre", 0)) - givre0
+	print("acte 4 : Brann ", loy8, " -> ", Story.loyalty("brann"), " · 4-6 ", Story.choice("z04_l06"), " · vérité ", Story.has_flag("s1.verite_orrin"),
+		" · 4-9 ", Story.choice("z04_l09"), " (options ouvertes ", open9, ", verrouillées ", locked9, ") · Portes ", Story.has_flag("s1.portes_reactivees"),
+		" · ✦ 4-10 ", Story.choice("z04_l10"), " · Enclume-Cœur ", anvil, " · Cristal de givre +", givre,
+		" · honneur ", Story.has_flag("s1.honneur_forgecoeur"), " · titre « ", Dialogues.subtitle("brann"), " »")
+	if loy8 != 70 or open9 != 2 or locked9 != 0 or Story.choice("z04_l09") != "A" or not Story.has_flag("s1.portes_reactivees") \
+			or Story.choice("z04_l10") != "B" or not anvil or givre != 9 or not Story.has_flag("s1.honneur_forgecoeur") \
+			or not Dialogues.subtitle("brann").begins_with("Héritier de Forgecœur"):
+		push_error("acte 4 : choix incorrects")
+		return false
+	# Brann à 50 : l'option réservée apparaît verrouillée (cadenas), on scelle la forteresse.
+	Story.st()["loyalty"]["brann"] = 50
+	(Story.st()["choices"] as Dictionary).erase("z04_l09")
+	main.call("_show_dialogue", ["z04_l09_outro"], Callable(main, "_show_map"))
+	await _frames(3)
+	open9 = 0
+	locked9 = 0
+	guard = 0
+	while guard < 40 and _screen() is DialogueScreen and not bool((_screen() as DialogueScreen).get("_waiting_choice")):
+		(_screen() as DialogueScreen)._skip()
+		guard += 1
+		await _frames(3)
+	if _screen() is DialogueScreen:
+		for ch in (_screen() as DialogueScreen).choice_box.get_children():
+			if ch is Button:
+				if (ch as Button).disabled:
+					locked9 += 1
+				else:
+					open9 += 1
+	await _through_dialogues(0)
+	print("  4-9 avec Brann à 50 : ouvertes ", open9, ", verrouillées ", locked9, " · choix ", Story.choice("z04_l09"), " · scellée ", Story.has_flag("s1.forteresse_scellee"), " · Brann ", Story.loyalty("brann"))
+	if open9 != 1 or locked9 != 1 or Story.choice("z04_l09") != "B" or not Story.has_flag("s1.forteresse_scellee") or Story.loyalty("brann") != 35:
+		push_error("acte 4 : option verrouillée incorrecte")
+		return false
+	# Un Nain voit l'option [Nain] (et pas celle de Brann), quelle que soit la loyauté.
+	Profile.data["player"]["race"] = "nain"
+	var c9: Dictionary = (Dialogues.scene("z04_l09_outro")["lines"] as Array).back()
+	var tags: Array[String] = []
+	for o in c9["options"]:
+		if Story.check(o):
+			tags.append(str(o.get("tag", "-")))
+	Profile.data["player"]["race"] = race0
+	print("  4-9 pour un Nain : ", tags)
+	if tags != ["Nain", "-"]:
+		push_error("acte 4 : options pour un Nain incorrectes")
+		return false
+	# En combat : portails FORGE ×2, Sentinelles anciennes dans les vagues, vagues réduites (forteresse scellée).
+	main.call("_start", "z04_l03", false)
+	await _frames(30)
+	var bs: BattleScreen = _screen()
+	var pool: Dictionary = bs.sim.level["waves"]["pool"]
+	var base_pool: Dictionary = GameData.level("z04_l03")["waves"]["pool"]
+	print("  z04_l03 : FORGE ×", bs.sim.forge_power, " · vagues ×", bs.sim.wave_budget_mult, " · Sentinelles ", pool.get("ancient_sentinel", 0), " (niveau d'origine ", base_pool.get("ancient_sentinel", 0), ") · notes ", bs.sim.story_notes.size())
+	if not is_equal_approx(bs.sim.forge_power, 2.0) or not is_equal_approx(bs.sim.wave_budget_mult, 0.85) or float(pool.get("ancient_sentinel", 0)) < 0.5 \
+			or base_pool.has("ancient_sentinel") or bs.sim.story_notes.size() != 2:
+		push_error("acte 4 : effets en combat incorrects")
+		return false
+	main.call("_show_map")
+	await _frames(5)
+	Profile.data["story"] = saved
+	Profile.data["inventory"] = inv0
+	Profile.data["materials"] = mats0
+	return true

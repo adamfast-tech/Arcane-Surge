@@ -43,6 +43,8 @@ Les drapeaux sont rangés par saison (`s1.*`, `s2.*`) pour que l'histoire puisse
 | 10 | ✦ Le Roi Éclipsé | Selon les fins débloquées (§4) | Fin du jeu et état de départ de la saison 2 |
 
 > Zone 3 mise en œuvre à l'étape 12.2 : voir [`22-narration-zone3.md`](22-narration-zone3.md). Les deux voies de 3-10 ouvrent la branche « Voie du Surge » ; sa Clé de voûte dépend de la voie choisie.
+>
+> Zone 4 mise en œuvre à l'étape 14.2 : voir [`32-narration-zone4.md`](32-narration-zone4.md). L'option [Nain] de 4-9 a une variante [Brann · loyauté 60] pour les autres races ; ✦ 4-10 A pose `s1.colosse_allie` pour le combat final.
 
 > Zone 2 mise en œuvre à l'étape 11.2 : voir [`17-narration-zone2.md`](17-narration-zone2.md). Effet de 2-9 en 2-10 : Ambreval défendu donne Barrière +25, le campement défendu fait commencer Gharok à 90 %, le Traité négocié donne les deux.
 

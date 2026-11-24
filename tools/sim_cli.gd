@@ -3,6 +3,7 @@ extends SceneTree
 ## Le joueur et les bots sont pilotés par l'IA. Exemple :
 ##   godot --headless --path . --script res://tools/sim_cli.gd -- --level=z01_l08 --runs=20
 ## « --krag » : Krag recruté et emmené avec Sylwen (au lieu de Brann) ; « --active=brann,krag » pour choisir.
+## « --flags=s1.portes_reactivees » : drapeaux d'histoire (story_mods des niveaux) ;
 ## « --class=chevalier » : classe du héros ; « --mods=barrier_cap:5,miracle:1 » : effets d'arbre forcés.
 
 
@@ -16,6 +17,7 @@ func _init() -> void:
 	var diffm := 1.0
 	var cls := "mage"
 	var mods := {}
+	var flags: Array = []
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--level="):
 			level_id = a.trim_prefix("--level=")
@@ -36,6 +38,8 @@ func _init() -> void:
 			diffm = float(a.trim_prefix("--diff="))
 		elif a.begins_with("--deck="):
 			deck = Array(a.trim_prefix("--deck=").split(","))
+		elif a.begins_with("--flags="):
+			flags = Array(a.trim_prefix("--flags=").split(","))
 		elif a.begins_with("--active="):
 			krag = true
 			active = Array(a.trim_prefix("--active=").split(","))
@@ -59,8 +63,9 @@ func _init() -> void:
 		if not deck.is_empty():
 			o["deck"] = deck
 		o["difficulty"] = diffm
+		o["flags"] = flags.duplicate()
 		if krag:
-			o["flags"] = ["s1.krag_allie"]
+			(o["flags"] as Array).append("s1.krag_allie")
 			o["active"] = active
 		s.setup(lv, party, 1000 + i, o)
 		var t0 := Time.get_ticks_usec()

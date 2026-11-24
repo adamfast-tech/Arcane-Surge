@@ -3,7 +3,7 @@
     "narrateur": {"name": "", "color": "A99FD0"},
     "porteur": {"name": "{pseudo}", "title": "Canalisateur", "title_flag": {"s1.sceau_echo": "Porteur d'Écho"}, "color": "4FE3D2", "portrait": "porteur"},
     "sylwen": {"name": "Sylwen", "title": "Vigiles Sylvestres", "color": "8FD16A", "portrait": "sylwen", "loyalty": true},
-    "brann": {"name": "Brann", "title": "Bastion d'Argent", "color": "B8C6E8", "portrait": "brann", "loyalty": true},
+    "brann": {"name": "Brann", "title": "Bastion d'Argent", "color": "B8C6E8", "portrait": "brann", "loyalty": true, "title_flag": {"s1.honneur_forgecoeur": "Héritier de Forgecœur"}},
     "ancien": {"name": "Ancien Tobin", "title": "Doyen de Lysbourg", "color": "F2C46B", "portrait": "ancien"},
     "cerf": {"name": "Le Grand Cerf", "title": "Gardien du Bois", "color": "9FF0FF", "portrait": "cerf"},
     "sylvarche": {"name": "La Sylvarche", "title": "Arbre-mère des elfes", "color": "D97CF2", "portrait": "sylvarche"},

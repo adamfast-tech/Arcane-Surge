@@ -61,6 +61,12 @@ static func texture(who: String, mood: String = "neutre") -> Texture2D:
 			_corvin(img, mood)
 		"aelis":
 			_aelis(img, mood)
+		"durgan":
+			_durgan(img, mood)
+		"ysolde":
+			_ysolde(img, mood)
+		"orrin":
+			_orrin(img, mood)
 		_:
 			return null
 	_outline(img)
@@ -70,7 +76,7 @@ static func texture(who: String, mood: String = "neutre") -> Texture2D:
 
 
 static func has_portrait(who: String) -> bool:
-	return who in ["porteur", "sylwen", "brann", "ancien", "cerf", "sylvarche", "fee", "voix", "krag", "gharok", "prevote", "varg", "nyx", "vesper", "aurele", "corvin", "aelis"] \
+	return who in ["porteur", "sylwen", "brann", "ancien", "cerf", "sylvarche", "fee", "voix", "krag", "gharok", "prevote", "varg", "nyx", "vesper", "aurele", "corvin", "aelis", "durgan", "ysolde", "orrin"] \
 		or ResourceLoader.exists("res://assets/portraits/%s.png" % who)
 
 
@@ -1036,3 +1042,139 @@ static func _aelis(img: Image, mood: String) -> void:
 	_glow(img, 32, 55, 4, Color("f2c46b"), 0.35)
 	_ellipse(img, 32.0, 55.0, 2.0, 2.0, gold)
 	_rim(img, 3, 61, 12, 63, Color("fff6d8"))
+
+
+# ---------------------------------------------------------------- acte 4 · Pics Gelés
+
+## Durgan Enclume : vieux nain forgeron, crâne chauve noirci de suie, lunettes de forge, grande barbe
+## grise tressée d'anneaux de fer, tablier de cuir.
+static func _durgan(img: Image, mood: String) -> void:
+	var skin := _ramp(["8a4a3a", "c07a5a", "e0a07a"])
+	var grey := _ramp(["5a5a68", "9a9aa8", "cfcfd8", "f0f0f6"])
+	var tunic := _ramp(["3a1e14", "6a3420", "8a4a2a"])
+	var leather := _ramp(["2a1a10", "4a2e1a", "6a4428", "8a5e38"])
+	_glow(img, 14, 54, 16, Color("ff7a2a"), 0.22)
+	_poly(img, PackedVector2Array([Vector2(1, 64), Vector2(4, 50), Vector2(16, 43), Vector2(48, 43), Vector2(60, 50), Vector2(63, 64)]), tunic)
+	# Tablier de cuir et ses sangles.
+	_poly(img, PackedVector2Array([Vector2(18, 64), Vector2(20, 48), Vector2(44, 48), Vector2(46, 64)]), leather)
+	for y in range(43, 50):
+		_px(img, 21 - (y - 43) / 3, y, Color("2a1a10"))
+		_px(img, 43 + (y - 43) / 3, y, Color("2a1a10"))
+	for x in [22, 42]:
+		_px(img, x, 50, Color("c8c8d0"))
+	# Crâne chauve.
+	_ellipse(img, 32.0, 29.0, 13.0, 14.0, skin)
+	# Lunettes de forge relevées sur le front.
+	for x in range(19, 46):
+		_px(img, x, 20, Color("2a1a10"))
+		_px(img, x, 21, Color("4a2e1a"))
+	for gx in [26, 38]:
+		_ellipse(img, float(gx), 20.5, 3.6, 3.0, _ramp(["4a4a58", "8a8a98"]))
+		_ellipse(img, float(gx), 20.5, 2.4, 1.9, _ramp(["a8501a", "ff9a3a", "ffd080"]))
+		_px(img, gx + 1, 19, Color("fff0c0"))
+	# Suie sur les joues et le front.
+	for p in [Vector2i(22, 31), Vector2i(23, 33), Vector2i(41, 32), Vector2i(29, 15), Vector2i(36, 14), Vector2i(40, 30)]:
+		_px(img, p.x, p.y, Color("5a3a30"))
+	# Barbe grise, longue, tressée d'anneaux de fer.
+	_poly(img, PackedVector2Array([Vector2(17, 32), Vector2(18, 44), Vector2(22, 54), Vector2(27, 61), Vector2(32, 64), Vector2(37, 61), Vector2(42, 54), Vector2(46, 44), Vector2(47, 32), Vector2(42, 38), Vector2(36, 40), Vector2(28, 40), Vector2(22, 38)]), grey)
+	for side in [-1, 1]:
+		var bx: int = 32 + side * 6
+		for ry in [50, 56]:
+			for dx in range(-2, 3):
+				_px(img, bx + dx, ry, Color("6a6a78"))
+			_px(img, bx, ry, Color("d8d8e0"))
+	_ellipse(img, 27.0, 38.5, 5.5, 2.4, grey, 0.15)
+	_ellipse(img, 37.0, 38.5, 5.5, 2.4, grey, 0.15)
+	_ellipse(img, 32.0, 35.0, 3.4, 3.2, skin, 0.25)
+	_brow(img, 25, 27, -1, mood, Color("d8d8e0"), 2)
+	_brow(img, 36, 27, 1, mood, Color("d8d8e0"), 2)
+	_eye(img, 24, 30, -1, mood, Color("6a4a2a"), Color("2a1a1a"))
+	_eye(img, 35, 30, 1, mood, Color("6a4a2a"), Color("2a1a1a"))
+	if mood in ["joie", "surpris", "colere"]:
+		_mouth(img, 32, 42, mood, Color("6a3a3a"), Color("3a1a1a"))
+	_rim(img, 2, 62, 8, 63, Color("ffc890"))
+
+
+## Ysolde : elfe héritière des Runistes, cheveux de givre, diadème d'argent à gemme bleue,
+## runes cyan tatouées sous les yeux, haut col de robe brodé de runes.
+static func _ysolde(img: Image, mood: String) -> void:
+	var skin := _ramp(["a88a8a", "e0c8c0", "f8e8e0"])
+	var hair := _ramp(["7a8aa8", "b8c8e0", "e0ecf8", "ffffff"])
+	var robe := _ramp(["14203a", "1e3458", "2e4c7a", "4a70a8"])
+	var silver := _ramp(["7a8498", "c8d0e0", "f4f8ff"])
+	# Cheveux longs derrière les épaules.
+	_poly(img, PackedVector2Array([Vector2(14, 60), Vector2(13, 36), Vector2(17, 20), Vector2(32, 11), Vector2(47, 20), Vector2(51, 36), Vector2(50, 60), Vector2(42, 52), Vector2(22, 52)]), hair)
+	_poly(img, PackedVector2Array([Vector2(3, 64), Vector2(8, 52), Vector2(20, 46), Vector2(44, 46), Vector2(56, 52), Vector2(61, 64)]), robe)
+	# Haut col brodé.
+	_poly(img, PackedVector2Array([Vector2(22, 52), Vector2(23, 43), Vector2(32, 47), Vector2(41, 43), Vector2(42, 52), Vector2(32, 56)]), robe, 0.15)
+	for p in [Vector2i(26, 49), Vector2i(29, 51), Vector2i(35, 51), Vector2i(38, 49), Vector2i(32, 58), Vector2i(14, 58), Vector2i(50, 58)]:
+		_px(img, p.x, p.y, Color("8fe3f2"))
+	_ellipse(img, 32.0, 44.0, 3.5, 3.5, skin)
+	# Oreilles fines et longues.
+	_poly(img, PackedVector2Array([Vector2(22, 29), Vector2(9, 21), Vector2(12, 25), Vector2(22, 35)]), skin, 0.1)
+	_poly(img, PackedVector2Array([Vector2(42, 29), Vector2(55, 21), Vector2(52, 25), Vector2(42, 35)]), skin, 0.1)
+	_ellipse(img, 32.0, 31.5, 10.0, 12.0, skin)
+	# Raie au milieu, mèches qui encadrent le visage.
+	_poly(img, PackedVector2Array([Vector2(21, 34), Vector2(21, 22), Vector2(26, 17), Vector2(32, 16), Vector2(31, 19), Vector2(26, 23), Vector2(24, 30)]), hair)
+	_poly(img, PackedVector2Array([Vector2(43, 34), Vector2(43, 22), Vector2(38, 17), Vector2(32, 16), Vector2(33, 19), Vector2(38, 23), Vector2(40, 30)]), hair)
+	# Diadème d'argent et gemme de givre.
+	for x in range(22, 43):
+		var y := 20 + int(absf(float(x) - 32.0) / 5.0)
+		_px(img, x, y, silver[1])
+		_px(img, x, y - 1, silver[2] if x % 3 == 0 else silver[0])
+	_ellipse(img, 32.0, 19.5, 1.8, 2.2, _ramp(["2a8aa8", "8fe3f2", "e8ffff"]))
+	_glow(img, 32, 19, 4, Color("8fe3f2"), 0.35)
+	_brow(img, 26, 27, -1, mood, Color("b8c8e0"))
+	_brow(img, 36, 27, 1, mood, Color("b8c8e0"))
+	_eye(img, 25, 29, -1, mood, Color("3ab8d0"), Color("2a2a4a"))
+	_eye(img, 35, 29, 1, mood, Color("3ab8d0"), Color("2a2a4a"))
+	# Runes tatouées sous les yeux.
+	for p in [Vector2i(25, 34), Vector2i(26, 35), Vector2i(27, 34), Vector2i(37, 34), Vector2i(38, 35), Vector2i(39, 34)]:
+		_px(img, p.x, p.y, Color("4fc8e0"))
+	_px(img, 32, 35, Color("c8a8a0"))
+	_mouth(img, 32, 39, mood, Color("a06a7a"), Color("4a2a3a"))
+	_rim(img, 6, 60, 10, 63, Color("cfefff"))
+
+
+## Le Thane Orrin Forgecœur : spectre bleu d'un vieux nain, heaume couronné, barbe tressée d'anneaux d'or.
+## Le bas du corps s'efface dans la brume.
+static func _orrin(img: Image, mood: String) -> void:
+	var ghost := _ramp(["2a4a7a", "4a7ab8", "8fc0f0", "d8f0ff"])
+	var face := _ramp(["3a5a8a", "5a8ac0", "8ab8e0"])
+	var beard := _ramp(["7aa8d8", "b8dcf6", "e8f6ff", "ffffff"])
+	var gold := Color("f2d48b")
+	_glow(img, 32, 32, 30, Color("4fa8ff"), 0.3)
+	_poly(img, PackedVector2Array([Vector2(2, 64), Vector2(5, 50), Vector2(17, 43), Vector2(47, 43), Vector2(59, 50), Vector2(62, 64)]), ghost)
+	_ellipse(img, 11.0, 51.0, 9.0, 7.0, ghost, 0.1)
+	_ellipse(img, 53.0, 51.0, 9.0, 7.0, ghost, 0.1)
+	# Heaume de Thane : une calotte, un bandeau d'or, une couronne de pointes.
+	_ellipse(img, 32.0, 22.0, 14.0, 9.0, ghost)
+	_ellipse(img, 32.0, 32.0, 11.5, 11.0, face)
+	for i in range(5):
+		var x := 22 + i * 5
+		var hh := 6 - absi(2 - i) * 2
+		_poly(img, PackedVector2Array([Vector2(x - 2, 15), Vector2(x, 14 - hh), Vector2(x + 2, 15)]), _ramp(["8a7a4a", "f2d48b", "fff6d0"]))
+	for x in range(19, 46):
+		_px(img, x, 24, Color("2a4a7a"))
+		_px(img, x, 25, gold if x % 3 == 0 else Color("c8a860"))
+	# Barbe longue et blanche, tressée d'anneaux d'or ; moustache tombante.
+	_poly(img, PackedVector2Array([Vector2(20, 33), Vector2(21, 45), Vector2(25, 54), Vector2(29, 61), Vector2(32, 64), Vector2(35, 61), Vector2(39, 54), Vector2(43, 45), Vector2(44, 33), Vector2(40, 38), Vector2(32, 40), Vector2(24, 38)]), beard)
+	for ry in [47, 53, 59]:
+		for dx in range(-2, 3):
+			_px(img, 32 + dx, ry, gold)
+		_px(img, 32, ry, Color("fff6d0"))
+	_ellipse(img, 27.5, 37.5, 5.0, 2.0, beard, 0.2)
+	_ellipse(img, 36.5, 37.5, 5.0, 2.0, beard, 0.2)
+	_ellipse(img, 32.0, 34.0, 2.6, 2.6, face, 0.3)
+	_brow(img, 25, 28, -1, mood, Color("e8f8ff"), 2)
+	_brow(img, 36, 28, 1, mood, Color("e8f8ff"), 2)
+	_glow_eye(img, 25, 30, -1, mood, Color("ffffff"), Color("8fe3ff"))
+	_glow_eye(img, 36, 30, 1, mood, Color("ffffff"), Color("8fe3ff"))
+	# Le bas du spectre se dissout.
+	for y in range(50, SIZE):
+		var k := 1.0 - float(y - 50) / float(SIZE - 50) * 0.42
+		for x in range(SIZE):
+			var c := img.get_pixel(x, y)
+			if c.a > 0.5:
+				img.set_pixel(x, y, Color(c.r, c.g, c.b, c.a * k))
+	_rim(img, 2, 62, 10, 48, Color("e8ffff"))

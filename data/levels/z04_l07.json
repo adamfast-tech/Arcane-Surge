@@ -96,5 +96,20 @@
     "kind": "white_wolf",
     "ahead": 2.6
   },
-  "initial_enemies": []
+  "initial_enemies": [],
+  "story_mods": [
+    {
+      "if": "s1.portes_reactivees",
+      "forge_mult": 2,
+      "pool_add": {
+        "ancient_sentinel": 0.5
+      },
+      "log": "Portes réactivées : les portails FORGE cuirassent deux fois plus, mais des Sentinelles anciennes rôdent dans les vagues."
+    },
+    {
+      "if": "s1.forteresse_scellee",
+      "budget_mult": 0.85,
+      "log": "Forteresse scellée : les Pics sont plus calmes, vagues réduites de 15 %."
+    }
+  ]
 }

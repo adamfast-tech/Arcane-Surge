@@ -25,7 +25,10 @@
    "title": "Bastion d'Argent",
    "color": "B8C6E8",
    "portrait": "brann",
-   "loyalty": true
+   "loyalty": true,
+   "title_flag": {
+    "s1.honneur_forgecoeur": "Héritier de Forgecœur"
+   }
   },
   "krag": {
    "name": "Krag",
@@ -42,9 +45,1156 @@
    "portrait": "nyx",
    "loyalty": true,
    "loyalty_if": "s1.nyx_allie"
+  },
+  "durgan": {
+   "name": "Durgan Enclume",
+   "title": "Maître de la Forge",
+   "color": "E8A060",
+   "portrait": "durgan"
+  },
+  "ysolde": {
+   "name": "Ysolde",
+   "title": "Héritière des Runistes",
+   "color": "8FE3F2",
+   "portrait": "ysolde"
+  },
+  "orrin": {
+   "name": "Orrin Forgecœur",
+   "title": "Thane de la Garde de l'Enclume",
+   "color": "9FD8FF",
+   "portrait": "orrin"
+  },
+  "voix": {
+   "name": "Voix inconnue",
+   "title": "???",
+   "color": "B07CFF",
+   "portrait": "voix"
   }
  },
- "scenes": {},
- "barks": {},
- "barks_level": {}
+ "scenes": {
+  "z04_l01_intro": {
+   "art": "forge",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Havre-Aube, à l'aube. Dans la Forge, Durgan Enclume a éteint son feu pour la première fois depuis des années."
+    },
+    {
+     "who": "durgan",
+     "text": "Les Pics Gelés. Alors c'est là que le Surge vous mène."
+    },
+    {
+     "who": "durgan",
+     "text": "Brann. Prends ça. La Clé-rune du clan Forgecœur.",
+     "mood": "triste"
+    },
+    {
+     "who": "brann",
+     "text": "Ta clé, mon oncle ? Tu ne t'en es jamais séparé.",
+     "mood": "surpris"
+    },
+    {
+     "who": "durgan",
+     "text": "C'est moi qui l'ai tournée, il y a soixante hivers. Le jour où on a fermé la forteresse.",
+     "mood": "triste"
+    },
+    {
+     "who": "durgan",
+     "text": "Va voir ce qu'on a laissé derrière ces portes. Moi, je n'en ai jamais eu le courage."
+    },
+    {
+     "who": "durgan",
+     "text": "Toi aussi, cousin. Un nain ne revient pas aux Pics sans saluer la montagne.",
+     "only": {
+      "race": [
+       "nain"
+      ]
+     }
+    },
+    {
+     "who": "narrateur",
+     "text": "Trois jours de marche plus tard, la route du col s'élève dans la neige.",
+     "art": "pics"
+    },
+    {
+     "who": "sylwen",
+     "text": "Le vent porte des voix. Des gobelins, beaucoup. Et des loups.",
+     "art": "pics"
+    },
+    {
+     "who": "krag",
+     "text": "Des loups blancs. Chez nous, on dit que leur fourrure ne brûle pas.",
+     "art": "pics",
+     "if": "s1.krag_allie"
+    },
+    {
+     "who": "nyx",
+     "text": "Du froid, de la neige, des loups. Brann, ta famille savait recevoir.",
+     "art": "pics"
+    },
+    {
+     "who": "brann",
+     "text": "Ma famille n'a jamais reçu personne. C'est un peu le problème.",
+     "art": "pics"
+    }
+   ]
+  },
+  "z04_l01_outro": {
+   "art": "pics",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Les derniers gobelins dévalent la pente. Plus haut, à flanc de montagne, une silhouette de pierre se découpe dans la brume : la forteresse Forgecœur."
+    },
+    {
+     "who": "sylwen",
+     "text": "Brann… Qu'est-ce que ton clan a fait, là-haut ?"
+    },
+    {
+     "who": "brann",
+     "text": "On l'appelle « le clan qui ferme ». Il y a soixante hivers, une vague du Surge a frappé les Pics.",
+     "mood": "triste"
+    },
+    {
+     "who": "brann",
+     "text": "Le Thane Orrin, mon grand-père, et toute la Garde de l'Enclume étaient à l'intérieur. Le clan a scellé les portes. Sur eux.",
+     "mood": "triste"
+    },
+    {
+     "who": "nyx",
+     "text": "…D'accord. Je retire la blague sur ta famille.",
+     "mood": "triste"
+    }
+   ]
+  },
+  "z04_l02_intro": {
+   "art": "pics",
+   "subject": "yeti",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "La neige s'accumule au-dessus du chemin, en lourdes congères qui craquent au moindre bruit."
+    },
+    {
+     "who": "brann",
+     "text": "Pas de cris, pas de cors. Ici, c'est la montagne qui tue le plus."
+    },
+    {
+     "who": "sylwen",
+     "text": "Quand elle gronde, l'avalanche balaie toute une rangée. Écarte tes invocations de la zone annoncée."
+    },
+    {
+     "who": "krag",
+     "text": "Une montagne qui se bat ? Elle me plaît.",
+     "mood": "joie",
+     "if": "s1.krag_allie"
+    }
+   ]
+  },
+  "z04_l02_outro": {
+   "art": "pics",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Au bord du chemin, des cairns couverts de givre. Sur chaque pierre, un nom de nain gravé… puis effacé au burin."
+    },
+    {
+     "who": "brann",
+     "text": "Les tombes des Scelleurs. Les autres clans ont rayé leurs noms. Un clan qui abandonne les siens n'a pas droit à la mémoire.",
+     "mood": "colere"
+    },
+    {
+     "who": "sylwen",
+     "text": "Et toi, Brann ? Ils t'ont rayé aussi ?"
+    },
+    {
+     "who": "brann",
+     "text": "Moi, j'ai pris un autre nom : Bastion d'Argent. Mais la barbe reste rousse. Tout le monde sait.",
+     "mood": "triste"
+    },
+    {
+     "who": "krag",
+     "text": "Mon père aussi m'a laissé un nom lourd. On le porte, ou il nous écrase.",
+     "if": "s1.krag_allie"
+    }
+   ]
+  },
+  "z04_l03_intro": {
+   "art": "porte",
+   "subject": "ice_golem",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Une arche de pierre noire, gravée de runes qui battent encore comme un cœur : une Porte naine du clan Forgecœur."
+    },
+    {
+     "who": "narrateur",
+     "text": "Devant elle, une elfe aux cheveux de givre recopie les runes sur un parchemin, sans lever les yeux."
+    },
+    {
+     "who": "ysolde",
+     "text": "Ne touchez à rien. Cette Porte a mille ans, et vous avez des bottes pleines de boue."
+    },
+    {
+     "who": "brann",
+     "text": "C'est la porte de mon clan, l'elfe. Et ces bottes ont traversé trois marais.",
+     "mood": "colere"
+    },
+    {
+     "who": "ysolde",
+     "text": "Un Forgecœur ? Alors tu es la bonne surprise du jour. Je suis Ysolde, héritière des Runistes.",
+     "mood": "surpris"
+    },
+    {
+     "who": "ysolde",
+     "text": "Cette Porte est un portail FORGE : tout ce qui la traverse ressort cuirassé. Les golems de glace, eux, bloquent de face. On en parle après ?"
+    }
+   ]
+  },
+  "z04_l03_outro": {
+   "art": "porte",
+   "lines": [
+    {
+     "who": "ysolde",
+     "text": "Les Portes des Pics se réveillent toutes en même temps. C'est le Surge : il s'accélère, et il pousse contre elles."
+    },
+    {
+     "who": "ysolde",
+     "text": "Elles sont toutes reliées à un seul cœur, au fond de la forteresse. Et ce cœur est gardé."
+    },
+    {
+     "who": "brann",
+     "text": "Par qui ?"
+    },
+    {
+     "who": "ysolde",
+     "text": "Par quoi. Le Colosse runique. Le chef-d'œuvre des Runistes, et le dernier gardien de ton clan."
+    },
+    {
+     "who": "ysolde",
+     "text": "Je viens avec vous. Il faut quelqu'un qui sache lire, dans ce groupe.",
+     "mood": "joie"
+    },
+    {
+     "who": "nyx",
+     "text": "Elle me plaît. Elle insulte tout le monde à égalité.",
+     "mood": "joie"
+    }
+   ]
+  },
+  "z04_l04_intro": {
+   "art": "lac",
+   "subject": "yeti",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Le chemin traverse un lac gelé, lisse comme un miroir. Sous la glace, quelque chose brille."
+    },
+    {
+     "who": "ysolde",
+     "text": "Sur la glace, tout glisse loin. Un sort de Feu la fait fondre un moment : profites-en pour freiner leurs charges."
+    },
+    {
+     "who": "sylwen",
+     "text": "Des yétis, sur l'autre rive. Ils nous ont sentis.",
+     "mood": "surpris"
+    }
+   ]
+  },
+  "z04_l04_outro": {
+   "art": "lac",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "La glace se calme. Sous la surface, des dizaines de silhouettes figées, debout, en armure : des nains, tournés vers la forteresse."
+    },
+    {
+     "who": "brann",
+     "text": "La Garde de l'Enclume… Ils sont sortis. Ils ont essayé de rentrer chez eux.",
+     "mood": "triste"
+    },
+    {
+     "who": "nyx",
+     "text": "Le Surge les a gardés. Ni morts, ni vivants. Je sens leurs âmes, elles attendent quelque chose.",
+     "mood": "triste"
+    },
+    {
+     "who": "nyx",
+     "text": "Et non, je ne les relèverai pas. Même moi, j'ai des limites.",
+     "mood": "colere"
+    },
+    {
+     "who": "ysolde",
+     "text": "Ils n'étaient pas tous à l'intérieur, alors. Ton histoire a un trou, Forgecœur."
+    },
+    {
+     "who": "brann",
+     "text": "Mon histoire, c'est que des nains sont morts devant une porte fermée. Ça me suffit.",
+     "mood": "colere"
+    }
+   ]
+  },
+  "z04_l05_intro": {
+   "art": "porte",
+   "subject": "rune_sentinel",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "À l'entrée de la forteresse, une Sentinelle naine se dresse, marteau levé. Ses runes ont viré au bleu glacé du Surge."
+    },
+    {
+     "who": "ysolde",
+     "text": "Une Sentinelle de la Garde. Corrompue. Son marteau frappe des couloirs entiers : sors de la ligne quand il se lève."
+    },
+    {
+     "who": "ysolde",
+     "text": "Ses runes ne laissent passer qu'un élément à la fois. Regarde la couleur de son bouclier, et change de sort."
+    },
+    {
+     "who": "brann",
+     "text": "Elle porte les couleurs du clan… Pardonne-moi, vieille pierre.",
+     "mood": "triste"
+    }
+   ]
+  },
+  "z04_l05_outro": {
+   "art": "porte",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "La Sentinelle s'effondre. Dans sa poitrine, une dernière rune clignote, puis s'éteint."
+    },
+    {
+     "who": "ysolde",
+     "text": "Un ordre gravé, le dernier. « Tenir le Cœur. Fermer derrière nous. Par ordre du Thane. »",
+     "mood": "surpris"
+    },
+    {
+     "who": "brann",
+     "text": "Par ordre du Thane ? Mon grand-père était à l'intérieur. Il n'a pas pu…",
+     "mood": "surpris"
+    },
+    {
+     "who": "voix",
+     "text": "Fermer une porte sur ceux qu'on aime… Je connais ce goût-là, Porteur.",
+     "mood": "joie"
+    },
+    {
+     "who": "voix",
+     "text": "Moi, j'ai voulu en rouvrir une. Une seule. Tu vois où ça m'a mené.",
+     "mood": "triste"
+    },
+    {
+     "who": "sylwen",
+     "text": "Encore elle. Elle nous suit jusqu'ici.",
+     "mood": "colere"
+    },
+    {
+     "who": "ysolde",
+     "text": "Une voix dans le Surge ? Ce n'est dans aucun de mes livres. Et c'est ça qui m'inquiète."
+    }
+   ]
+  },
+  "z04_l06_intro": {
+   "art": "lac",
+   "subject": "aurora_spirit",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "La nuit tombe sur les Pics, et le ciel s'embrase : une aurore boréale, verte et violette, ondule au-dessus des cimes."
+    },
+    {
+     "who": "ysolde",
+     "text": "Des Esprits d'aurore. Ils soignent le Nexus tant qu'ils vivent. Abats-les en premier."
+    },
+    {
+     "who": "sylwen",
+     "text": "Et les élémentaires de blizzard figent tes invocations. Ne les laisse pas s'approcher.",
+     "mood": "surpris"
+    }
+   ]
+  },
+  "z04_l06_outro": {
+   "art": "lac",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Plus tard, autour d'un feu maigre. Les autres dorment. Brann fixe les braises, sa Clé-rune entre les doigts."
+    },
+    {
+     "who": "brann",
+     "text": "Je peux te dire un truc, {pseudo} ? Toute ma vie, j'ai voulu ouvrir ces portes. Prouver qu'on n'était pas des lâches.",
+     "mood": "triste"
+    },
+    {
+     "who": "brann",
+     "text": "Et si je descends là-dedans et que je ne trouve que la honte ? Si mon clan l'a vraiment mérité ?",
+     "mood": "triste"
+    },
+    {
+     "choice": "z04_l06",
+     "prompt": "Le feu de camp",
+     "options": [
+      {
+       "key": "A",
+       "text": "« L'honneur ne s'hérite pas. Tu l'as gagné cent fois à mes côtés. »",
+       "effects": {
+        "add": {
+         "loy.brann": 5
+        }
+       },
+       "then": [
+        {
+         "who": "brann",
+         "text": "Cent fois, c'est peut-être exagéré. Quatre-vingt-dix.",
+         "mood": "joie"
+        },
+        {
+         "who": "brann",
+         "text": "Merci. Vraiment."
+        }
+       ]
+      },
+      {
+       "key": "B",
+       "text": "« Alors on la regardera en face, ensemble. La vérité d'abord. »",
+       "effects": {
+        "add": {
+         "loy.brann": 10
+        }
+       },
+       "then": [
+        {
+         "who": "brann",
+         "text": "La vérité d'abord. Mon grand-père disait ça aussi.",
+         "mood": "joie"
+        },
+        {
+         "who": "brann",
+         "text": "D'accord. Quoi qu'il y ait derrière ces portes, on le regarde ensemble."
+        }
+       ]
+      },
+      {
+       "key": "C",
+       "text": "« Le passé se réécrit. Avec le Sceau, on pourrait défaire ce jour-là. »",
+       "effects": {
+        "add": {
+         "loy.brann": -10,
+         "corruption": 5
+        }
+       },
+       "then": [
+        {
+         "who": "brann",
+         "text": "Non. C'est exactement ce qu'il a fait, lui. Celui qui a brisé le monde.",
+         "mood": "colere"
+        },
+        {
+         "who": "brann",
+         "text": "Mon clan a fait une erreur, ou pas. Mais elle est à nous. Personne ne la réécrit.",
+         "mood": "colere"
+        },
+        {
+         "who": "narrateur",
+         "text": "Brann se tourne vers le feu, et ne dit plus un mot de la nuit."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "z04_l07_intro": {
+   "art": "pics",
+   "subject": "rune_cart",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Au pied du dernier col, un vieux chariot runique attend sous la neige. Ses runes s'allument quand Brann l'approche."
+    },
+    {
+     "who": "ysolde",
+     "text": "Le chariot des Runistes. Il porte le Burin-maître : sans lui, impossible de rouvrir les Portes scellées."
+    },
+    {
+     "who": "ysolde",
+     "text": "Il avance tout seul, mais lentement. Les loups le guettent, et les avalanches n'épargnent personne."
+    },
+    {
+     "who": "brann",
+     "text": "Personne ne touche à ce chariot. C'est tout ce qui reste de notre forge."
+    }
+   ]
+  },
+  "z04_l07_outro": {
+   "art": "forteresse",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Le chariot s'arrête devant la forteresse. Les Portes sont là, immenses, couvertes de sceaux de givre noirci."
+    },
+    {
+     "who": "ysolde",
+     "text": "Ce ne sont plus les sceaux du clan. Le Surge les a recouverts des siens. Il faudra de la Lumière pour les percer."
+    },
+    {
+     "who": "krag",
+     "text": "Des portes fermées ? On les enfonce.",
+     "if": "s1.krag_allie"
+    },
+    {
+     "who": "brann",
+     "text": "Pas celles-là, Krag. Celles-là, on les ouvre avec respect. Puis on enfonce ce qu'il y a derrière.",
+     "if": "s1.krag_allie"
+    },
+    {
+     "who": "nyx",
+     "text": "Je sens la Garde, derrière. Ils sont là depuis soixante hivers. Ils ne dorment pas.",
+     "mood": "triste"
+    }
+   ]
+  },
+  "z04_l08_intro": {
+   "art": "forteresse",
+   "subject": "aurora_spirit",
+   "lines": [
+    {
+     "who": "ysolde",
+     "text": "Deux sceaux corrompus. Fais passer des invocations de Lumière par les deux, ou lance Purifier, et le Nexus sera exposé."
+    },
+    {
+     "who": "sylwen",
+     "text": "Des Esprits d'aurore, encore. Ils soignent le Nexus. Ne les laisse pas faire."
+    },
+    {
+     "who": "brann",
+     "text": "Ouvre ces portes, {pseudo}. Je veux voir mon grand-père en face.",
+     "mood": "colere"
+    }
+   ]
+  },
+  "z04_l08_outro": {
+   "art": "forteresse",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Les sceaux éclatent. Les Portes s'entrouvrent dans un soupir de givre… et une lumière bleue s'en échappe."
+    },
+    {
+     "who": "narrateur",
+     "text": "Sur le seuil se tient un nain transparent, en armure de Thane, la barbe tressée d'anneaux d'or."
+    },
+    {
+     "who": "orrin",
+     "text": "Qui porte la Clé de mon fils ?",
+     "mood": "surpris"
+    },
+    {
+     "who": "brann",
+     "text": "Grand-père… Thane Orrin. Je suis Brann. Le fils de Hilde.",
+     "mood": "surpris"
+    },
+    {
+     "who": "orrin",
+     "text": "Le fils de Hilde. Tu as sa barbe, et son air de vouloir frapper quelqu'un.",
+     "mood": "joie"
+    },
+    {
+     "who": "brann",
+     "text": "Pourquoi ? Pourquoi le clan vous a-t-il enfermés ? Pourquoi Durgan a tourné la clé ?",
+     "mood": "colere"
+    },
+    {
+     "who": "orrin",
+     "text": "Parce que je le lui ai ordonné.",
+     "mood": "triste"
+    },
+    {
+     "who": "orrin",
+     "text": "Le Surge noyait le Cœur de la forteresse. Le Colosse le retenait, mais il fallait des nains pour tenir les runes. Je suis resté, avec la Garde. Et j'ai ordonné qu'on ferme.",
+     "mood": "triste"
+    },
+    {
+     "who": "orrin",
+     "text": "Si les portes restaient ouvertes, le Surge descendait dans les vallées. Durgan a obéi en pleurant. C'était le plus brave d'entre nous.",
+     "mood": "triste"
+    },
+    {
+     "who": "brann",
+     "text": "Soixante hivers. Soixante hivers qu'on nous crache dessus. Et c'était… un sacrifice.",
+     "mood": "triste"
+    },
+    {
+     "who": "ysolde",
+     "text": "Les nains du lac gelé étaient des volontaires partis chercher de l'aide. Voilà le trou dans l'histoire.",
+     "mood": "triste"
+    },
+    {
+     "who": "krag",
+     "text": "Ton grand-père était un vrai chef, Brann. Mon père l'aurait respecté.",
+     "if": "s1.krag_allie"
+    },
+    {
+     "effects": {
+      "set": [
+       "s1.verite_orrin"
+      ],
+      "add": {
+       "loy.brann": 5
+      }
+     }
+    },
+    {
+     "who": "orrin",
+     "text": "Mais le Colosse faiblit, petit. Il a bu trop de Surge. Bientôt, ce n'est plus le Cœur qu'il gardera. Ce sera la montagne entière."
+    }
+   ]
+  },
+  "z04_l09_intro": {
+   "art": "forteresse",
+   "subject": "ancient_sentinel",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "L'avant-cour de la forteresse. Deux Nexus de givre ont poussé contre les remparts, et le lac gelé couvre les dalles."
+    },
+    {
+     "who": "orrin",
+     "text": "Les Sentinelles anciennes s'éveillent. Elles ne reconnaissent plus personne, pas même moi.",
+     "mood": "triste"
+    },
+    {
+     "who": "ysolde",
+     "text": "Deux Nexus, une tour au centre. Coupe-les l'un après l'autre, ou ils se relaient."
+    },
+    {
+     "who": "brann",
+     "text": "Le clan est rentré chez lui. Faites de la place.",
+     "mood": "colere"
+    }
+   ]
+  },
+  "z04_l09_outro": {
+   "art": "forteresse",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Les Nexus s'effondrent. Au centre de l'avant-cour, une colonne runique s'élève : la commande de toutes les Portes des Pics."
+    },
+    {
+     "who": "ysolde",
+     "text": "La commande des Portes. Je peux les rallumer, toutes, dans tous les Pics. Leurs portails Forge cuirasseraient deux fois plus fort."
+    },
+    {
+     "who": "ysolde",
+     "text": "Mais tout ce qui dort dans la forteresse se réveillera avec elles. Les Sentinelles anciennes reprendront leurs rondes."
+    },
+    {
+     "who": "orrin",
+     "text": "Ou bien tu refermes tout, Porteur. Comme nous l'avons fait. Les Pics seront plus sûrs… et la forteresse, oubliée.",
+     "mood": "triste"
+    },
+    {
+     "who": "brann",
+     "text": "Les Portes ont été faites pour s'ouvrir. Pas pour cacher notre honte.",
+     "mood": "colere"
+    },
+    {
+     "who": "sylwen",
+     "text": "Brann… Les Sentinelles ne feront pas la différence entre nous et le Surge."
+    },
+    {
+     "who": "ysolde",
+     "text": "La Clé ne répond qu'à une main naine. Et Brann ne la tournera que s'il te fait confiance."
+    },
+    {
+     "choice": "z04_l09",
+     "prompt": "La Forteresse",
+     "options": [
+      {
+       "key": "A",
+       "tag": "Brann · loyauté 60",
+       "except": {
+        "race": [
+         "nain"
+        ]
+       },
+       "loy_min": {
+        "brann": 60
+       },
+       "text": "Demander à Brann de tourner la Clé avec toi, et réveiller les Portes",
+       "effects": {
+        "set": [
+         "s1.portes_reactivees"
+        ],
+        "add": {
+         "loy.brann": 10,
+         "rep.nains": 20
+        }
+       },
+       "then": [
+        {
+         "who": "brann",
+         "text": "Avec toi ? Oui. À personne d'autre je ne l'aurais confiée.",
+         "mood": "joie"
+        },
+        {
+         "who": "narrateur",
+         "text": "Vos deux mains tournent la Clé. Dans toute la montagne, les Portes naines s'allument, l'une après l'autre, comme un chapelet de forges."
+        },
+        {
+         "who": "orrin",
+         "text": "Les Sentinelles s'éveillent… Tenez-vous prêts.",
+         "mood": "surpris"
+        }
+       ]
+      },
+      {
+       "key": "A",
+       "tag": "Nain",
+       "only": {
+        "race": [
+         "nain"
+        ]
+       },
+       "text": "Poser ta main sur la Clé et réveiller les Portes",
+       "effects": {
+        "set": [
+         "s1.portes_reactivees"
+        ],
+        "add": {
+         "loy.brann": 10,
+         "rep.nains": 20
+        }
+       },
+       "then": [
+        {
+         "who": "narrateur",
+         "text": "La Clé tourne sous ta paume. Dans toute la montagne, les Portes naines s'allument, l'une après l'autre, comme un chapelet de forges."
+        },
+        {
+         "who": "brann",
+         "text": "Tu as la main d'un Forgecœur, cousin. Le clan s'en souviendra.",
+         "mood": "joie"
+        },
+        {
+         "who": "orrin",
+         "text": "Les Sentinelles s'éveillent… Tenez-vous prêts.",
+         "mood": "surpris"
+        }
+       ]
+      },
+      {
+       "key": "B",
+       "text": "Sceller la forteresse, pour de bon",
+       "effects": {
+        "set": [
+         "s1.forteresse_scellee"
+        ],
+        "add": {
+         "loy.brann": -15,
+         "loy.sylwen": 5
+        }
+       },
+       "then": [
+        {
+         "who": "brann",
+         "text": "Encore une fois. On ferme encore une fois.",
+         "mood": "colere"
+        },
+        {
+         "who": "orrin",
+         "text": "Il a raison, petit. Parfois, fermer, c'est protéger. Je le sais mieux que personne.",
+         "mood": "triste"
+        },
+        {
+         "who": "sylwen",
+         "text": "Les vallées dormiront tranquilles. Merci, {pseudo}."
+        },
+        {
+         "who": "narrateur",
+         "text": "Les Portes s'éteignent une à une. Les Pics retombent dans le silence."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "z04_l10_intro": {
+   "art": "colosse",
+   "subject": "rune_colossus",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Au cœur de la forteresse, une salle immense. Le Colosse runique se redresse, haut comme trois tours, ses runes corporelles en feu."
+    },
+    {
+     "who": "orrin",
+     "text": "Il a tenu le Cœur pendant soixante hivers. Le Surge l'a rongé jusqu'à l'âme.",
+     "mood": "triste"
+    },
+    {
+     "who": "ysolde",
+     "text": "Ses runes protègent son corps : chacune ne craint qu'un élément. Fais passer tes invocations par le portail de la même couleur."
+    },
+    {
+     "who": "brann",
+     "text": "Il veut garder le Cœur ? On va le lui reprendre.",
+     "mood": "colere"
+    },
+    {
+     "who": "nyx",
+     "text": "Haut comme trois tours, et toi tu mesures… une demi-tour. J'aime tes chances.",
+     "mood": "joie"
+    }
+   ]
+  },
+  "z04_l10_outro": {
+   "art": "colosse",
+   "subject": "rune_colossus",
+   "subject_tint": "c8d8ff",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Le Colosse tombe à genoux. Ses runes clignotent, bleues, puis dorées, puis bleues encore. Il attend un ordre."
+    },
+    {
+     "who": "ysolde",
+     "text": "Ses runes premières sont intactes, sous la corruption. Je peux réécrire ses ordres. Il ne gardera plus le Cœur : il nous gardera, nous."
+    },
+    {
+     "who": "orrin",
+     "text": "Ou bien tu brises son cœur. Il en sortira l'Enclume-Cœur, le métal qui a forgé notre clan. Et le Colosse trouvera enfin le repos.",
+     "mood": "triste"
+    },
+    {
+     "who": "brann",
+     "text": "C'est l'œuvre de mon clan, {pseudo}. Quelle que soit ta décision, elle lui fera honneur."
+    },
+    {
+     "who": "nyx",
+     "text": "Un géant de pierre qui nous obéit ? Ou une enclume légendaire ? Pour une fois, il n'y a pas de mauvais choix.",
+     "mood": "joie"
+    },
+    {
+     "choice": "z04_l10",
+     "major": true,
+     "prompt": "Le Cœur de Forgecœur",
+     "options": [
+      {
+       "key": "A",
+       "text": "Reprogrammer le Colosse avec Ysolde",
+       "effects": {
+        "set": [
+         "s1.colosse_allie"
+        ],
+        "add": {
+         "rep.nains": 10,
+         "loy.brann": 5,
+         "loy.sylwen": 5
+        }
+       },
+       "then": [
+        {
+         "who": "narrateur",
+         "text": "Ysolde grave pendant une heure, sans un mot. Puis le Colosse se relève, et pose un poing sur son cœur.",
+         "subject_tint": "fff0c0"
+        },
+        {
+         "who": "ysolde",
+         "text": "Il reconnaît le Porteur, et le clan Forgecœur. Quand viendra le dernier combat, il répondra à l'appel.",
+         "mood": "joie"
+        },
+        {
+         "who": "orrin",
+         "text": "Le gardien a un nouveau maître. Ma Garde peut se reposer.",
+         "mood": "joie"
+        }
+       ]
+      },
+      {
+       "key": "B",
+       "text": "Briser son cœur et forger l'Enclume-Cœur",
+       "effects": {
+        "set": [
+         "s1.colosse_detruit"
+        ],
+        "add": {
+         "rep.nains": -5
+        },
+        "grant": {
+         "base": "enclume_coeur",
+         "rarity": "legendaire"
+        },
+        "mats": {
+         "cristal_givre": 9,
+         "rune_brisee": 6
+        }
+       },
+       "then": [
+        {
+         "who": "narrateur",
+         "text": "Le cœur du Colosse se fend dans un éclair d'or. Au milieu des éclats, un bloc de métal sombre bat encore, tiède.",
+         "subject": ""
+        },
+        {
+         "who": "orrin",
+         "text": "L'Enclume-Cœur. Porte-la à Durgan. Lui seul saura la forger.",
+         "mood": "triste"
+        },
+        {
+         "who": "ysolde",
+         "text": "Quel gâchis… et quel métal. Mes livres n'en parlaient qu'en rêve.",
+         "mood": "surpris"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "effects": {
+      "also": [
+       {
+        "chose": {
+         "z04_l09": "A"
+        },
+        "set": [
+         "s1.honneur_forgecoeur"
+        ]
+       },
+       {
+        "loy_min": {
+         "brann": 70
+        },
+        "set": [
+         "s1.honneur_forgecoeur"
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "who": "orrin",
+     "text": "Brann, fils de Hilde. Le clan Forgecœur n'a plus de honte à porter. Va dire à Durgan qu'il peut rallumer sa forge.",
+     "mood": "joie",
+     "if": "s1.honneur_forgecoeur"
+    },
+    {
+     "who": "brann",
+     "text": "Héritier de Forgecœur… Ça sonne mieux que « le clan qui ferme ».",
+     "mood": "joie",
+     "if": "s1.honneur_forgecoeur"
+    },
+    {
+     "who": "orrin",
+     "text": "Brann. Le clan a encore du chemin. Toi aussi. Mais tu es sur la bonne route.",
+     "mood": "triste",
+     "if_not": "s1.honneur_forgecoeur"
+    },
+    {
+     "who": "brann",
+     "text": "Un jour, grand-père. Un jour, le nom Forgecœur se dira la tête haute.",
+     "mood": "triste",
+     "if_not": "s1.honneur_forgecoeur"
+    },
+    {
+     "who": "narrateur",
+     "text": "Le Thane Orrin s'efface dans la lumière bleue. Derrière lui, pour la première fois depuis soixante hivers, la Garde de l'Enclume repose en paix."
+    },
+    {
+     "who": "narrateur",
+     "text": "Acte 4 terminé : l'Honneur de Forgecœur. Au sud, au-delà des cols, le Désert de Verre scintille sous deux astres… et le Collège oublié y garde les traces de celui qui a brisé le monde.",
+     "art": "pics",
+     "subject": ""
+    },
+    {
+     "who": "ysolde",
+     "text": "Le Désert de Verre ? Les Runistes y avaient une école. Je viens avec vous jusqu'au col. Après, on verra.",
+     "art": "pics"
+    },
+    {
+     "who": "durgan",
+     "text": "Revenez vite. Et toi, Brann… ramène-moi ce sourire-là plus souvent.",
+     "mood": "joie",
+     "art": "forge"
+    }
+   ]
+  }
+ },
+ "barks": {
+  "start": [
+   {
+    "who": "brann",
+    "text": "Les Pics. L'air sent le fer et la neige. Ça sent la maison."
+   },
+   {
+    "who": "brann",
+    "text": "Tiens bon, {pseudo}. Ici, même la montagne se bat.",
+    "if": "s1.portes_reactivees"
+   },
+   {
+    "who": "brann",
+    "text": "Ces Portes se souviennent de nous. Fais-les travailler !",
+    "mood": "joie",
+    "if": "s1.portes_reactivees"
+   },
+   {
+    "who": "sylwen",
+    "text": "La glace fait tout glisser. Tes invocations comme les leurs."
+   },
+   {
+    "who": "sylwen",
+    "text": "La Foudre brise le Givre. N'oublie pas."
+   },
+   {
+    "who": "krag",
+    "text": "Il fait trop froid pour avoir peur. Allons-y !",
+    "if": "s1.krag_allie"
+   },
+   {
+    "who": "nyx",
+    "text": "J'ai perdu deux doigts de pied dans ce col. Quelqu'un va payer."
+   },
+   {
+    "who": "nyx",
+    "text": "Mes squelettes ne sentent pas le froid. Avantage : moi.",
+    "mood": "joie"
+   },
+   {
+    "who": "brann",
+    "text": "Grand-père regarde. On ne recule pas.",
+    "if": "s1.verite_orrin"
+   },
+   {
+    "who": "brann",
+    "text": "Je me bats. Mais je n'oublie pas qu'on a refermé.",
+    "mood": "triste",
+    "if": "s1.forteresse_scellee"
+   }
+  ],
+  "barrier_low": [
+   {
+    "who": "brann",
+    "text": "La Barrière se fend comme de la glace ! Tiens la ligne !"
+   },
+   {
+    "who": "sylwen",
+    "text": "Ils passent sur la glace ! Ralentis-les !"
+   },
+   {
+    "who": "krag",
+    "text": "Ils glissent jusqu'à nous ? Tant mieux, ma hache les attend !",
+    "if": "s1.krag_allie"
+   },
+   {
+    "who": "nyx",
+    "text": "La Barrière craque. Comme mes articulations. Fais quelque chose !"
+   }
+  ],
+  "half": [
+   {
+    "who": "brann",
+    "text": "À moitié fait ! Un nain ne s'arrête jamais à la moitié d'une forge."
+   },
+   {
+    "who": "sylwen",
+    "text": "Il cède ! Encore un effort !"
+   },
+   {
+    "who": "nyx",
+    "text": "À moitié gelé, à moitié mort. On y est presque."
+   }
+  ],
+  "boss_phase": [
+   {
+    "who": "brann",
+    "text": "Il change de rythme ! Regarde ses runes !"
+   },
+   {
+    "who": "sylwen",
+    "text": "Ses runes ont changé de couleur ! Change de portail !"
+   },
+   {
+    "who": "krag",
+    "text": "Il se fâche ? Moi aussi, depuis le col !",
+    "if": "s1.krag_allie"
+   },
+   {
+    "who": "nyx",
+    "text": "Il se réveille vraiment, là. Désolée, c'était peut-être ma faute."
+   }
+  ],
+  "echo": [
+   {
+    "who": "sylwen",
+    "text": "Le Sceau répond… même sous la neige."
+   }
+  ],
+  "ultimate": [
+   {
+    "who": "brann",
+    "text": "Ça, c'est une avalanche dans le bon sens !",
+    "mood": "joie"
+   }
+  ],
+  "crowd": [
+   {
+    "who": "brann",
+    "text": "Une armée entière ! Le clan n'en avait pas vu autant depuis des siècles !",
+    "mood": "joie"
+   }
+  ],
+  "escort_low": [
+   {
+    "who": "brann",
+    "text": "Le chariot ! Sans le Burin-maître, on n'ouvre rien !"
+   },
+   {
+    "who": "sylwen",
+    "text": "Le chariot est touché ! Couvre-le !"
+   }
+  ]
+ },
+ "barks_level": {
+  "z04_l05": {
+   "start": [
+    {
+     "who": "brann",
+     "text": "Pardonne-moi, vieille Sentinelle. Il faut que tu tombes.",
+     "mood": "triste"
+    }
+   ]
+  },
+  "z04_l09": {
+   "start": [
+    {
+     "who": "brann",
+     "text": "La cour de la forteresse. J'en ai rêvé toute ma vie. Pas comme ça.",
+     "mood": "triste"
+    }
+   ]
+  },
+  "z04_l10": {
+   "start": [
+    {
+     "who": "brann",
+     "text": "Le Colosse… Il est encore plus grand que dans les chansons.",
+     "mood": "surpris"
+    }
+   ],
+   "boss_phase": [
+    {
+     "who": "sylwen",
+     "text": "Ses runes tournent ! Regarde quel élément est exposé !"
+    },
+    {
+     "who": "brann",
+     "text": "Il touche aux Portes ! Il corrompt nos propres Portes !",
+     "mood": "colere"
+    }
+   ]
+  }
+ }
 }

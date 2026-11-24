@@ -28,6 +28,10 @@ static func plate(kind: String, size: Vector2i) -> ImageTexture:
 			_ambre(img, rng, kind)
 		"marais", "cercle", "hydre", "refuge":
 			_marais(img, rng, kind)
+		"pics", "porte", "lac", "forteresse", "colosse":
+			_pics(img, rng, kind)
+		"forge":
+			_forge(img, rng)
 		_:
 			_forest(img, rng, kind)
 	var tex := ImageTexture.create_from_image(img)
@@ -629,6 +633,232 @@ static func _marais(img: Image, rng: RandomNumberGenerator, kind: String) -> voi
 		for dx in range(rng.randi_range(30, 100)):
 			_px(img, x + dx, y, Color(0.8, 0.85, 0.82, 0.1))
 	_fireflies(img, rng, int(w / 14.0), int(h * 0.4), h - 2, Color("a8e070"))
+
+
+# ---------------------------------------------------------------- acte 4 · Pics Gelés
+
+## Pic enneigé : un triangle de roche, sa calotte de neige, le flanc droit éclairé.
+static func _peak(img: Image, cx: int, base: int, hw: int, hgt: int, body: Color, snow: Color) -> void:
+	for y in range(base - hgt, base):
+		var k := float(y - (base - hgt)) / float(maxi(1, hgt))
+		var half := int(float(hw) * k)
+		for dx in range(-half, half + 1):
+			var c := body
+			if k < 0.32 + 0.06 * sin(float(dx) * 0.7):
+				c = snow if dx <= half / 3 else snow.darkened(0.18)
+			elif dx > half * 2 / 3:
+				c = body.lightened(0.12)
+			_px(img, cx + dx, y, c)
+
+
+static func _snowfall(img: Image, rng: RandomNumberGenerator, n: int) -> void:
+	for i in range(n):
+		var x := rng.randi_range(0, img.get_width() - 1)
+		var y := rng.randi_range(0, img.get_height() - 1)
+		_px(img, x, y, Color(1, 1, 1, rng.randf_range(0.35, 0.9)))
+		if rng.randf() < 0.3:
+			_px(img, x + 1, y, Color(1, 1, 1, 0.3))
+
+
+## Rune lumineuse : une petite croix gravée et son halo.
+static func _rune(img: Image, x: int, y: int, col: Color) -> void:
+	_glow_px(img, x, y, 5, col, 0.4)
+	for d in [Vector2i(0, -2), Vector2i(0, -1), Vector2i(0, 0), Vector2i(0, 1), Vector2i(0, 2), Vector2i(-1, -1), Vector2i(1, 1)]:
+		_px(img, x + d.x, y + d.y, col.lightened(0.35))
+
+
+## Pics Gelés et leurs variantes : pics (route du col), porte (Porte naine), lac (lac gelé sous l'aurore),
+## forteresse (les Portes scellées de Forgecœur), colosse (la salle du Cœur).
+static func _pics(img: Image, rng: RandomNumberGenerator, kind: String) -> void:
+	var w := img.get_width()
+	var h := img.get_height()
+	if kind == "colosse":
+		_colosse(img, rng)
+		return
+	_sky(img, rng, [[0.0, Color("0c1226")], [0.4, Color("1e3458")], [0.62, Color("6a8ab0")], [0.75, Color("c8dcec")], [1.0, Color("e8f2fa")]], 0.9)
+	if kind == "lac":
+		# Aurore boréale : rubans verts et violets qui ondulent.
+		for band in range(3):
+			var col := Color("5ff0a8") if band != 1 else Color("b07cff")
+			var y0 := h * (0.1 + 0.07 * float(band))
+			for x in range(w):
+				var yy := int(y0 + sin(float(x) * 0.035 + float(band) * 1.7) * h * 0.05)
+				for d in range(int(h * 0.12)):
+					_px(img, x, yy + d, Color(col, 0.16 * (1.0 - float(d) / (h * 0.12))))
+	else:
+		_moon(img, int(w * 0.78), int(h * 0.13), maxi(5, int(minf(w, h) * 0.04)))
+	# Chaîne de pics au loin, puis au premier plan.
+	for i in range(maxi(4, int(w / 70.0))):
+		_peak(img, rng.randi_range(-20, w + 20), int(h * 0.56), rng.randi_range(int(w * 0.12), int(w * 0.2)), rng.randi_range(int(h * 0.22), int(h * 0.36)), Color("3a4a6a"), Color("dceaf6"))
+	for i in range(maxi(3, int(w / 110.0))):
+		_peak(img, rng.randi_range(-30, w + 30), int(h * 0.66), rng.randi_range(int(w * 0.14), int(w * 0.24)), rng.randi_range(int(h * 0.18), int(h * 0.3)), Color("2a3450"), Color("f0f6ff"))
+	var ground := int(h * 0.64)
+	img.fill_rect(Rect2i(0, ground, w, h - ground), Color("dfe9f4"))
+	for i in range(int(w * h / 260.0)):
+		_px(img, rng.randi_range(0, w - 1), rng.randi_range(ground, h - 1), Color("b8c8dc"))
+	match kind:
+		"pics":
+			# Route du col en lacets, sapins enneigés.
+			var p := Vector2(w * 0.15, h - 1)
+			for st in range(int(h * 0.5)):
+				var t := float(st) / (h * 0.5)
+				p = Vector2(w * (0.5 + 0.3 * sin(t * 5.0)) , h - 1 - st * 0.75)
+				for dx in range(-int(6.0 - 4.0 * t), int(6.0 - 4.0 * t) + 1):
+					_px(img, int(p.x) + dx, int(p.y), Color("9aa8bc"))
+			for i in range(maxi(4, int(w / 40.0))):
+				var tx := rng.randi_range(0, w)
+				if absf(float(tx) - w * 0.5) < w * 0.12:
+					continue
+				var th := rng.randi_range(int(h * 0.1), int(h * 0.2))
+				var base := rng.randi_range(ground + 4, h - 2)
+				_pine(img, tx, base, th, Color("1e3a3a"), Color("cfe8f0"))
+				_px(img, tx, base - th, Color("ffffff"))
+		"porte":
+			# Falaise et arche naine aux runes vivantes.
+			var cx := int(w * 0.5)
+			# Falaise : sommet déchiqueté, strates et fissures.
+			var ctop := float(h) * 0.24
+			var cslope := 0.0
+			for x in range(int(w * 0.16), int(w * 0.84)):
+				cslope = clampf(cslope + rng.randf_range(-0.5, 0.5), -1.2, 1.2)
+				ctop = clampf(ctop + cslope, h * 0.16, h * 0.3)
+				var edge := minf(float(x) - w * 0.16, w * 0.84 - float(x))
+				var top_y := int(ctop + maxf(0.0, w * 0.06 - edge) * 1.5)
+				img.fill_rect(Rect2i(x, top_y, 1, ground - top_y), Color("2a3048"))
+				_px(img, x, top_y, Color("dceaf6"))
+				_px(img, x, top_y + 1, Color("9aa8c0"))
+			for i in range(int(w * h / 700.0)):
+				var rx := rng.randi_range(int(w * 0.18), int(w * 0.82))
+				var ry := rng.randi_range(int(h * 0.3), ground - 2)
+				for d in range(rng.randi_range(3, 9)):
+					_px(img, rx + d, ry + (d / 3), Color("222840"))
+			var aw := int(w * 0.17)
+			var top := int(h * 0.3)
+			for y in range(top, ground):
+				for x in range(cx - aw, cx + aw + 1):
+					var nx := float(x - cx) / float(aw)
+					var arch_top := top + int(float(aw) * (1.0 - sqrt(maxf(0.0, 1.0 - nx * nx))))
+					if y < arch_top:
+						continue
+					var inner := absf(nx) < 0.72 and y > arch_top + 5
+					_px(img, x, y, Color("0e1830") if inner else Color("4a5272"))
+			_glow_px(img, cx, int(h * 0.5), int(w * 0.12), Color("ff9a3a"), 0.35)
+			for k in range(7):
+				var a := PI + float(k) * PI / 6.0
+				_rune(img, cx + int(cos(a) * aw * 0.86), top + aw + int(sin(a) * aw * 0.86), Color("ffb050") if k % 2 == 0 else Color("8fe3f2"))
+		"lac":
+			# Lac gelé : un miroir bleuté, des silhouettes figées sous la glace.
+			var lake := int(h * 0.7)
+			img.fill_rect(Rect2i(0, lake, w, h - lake), Color("9ec4dc"))
+			for i in range(int(w / 3.0)):
+				var x := rng.randi_range(0, w - 1)
+				var y := rng.randi_range(lake, h - 1)
+				for dx in range(rng.randi_range(6, 24)):
+					_px(img, x + dx, y, Color(1, 1, 1, 0.35))
+			for k in range(maxi(5, int(w / 50.0))):
+				var sx := int(w * (0.08 + 0.86 * float(k) / float(maxi(1, maxi(5, int(w / 50.0)) - 1))))
+				var sy := lake + int(h * 0.1) + rng.randi_range(0, int(h * 0.12))
+				img.fill_rect(Rect2i(sx - 3, sy - 8, 7, 12), Color(0.22, 0.32, 0.5, 0.55))
+				_disc(img, sx, sy - 11, 3, Color(0.22, 0.32, 0.5, 0.55))
+		"forteresse":
+			# Forteresse taillée dans la montagne : remparts, tours, Portes scellées de givre noirci.
+			var cx := int(w * 0.5)
+			var wall := int(h * 0.36)
+			img.fill_rect(Rect2i(int(w * 0.1), wall, int(w * 0.8), ground - wall), Color("2e3652"))
+			for t in [0.14, 0.32, 0.68, 0.86]:
+				var tx := int(w * t)
+				img.fill_rect(Rect2i(tx - int(w * 0.04), wall - int(h * 0.12), int(w * 0.08), ground - wall + int(h * 0.12)), Color("3a4466"))
+				for m in range(3):
+					img.fill_rect(Rect2i(tx - int(w * 0.04) + m * int(w * 0.03), wall - int(h * 0.14), int(w * 0.02), int(h * 0.02)), Color("3a4466"))
+				_glow_px(img, tx, wall - int(h * 0.06), 4, Color("8fe3f2"), 0.5)
+			for x in range(int(w * 0.1), int(w * 0.9), maxi(4, int(w / 40.0))):
+				img.fill_rect(Rect2i(x, wall - 4, maxi(2, int(w / 80.0)), 4), Color("2e3652"))
+			var gw := int(w * 0.12)
+			img.fill_rect(Rect2i(cx - gw, int(h * 0.42), gw * 2, ground - int(h * 0.42)), Color("141c34"))
+			img.fill_rect(Rect2i(cx - 1, int(h * 0.42), 2, ground - int(h * 0.42)), Color("0a1020"))
+			for k in range(2):
+				var sx := cx + (-1 if k == 0 else 1) * gw / 2
+				_glow_px(img, sx, int(h * 0.52), int(w * 0.05), Color("4a6aff"), 0.45)
+				_disc(img, sx, int(h * 0.52), maxi(3, int(w * 0.025)), Color("2a3a8a"))
+				_px(img, sx, int(h * 0.52), Color("c8d8ff"))
+			# Bannières rouges du clan.
+			for t in [0.25, 0.75]:
+				var bx := int(w * t)
+				img.fill_rect(Rect2i(bx - 3, wall + 4, 7, int(h * 0.1)), Color("7a2a2a"))
+				_px(img, bx, wall + 8, Color("f2c46b"))
+	_snowfall(img, rng, int(w * h / 180.0))
+
+
+static func _colosse(img: Image, rng: RandomNumberGenerator) -> void:
+	var w := img.get_width()
+	var h := img.get_height()
+	# Salle du Cœur : voûte sombre, piliers runiques, grand cercle de runes au mur, autel du Cœur.
+	_sky(img, rng, [[0.0, Color("06080f")], [0.5, Color("141a2c")], [1.0, Color("1e2438")]], 0.0)
+	var cx := int(w * 0.5)
+	var cy := int(h * 0.38)
+	var r := int(minf(w, h) * 0.3)
+	_glow_px(img, cx, cy, r + 10, Color("4a8aff"), 0.18)
+	for k in range(3):
+		var rr := r - k * int(r * 0.22)
+		for a in range(360):
+			var t := deg_to_rad(float(a))
+			var col := Color("8fe3f2") if k != 1 else Color("f2c46b")
+			_px(img, cx + int(cos(t) * rr), cy + int(sin(t) * rr), Color(col, 0.5 if k != 1 else 0.35))
+	for k in range(8):
+		var t := float(k) * TAU / 8.0
+		_rune(img, cx + int(cos(t) * r * 0.89), cy + int(sin(t) * r * 0.89), [Color("ff7a3a"), Color("8fd16a"), Color("8fe3f2"), Color("f2c46b")][k % 4])
+	for t in [0.06, 0.2, 0.8, 0.94]:
+		var px := int(w * t)
+		img.fill_rect(Rect2i(px - int(w * 0.035), 0, int(w * 0.07), h), Color("1a2034"))
+		img.fill_rect(Rect2i(px + int(w * 0.02), 0, 2, h), Color("2a3450"))
+		_rune(img, px, int(h * 0.3), Color("8fe3f2"))
+	var floor_y := int(h * 0.78)
+	img.fill_rect(Rect2i(0, floor_y, w, h - floor_y), Color("10141f"))
+	# Marches et autel du Cœur, qui pulse d'or.
+	for st in range(4):
+		var sw := int(w * (0.36 - 0.06 * float(st)))
+		img.fill_rect(Rect2i(cx - sw / 2, floor_y - (st + 1) * maxi(2, int(h * 0.025)), sw, maxi(2, int(h * 0.025))), Color("232a40") if st % 2 == 0 else Color("2a3250"))
+	var ay := floor_y - 4 * maxi(2, int(h * 0.025))
+	_glow_px(img, cx, ay - 6, int(w * 0.07), Color("ffd070"), 0.5)
+	_disc(img, cx, ay - 6, maxi(2, int(w * 0.018)), Color("fff0b0"))
+	# Givre qui tombe des voûtes.
+	for i in range(int(w * h / 400.0)):
+		_px(img, rng.randi_range(0, w - 1), rng.randi_range(0, h - 1), Color(0.7, 0.85, 1.0, rng.randf_range(0.2, 0.6)))
+
+
+## La Forge de Havre-Aube : l'enclume de Durgan, le feu, les outils pendus.
+static func _forge(img: Image, rng: RandomNumberGenerator) -> void:
+	var w := img.get_width()
+	var h := img.get_height()
+	_sky(img, rng, [[0.0, Color("120a08")], [0.5, Color("2a160e")], [1.0, Color("3a2014")]], 0.0)
+	# Foyer au fond, à gauche.
+	var fx := int(w * 0.28)
+	var fy := int(h * 0.5)
+	img.fill_rect(Rect2i(fx - int(w * 0.14), int(h * 0.22), int(w * 0.28), int(h * 0.48)), Color("3a2a24"))
+	img.fill_rect(Rect2i(fx - int(w * 0.1), int(h * 0.36), int(w * 0.2), int(h * 0.26)), Color("1a0e0a"))
+	_glow_px(img, fx, fy, int(minf(w, h) * 0.3), Color("ff7a2a"), 0.3)
+	for i in range(int(w * 0.6)):
+		var x := fx + rng.randi_range(-int(w * 0.08), int(w * 0.08))
+		var y := int(h * 0.6) - rng.randi_range(0, int(h * 0.12))
+		_px(img, x, y, Color("ffb050") if rng.randf() < 0.6 else Color("ffe08a"))
+	# Outils pendus au mur.
+	for k in range(5):
+		var tx := int(w * (0.55 + 0.08 * float(k)))
+		img.fill_rect(Rect2i(tx, int(h * 0.18), 1, int(h * 0.14)), Color("6a5a50"))
+		img.fill_rect(Rect2i(tx - 2, int(h * 0.32), 5, 3), Color("8a8a98"))
+	var floor_y := int(h * 0.72)
+	img.fill_rect(Rect2i(0, floor_y, w, h - floor_y), Color("22140e"))
+	# L'enclume.
+	var ax := int(w * 0.62)
+	var ay := int(h * 0.62)
+	img.fill_rect(Rect2i(ax - int(w * 0.12), ay, int(w * 0.24), int(h * 0.04)), Color("4a4a58"))
+	img.fill_rect(Rect2i(ax - int(w * 0.04), ay + int(h * 0.04), int(w * 0.08), int(h * 0.06)), Color("3a3a46"))
+	img.fill_rect(Rect2i(ax - int(w * 0.08), ay + int(h * 0.1), int(w * 0.16), int(h * 0.03)), Color("3a3a46"))
+	img.fill_rect(Rect2i(ax - int(w * 0.12), ay, int(w * 0.24), 1), Color("ffb070"))
+	# Étincelles.
+	for i in range(int(w * h / 900.0)):
+		var p := Vector2(rng.randf_range(w * 0.1, w * 0.9), rng.randf_range(h * 0.2, h * 0.7))
+		_px(img, int(p.x), int(p.y), Color("ffd070") if rng.randf() < 0.5 else Color("ff8a3a"))
 
 
 # ---------------------------------------------------------------- icônes (glyphes absents des polices)

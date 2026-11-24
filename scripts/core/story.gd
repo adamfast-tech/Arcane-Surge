@@ -128,7 +128,7 @@ static func value_label(key: String) -> String:
 
 ## Conditions : « if » / « if_not » (drapeau ou liste), « loy_min » / « loy_max » ({compagnon: seuil}),
 ## « chose » ({id: option ou liste d'options}), « only » ({race: [...], class: [...]} : option réservée
-## à une race OU à une classe du joueur, ex. [Humain/Clerc]).
+## à une race OU à une classe du joueur, ex. [Humain/Clerc]), « except » (même forme : race ou classe exclue).
 static func check(cond: Dictionary) -> bool:
 	for f in _as_list(cond.get("if", [])):
 		if not has_flag(f):
@@ -148,10 +148,14 @@ static func check(cond: Dictionary) -> bool:
 	for id in ch.keys():
 		if not _as_list(ch[id]).has(choice(str(id))):
 			return false
+	var pl: Dictionary = Profile.data.get("player", {})
 	var only: Dictionary = cond.get("only", {})
 	if not only.is_empty():
-		var pl: Dictionary = Profile.data.get("player", {})
 		if not (_as_list(only.get("race", [])).has(str(pl.get("race", ""))) or _as_list(only.get("class", [])).has(str(pl.get("class", "")))):
+			return false
+	var exc: Dictionary = cond.get("except", {})
+	if not exc.is_empty():
+		if _as_list(exc.get("race", [])).has(str(pl.get("race", ""))) or _as_list(exc.get("class", [])).has(str(pl.get("class", ""))):
 			return false
 	return true
 
@@ -167,7 +171,7 @@ static func _as_list(v: Variant) -> Array[String]:
 
 
 ## Applique des effets et retourne les lignes de bilan à afficher :
-## « set » / « clear » (drapeaux), « add » ({clé: delta}), « grant » ({base, rarity}),
+## « set » / « clear » (drapeaux), « add » ({clé: delta}), « grant » ({base, rarity}), « mats » ({matériau: quantité}),
 ## « also » (liste d'effets conditionnels, mêmes conditions que check()).
 static func apply(eff: Dictionary, ilvl: int = 0) -> Array[String]:
 	var out: Array[String] = []
@@ -183,6 +187,14 @@ static func apply(eff: Dictionary, ilvl: int = 0) -> Array[String]:
 	var g: Dictionary = eff.get("grant", {})
 	if not g.is_empty():
 		out.append(_grant(str(g["base"]), str(g.get("rarity", "commun")), ilvl if ilvl > 0 else Profile.level()))
+	var mats: Dictionary = eff.get("mats", {})
+	for m in mats.keys():
+		var n := int(mats[m])
+		if n == 0:
+			continue
+		Profile.data["materials"][m] = maxi(0, int(Profile.data["materials"].get(m, 0)) + n)
+		var md: Dictionary = (Profile.items_db()["materials"] as Dictionary).get(m, {})
+		out.append("%s %+d" % [str(md.get("name", m)), n])
 	for sub in eff.get("also", []):
 		if check(sub):
 			out.append_array(apply(sub, ilvl))

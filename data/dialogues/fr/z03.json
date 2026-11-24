@@ -25,7 +25,10 @@
    "title": "Bastion d'Argent",
    "color": "B8C6E8",
    "portrait": "brann",
-   "loyalty": true
+   "loyalty": true,
+   "title_flag": {
+    "s1.honneur_forgecoeur": "Héritier de Forgecœur"
+   }
   },
   "krag": {
    "name": "Krag",

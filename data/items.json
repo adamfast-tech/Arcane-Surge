@@ -168,6 +168,17 @@
       "unique": true,
       "lore": "Arraché au seigneur de guerre des Collines d'Ambre. La foudre y gronde encore."
     },
+    "enclume_coeur": {
+      "name": "Enclume-Cœur",
+      "slot": "offhand",
+      "stats": {
+        "vig": 9,
+        "pou": 4
+      },
+      "element": "foudre",
+      "unique": true,
+      "lore": "Forgée dans le cœur du Colosse runique. Elle bat encore, tiède, au rythme de la forteresse Forgecœur."
+    },
     "baton_seve": {
       "name": "Bâton de la Première Sève",
       "slot": "weapon",

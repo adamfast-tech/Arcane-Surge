@@ -184,5 +184,5 @@ iOS (iPhone 16 Pro Max, iPad), Android, PC (16:9, 16:10).
     - 13.4 ✅ Salle de méditation (Sœur Aelis : voies du héros et des compagnons, 3 configurations, réinitialisation, Harmonie) ; compagnons avec niveau et XP propres, équipement et classe changeable — [`design/27-meditation-compagnons.md`](design/27-meditation-compagnons.md)
 14. Acte 4 :
     - 14.1 ✅ zone 4 jouable, Pics Gelés : 10 niveaux (31 à 40), bêtes des montagnes et élémentaires de givre, glace qui fait glisser, avalanches, Portes naines FORGE, Sentinelle runique et Colosse runique (runes corporelles) — [`design/28-zone4.md`](design/28-zone4.md)
-    - 14.2 narration de l'acte 4 : la forteresse Forgecœur, l'honneur du clan de Brann, choix 4-9 (Portes) et ✦ 4-10 (le Colosse)
+    - 14.2 ✅ narration de l'acte 4 : 20 dialogues, Durgan, Ysolde et le spectre du Thane Orrin, la vérité sur le scellement de la forteresse Forgecœur ; feu de camp, choix 4-9 (Portes : [Nain] ou [Brann · loyauté 60], sinon option verrouillée) et ✦ 4-10 (reprogrammer le Colosse ou forger l'Enclume-Cœur) ; honneur du clan et titre de Brann ; effets en combat sur la zone 4 — [`design/32-narration-zone4.md`](design/32-narration-zone4.md)
 15. Saison 2 : zones 11–15, niveau max 150, L'Ourdisseur (fils semés en saison 1)

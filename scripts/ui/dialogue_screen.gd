@@ -364,8 +364,18 @@ func _show_choice(l: Dictionary) -> void:
 	line.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hdr.add_child(line)
+	# Options réservées (race, classe, loyauté) hors de portée : montrées verrouillées, sauf si une
+	# autre option de la même lettre est ouverte (ex. [Nain] ou [Brann · loyauté 60]).
+	var open_keys: Array[String] = []
+	for opt in l.get("options", []):
+		if Story.check(opt):
+			open_keys.append(str(opt.get("key", "")))
 	for opt in l.get("options", []):
 		if not Story.check(opt):
+			var k := str(opt.get("key", ""))
+			if opt.has("tag") and not open_keys.has(k):
+				open_keys.append(k)
+				choice_box.add_child(_locked_option(opt))
 			continue
 		var label := Dialogues.fmt(str(opt.get("text", "")))
 		if opt.has("tag"):
@@ -384,6 +394,23 @@ func _show_choice(l: Dictionary) -> void:
 		note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		choice_box.add_child(note)
 	_relayout.call_deferred()
+
+
+## Option verrouillée : grisée, avec un cadenas ; elle montre qu'une autre voie existait.
+func _locked_option(opt: Dictionary) -> Button:
+	var b := UiTheme.button("[%s] %s" % [str(opt["tag"]), Dialogues.fmt(str(opt.get("text", "")))], 24)
+	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	b.custom_minimum_size = Vector2(0, 58)
+	b.disabled = true
+	b.icon = Icons.tex("lock", 26)
+	b.add_theme_color_override("icon_disabled_color", Color(UiTheme.MUTED, 0.8))
+	b.add_theme_constant_override("icon_max_width", 24)
+	var st := UiTheme.box(Color(UiTheme.PANEL, 0.7), UiTheme.BORDER, 12, 1, 14)
+	b.add_theme_stylebox_override("disabled", st)
+	b.add_theme_color_override("font_disabled_color", Color(UiTheme.MUTED, 0.75))
+	b.tooltip_text = "Option réservée : %s" % str(opt["tag"])
+	return b
 
 
 func _on_option(l: Dictionary, opt: Dictionary) -> void:

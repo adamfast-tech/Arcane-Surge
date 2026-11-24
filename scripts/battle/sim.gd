@@ -89,6 +89,8 @@ var solo := false
 var next_id := 1
 var enemy_mult := 1.0
 var diff := 1.0 ## difficulté (Options) : vitesse et dégâts des ennemis, PV du Nexus et du boss
+var forge_power := 1.0 ## force des portails FORGE (×2 si les Portes des Pics ont été réactivées, choix 4-9)
+var wave_budget_mult := 1.0 ## taille des vagues (×0,85 si la forteresse a été scellée, choix 4-9)
 
 var nexus_hp := 1000.0
 var nexus_max := 1000.0
@@ -300,6 +302,17 @@ func _apply_story_mods(opts: Dictionary) -> void:
 			orb_cfg = m["orbs"]
 		if m.has("boss_hp") and boss != null:
 			boss.hp = boss.max_hp * clampf(float(m["boss_hp"]), 0.05, 1.0)
+		if m.has("forge_mult"):
+			forge_power *= float(m["forge_mult"])
+		if m.has("budget_mult"):
+			wave_budget_mult *= float(m["budget_mult"])
+		if m.has("pool_add"):
+			# Nouvelles unités dans les vagues (ex. Sentinelles anciennes réveillées) : copie du niveau.
+			level = level.duplicate(true)
+			var pool: Dictionary = level["waves"]["pool"]
+			var add: Dictionary = m["pool_add"]
+			for k in add.keys():
+				pool[k] = float(pool.get(k, 0.0)) + float(add[k])
 		if m.has("log"):
 			_log(str(m["log"]))
 			story_notes.append(str(m["log"]))
@@ -823,7 +836,7 @@ func _update_waves() -> void:
 func _queue_wave() -> void:
 	var wd: Dictionary = level["waves"]
 	var budget := (float(wd.get("budget_base", 20)) + float(wd.get("budget_per_level", 6)) * float(wd.get("local_level", 1))) \
-		* (1.0 + float(wd.get("growth", 0.04)) * float(wave_index))
+		* (1.0 + float(wd.get("growth", 0.04)) * float(wave_index)) * wave_budget_mult
 	var pool: Dictionary = wd["pool"]
 	var kinds: Array = pool.keys()
 	var total_w := 0.0
@@ -997,10 +1010,10 @@ func _apply_portal(p: Portal, u: Unit) -> void:
 		"aegis":
 			u.shield += 10.0
 		"forge":
-			# Porte naine (zone 4) : l'invocation ressort cuirassée.
-			u.defense += 10.0
-			u.hp *= 1.25
-			u.max_hp *= 1.25
+			# Porte naine (zone 4) : l'invocation ressort cuirassée (deux fois plus si les Portes sont réactivées).
+			u.defense += 10.0 * forge_power
+			u.hp *= 1.0 + 0.25 * forge_power
+			u.max_hp *= 1.0 + 0.25 * forge_power
 		"sub":
 			if p.charges > 0:
 				p.charges -= 1
@@ -3189,7 +3202,7 @@ func portal_value_at(x: float) -> float:
 						v += 4.0
 						break
 			"forge":
-				v += 1.5
+				v += 1.5 * forge_power
 			_:
 				v += 1.0
 	return v
