@@ -387,13 +387,58 @@ static func equip_to(who: String, uid: String) -> void:
 	var eq := equipment_of(who)
 	var slot := str(base_of(it).get("slot", ""))
 	if slot == "ring":
-		if not eq.has("ring1"):
-			slot = "ring1"
-		elif not eq.has("ring2"):
-			slot = "ring2"
-		else:
-			slot = "ring1"
+		slot = _ring_target(eq)
 	eq[slot] = uid
+
+
+## Anneau remplacé : un emplacement libre, sinon le plus faible des deux.
+static func _ring_target(eq: Dictionary) -> String:
+	if not eq.has("ring1"):
+		return "ring1"
+	if not eq.has("ring2"):
+		return "ring2"
+	return "ring2" if item_score(find_item(str(eq["ring2"]))) < item_score(find_item(str(eq["ring1"]))) else "ring1"
+
+
+## Somme des stats d'un objet (améliorations, affixes et runes de stats compris) ; 0 pour un objet absent.
+static func item_score(it: Dictionary) -> int:
+	if it.is_empty():
+		return 0
+	var st := item_stats(it)
+	var total := 0
+	for k in STATS:
+		total += int(st.get(k, 0))
+	return total
+
+
+## Comparaison d'un objet en réserve avec ce que porte `who` au même emplacement (l'anneau le plus faible
+## pour les anneaux) : {better, power (écart de Puissance), diff (écart par stat), vs (uid remplacé, "" si
+## l'emplacement est libre), slot}.
+static func compare_to_equipped(who: String, it: Dictionary) -> Dictionary:
+	var eq := equipment_of(who)
+	var slot := str(base_of(it).get("slot", ""))
+	if slot == "ring":
+		slot = _ring_target(eq)
+	var vs := str(eq.get(slot, ""))
+	var cur := find_item(vs) if vs != "" else {}
+	var a := item_stats(it)
+	var b := item_stats(cur) if not cur.is_empty() else {}
+	var diff := {}
+	for k in STATS:
+		var d := int(a.get(k, 0)) - int(b.get(k, 0))
+		if d != 0:
+			diff[k] = d
+	var pw := int(round(float(item_score(it) - item_score(cur)) * 1.6))
+	return {"better": pw > 0, "power": pw, "diff": diff, "vs": vs if not cur.is_empty() else "", "slot": slot}
+
+
+## Objets en réserve (portés par personne) meilleurs que l'équipement actuel de `who`.
+static func better_items(who: String) -> Array:
+	var out: Array = []
+	for it in data["inventory"]:
+		if holder_of(str(it["uid"])) == "" and bool(compare_to_equipped(who, it)["better"]):
+			out.append(it)
+	return out
 
 
 static func unequip_from(who: String, slot: String) -> void:

@@ -763,6 +763,9 @@ func _run() -> void:
 	if not await _autofire_ok():
 		quit(1)
 		return
+	if not await _compare_ok():
+		quit(1)
+		return
 	# Bibliothèque, onglet Classes : Ultime, sorts d'arbre et sorts de compagnon de chaque classe.
 	var cs := LibraryScreen.class_spells("chevalier")
 	var tree_ids: Array[String] = []
@@ -1583,5 +1586,51 @@ func _autofire_ok() -> bool:
 	print("tir auto : repris au départ %s · coupé et gardé %s · combat suivant sans tir %s" % [on_start, saved_off, off_next])
 	if not (on_start and saved_off and off_next):
 		push_error("le choix du tir automatique n'est pas gardé")
+		return false
+	return true
+
+
+## Comparaison avec l'équipé : objets meilleurs signalés et triés en tête, anneau le plus faible remplacé.
+func _compare_ok() -> bool:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	var inv: Array = Profile.data["inventory"]
+	var eq: Dictionary = Profile.equipment_of("player")
+	var saved_eq := eq.duplicate()
+	var weak := Profile.make_item("bottes_marche", "commun", 2, rng)
+	var strong := Profile.make_item("bottes_marche", "legendaire", 40, rng)
+	var worse := Profile.make_item("bottes_marche", "commun", 1, rng)
+	inv.append_array([weak, strong, worse])
+	var feet_slot := str(Profile.base_of(weak).get("slot", ""))
+	eq[feet_slot] = str(weak["uid"])
+	var c_strong := Profile.compare_to_equipped("player", strong)
+	var c_worse := Profile.compare_to_equipped("player", worse)
+	var ok1 := bool(c_strong["better"]) and int(c_strong["power"]) > 0 and str(c_strong["vs"]) == str(weak["uid"]) \
+		and not bool(c_worse["better"]) and Profile.better_items("player").has(strong)
+	# Anneaux : avec deux anneaux portés, c'est le plus faible qui est comparé puis remplacé.
+	var r_lo := Profile.make_item("anneau_cuivre", "commun", 2, rng)
+	var r_hi := Profile.make_item("anneau_cuivre", "legendaire", 40, rng)
+	var r_new := Profile.make_item("anneau_cuivre", "epique", 30, rng)
+	inv.append_array([r_lo, r_hi, r_new])
+	eq["ring1"] = str(r_hi["uid"])
+	eq["ring2"] = str(r_lo["uid"])
+	var c_ring := Profile.compare_to_equipped("player", r_new)
+	Profile.equip_to("player", str(r_new["uid"]))
+	var ok2 := bool(c_ring["better"]) and str(c_ring["vs"]) == str(r_lo["uid"]) and str(eq["ring1"]) == str(r_hi["uid"]) and str(eq["ring2"]) == str(r_new["uid"])
+	# Écran : le meilleur objet en tête de l'inventaire, avec son bandeau.
+	eq["ring2"] = str(r_lo["uid"])
+	var es := EquipmentScreen.new()
+	root.add_child(es)
+	await _frames(2)
+	var ok3 := es._better_by_slot.get(EquipmentScreen._slot_key(feet_slot), 0) as int >= 1 and bool(es._cmp[str(strong["uid"])]["better"])
+	es.queue_free()
+	for it in [weak, strong, worse, r_lo, r_hi, r_new]:
+		inv.erase(it)
+	eq.clear()
+	for k in saved_eq.keys():
+		eq[k] = saved_eq[k]
+	print("comparaison : bottes meilleures %s · anneau le plus faible remplacé %s · écran %s" % [ok1, ok2, ok3])
+	if not (ok1 and ok2 and ok3):
+		push_error("comparaison avec l'équipé incorrecte")
 		return false
 	return true

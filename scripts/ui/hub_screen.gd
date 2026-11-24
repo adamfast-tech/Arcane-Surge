@@ -74,7 +74,7 @@ func _ready() -> void:
 		if int(z["id"]) == zid:
 			zname = str(z["name"])
 	grid.add_child(_tile("map", "CARTE DU MONDE", zname, "Zone %d · %d / %d étoiles" % [zid, Profile.stars_total(), total], func() -> void: open_map.emit(), UiTheme.TEAL))
-	grid.add_child(_tile("baton_chene", "ÉQUIPEMENT", "Équipement et runes", "Puissance %d · %d objets" % [Profile.power(), (Profile.data["inventory"] as Array).size()], func() -> void: open_equipment.emit(), UiTheme.FIRE))
+	grid.add_child(_tile("baton_chene", "ÉQUIPEMENT", "Équipement et runes", _gear_line(), func() -> void: open_equipment.emit(), UiTheme.FIRE))
 	# Salles : Entraînement (arbre), Bibliothèque (deck), Cercle (compagnons), Méditation (voies, Harmonie).
 	var rooms := GridContainer.new()
 	rooms.columns = 2
@@ -361,3 +361,11 @@ func _on_account() -> void:
 		_refresh_cloud()
 	else:
 		open_login.emit()
+
+
+## Tuile Équipement : la Puissance, et les objets de réserve meilleurs que l'équipé s'il y en a.
+static func _gear_line() -> String:
+	var n := Profile.better_items("player").size()
+	if n > 0:
+		return "Puissance %d · %d objet%s mieux en réserve" % [Profile.power(), n, "s" if n > 1 else ""]
+	return "Puissance %d · %d objets" % [Profile.power(), (Profile.data["inventory"] as Array).size()]

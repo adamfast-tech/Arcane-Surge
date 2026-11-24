@@ -132,6 +132,15 @@ On y accède par une nouvelle salle d'Havre-Aube, par le bouton « Forge » de l
 
 ### Écrans touchés
 - **Équipement** : icônes en couleurs, emplacements de runes et leurs effets sur chaque objet, bouton « Runes », mention « Issu d'une fusion ».
+- **Comparaison avec l'équipé** (`Profile.compare_to_equipped`, `better_items`) :
+  - chaque objet de réserve est comparé à celui que porte le personnage affiché (toi ou un compagnon) au même emplacement ; pour les anneaux, au plus faible des deux ;
+  - le score d'un objet est la somme de ses stats (améliorations, affixes et runes de stats compris), et l'écart est donné en Puissance ;
+  - un objet meilleur a un cadre vert et un bandeau « Mieux que l'équipé · Puissance +N », ou « Emplacement libre » si rien n'est porté à cet endroit ;
+  - ces objets passent en tête de l'inventaire, le plus gros gain d'abord ;
+  - sous les stats de chaque objet, l'écart avec l'objet porté s'affiche stat par stat, en vert ou en rouge ;
+  - sur une pièce équipée, le bouton « N mieux » filtre l'inventaire sur cet emplacement ; les emplacements vides affichent aussi leur nombre ;
+  - la tuile Équipement d'Havre-Aube indique « N objets mieux en réserve » ;
+  - quand les deux anneaux sont portés, équiper un anneau remplace le plus faible.
 - **Fin de combat** : les runes gagnées apparaissent dans le butin, sur leur faisceau de rareté.
 - **Aperçus** : `?room=forge`, `&tab=fusion` ou `&tab=runes`, `&gear=1` (un assortiment d'objets et de runes).
 
