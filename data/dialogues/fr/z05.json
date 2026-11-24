@@ -57,9 +57,833 @@
    "title": "???",
    "color": "B07CFF",
    "portrait": "voix"
+  },
+  "thalren": {
+   "name": "Thalren",
+   "title": "Collège Arcanique",
+   "color": "B89CFF",
+   "portrait": "thalren"
+  },
+  "sphinx": {
+   "name": "Le Sphinx de verre",
+   "title": "Gardien du Collège",
+   "color": "CFE8F0",
+   "portrait": "sphinx"
   }
  },
- "scenes": {},
+ "scenes": {
+  "z05_l01_intro": {
+   "art": "dunes",
+   "subject": "glass_scarab",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Au pied des Pics, le monde change de couleur. Le Désert de Verre s'étend jusqu'à l'horizon : des dunes d'or, et du verre partout où la foudre de la Fracture a frappé le sable."
+    },
+    {
+     "who": "ysolde",
+     "text": "C'est ici que je vous laisse. Les Runistes avaient une école dans ce désert, mais elle n'est pas pour moi.",
+     "art": "pics"
+    },
+    {
+     "who": "ysolde",
+     "text": "Un conseil : au soleil, le Feu brûle plus fort. À la lune, le Givre mord plus fort. Le désert ne fait de cadeau à personne.",
+     "art": "pics"
+    },
+    {
+     "who": "brann",
+     "text": "Merci pour tout, l'elfe. Même pour les remarques sur mes bottes.",
+     "mood": "joie",
+     "art": "pics"
+    },
+    {
+     "who": "narrateur",
+     "text": "Ysolde repart vers les cols. Devant vous, le sable crisse, et quelque chose de brillant remue sous la surface."
+    },
+    {
+     "who": "sylwen",
+     "text": "Des scarabées… en verre. Ils sortent du sable par centaines.",
+     "mood": "surpris"
+    },
+    {
+     "who": "nyx",
+     "text": "Trois cents ans de chaleur et de magie brute. Même les insectes ont fini par cristalliser."
+    }
+   ]
+  },
+  "z05_l01_outro": {
+   "art": "dunes",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Les scarabées éclatent en mille éclats. Sur la dune voisine, un homme en robe violette les observe, une plume à la main."
+    },
+    {
+     "who": "thalren",
+     "text": "Remarquable. Vous les avez fait éclater dans le bon ordre : le Givre d'abord, puis le reste. On vous a bien formés."
+    },
+    {
+     "who": "thalren",
+     "text": "Thalren, du Collège Arcanique. Je cherche les ruines du premier Collège, celui que la Fracture a enterré."
+    },
+    {
+     "who": "thalren",
+     "text": "Un Mage ! Enfin quelqu'un qui saura apprécier les ruines à leur juste valeur, confrère.",
+     "mood": "joie",
+     "only": {
+      "class": [
+       "mage"
+      ]
+     }
+    },
+    {
+     "who": "brann",
+     "text": "Le Collège Arcanique ? Ceux qui veulent « dompter » le Surge ? Je n'ai jamais vu un orage obéir à qui que ce soit."
+    },
+    {
+     "who": "thalren",
+     "text": "Comprendre avant de dompter. Et pour comprendre, il faut lire ce que les anciens ont laissé. Votre Sceau m'intéresse, Porteur. Marchons ensemble.",
+     "mood": "joie"
+    }
+   ]
+  },
+  "z05_l02_intro": {
+   "art": "dunes",
+   "subject": "sand_jackal",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "L'air tremble au-dessus du sable. Un portail scintille au loin… puis un deuxième, au même endroit."
+    },
+    {
+     "who": "thalren",
+     "text": "Des mirages. La chaleur ne trompe pas seulement les yeux : ici, elle trompe aussi la magie."
+    },
+    {
+     "who": "sylwen",
+     "text": "Un portail qui ondule trop n'en est pas un. Approche une invocation, ou lance Purifier : le mirage se dissipera."
+    },
+    {
+     "who": "krag",
+     "text": "Des chacals. Petits, rapides, lâches. Je les déteste déjà.",
+     "if": "s1.krag_allie"
+    }
+   ]
+  },
+  "z05_l02_outro": {
+   "art": "dunes",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Le dernier mirage se dissipe. Mais à sa place, pendant un battement de cœur, le sable dessine une autre image."
+    },
+    {
+     "who": "narrateur",
+     "text": "Un jeune homme en robe du Collège marche sur la dune. Une femme rit à côté de lui, et il la regarde comme on regarde le soleil."
+    },
+    {
+     "who": "porteur",
+     "text": "…",
+     "mood": "surpris"
+    },
+    {
+     "who": "narrateur",
+     "text": "Puis le sable retombe, et il n'y a plus personne."
+    },
+    {
+     "who": "sylwen",
+     "text": "Tu l'as vu aussi ? Ce n'était pas un mirage ordinaire. Ton Sceau a brillé.",
+     "mood": "surpris"
+    },
+    {
+     "who": "thalren",
+     "text": "Le désert garde des échos. Votre Sceau les réveille, apparemment. Fascinant… et un peu inquiétant."
+    }
+   ]
+  },
+  "z05_l03_intro": {
+   "art": "oasis",
+   "subject": "solar_priestess",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Une oasis, enfin : des palmiers, une eau turquoise, et un temple de pierre blanche. Mais l'accueil n'a rien de paisible."
+    },
+    {
+     "who": "thalren",
+     "text": "Les Prêtresses solaires. Elles gardent les abords du Collège depuis la Fracture, et ne laissent passer personne."
+    },
+    {
+     "who": "sylwen",
+     "text": "Elles soignent le Nexus, et plus fort quand le soleil est haut. Abats-les en premier."
+    },
+    {
+     "who": "nyx",
+     "text": "Une secte du soleil. Je sens que nous n'allons pas nous entendre.",
+     "mood": "colere"
+    }
+   ]
+  },
+  "z05_l03_outro": {
+   "art": "oasis",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "La plus vieille des prêtresses lâche son bâton. Ses yeux sont blancs, brûlés par trois siècles de soleil."
+    },
+    {
+     "who": "narrateur",
+     "text": "« Le Collège a brûlé le jour où le ciel s'est déchiré », dit-elle. « Un élève l'avait réveillé. Nous gardons la porte pour qu'il ne revienne jamais. »"
+    },
+    {
+     "who": "sylwen",
+     "text": "Un élève ? Un seul élève a déchiré le ciel ?",
+     "mood": "surpris"
+    },
+    {
+     "who": "thalren",
+     "text": "Les légendes du Collège parlent d'un prodige. Le plus doué de sa génération. Son nom a été effacé de tous les registres."
+    },
+    {
+     "who": "nyx",
+     "text": "Comme les noms sur les tombes de Brann. Les gens adorent effacer ce qui les effraie."
+    },
+    {
+     "who": "brann",
+     "text": "Hé. Ce sujet est clos.",
+     "mood": "colere"
+    }
+   ]
+  },
+  "z05_l04_intro": {
+   "art": "miroirs",
+   "subject": "glass_mirror",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Le chemin du Collège passe entre deux immenses miroirs de verre, plantés dans le sable comme des sentinelles."
+    },
+    {
+     "who": "thalren",
+     "text": "Les Miroirs du Collège. Ils renvoient les tirs, et le jour, ils projettent le soleil en rayons. La nuit, ils s'éteignent."
+    },
+    {
+     "who": "brann",
+     "text": "Des tireurs qui se tirent dessus tout seuls. Brise-les au corps à corps, {pseudo}, et de nuit si tu peux."
+    }
+   ]
+  },
+  "z05_l04_outro": {
+   "art": "miroirs",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Un des miroirs tient encore debout, fendu de haut en bas. Tu t'en approches. Ton reflet s'en approche aussi."
+    },
+    {
+     "who": "narrateur",
+     "text": "Puis ton reflet s'arrête. Toi, tu avances encore d'un pas."
+    },
+    {
+     "who": "narrateur",
+     "text": "Dans le verre, ton reflet sourit. Tu ne souris pas."
+    },
+    {
+     "who": "porteur",
+     "text": "…",
+     "mood": "surpris"
+    },
+    {
+     "who": "thalren",
+     "text": "Les miroirs du Collège gardent les images. Celui-ci a gardé… autre chose. Éloignez-vous, s'il vous plaît.",
+     "mood": "surpris"
+    },
+    {
+     "who": "nyx",
+     "text": "J'ai déjà vu des choses bizarres. Celle-là, je ne l'aime pas du tout.",
+     "mood": "triste"
+    },
+    {
+     "who": "narrateur",
+     "text": "Quand tu te retournes, le miroir n'est plus qu'un tas d'éclats."
+    }
+   ]
+  },
+  "z05_l05_intro": {
+   "art": "dunes",
+   "subject": "sun_scarab",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "La dune entière se soulève. Un scarabée immense pousse devant lui une boule de verre en fusion, aussi éclatante qu'un second soleil."
+    },
+    {
+     "who": "thalren",
+     "text": "Le Scarabée-soleil. Les prêtresses disent qu'il roule le soleil d'un bout du ciel à l'autre."
+    },
+    {
+     "who": "sylwen",
+     "text": "Quand sa carapace s'embrase, seul le Givre la traverse ! Et méfie-toi : il peut rappeler le plein jour."
+    },
+    {
+     "who": "krag",
+     "text": "Un insecte qui pousse un soleil. J'aurai tout vu.",
+     "if": "s1.krag_allie"
+    }
+   ]
+  },
+  "z05_l05_outro": {
+   "art": "dunes",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Le soleil de verre se fend, puis s'éteint. Le Scarabée-soleil s'effondre dans le sable, et le vrai soleil semble pâlir un instant."
+    },
+    {
+     "who": "voix",
+     "text": "Le Collège… J'y ai appris que le temps n'est qu'une page, Porteur.",
+     "mood": "joie"
+    },
+    {
+     "who": "voix",
+     "text": "Et qu'on peut la tourner à l'envers. Tu le sauras bientôt, toi aussi.",
+     "mood": "triste"
+    },
+    {
+     "who": "sylwen",
+     "text": "Encore elle. Elle nous suit depuis le Bois des Lucioles.",
+     "mood": "colere"
+    },
+    {
+     "who": "thalren",
+     "text": "Une voix dans le Surge, qui parle du Collège… Personne au Collège Arcanique ne m'a jamais parlé de ça.",
+     "mood": "surpris"
+    },
+    {
+     "who": "brann",
+     "text": "Bienvenue dans l'équipe. Ici, les voix qui parlent toutes seules, c'est le mardi.",
+     "mood": "joie"
+    }
+   ]
+  },
+  "z05_l06_intro": {
+   "art": "dunes",
+   "subject": "desert_caravan",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Une caravane de marchands attend au pied d'une dune, ses chameaux chargés de tapis et de jarres."
+    },
+    {
+     "who": "narrateur",
+     "text": "Leur chef s'avance : « Le Collège ? Nous y livrions de l'eau, autrefois, avant que le sable ne tourne au verre. Escortez-nous et nous vous y mènerons. »"
+    },
+    {
+     "who": "thalren",
+     "text": "Une carte vivante. Excellent. Protégez la caravane : les chacals la guettent, et les mirages trompent les guides."
+    }
+   ]
+  },
+  "z05_l06_outro": {
+   "art": "college",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "La caravane passe la dernière dune. En contrebas, à moitié enterré, se dresse le premier Collège : des dômes de verre fendus, des colonnes, et un silence de trois siècles."
+    },
+    {
+     "who": "narrateur",
+     "text": "Le chef des marchands vous salue et repart aussitôt. Personne ne veut camper ici."
+    },
+    {
+     "who": "thalren",
+     "text": "Le premier Collège… J'ai passé vingt ans à chercher cet endroit.",
+     "mood": "joie"
+    },
+    {
+     "who": "nyx",
+     "text": "Des milliers d'élèves. Et pas un seul n'est parti. Je les entends d'ici.",
+     "mood": "triste"
+    },
+    {
+     "who": "krag",
+     "text": "Des fantômes ? Est-ce que la hache marche sur les fantômes ?",
+     "if": "s1.krag_allie"
+    },
+    {
+     "who": "nyx",
+     "text": "Sur ceux-là, non. Laisse-moi faire.",
+     "if": "s1.krag_allie"
+    }
+   ]
+  },
+  "z05_l07_intro": {
+   "art": "desert_nuit",
+   "subject": "college_specter",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "La nuit tombe d'un coup sur les ruines. Dans les cours du Collège, des silhouettes en robe se lèvent, transparentes, un livre à la main."
+    },
+    {
+     "who": "nyx",
+     "text": "Les élèves. Ils sont restés là depuis la Fracture. Ils lancent des sorts, puis se dématérialisent pour réapparaître plus près."
+    },
+    {
+     "who": "sylwen",
+     "text": "La nuit, ton Givre mord plus fort. Profites-en avant l'aube !"
+    }
+   ]
+  },
+  "z05_l07_outro": {
+   "art": "desert_nuit",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Les spectres s'arrêtent, un à un. L'un d'eux, un garçon pas plus vieux que Corvin, se tourne vers Nyx."
+    },
+    {
+     "who": "narrateur",
+     "text": "« Il voulait la ramener », murmure-t-il. « Il a ouvert le temps comme on ouvre un livre. Et nous sommes tous tombés dedans. »"
+    },
+    {
+     "who": "nyx",
+     "text": "Ils me demandent de les laisser partir. Je peux le faire. Je peux aussi leur demander ce qu'ils ont vu.",
+     "mood": "triste"
+    },
+    {
+     "choice": "z05_l07",
+     "prompt": "Les élèves du Collège",
+     "options": [
+      {
+       "key": "A",
+       "text": "« Libère-les, Nyx. Ils ont assez attendu. »",
+       "effects": {
+        "set": [
+         "s1.eleves_liberes"
+        ],
+        "add": {
+         "loy.nyx": 10,
+         "loy.sylwen": 5
+        }
+       },
+       "then": [
+        {
+         "who": "narrateur",
+         "text": "Nyx ouvre les mains. Les spectres montent vers les étoiles, comme des lucioles d'argent."
+        },
+        {
+         "who": "nyx",
+         "text": "Merci. Ce n'est pas tous les jours qu'on me demande d'être douce.",
+         "mood": "joie"
+        },
+        {
+         "who": "sylwen",
+         "text": "C'était beau, Nyx. Vraiment.",
+         "mood": "joie"
+        }
+       ]
+      },
+      {
+       "key": "B",
+       "text": "« Demande-leur ce qu'ils savent d'abord. »",
+       "effects": {
+        "set": [
+         "s1.eleves_interroges"
+        ],
+        "add": {
+         "loy.nyx": -5
+        }
+       },
+       "then": [
+        {
+         "who": "nyx",
+         "text": "…Comme tu veux.",
+         "mood": "triste"
+        },
+        {
+         "who": "narrateur",
+         "text": "Les spectres parlent tous en même temps. Un nom revient, que personne ne prononce jusqu'au bout : « l'archimage », « le prodige », « M… »."
+        },
+        {
+         "who": "narrateur",
+         "text": "Et une date : l'aube de la Fracture, quand une étudiante nommée Liriel est morte dans l'incendie de la bibliothèque."
+        },
+        {
+         "who": "thalren",
+         "text": "Liriel… Ce nom est dans nos archives. Une élève brillante. Morte jeune, c'est tout ce qu'on en dit.",
+         "mood": "surpris"
+        },
+        {
+         "who": "narrateur",
+         "text": "Puis les spectres s'effacent d'eux-mêmes, épuisés."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "z05_l08_intro": {
+   "art": "college",
+   "subject": "solar_priestess",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Les grandes portes du Collège sont couvertes de sceaux de corruption. Un miroir garde l'entrée, et deux prêtresses chantent devant le Nexus."
+    },
+    {
+     "who": "thalren",
+     "text": "Deux sceaux. Faites passer des invocations de Lumière par chacun d'eux, ou lancez Purifier. Le Nexus sera exposé."
+    },
+    {
+     "who": "brann",
+     "text": "Encore des portes fermées. Après les Pics, j'ai l'habitude."
+    }
+   ]
+  },
+  "z05_l08_outro": {
+   "art": "college",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Les sceaux éclatent, et les portes du Collège s'ouvrent dans un grand souffle de sable chaud."
+    },
+    {
+     "who": "narrateur",
+     "text": "À l'intérieur, tout est resté tel quel : des pupitres, des encriers secs, des sabliers figés à mi-course. Le sable n'a jamais fini de couler."
+    },
+    {
+     "who": "thalren",
+     "text": "Les sabliers… Ils se sont tous arrêtés au même instant. L'aube de la Fracture.",
+     "mood": "surpris"
+    },
+    {
+     "who": "sylwen",
+     "text": "Comme si le temps s'était cassé ici, et nulle part ailleurs.",
+     "mood": "triste"
+    },
+    {
+     "who": "brann",
+     "text": "Ne touche à rien, {pseudo}. La dernière fois que quelqu'un a touché à quelque chose ici, le monde s'est déchiré."
+    }
+   ]
+  },
+  "z05_l09_intro": {
+   "art": "college",
+   "subject": "crystal_scorpion",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Au cœur du Collège, deux Nexus ont poussé dans la grande cour, gardés par des scorpions de cristal et des miroirs."
+    },
+    {
+     "who": "thalren",
+     "text": "Le bureau de l'archimage est derrière ces Nexus. Si quelque chose a survécu, c'est là."
+    },
+    {
+     "who": "nyx",
+     "text": "Les scorpions renvoient une partie des tirs. Corps à corps, et ne les laisse pas approcher de la Barrière."
+    }
+   ]
+  },
+  "z05_l09_outro": {
+   "art": "college",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Les Nexus s'effondrent. Dans le bureau de l'archimage, sous une cloche de verre intacte, repose un carnet relié de cuir noir."
+    },
+    {
+     "who": "narrateur",
+     "text": "Sur la couverture, une seule lettre, tracée à l'encre violette : « M. »"
+    },
+    {
+     "who": "thalren",
+     "text": "Le journal du prodige. Celui dont le nom a été effacé.",
+     "mood": "surpris"
+    },
+    {
+     "who": "thalren",
+     "text": "Écoutez-moi. Le Collège a brûlé une fois à cause de ce qui est écrit là-dedans. Il y a des savoirs qu'on ne lit pas : on les brûle.",
+     "mood": "colere"
+    },
+    {
+     "who": "nyx",
+     "text": "Ou on les lit, pour ne pas refaire les mêmes erreurs. Ignorer, ce n'est pas protéger.",
+     "mood": "colere"
+    },
+    {
+     "who": "sylwen",
+     "text": "Ce carnet me donne froid dans le dos, {pseudo}. Mais c'est à toi de décider."
+    },
+    {
+     "who": "brann",
+     "text": "Moi, je veux juste savoir pourquoi mon clan a dû fermer ses portes. Si la réponse est là-dedans…",
+     "mood": "triste"
+    },
+    {
+     "choice": "z05_l09",
+     "prompt": "Le Journal",
+     "options": [
+      {
+       "key": "A",
+       "text": "Lire le Journal",
+       "effects": {
+        "set": [
+         "s1.journal_lu"
+        ],
+        "add": {
+         "fragments": 1,
+         "corruption": 10,
+         "loy.nyx": 5,
+         "loy.sylwen": -5
+        }
+       },
+       "then": [
+        {
+         "who": "narrateur",
+         "text": "Les pages sont couvertes d'une écriture fine, de plus en plus serrée au fil des jours."
+        },
+        {
+         "who": "narrateur",
+         "text": "« Liriel est morte à l'aube. Le Sceau d'Écho dit que l'aube peut revenir. Il suffit de remonter le fil, une fois, juste une fois. »"
+        },
+        {
+         "who": "narrateur",
+         "text": "« Le Sceau a un prix. Chaque fois que je remonte, quelque chose de moi reste en arrière. Peu importe. Elle vaut tous les prix. »"
+        },
+        {
+         "who": "narrateur",
+         "text": "La dernière page n'est qu'une phrase, répétée jusqu'en bas : « Encore une fois. Encore une fois. Encore une fois. »"
+        },
+        {
+         "who": "thalren",
+         "text": "Un Porteur d'Écho… Le prodige du Collège portait le même Sceau que vous.",
+         "mood": "surpris"
+        },
+        {
+         "who": "nyx",
+         "text": "Il voulait sauver quelqu'un. C'est presque… triste.",
+         "mood": "triste"
+        },
+        {
+         "who": "narrateur",
+         "text": "Une page s'est détachée du carnet et s'est glissée dans ta main : un Fragment de Morvaen. Les énigmes du Sphinx n'auront plus de secret pour toi."
+        }
+       ]
+      },
+      {
+       "key": "B",
+       "text": "Brûler le Journal",
+       "effects": {
+        "set": [
+         "s1.journal_brule",
+         "s1.thalren_confiance"
+        ],
+        "add": {
+         "corruption": -5,
+         "loy.sylwen": 5,
+         "loy.nyx": -5
+        }
+       },
+       "then": [
+        {
+         "who": "narrateur",
+         "text": "Le carnet s'embrase d'un coup, d'une flamme violette, comme s'il n'attendait que ça."
+        },
+        {
+         "who": "thalren",
+         "text": "Merci. Vraiment. Peu de Porteurs auraient résisté à la tentation.",
+         "mood": "joie"
+        },
+        {
+         "who": "thalren",
+         "text": "Le Collège Arcanique se souviendra de ce geste. Et moi, je me tiendrai à vos côtés devant le Sphinx.",
+         "mood": "joie"
+        },
+        {
+         "who": "nyx",
+         "text": "On ne saura jamais ce qu'il y avait dedans. C'est peut-être le plus dangereux.",
+         "mood": "triste"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "z05_l10_intro": {
+   "art": "sphinx",
+   "subject": "glass_sphinx",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Sous le Collège, une salle immense taillée dans le verre. Au centre, couché devant une porte scellée, un sphinx de cristal ouvre les yeux."
+    },
+    {
+     "who": "sphinx",
+     "text": "Un Porteur. Il y a trois siècles que je n'en ai pas vu. Le dernier n'a pas su répondre à mes questions."
+    },
+    {
+     "who": "sphinx",
+     "text": "Entre deux souffles, je poserai mes énigmes. Envoie tes invocations par la porte de la bonne réponse… si tu la connais."
+    },
+    {
+     "who": "thalren",
+     "text": "Une bonne réponse l'expose, une mauvaise le renforce. Et il est d'Ombre : la Lumière le blesse davantage."
+    },
+    {
+     "who": "thalren",
+     "text": "Je tiendrai la Barrière avec vous, comme promis.",
+     "mood": "joie",
+     "if": "s1.thalren_confiance"
+    },
+    {
+     "who": "nyx",
+     "text": "Avec ce qu'il y avait dans le Journal, ses énigmes ne devraient pas nous résister longtemps.",
+     "if": "s1.journal_lu"
+    }
+   ]
+  },
+  "z05_l10_outro": {
+   "art": "sphinx",
+   "subject": "glass_sphinx",
+   "subject_tint": "a8b8d8",
+   "lines": [
+    {
+     "who": "narrateur",
+     "text": "Le Sphinx se couche, fendu de mille éclats. Sa voix n'est plus qu'un murmure de verre."
+    },
+    {
+     "who": "sphinx",
+     "text": "Tu as gagné le droit à la dernière énigme, Porteur. Elle est simple. Qui es-tu ?"
+    },
+    {
+     "who": "thalren",
+     "text": "Prudence. Le Sphinx garde la mémoire du Collège. Ce que vous lui direz, il ne l'oubliera jamais."
+    },
+    {
+     "who": "sylwen",
+     "text": "Le Grand Cerf nous avait dit de ne jamais oublier qui porte le Sceau. Mais il ne nous a pas dit qui devait le savoir."
+    },
+    {
+     "choice": "z05_l10",
+     "major": true,
+     "prompt": "L'énigme du Sphinx",
+     "options": [
+      {
+       "key": "A",
+       "text": "Révéler ton Sceau d'Écho",
+       "effects": {
+        "set": [
+         "s1.sceau_revele",
+         "s1.faiblesse_morvaen"
+        ],
+        "add": {
+         "rep.archivistes": 10
+        }
+       },
+       "then": [
+        {
+         "who": "narrateur",
+         "text": "Tu lèves la main. Le Sceau d'Écho s'illumine, et toute la salle de verre se met à chanter."
+        },
+        {
+         "who": "sphinx",
+         "text": "Alors c'est toi. Le prochain.",
+         "mood": "surpris"
+        },
+        {
+         "who": "sphinx",
+         "text": "Écoute bien, car je ne le dirai qu'une fois. Celui qui a brisé le temps n'a gardé qu'un souvenir intact : le visage de celle qu'il a voulu sauver."
+        },
+        {
+         "who": "sphinx",
+         "text": "Le jour où tu lui feras face, montre-lui ce visage. Sa main tremblera."
+        },
+        {
+         "who": "thalren",
+         "text": "« Le prochain »… Qu'est-ce qu'il a voulu dire ?",
+         "mood": "surpris"
+        },
+        {
+         "who": "narrateur",
+         "text": "Mais le Sphinx s'est tu pour toujours."
+        }
+       ]
+      },
+      {
+       "key": "B",
+       "text": "Mentir : « Un simple Canalisateur »",
+       "effects": {
+        "set": [
+         "s1.sphinx_mensonge"
+        ],
+        "add": {
+         "rep.archivistes": -10
+        }
+       },
+       "then": [
+        {
+         "who": "sphinx",
+         "text": "Un simple Canalisateur. Comme c'est commode.",
+         "mood": "colere"
+        },
+        {
+         "who": "sphinx",
+         "text": "Alors le Collège te traitera comme tel. Et ceux qui gardent les Archives du Temps sauront que tu m'as menti."
+        },
+        {
+         "who": "narrateur",
+         "text": "Le Sphinx s'éteint. Quelque part, très loin, un scribe écaille trace une ligne dans un registre."
+        },
+        {
+         "who": "nyx",
+         "text": "Tu sais mentir à un sphinx. Je suis impressionnée. Et un peu inquiète.",
+         "mood": "joie"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "who": "thalren",
+     "text": "Je rentre à Havre-Aube avec ce que nous avons appris. Le Collège Arcanique doit savoir ce qui s'est passé ici.",
+     "subject": ""
+    },
+    {
+     "who": "thalren",
+     "text": "Et merci d'avoir brûlé ce journal. J'ignore ce qu'il contenait, et je dors mieux ainsi.",
+     "mood": "joie",
+     "if": "s1.journal_brule"
+    },
+    {
+     "who": "thalren",
+     "text": "Et ce journal… Gardez cette page loin des curieux. Moi le premier.",
+     "mood": "triste",
+     "if": "s1.journal_lu"
+    },
+    {
+     "who": "narrateur",
+     "text": "Acte 5 terminé : le Collège oublié. Au sud-est, le ciel rougeoie : la Forêt Cendrée brûle, et l'on dit que les dragons sont revenus.",
+     "art": "dunes"
+    },
+    {
+     "who": "brann",
+     "text": "Des dragons. Après un sphinx, pourquoi pas.",
+     "art": "dunes"
+    },
+    {
+     "who": "krag",
+     "text": "Enfin un ennemi à ma taille.",
+     "mood": "joie",
+     "art": "dunes",
+     "if": "s1.krag_allie"
+    }
+   ]
+  }
+ },
  "barks": {
   "start": [
    {
@@ -87,6 +911,23 @@
    {
     "who": "nyx",
     "text": "Le Collège… Il y a des secrets enterrés ici. Je les sens."
+   },
+   {
+    "who": "nyx",
+    "text": "Ce journal… J'y pense encore. Pas toi ?",
+    "mood": "triste",
+    "if": "s1.journal_lu"
+   },
+   {
+    "who": "sylwen",
+    "text": "Tu as bien fait de brûler ce carnet. Le désert est déjà assez chaud.",
+    "if": "s1.journal_brule"
+   },
+   {
+    "who": "nyx",
+    "text": "Les élèves sont partis en paix. Ça me donne envie de me battre pour eux.",
+    "mood": "joie",
+    "if": "s1.eleves_liberes"
    }
   ],
   "barrier_low": [
@@ -212,6 +1053,11 @@
      "who": "sylwen",
      "text": "Un Sphinx… Il pose des énigmes. Réfléchis avant d'envoyer tes troupes !",
      "mood": "surpris"
+    },
+    {
+     "who": "brann",
+     "text": "Un sphinx qui pose des devinettes. Si je réponds « une enclume », j'ai une chance ?",
+     "mood": "joie"
     }
    ],
    "boss_phase": [

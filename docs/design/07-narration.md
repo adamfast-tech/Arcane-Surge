@@ -44,6 +44,8 @@ Les drapeaux sont rangés par saison (`s1.*`, `s2.*`) pour que l'histoire puisse
 
 > Zone 3 mise en œuvre à l'étape 12.2 : voir [`22-narration-zone3.md`](22-narration-zone3.md). Les deux voies de 3-10 ouvrent la branche « Voie du Surge » ; sa Clé de voûte dépend de la voie choisie.
 >
+> Zone 5 mise en œuvre à l'étape 15.2 : voir [`34-narration-zone5.md`](34-narration-zone5.md). 5-9 A donne le 1er Fragment de Morvaen et des énigmes plus faciles ; 5-9 B, le bouclier de Thalren devant le Sphinx ; ✦ 5-10 A pose `s1.faiblesse_morvaen`.
+>
 > Zone 4 mise en œuvre à l'étape 14.2 : voir [`32-narration-zone4.md`](32-narration-zone4.md). L'option [Nain] de 4-9 a une variante [Brann · loyauté 60] pour les autres races ; ✦ 4-10 A pose `s1.colosse_allie` pour le combat final.
 
 > Zone 2 mise en œuvre à l'étape 11.2 : voir [`17-narration-zone2.md`](17-narration-zone2.md). Effet de 2-9 en 2-10 : Ambreval défendu donne Barrière +25, le campement défendu fait commencer Gharok à 90 %, le Traité négocié donne les deux.

@@ -32,6 +32,8 @@ static func plate(kind: String, size: Vector2i) -> ImageTexture:
 			_pics(img, rng, kind)
 		"forge":
 			_forge(img, rng)
+		"dunes", "oasis", "miroirs", "college", "desert_nuit", "sphinx":
+			_desert(img, rng, kind)
 		_:
 			_forest(img, rng, kind)
 	var tex := ImageTexture.create_from_image(img)
@@ -859,6 +861,167 @@ static func _forge(img: Image, rng: RandomNumberGenerator) -> void:
 	for i in range(int(w * h / 900.0)):
 		var p := Vector2(rng.randf_range(w * 0.1, w * 0.9), rng.randf_range(h * 0.2, h * 0.7))
 		_px(img, int(p.x), int(p.y), Color("ffd070") if rng.randf() < 0.5 else Color("ff8a3a"))
+
+
+# ---------------------------------------------------------------- acte 5 · Désert de Verre
+
+## Dune : une bosse de sable claire au sommet, ombrée sur le flanc gauche.
+static func _dune(img: Image, cx: int, base: int, hw: int, hgt: int, body: Color, lit: Color) -> void:
+	for x in range(cx - hw, cx + hw + 1):
+		var k := float(x - cx) / float(maxi(1, hw))
+		var top := base - int(float(hgt) * (1.0 - k * k) * (1.0 - 0.25 * k))
+		for y in range(top, base + 1):
+			_px(img, x, y, lit if k > -0.15 and y < top + 3 else body)
+
+
+## Désert de Verre et ses variantes : dunes (plein jour), oasis, miroirs (crépuscule), college (ruines),
+## desert_nuit (nuit des spectres), sphinx (salle de verre sous le Collège).
+static func _desert(img: Image, rng: RandomNumberGenerator, kind: String) -> void:
+	var w := img.get_width()
+	var h := img.get_height()
+	if kind == "sphinx":
+		_sphinx_hall(img, rng)
+		return
+	match kind:
+		"desert_nuit":
+			_sky(img, rng, [[0.0, Color("0a0a20")], [0.5, Color("1a1a40")], [0.66, Color("3a3060")], [1.0, Color("2a2440")]], 1.4)
+			_moon(img, int(w * 0.75), int(h * 0.15), maxi(5, int(minf(w, h) * 0.045)))
+		"miroirs":
+			_sky(img, rng, [[0.0, Color("2a1a48")], [0.35, Color("8a4a6a")], [0.55, Color("f29a5a")], [0.66, Color("ffd090")], [1.0, Color("8a5a3a")]], 0.4)
+		_:
+			_sky(img, rng, [[0.0, Color("2a5a9a")], [0.4, Color("6a9ad0")], [0.6, Color("f0d8a0")], [1.0, Color("c89a5a")]], 0.0)
+	if kind in ["dunes", "oasis", "college"]:
+		var sx := int(w * 0.24)
+		var sy := int(h * 0.2)
+		var sr := maxi(5, int(minf(w, h) * 0.06))
+		for r in range(sr * 3, sr, -1):
+			_disc(img, sx, sy, r, Color(1.0, 0.9, 0.6, 0.035))
+		_disc(img, sx, sy, sr, Color("fff4d0"))
+	var night := kind == "desert_nuit"
+	var far := Color("4a3a5a") if night else Color("d8a860")
+	var near := Color("2a2440") if night else Color("c8904a")
+	var lit := Color("6a5a8a") if night else Color("f2d090")
+	for i in range(maxi(3, int(w / 90.0))):
+		_dune(img, rng.randi_range(-20, w + 20), int(h * 0.62), rng.randi_range(int(w * 0.18), int(w * 0.32)), rng.randi_range(int(h * 0.08), int(h * 0.16)), far, lit)
+	var ground := int(h * 0.66)
+	img.fill_rect(Rect2i(0, ground, w, h - ground), near)
+	for i in range(maxi(3, int(w / 110.0))):
+		_dune(img, rng.randi_range(-30, w + 30), h, rng.randi_range(int(w * 0.2), int(w * 0.35)), rng.randi_range(int(h * 0.12), int(h * 0.24)), near, lit.darkened(0.1))
+	match kind:
+		"oasis":
+			# Eau turquoise, palmiers et temple blanc.
+			var wy := int(h * 0.7)
+			for y in range(wy, wy + int(h * 0.08)):
+				var half := int(w * 0.22 * (1.0 - absf(float(y - wy - int(h * 0.04))) / (h * 0.05)))
+				img.fill_rect(Rect2i(int(w * 0.5) - half, y, half * 2, 1), Color("3fc1c9"))
+			for k in range(4):
+				var px := int(w * (0.22 + 0.18 * float(k)))
+				var ph := int(h * (0.18 + 0.04 * float(k % 2)))
+				for y in range(wy - ph, wy + 2):
+					var tx := px + int(sin(float(y) * 0.08) * 2.0)
+					_px(img, tx, y, Color("6a4a2a"))
+					_px(img, tx + 1, y, Color("8a6a3a"))
+				# Palmes : arcs épais qui retombent.
+				var fr := maxi(6, int(w * 0.07))
+				for a in range(7):
+					var t := -PI + float(a) * PI / 6.0
+					for r in range(fr):
+						var fx := px + int(cos(t) * float(r))
+						var fy := wy - ph + int(sin(t) * float(r) * 0.45) + (r * r) / (fr * 2)
+						_px(img, fx, fy, Color("3f7a3a"))
+						_px(img, fx, fy + 1, Color("2e5a2a"))
+						if r % 3 == 0:
+							_px(img, fx, fy + 2, Color("4f8a3a"))
+			img.fill_rect(Rect2i(int(w * 0.66), int(h * 0.5), int(w * 0.16), int(h * 0.16)), Color("f4f1e8"))
+			for c in range(4):
+				img.fill_rect(Rect2i(int(w * 0.67) + c * int(w * 0.04), int(h * 0.5), 2, int(h * 0.16)), Color("c8c0a8"))
+			_disc(img, int(w * 0.74), int(h * 0.48), maxi(3, int(w * 0.03)), Color("e6c15a"))
+		"miroirs":
+			# Deux grands miroirs plantés dans le sable, qui renvoient le couchant.
+			for k in range(2):
+				var mx := int(w * (0.3 + 0.4 * float(k)))
+				var mh := int(h * 0.36)
+				var mw := maxi(6, int(w * 0.07))
+				var my := int(h * 0.68) - mh
+				img.fill_rect(Rect2i(mx - mw / 2 - 2, my - 2, mw + 4, mh + 4), Color("8a5a2b"))
+				for y in range(my, my + mh):
+					for x in range(mx - mw / 2, mx + mw / 2):
+						var kk := float(y - my) / float(mh)
+						_px(img, x, y, Color("ffd8a0").lerp(Color("bfe6f0"), kk))
+				for d in range(mh / 2):
+					_px(img, mx - mw / 2 + 2 + d / 4, my + 3 + d, Color(1, 1, 1, 0.7))
+				_glow_px(img, mx, my + mh / 3, mw, Color("ffe0a0"), 0.25)
+		"college":
+			# Le premier Collège à moitié enterré : dômes fendus, colonnes, éclats de verre.
+			var cb := int(h * 0.68)
+			for c in range(6):
+				var cx := int(w * (0.2 + 0.12 * float(c)))
+				var chh := int(h * (0.14 + 0.06 * float((c * 5) % 3)))
+				img.fill_rect(Rect2i(cx, cb - chh, maxi(3, int(w * 0.025)), chh), Color("e8dcc0"))
+				img.fill_rect(Rect2i(cx - 1, cb - chh, maxi(5, int(w * 0.035)), 2), Color("c8b890"))
+			for k in range(2):
+				var dx := int(w * (0.36 + 0.3 * float(k)))
+				var dr := int(w * (0.1 - 0.03 * float(k)))
+				for y in range(-dr, 1):
+					var half := int(sqrt(float(dr * dr - y * y)))
+					for x in range(-half, half + 1):
+						var cut := x > half / 3 and y < -dr / 3 and k == 0
+						if not cut:
+							_px(img, dx + x, cb - int(h * 0.2) + y, Color("bfe6f0") if (x + y) % 5 != 0 else Color("e8ffff"))
+			for i in range(int(w / 12.0)):
+				_px(img, rng.randi_range(0, w - 1), rng.randi_range(cb, h - 1), Color("9ff0f0"))
+		"desert_nuit":
+			# Ruines et spectres d'élèves, translucides, un livre à la main.
+			var cb := int(h * 0.7)
+			for c in range(5):
+				var cx := int(w * (0.15 + 0.17 * float(c)))
+				img.fill_rect(Rect2i(cx, cb - int(h * 0.16), maxi(3, int(w * 0.025)), int(h * 0.16)), Color("3a3458"))
+			for k in range(5):
+				var gx := rng.randi_range(int(w * 0.1), int(w * 0.9))
+				var gy := rng.randi_range(int(h * 0.6), int(h * 0.85))
+				_glow_px(img, gx, gy, maxi(4, int(w * 0.03)), Color("a898e0"), 0.4)
+				_disc(img, gx, gy - 3, 2, Color(0.85, 0.8, 1.0, 0.7))
+				for y in range(gy - 1, gy + 6):
+					for x in range(gx - 2 + (y - gy) / 3, gx + 3 - (y - gy) / 3):
+						_px(img, x, y, Color(0.7, 0.62, 0.95, 0.5))
+		"dunes":
+			for i in range(maxi(8, w / 20)):
+				var gx := rng.randi_range(0, w - 1)
+				var gy := rng.randi_range(int(h * 0.66), h - 1)
+				_px(img, gx, gy, Color("9ff0f0"))
+				_px(img, gx + 1, gy, Color("e8ffff"))
+	# Voiles de sable (ou de brume froide la nuit).
+	for i in range(int(w * h / 600.0)):
+		var y := rng.randi_range(int(h * 0.5), h - 1)
+		var x := rng.randi_range(-40, w)
+		for dx in range(rng.randi_range(20, 70)):
+			_px(img, x + dx, y, Color(0.7, 0.7, 1.0, 0.06) if night else Color(1.0, 0.92, 0.7, 0.08))
+
+
+## La salle du Sphinx : verre sombre, colonnes, porte scellée, lueur violette.
+static func _sphinx_hall(img: Image, rng: RandomNumberGenerator) -> void:
+	var w := img.get_width()
+	var h := img.get_height()
+	_sky(img, rng, [[0.0, Color("0a0a18")], [0.5, Color("1a1a30")], [1.0, Color("2a2440")]], 0.0)
+	for t in [0.08, 0.24, 0.76, 0.92]:
+		var px := int(w * t)
+		img.fill_rect(Rect2i(px - int(w * 0.03), 0, int(w * 0.06), h), Color("1e2a3a"))
+		img.fill_rect(Rect2i(px + int(w * 0.015), 0, 2, h), Color("5a8aa0"))
+		img.fill_rect(Rect2i(px - int(w * 0.03), int(h * 0.2), int(w * 0.06), 2), Color("e6c15a"))
+	var cx := int(w * 0.5)
+	var dw := int(w * 0.18)
+	var top := int(h * 0.22)
+	var floor_y := int(h * 0.8)
+	img.fill_rect(Rect2i(cx - dw / 2, top, dw, floor_y - top), Color("141428"))
+	for y in range(top, floor_y, 6):
+		img.fill_rect(Rect2i(cx - dw / 2, y, dw, 1), Color("2a2a48"))
+	img.fill_rect(Rect2i(cx - 1, top, 2, floor_y - top), Color("e6c15a"))
+	_glow_px(img, cx, int(h * 0.48), int(w * 0.16), Color("b07cff"), 0.3)
+	img.fill_rect(Rect2i(0, floor_y, w, h - floor_y), Color("10101e"))
+	for x in range(0, w, maxi(6, w / 24)):
+		_px(img, x, floor_y, Color("5a8aa0"))
+	for i in range(int(w * h / 500.0)):
+		_px(img, rng.randi_range(0, w - 1), rng.randi_range(0, h - 1), Color(0.8, 0.9, 1.0, rng.randf_range(0.1, 0.4)))
 
 
 # ---------------------------------------------------------------- icônes (glyphes absents des polices)

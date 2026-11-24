@@ -67,6 +67,10 @@ static func texture(who: String, mood: String = "neutre") -> Texture2D:
 			_ysolde(img, mood)
 		"orrin":
 			_orrin(img, mood)
+		"thalren":
+			_thalren(img, mood)
+		"sphinx":
+			_sphinx(img, mood)
 		_:
 			return null
 	_outline(img)
@@ -76,7 +80,7 @@ static func texture(who: String, mood: String = "neutre") -> Texture2D:
 
 
 static func has_portrait(who: String) -> bool:
-	return who in ["porteur", "sylwen", "brann", "ancien", "cerf", "sylvarche", "fee", "voix", "krag", "gharok", "prevote", "varg", "nyx", "vesper", "aurele", "corvin", "aelis", "durgan", "ysolde", "orrin"] \
+	return who in ["porteur", "sylwen", "brann", "ancien", "cerf", "sylvarche", "fee", "voix", "krag", "gharok", "prevote", "varg", "nyx", "vesper", "aurele", "corvin", "aelis", "durgan", "ysolde", "orrin", "thalren", "sphinx"] \
 		or ResourceLoader.exists("res://assets/portraits/%s.png" % who)
 
 
@@ -1178,3 +1182,89 @@ static func _orrin(img: Image, mood: String) -> void:
 			if c.a > 0.5:
 				img.set_pixel(x, y, Color(c.r, c.g, c.b, c.a * k))
 	_rim(img, 2, 62, 10, 48, Color("e8ffff"))
+
+
+# ---------------------------------------------------------------- acte 5 · Désert de Verre
+
+## Thalren : mage du Collège Arcanique, cheveux sombres à mèche d'argent, barbe courte, lunettes
+## rondes cerclées d'or, robe violette à col haut brodé d'or.
+static func _thalren(img: Image, mood: String) -> void:
+	var skin := _ramp(["9a6a5a", "d09a7a", "eebc9a"])
+	var hair := _ramp(["1a1420", "2e2438", "4a3a58"])
+	var robe := _ramp(["2a1a4a", "4a2e7a", "6a4aa8", "8a6ac8"])
+	var gold := Color("f2c46b")
+	_poly(img, PackedVector2Array([Vector2(3, 64), Vector2(7, 51), Vector2(19, 45), Vector2(45, 45), Vector2(57, 51), Vector2(61, 64)]), robe)
+	# Col haut brodé d'or.
+	_poly(img, PackedVector2Array([Vector2(21, 52), Vector2(22, 42), Vector2(32, 47), Vector2(42, 42), Vector2(43, 52), Vector2(32, 57)]), robe, 0.2)
+	for x in range(22, 43):
+		_px(img, x, 52 - int(absf(float(x) - 32.0) / 2.2), gold)
+	for y in range(57, 64):
+		_px(img, 32, y, gold)
+	_ellipse(img, 32.0, 44.0, 3.6, 3.6, skin)
+	# Cheveux derrière, puis visage.
+	_ellipse(img, 32.0, 26.0, 12.5, 12.0, hair)
+	_ellipse(img, 32.0, 31.0, 10.0, 12.0, skin)
+	# Frange tirée en arrière, mèche d'argent.
+	_poly(img, PackedVector2Array([Vector2(21, 27), Vector2(22, 19), Vector2(28, 15), Vector2(36, 15), Vector2(42, 19), Vector2(43, 27), Vector2(39, 22), Vector2(32, 20), Vector2(25, 22)]), hair)
+	for i in range(6):
+		_px(img, 36 + i / 2, 16 + i, Color("c8c8d8"))
+		_px(img, 37 + i / 2, 16 + i, Color("e8e8f4"))
+	# Barbe courte et taillée.
+	_poly(img, PackedVector2Array([Vector2(23, 34), Vector2(24, 40), Vector2(28, 44), Vector2(32, 45), Vector2(36, 44), Vector2(40, 40), Vector2(41, 34), Vector2(38, 38), Vector2(32, 39), Vector2(26, 38)]), hair)
+	_ellipse(img, 32.0, 35.0, 2.4, 2.4, skin, 0.25)
+	_brow(img, 26, 27, -1, mood, Color("2e2438"), 1)
+	_brow(img, 36, 27, 1, mood, Color("2e2438"), 1)
+	_eye(img, 25, 29, -1, mood, Color("6a4aa8"), Color("1a1420"))
+	_eye(img, 35, 29, 1, mood, Color("6a4aa8"), Color("1a1420"))
+	# Lunettes rondes cerclées d'or.
+	for c in [Vector2i(26, 30), Vector2i(37, 30)]:
+		for a in range(16):
+			var t := float(a) / 16.0 * TAU
+			_px(img, c.x + int(round(cos(t) * 3.2)), c.y + int(round(sin(t) * 2.6)), gold)
+	for x in range(30, 34):
+		_px(img, x, 29, gold)
+	_mouth(img, 32, 40, mood, Color("6a3a3a"), Color("3a1a1a"))
+	_rim(img, 4, 60, 10, 63, Color("e0c8ff"))
+
+
+## Le Sphinx de verre : visage de cristal pâle, coiffe à rayures or et turquoise, yeux d'ombre violette.
+static func _sphinx(img: Image, mood: String) -> void:
+	var glass := _ramp(["5a7890", "98b8cc", "c8e0ec", "eef8ff"])
+	var gold := _ramp(["8a6a2a", "e6c15a", "fff0a0"])
+	var teal := _ramp(["1a6a70", "3fc1c9", "9ff0f0"])
+	_glow(img, 32, 32, 30, Color("b07cff"), 0.22)
+	# Coiffe (némès) : pans qui tombent sur les épaules, à rayures.
+	_poly(img, PackedVector2Array([Vector2(8, 64), Vector2(12, 40), Vector2(16, 22), Vector2(24, 12), Vector2(32, 10), Vector2(40, 12), Vector2(48, 22), Vector2(52, 40), Vector2(56, 64), Vector2(44, 64), Vector2(42, 46), Vector2(22, 46), Vector2(20, 64)]), gold)
+	for y in range(14, 64, 4):
+		for x in range(8, 57):
+			var c := img.get_pixel(x, y)
+			if c.a > 0.5:
+				_px(img, x, y, teal[1])
+				_px(img, x, y + 1, teal[0])
+	_ellipse(img, 32.0, 32.0, 10.5, 12.5, glass)
+	# Bandeau frontal et uræus.
+	for x in range(21, 44):
+		_px(img, x, 21, gold[1])
+		_px(img, x, 22, gold[0])
+	_poly(img, PackedVector2Array([Vector2(30, 21), Vector2(32, 13), Vector2(34, 21)]), gold)
+	_px(img, 32, 15, Color("b07cff"))
+	# Fissures dans le verre.
+	for p in [Vector2i(37, 25), Vector2i(38, 26), Vector2i(38, 27), Vector2i(39, 28), Vector2i(25, 38), Vector2i(26, 39)]:
+		_px(img, p.x, p.y, Color("7a98b0"))
+	# Orbites d'ombre, d'où luisent les yeux violets.
+	for ex in [26, 37]:
+		_ellipse(img, float(ex), 30.5, 3.4, 2.2, _ramp(["2a1a48"]), 0.0, true)
+	_glow_eye(img, 25, 30, -1, mood, Color("ffffff"), Color("b07cff"))
+	_glow_eye(img, 36, 30, 1, mood, Color("ffffff"), Color("b07cff"))
+	for y in range(31, 37):
+		_px(img, 32, y, Color("7a98b0"))
+	_px(img, 31, 36, Color("7a98b0"))
+	_px(img, 33, 36, Color("7a98b0"))
+	# Barbe postiche d'or.
+	_poly(img, PackedVector2Array([Vector2(30, 43), Vector2(34, 43), Vector2(33, 52), Vector2(31, 52)]), gold)
+	if mood in ["joie", "colere", "surpris"]:
+		_mouth(img, 32, 40, mood, Color("8aa8c0"), Color("3a2a5a"))
+	else:
+		for x in range(29, 36):
+			_px(img, x, 40, Color("8aa8c0"))
+	_rim(img, 6, 60, 10, 63, Color("ffe8a8"))

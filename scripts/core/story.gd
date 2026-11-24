@@ -4,7 +4,8 @@ extends RefCounted
 ## réputation, corruption, scènes vues. Rangé dans Profile.data["story"] : sauvegardé et
 ## synchronisé avec le reste de la progression.
 ##
-## Clés de valeur : « loy.<compagnon> » (0 à 100), « rep.<faction> » (−100 à 100), « corruption » (0 à 100).
+## Clés de valeur : « loy.<compagnon> » (0 à 100), « rep.<faction> » (−100 à 100), « corruption » (0 à 100),
+## « fragments » (Fragments de Morvaen, 0 à 10).
 ## Drapeaux rangés par saison : « s1.fees_liberees », « s1.sylvarche_purifiee »…
 
 const COMPANIONS := {"brann": "Brann", "sylwen": "Sylwen", "krag": "Krag", "nyx": "Nyx"}
@@ -18,7 +19,7 @@ const PLAY_BONUS_DAILY := 5
 
 static func default_state() -> Dictionary:
 	return {"flags": {}, "choices": {}, "seen": {}, "loyalty": {"brann": 50, "sylwen": 50},
-		"rep": {}, "corruption": 0, "echo_debt": 0, "play_bonus": {}}
+		"rep": {}, "corruption": 0, "echo_debt": 0, "fragments": 0, "play_bonus": {}}
 
 
 ## État de l'histoire, complété si la sauvegarde est ancienne.
@@ -86,6 +87,8 @@ static func value(key: String) -> int:
 			return int((s["rep"] as Dictionary).get(parts[1], 0))
 		"corruption":
 			return int(s["corruption"])
+		"fragments":
+			return int(s["fragments"])
 	return 0
 
 
@@ -109,6 +112,10 @@ static func add_value(key: String, delta: int) -> int:
 		"corruption":
 			after = clampi(before + delta, 0, 100)
 			s["corruption"] = after
+		"fragments":
+			# Fragments de Morvaen : pages de son journal, une par zone (07-narration §1).
+			after = clampi(before + delta, 0, 10)
+			s["fragments"] = after
 	return after - before
 
 
@@ -121,6 +128,8 @@ static func value_label(key: String) -> String:
 			return "%s : réputation" % str(FACTIONS.get(parts[1], parts[1].capitalize()))
 		"corruption":
 			return "Corruption"
+		"fragments":
+			return "Fragments de Morvaen"
 	return key
 
 

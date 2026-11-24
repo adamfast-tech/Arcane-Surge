@@ -198,6 +198,7 @@ var riddles_right := 0
 var riddles_wrong := 0
 var boss_exposed_t := 0.0 ## bonne réponse : le Sphinx subit +50 % de dégâts
 var _riddles_used: Array[int] = []
+var riddle_need := 0 ## > 0 : invocations demandées par réponse, au lieu de la valeur du niveau (le Journal lu, 5-9)
 var bonus_unique := "" ## objet unique gagné par un exploit en combat (les deux énigmes : Couronne de l'Énigme)
 var _portal_seq := 500
 ## Énigmes du Sphinx de verre : la première réponse est la bonne (l'ordre des portails est tiré au sort).
@@ -325,6 +326,8 @@ func _apply_story_mods(opts: Dictionary) -> void:
 			orb_cfg = m["orbs"]
 		if m.has("boss_hp") and boss != null:
 			boss.hp = boss.max_hp * clampf(float(m["boss_hp"]), 0.05, 1.0)
+		if m.has("riddle_need"):
+			riddle_need = int(m["riddle_need"])
 		if m.has("forge_mult"):
 			forge_power *= float(m["forge_mult"])
 		if m.has("budget_mult"):
@@ -3695,7 +3698,7 @@ func _start_riddle(ab: Dictionary) -> void:
 		p.id = _portal_seq
 		p.kind = "answer"
 		p.answer = str(answers[order[i]])
-		p.need = int(ab.get("need", 10))
+		p.need = riddle_need if riddle_need > 0 else int(ab.get("need", 10))
 		p.x = float(xs[i])
 		p.base_x = p.x
 		p.y = float(ab.get("y", 7.8))

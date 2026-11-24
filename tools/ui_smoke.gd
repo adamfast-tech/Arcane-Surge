@@ -969,6 +969,9 @@ func _run() -> void:
 	if not await _act4_ok():
 		quit(1)
 		return
+	if not await _act5_ok():
+		quit(1)
+		return
 	main.call("_show_room", "circle")
 	await _frames(5)
 	Profile.swap_active("krag", "brann")
@@ -1255,4 +1258,57 @@ func _act4_ok() -> bool:
 	Profile.data["story"] = saved
 	Profile.data["inventory"] = inv0
 	Profile.data["materials"] = mats0
+	return true
+
+
+## Acte 5 (docs/design/34-narration-zone5.md) : 20 scènes, portraits, planches ; élèves libérés (5-7),
+## Journal lu (5-9 : Fragment de Morvaen, énigmes à 8 invocations), ✦ 5-10 « Révéler son Sceau » ;
+## Journal brûlé : bouclier de Thalren devant le Sphinx.
+func _act5_ok() -> bool:
+	for n in range(1, 11):
+		for part in ["intro", "outro"]:
+			if not Dialogues.has_scene("z05_l%02d_%s" % [n, part]):
+				push_error("acte 5 : scène manquante z05_l%02d_%s" % [n, part])
+				return false
+	for who in ["thalren", "sphinx"]:
+		for mood in ["neutre", "joie", "triste", "colere", "surpris"]:
+			if PortraitArt.texture(who, mood) == null:
+				push_error("acte 5 : portrait %s/%s absent" % [who, mood])
+				return false
+	for kind in ["dunes", "oasis", "miroirs", "college", "desert_nuit", "sphinx"]:
+		if StoryArt.plate(kind, Vector2i(320, 180)) == null:
+			push_error("acte 5 : planche %s absente" % kind)
+			return false
+	var saved: Dictionary = (Story.st() as Dictionary).duplicate(true)
+	var nyx0 := Story.loyalty("nyx")
+	var cor0 := Story.value("corruption")
+	for sid in ["z05_l07_outro", "z05_l09_outro", "z05_l10_outro"]:
+		main.call("_show_dialogue", [sid], Callable(main, "_show_map"))
+		await _frames(3)
+		await _through_dialogues(0)
+	print("acte 5 : 5-7 ", Story.choice("z05_l07"), " (Nyx ", nyx0, " -> ", Story.loyalty("nyx"), ") · 5-9 ", Story.choice("z05_l09"), " (Fragments ", Story.value("fragments"),
+		", Corruption ", cor0, " -> ", Story.value("corruption"), ") · ✦ 5-10 ", Story.choice("z05_l10"), " · faiblesse ", Story.has_flag("s1.faiblesse_morvaen"), " · Archivistes ", Story.value("rep.archivistes"))
+	if Story.choice("z05_l07") != "A" or Story.loyalty("nyx") < nyx0 + 9 or Story.choice("z05_l09") != "A" or Story.value("fragments") != 1 \
+			or Story.value("corruption") != mini(100, cor0 + 10) or Story.choice("z05_l10") != "A" or not Story.has_flag("s1.faiblesse_morvaen") or Story.value("rep.archivistes") != 10:
+		push_error("acte 5 : choix incorrects")
+		return false
+	# Effets devant le Sphinx : Journal lu -> énigmes à 8 ; Journal brûlé -> bouclier de Thalren.
+	var a := BattleSim.new()
+	a.setup(GameData.level("z05_l10"), GameData.party(), 2, {"solo": true, "flags": ["s1.journal_lu"]})
+	a._flush()
+	a._boss_ability({"type": "riddle", "need": 12, "y": 7.8, "xs": [1.7, 4.5, 7.3]})
+	var need := 0
+	for pt in a.portals:
+		if pt.kind == "answer":
+			need = pt.need
+	a.terrain.sim = null
+	var b := BattleSim.new()
+	b.setup(GameData.level("z05_l10"), GameData.party(), 2, {"solo": true, "flags": ["s1.thalren_confiance"]})
+	var shield := b.barrier_shield
+	b.terrain.sim = null
+	print("  Sphinx : Journal lu -> %d invocations par réponse · Journal brûlé -> bouclier de Thalren +%d" % [need, int(shield)])
+	Profile.data["story"] = saved
+	if need != 8 or shield < 25.0:
+		push_error("acte 5 : effets en combat incorrects")
+		return false
 	return true

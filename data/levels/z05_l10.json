@@ -184,5 +184,17 @@
     "start": "jour"
   },
   "initial_enemies": [],
-  "riddle_reward": "couronne_enigme"
+  "riddle_reward": "couronne_enigme",
+  "story_mods": [
+    {
+      "if": "s1.journal_lu",
+      "riddle_need": 8,
+      "log": "Le Journal t'a appris les secrets du Collège : chaque réponse ne demande que 8 invocations."
+    },
+    {
+      "if": "s1.thalren_confiance",
+      "barrier_shield": 25,
+      "log": "Thalren tient un bouclier arcanique devant la Barrière : +25."
+    }
+  ]
 }
