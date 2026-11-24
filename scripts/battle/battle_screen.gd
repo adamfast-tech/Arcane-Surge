@@ -132,6 +132,10 @@ func _ready() -> void:
 	var o := _opts.duplicate()
 	o["solo"] = solo
 	sim.setup(_level, GameData.party(), int(Time.get_ticks_usec() % 1000000), o)
+	# Tir automatique : on reprend le dernier choix du joueur.
+	auto_fire = Profile.auto_fire_on()
+	if auto_fire:
+		sim.set_player_firing(true)
 
 	vp = SubViewport.new()
 	vp.own_world_3d = true
@@ -1289,6 +1293,7 @@ func _unhandled_input(ev: InputEvent) -> void:
 			sim.cycle_order(_bot_idx("right"))
 		KEY_F:
 			auto_fire = not auto_fire
+			Profile.set_auto_fire(auto_fire)
 			sim.set_player_firing(auto_fire or _pointer_down)
 			_toast("Tir automatique : %s" % ("OUI" if auto_fire else "NON"))
 
@@ -1422,6 +1427,7 @@ func _on_resume() -> void:
 
 func _on_toggle_autofire(b: Button) -> void:
 	auto_fire = not auto_fire
+	Profile.set_auto_fire(auto_fire)
 	sim.set_player_firing(auto_fire)
 	b.text = "Tir automatique : %s" % ("OUI" if auto_fire else "NON")
 

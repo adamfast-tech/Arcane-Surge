@@ -15,6 +15,7 @@
 |---|---|
 | **Deck** | Les 7 sorts choisis à la Bibliothèque. |
 | **Tiroir** | Tous les sorts connus, rangés par école et par discipline. |
+| **Tir automatique** (non par défaut) | Le Flux part seul dès le début du combat ; toucher l'arène vise toujours. Le choix fait ici, en Pause ou avec la touche F est gardé dans le profil pour les combats suivants (`Profile.auto_fire_on`). |
 
 C'est le même réglage que sur l'écran de Préparation (`spell_mode`).
 

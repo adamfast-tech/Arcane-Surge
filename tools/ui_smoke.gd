@@ -760,6 +760,9 @@ func _run() -> void:
 	if not await _rooms_art_ok():
 		quit(1)
 		return
+	if not await _autofire_ok():
+		quit(1)
+		return
 	# Bibliothèque, onglet Classes : Ultime, sorts d'arbre et sorts de compagnon de chaque classe.
 	var cs := LibraryScreen.class_spells("chevalier")
 	var tree_ids: Array[String] = []
@@ -1552,4 +1555,33 @@ func _rooms_art_ok() -> bool:
 		return false
 	map.queue_free()
 	print("salles : %d fonds générés" % RoomArt.KINDS.size())
+	return true
+
+
+## Tir automatique : le choix est gardé dans le profil et repris au combat suivant.
+func _autofire_ok() -> bool:
+	var before := Profile.auto_fire_on()
+	Profile.set_auto_fire(true)
+	var bs := BattleScreen.new()
+	bs.level_id = "z01_l02"
+	root.add_child(bs)
+	await _frames(2)
+	var on_start := bs.auto_fire and bs.sim.player().firing
+	var b := Button.new()
+	bs._on_toggle_autofire(b)
+	b.free()
+	var saved_off := not Profile.auto_fire_on()
+	bs.queue_free()
+	await _frames(1)
+	var bs2 := BattleScreen.new()
+	bs2.level_id = "z01_l02"
+	root.add_child(bs2)
+	await _frames(2)
+	var off_next := not bs2.auto_fire and not bs2.sim.player().firing
+	bs2.queue_free()
+	Profile.set_auto_fire(before)
+	print("tir auto : repris au départ %s · coupé et gardé %s · combat suivant sans tir %s" % [on_start, saved_off, off_next])
+	if not (on_start and saved_off and off_next):
+		push_error("le choix du tir automatique n'est pas gardé")
+		return false
 	return true

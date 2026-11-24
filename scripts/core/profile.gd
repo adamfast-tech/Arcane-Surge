@@ -1084,6 +1084,18 @@ static func set_elem_for_all(v: bool) -> void:
 	_options()["elem_all"] = v
 
 
+## Tir automatique du Flux en combat : le choix du joueur est gardé d'une partie à l'autre.
+static func auto_fire_on() -> bool:
+	return bool(_options().get("auto_fire", false))
+
+
+static func set_auto_fire(v: bool) -> void:
+	if auto_fire_on() == v:
+		return
+	_options()["auto_fire"] = v
+	save_local()
+
+
 ## Ambiance enrichie des menus (rayons, brume, particules, panneaux en relief, titres dorés).
 static func ambience_on() -> bool:
 	return bool(_options().get("ambience", true))

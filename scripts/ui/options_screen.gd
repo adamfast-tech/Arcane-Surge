@@ -46,6 +46,10 @@ func _rebuild() -> void:
 		Profile.set_spell_mode("drawer")
 		_changed("Mode Tiroir : tous tes sorts connus, rangés par école et par discipline.")))
 	col.add_child(UiTheme.wrap("L'écran de Préparation, avant chaque combat, permet aussi de changer ce choix.", 15, UiTheme.MUTED))
+	var af := Profile.auto_fire_on()
+	col.add_child(_choice("TIR AUTOMATIQUE : %s" % ("OUI" if af else "NON"), "Le Flux part tout seul dès le début du combat ; viser reste possible en touchant l'arène. Se change aussi en combat (Pause, ou touche F) : le choix est gardé pour les parties suivantes.", "target", af, func() -> void:
+		Profile.set_auto_fire(not Profile.auto_fire_on())
+		_changed("Tir automatique : %s." % ("activé" if Profile.auto_fire_on() else "désactivé"))))
 
 	# Ambiance des menus : sobre, ou enrichie (rayons, brume, particules, panneaux en relief, titres dorés).
 	col.add_child(UiTheme.section("Ambiance des menus"))
