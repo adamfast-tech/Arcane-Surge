@@ -1546,6 +1546,12 @@ func _open_end() -> void:
 			continue
 		var l := _wrap_label("%s  —  %s" % [Profile.item_name(it), Profile.stats_text(Profile.item_stats(it))], 19, Profile.item_color(it))
 		rv.add_child(l)
+	for r in _rewards.get("runes", []):
+		if Profile.ambience_on():
+			rv.add_child(LootFx.card(r, loot_i))
+			loot_i += 1
+			continue
+		rv.add_child(_wrap_label("Rune %s · %s" % [Profile.rune_name(r), str(Profile.rarity_of(r).get("name", ""))], 19, Profile.item_color(r)))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	v.add_child(row)

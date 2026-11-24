@@ -28,6 +28,9 @@ func _ready() -> void:
 		_show_dialogue([scene], _boot)
 		return
 	var room := str(_query().get("room", ""))
+	if _url_flag("gear"):
+		# Aperçu : un assortiment d'objets et de runes (« &gear=1 »), pour la Forge et l'Équipement.
+		_preview_gear()
 	if room in ["meditation", "circle", "skills", "library", "options"]:
 		# Aperçu d'une salle (« ?room=meditation », « ?room=library&tab=classes&class=archer »), sans écran de chargement.
 		if str(_query().get("class", "")) != "":
@@ -48,6 +51,13 @@ func _ready() -> void:
 		return
 	if room == "equipment":
 		_show_equipment(str(_query().get("who", "player")))
+		return
+	if room == "forge":
+		# Aperçu de la Forge (« ?room=forge&tab=fusion »).
+		_show_forge()
+		if str(_query().get("tab", "")) != "":
+			_screen.set("tab", str(_query().get("tab", "")))
+			_screen.call("_rebuild")
 		return
 	var direct := _level_from_url()
 	if direct != "":
@@ -247,6 +257,7 @@ func _show_hub() -> void:
 	h.open_equipment.connect(_show_equipment)
 	h.open_login.connect(_show_login.bind(true))
 	h.open_save.connect(_show_save)
+	h.open_forge.connect(func() -> void: _show_forge())
 	h.open_skills.connect(_show_room.bind("skills"))
 	h.open_library.connect(_show_room.bind("library"))
 	h.open_circle.connect(_show_room.bind("circle"))
@@ -314,7 +325,38 @@ func _show_equipment(who: String = "player", from_circle: bool = false) -> void:
 		e.back.connect(_show_room.bind("circle"))
 	else:
 		e.back.connect(_show_hub)
+	e.open_forge.connect(func(uid: String) -> void: _show_forge(uid, "equipment", who))
 	_set_screen(e)
+
+
+func _preview_gear() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	Profile.data["gold"] = 50000
+	var picks := [["sceptre_solaire", "legendaire"], ["cuirasse_naine", "epique"], ["heaume_cornu", "rare"], ["amulette_scarabee", "epique"],
+		["faux_cendres", "rare"], ["lame_verre", "epique"], ["gants_cuir", "commun"], ["bottes_marche", "commun"], ["capuche_toile", "commun"],
+		["arc_dunes", "rare"], ["coiffe_sables", "legendaire"], ["sablier_fige", "rare"], ["tome_college", "epique"], ["hache_givre", "commun"]]
+	for pk in picks:
+		var it := Profile.make_item(str(pk[0]), str(pk[1]), 40, rng)
+		(Profile.data["inventory"] as Array).append(it)
+		if pk[0] in ["sceptre_solaire", "cuirasse_naine", "heaume_cornu", "amulette_scarabee"]:
+			Profile.equip(str(it["uid"]))
+	var w := Profile.find_item(str(Profile.equipment_of("player").get("weapon", "")))
+	w["runes"] = [Profile.make_rune("pyr", 4, "epique"), Profile.make_rune("kaor", 3, "rare")]
+	for rr in [["isa", 3, "rare"], ["isa", 3, "rare"], ["isa", 3, "rare"], ["lux", 2, "epique"], ["wyrd", 4, "legendaire"], ["mult", 1, "commun"], ["gard", 2, "rare"]]:
+		Profile.rune_inventory().append(Profile.make_rune(str(rr[0]), int(rr[1]), str(rr[2])))
+
+
+## La Forge (gravure, fusion, runes) : depuis Havre-Aube, ou depuis l'Équipement (avec l'objet choisi).
+func _show_forge(uid: String = "", origin: String = "hub", who: String = "player") -> void:
+	var f := ForgeScreen.new()
+	f.focus_item = uid
+	if origin == "equipment":
+		f.back_label = "Équipement"
+		f.back.connect(func() -> void: _show_equipment(who))
+	else:
+		f.back.connect(_show_hub)
+	_set_screen(f)
 
 
 func _show_dialogue(ids: Array, then: Callable) -> void:

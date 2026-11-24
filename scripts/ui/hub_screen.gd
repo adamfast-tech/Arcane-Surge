@@ -5,6 +5,7 @@ extends Control
 
 signal open_map
 signal open_equipment
+signal open_forge
 signal open_login
 signal open_save
 signal open_skills
@@ -73,7 +74,7 @@ func _ready() -> void:
 		if int(z["id"]) == zid:
 			zname = str(z["name"])
 	grid.add_child(_tile("map", "CARTE DU MONDE", zname, "Zone %d · %d / %d étoiles" % [zid, Profile.stars_total(), total], func() -> void: open_map.emit(), UiTheme.TEAL))
-	grid.add_child(_tile("baton_chene", "ÉQUIPEMENT", "Équipement & Forge", "Puissance %d · %d objets" % [Profile.power(), (Profile.data["inventory"] as Array).size()], func() -> void: open_equipment.emit(), UiTheme.FIRE))
+	grid.add_child(_tile("baton_chene", "ÉQUIPEMENT", "Équipement et runes", "Puissance %d · %d objets" % [Profile.power(), (Profile.data["inventory"] as Array).size()], func() -> void: open_equipment.emit(), UiTheme.FIRE))
 	# Salles : Entraînement (arbre), Bibliothèque (deck), Cercle (compagnons), Méditation (voies, Harmonie).
 	var rooms := GridContainer.new()
 	rooms.columns = 2
@@ -81,6 +82,7 @@ func _ready() -> void:
 	rooms.add_theme_constant_override("v_separation", 10)
 	col.add_child(rooms)
 	var free := Profile.skill_points_free()
+	rooms.add_child(_small_tile("forge", "FORGE", "%d rune%s · fusions" % [Profile.rune_inventory().size(), "s" if Profile.rune_inventory().size() > 1 else ""], UiTheme.FIRE, func() -> void: open_forge.emit(), UiTheme.FIRE))
 	rooms.add_child(_small_tile("target", "ENTRAÎNEMENT", "%d point%s" % [free, "s" if free > 1 else ""], UiTheme.GOLD if free > 0 else UiTheme.MUTED, func() -> void: open_skills.emit(), UiTheme.GOLD))
 	rooms.add_child(_small_tile("book", "BIBLIOTHÈQUE", "Deck %d / %d" % [Profile.deck().size(), Profile.DECK_MAX], UiTheme.MUTED, func() -> void: open_library.emit(), UiTheme.VIOLET))
 	var crew: Array[String] = []

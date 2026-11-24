@@ -46,24 +46,26 @@ static func card(it: Dictionary, idx: int) -> Control:
 	frame.size = Vector2(50, 50)
 	holder.add_child(frame)
 	var base := Profile.base_of(it)
+	var is_rune := it.has("rune")
 	var ic := TextureRect.new()
 	ic.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	ic.texture = Icons.item(str(it.get("base", "")), str(base.get("slot", "")), 40)
+	ic.texture = ItemArt.rune(str(it["rune"]), int(it.get("level", 1)), 40) if is_rune else Icons.item(str(it.get("base", "")), str(base.get("slot", "")), 40)
 	ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	ic.custom_minimum_size = Vector2(36, 36)
-	ic.modulate = col
+	ic.modulate = Color.WHITE if is_rune or Icons.item_colored(str(it.get("base", ""))) else col
 	frame.add_child(ic)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 0)
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_child(v)
-	var nm := UiTheme.label(Profile.item_name(it), 20, col)
+	var nm := UiTheme.label("Rune %s · %s" % [Profile.rune_name(it), str(Profile.rune_family(it).get("theme", ""))] if is_rune else Profile.item_name(it), 20, col)
 	nm.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	nm.custom_minimum_size = Vector2(10, 0)
 	v.add_child(nm)
-	var st := UiTheme.label("%s · %s" % [str(Profile.rarity_of(it).get("name", rar)), Profile.stats_text(Profile.item_stats(it))], 16, UiTheme.MUTED)
+	var detail := "sur une arme : %s" % Profile.rune_effect_text(it, "arme") if is_rune else Profile.stats_text(Profile.item_stats(it))
+	var st := UiTheme.label("%s · %s" % [str(Profile.rarity_of(it).get("name", rar)), detail], 16, UiTheme.MUTED)
 	st.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	st.custom_minimum_size = Vector2(10, 0)
 	v.add_child(st)

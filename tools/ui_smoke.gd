@@ -707,6 +707,9 @@ func _run() -> void:
 	if not _zone5_ok():
 		quit(1)
 		return
+	if not await _gear_ok():
+		quit(1)
+		return
 	# Bibliothèque, onglet Classes : Ultime, sorts d'arbre et sorts de compagnon de chaque classe.
 	var cs := LibraryScreen.class_spells("chevalier")
 	var tree_ids: Array[String] = []
@@ -1310,5 +1313,126 @@ func _act5_ok() -> bool:
 	Profile.data["story"] = saved
 	if need != 8 or shield < 25.0:
 		push_error("acte 5 : effets en combat incorrects")
+		return false
+	return true
+
+
+## Équipement (docs/design/35-equipement-runes-forge.md) : catalogue et icônes, gravure de runes (effet selon
+## la catégorie), retrait, fusion de runes, fusion d'objets (règles, Mythique), runes au butin, effets en
+## combat, écrans de la Forge et de l'Équipement.
+func _gear_ok() -> bool:
+	var errs: Array[String] = []
+	var db := Profile.items_db()
+	var bases: Dictionary = db["bases"]
+	for id in bases.keys():
+		if ItemArt.item(str(id), 48) == null:
+			errs.append("icône %s" % id)
+	for z in range(1, 6):
+		if ((db["loot_pool"] as Dictionary).get(str(z), []) as Array).size() < 18:
+			errs.append("butin de zone %d" % z)
+	var fams: Dictionary = db["runes"]["families"]
+	for f in fams.keys():
+		if ItemArt.rune(str(f), 3, 48) == null:
+			errs.append("rune %s" % f)
+		for cat in ["arme", "armure", "bijou", "charme"]:
+			if Profile.rune_effect({"rune": f, "level": 1, "rarity": "commun"}, cat).is_empty():
+				errs.append("effet %s/%s" % [f, cat])
+	var saved := Profile.data.duplicate(true)
+	Profile.data["gold"] = 999999
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 4
+	# Gravure : la même rune Pyr agit autrement sur une arme (sorts de Feu) et sur une armure (résistance).
+	var wuid := str(Profile.equipment_of("player").get("weapon", ""))
+	var weapon := Profile.find_item(wuid)
+	weapon["runes"] = []
+	var pyr := Profile.make_rune("pyr", 3, "epique")
+	var kaor := Profile.make_rune("kaor", 2, "rare")
+	Profile.rune_inventory().append_array([pyr, kaor])
+	var ok1 := Profile.engrave(wuid, str(pyr["uid"]))
+	var fire_spells := float(Profile.all_mods().get("elem_dmg.feu", 0.0))
+	var helm := Profile.make_item("heaume_milicien", "commun", 10, rng)
+	(Profile.data["inventory"] as Array).append(helm)
+	Profile.equip(str(helm["uid"]))
+	var pou0 := int(Profile.item_stats(helm).get("pou", 0))
+	var ok2 := Profile.engrave(str(helm["uid"]), str(kaor["uid"]))
+	var pou1 := int(Profile.item_stats(helm).get("pou", 0))
+	var extra := Profile.make_rune("vigr", 1, "commun")
+	Profile.rune_inventory().append(extra)
+	var full := Profile.engrave_block(helm, extra)
+	var back := Profile.unengrave(str(helm["uid"]), 0)
+	var armor_pyr := Profile.rune_effect_text(pyr, "armure")
+	if not ok1 or fire_spells <= 0.0 or not ok2 or pou1 <= pou0 or full == "" or not back or Profile.find_rune(str(kaor["uid"])).is_empty() or not armor_pyr.begins_with("Résistance au Feu"):
+		errs.append("gravure : arme %s (Feu %.3f), armure %s (POU %d -> %d), plein « %s », retrait %s, « %s »" % [ok1, fire_spells, ok2, pou0, pou1, full, back, armor_pyr])
+	# En combat : sorts de Feu renforcés, bouclier de départ, résistance des invocations.
+	var bo := Profile.battle_opts()
+	var sim := BattleSim.new()
+	bo["mods"]["start_shield"] = 12.0
+	bo["mods"]["resist.physique"] = 0.5
+	bo["solo"] = true
+	sim.setup(GameData.level("z01_l01"), GameData.party(), 3, bo)
+	var fire_mult := sim._elem_mult(sim.player(), {"element": "feu"})
+	var u := sim._spawn_familiar(sim.player(), Vector2(4.5, 3.0))
+	sim._flush()
+	var h0 := u.hp
+	sim._damage(u, 10.0, "physique")
+	var resisted := absf((h0 - u.hp) - 5.0) < 0.01
+	if fire_mult <= 1.0 or sim.barrier_shield < 12.0 or not resisted:
+		errs.append("combat : Feu ×%.3f, bouclier %.1f, résistance %s" % [fire_mult, sim.barrier_shield, resisted])
+	sim.terrain.sim = null
+	# Fusion de runes : 3 identiques -> niveau au-dessus ; différentes -> refus.
+	var trio: Array = []
+	for k in range(3):
+		var r := Profile.make_rune("isa", 2, "rare")
+		Profile.rune_inventory().append(r)
+		trio.append(str(r["uid"]))
+	var mixed: Array = [trio[0], trio[1], str(extra["uid"])]
+	var refuse := Profile.rune_fuse_block(mixed)
+	var fused_r := Profile.fuse_runes(trio)
+	if refuse == "" or int(fused_r.get("level", 0)) != 3 or str(fused_r.get("rune", "")) != "isa":
+		errs.append("fusion de runes : refus « %s », résultat %s" % [refuse, fused_r])
+	# Fusion d'objets : 3 communs -> rare « fusion », qui ne peut plus fusionner ; 3 légendaires -> Mythique.
+	var com: Array = []
+	for k in range(3):
+		var it := Profile.make_item("gants_cuir" if k == 0 else "bottes_marche", "commun", 5 + k, rng)
+		(Profile.data["inventory"] as Array).append(it)
+		com.append(str(it["uid"]))
+	var out := Profile.fuse_items(com)
+	var again := Profile.fusion_item_block(out)
+	var leg: Array = []
+	for k in range(3):
+		var it := Profile.make_item("anneau_cuivre", "legendaire", 20, rng)
+		(Profile.data["inventory"] as Array).append(it)
+		leg.append(str(it["uid"]))
+	var mixed_items: Array = [leg[0], leg[1], str(out["uid"])]
+	var refuse_i := Profile.fusion_block(mixed_items)
+	var myth := Profile.fuse_items(leg)
+	var equipped_block := Profile.fusion_item_block(helm)
+	if str(out.get("rarity", "")) != "rare" or str(out.get("base", "")) != "gants_cuir" or int(out.get("ilvl", 0)) != 7 or not bool(out.get("fused", false)) or again == "" \
+			or refuse_i == "" or str(myth.get("rarity", "")) != "mythique" or Profile.sockets_of(myth) != 4 or equipped_block == "":
+		errs.append("fusion d'objets : %s %s iLvl %s, refusion « %s », mélange « %s », mythique %s, équipé « %s »" % [out.get("base", ""), out.get("rarity", ""), out.get("ilvl", 0), again, refuse_i, myth.get("rarity", ""), equipped_block])
+	# Butin : un boss donne au moins une rune.
+	var n0 := Profile.rune_inventory().size()
+	var rew := Profile.apply_battle("z03_l10", true, 3, 300.0)
+	if (rew.get("runes", []) as Array).is_empty() or Profile.rune_inventory().size() <= n0:
+		errs.append("aucune rune au butin d'un boss")
+	print("équipement : %d objets, %d runes · Pyr III épique : arme « %s », armure « %s » · Kaor II sur un heaume : POU %d -> %d · fusion %s -> %s, Mythique %s · butin du boss : %d rune(s)" % [
+		bases.size(), fams.size(), Profile.rune_effect_text(pyr, "arme"), armor_pyr, pou0, pou1, "commun", out.get("rarity", ""), myth.get("rarity", ""), (rew.get("runes", []) as Array).size()])
+	# Écrans : Forge (3 onglets) et Équipement.
+	main.call("_show_forge", str(helm["uid"]), "equipment", "player")
+	await _frames(4)
+	for t in ["fusion", "runes", "gravure"]:
+		var fs: ForgeScreen = _screen()
+		fs.tab = t
+		fs._rebuild()
+		await _frames(3)
+	main.call("_show_equipment", "player")
+	await _frames(4)
+	if not (_screen() is EquipmentScreen):
+		errs.append("écran Équipement")
+	Profile.data = saved
+	main.call("_show_map")
+	await _frames(3)
+	if not errs.is_empty():
+		push_error("équipement : %s" % [errs])
 		return false
 	return true

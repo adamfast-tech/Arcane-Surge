@@ -71,7 +71,7 @@ static func default_data() -> Dictionary:
 	return {
 		"v": VERSION, "updated": 0.0,
 		"player": {"level": 1, "xp": 0, "class": "mage", "race": "elfe", "skill_points": 0},
-		"gold": 0, "dust": 0, "materials": {}, "inventory": [], "equipped": {}, "levels": {},
+		"gold": 0, "dust": 0, "materials": {}, "inventory": [], "runes": [], "equipped": {}, "levels": {},
 		"settings": {"guest": false, "auto_fire": false}, "next_uid": 1,
 		"story": Story.default_state(),
 		"skills": {}, "skill_resets": 0,
@@ -100,6 +100,7 @@ static func load_local() -> void:
 static func replace_with(src: Dictionary) -> void:
 	var def := default_data()
 	data = src.duplicate(true)
+	var had_runes := data.has("runes")
 	for k in def.keys():
 		if not data.has(k):
 			data[k] = def[k]
@@ -111,6 +112,9 @@ static func replace_with(src: Dictionary) -> void:
 			data["settings"][k] = def["settings"][k]
 	if (data["inventory"] as Array).is_empty():
 		_give_starter()
+	elif not had_runes:
+		# Sauvegarde d'avant les runes : quelques runes pour découvrir la gravure.
+		_give_starter_runes()
 
 
 static func save_local() -> void:
@@ -182,6 +186,14 @@ static func _give_starter() -> void:
 		var it := make_item(str(s["base"]), str(s["rarity"]), int(s["ilvl"]), rng)
 		(data["inventory"] as Array).append(it)
 		equip(str(it["uid"]))
+	_give_starter_runes()
+
+
+static func _give_starter_runes() -> void:
+	if not (data.get("runes") is Array):
+		data["runes"] = []
+	for fam in ["kaor", "ilm", "pyr"]:
+		(data["runes"] as Array).append(make_rune(fam, 1, "commun"))
 
 
 # ---------------------------------------------------------------- joueur
@@ -309,6 +321,11 @@ static func item_stats(item: Dictionary) -> Dictionary:
 		out[k] = int(round(float(item["stats"][k]) * mult))
 	for k in (item.get("affixes", {}) as Dictionary).keys():
 		out[k] = int(out.get(k, 0)) + int(item["affixes"][k])
+	var cat := rune_category(str(base_of(item).get("slot", "")))
+	for r in item.get("runes", []):
+		var e := rune_effect(r, cat)
+		if e.has("stat"):
+			out[str(e["stat"])] = int(out.get(str(e["stat"]), 0)) + int(e["value"])
 	return out
 
 
@@ -495,6 +512,7 @@ static func apply_battle(level_id: String, victory: bool, stars: int, time: floa
 	var xp_gain := float(xp_to_next(gl)) * float(p.get("reward_xp_ratio", 0.33))
 	var gold_gain := float(p["reward_gold"][0]) + float(p["reward_gold"][1]) * gl
 	var items: Array = []
+	var runes_won: Array = []
 	var mats := {}
 	if victory:
 		var mult := (1.0 + float(p["star_bonus"]) * stars) * (float(p["first_clear_mult"]) if first else 1.0)
@@ -505,7 +523,7 @@ static func apply_battle(level_id: String, victory: bool, stars: int, time: floa
 		var loot := difficulty_mult()
 		var exp_chests := float(maxi(1, stars)) * loot
 		var chests := maxi(1, int(floor(exp_chests)) + (1 if rng.randf() < exp_chests - floor(exp_chests) else 0))
-		var better := clampf((loot - 1.0) * 0.25, 0.0, 0.6)
+		var better := clampf((loot - 1.0) * 0.25 + float(rune_mods_of("player").get("luck", 0.0)), 0.0, 0.75)
 		for c in range(chests):
 			var table: Dictionary = p["boss_rarity"][zone] if is_boss and c == 0 else p["zone_rarity"][zone]
 			var pool: Array = items_db()["loot_pool"][zone]
@@ -528,6 +546,23 @@ static func apply_battle(level_id: String, victory: bool, stars: int, time: floa
 				items.append(make_item(unique, "legendaire", gl, rng))
 		for it in items:
 			(data["inventory"] as Array).append(it)
+		# Runes : une chance par étoile, une rune garantie sur un boss (niveau selon la zone).
+		var rdrop: Dictionary = p.get("rune_drops", {})
+		if not rdrop.is_empty():
+			var luck := float(rune_mods_of("player").get("luck", 0.0))
+			var nr := 1 if is_boss else 0
+			for st_i in range(maxi(1, stars)):
+				if rng.randf() < float(rdrop.get("per_star", 0.4)) * loot:
+					nr += 1
+			var lv_range: Array = (rdrop.get("level_by_zone", {}) as Dictionary).get(zone, [1, 1])
+			var fams: Array = (runes_db()["families"] as Dictionary).keys()
+			for k in range(nr):
+				var rar_r := _roll(p["zone_rarity"][zone], rng)
+				if rng.randf() < clampf(better + luck, 0.0, 0.75):
+					rar_r = _better_rarity(rar_r, _roll(p["zone_rarity"][zone], rng))
+				var rn := make_rune(str(fams[rng.randi_range(0, fams.size() - 1)]), rng.randi_range(int(lv_range[0]), int(lv_range[1])), rar_r)
+				(data["runes"] as Array).append(rn)
+				runes_won.append(rn)
 		rec["stars"] = maxi(int(rec["stars"]), stars)
 		rec["best"] = time if float(rec["best"]) <= 0.0 else minf(float(rec["best"]), time)
 		rec["clears"] = int(rec["clears"]) + 1
@@ -550,7 +585,7 @@ static func apply_battle(level_id: String, victory: bool, stars: int, time: floa
 	data["gold"] = gold() + int(round(gold_gain))
 	save_local()
 	return {"victory": victory, "first": first, "xp": int(round(xp_gain)), "gold": int(round(gold_gain)),
-		"level_before": before, "level_after": level(), "levels": gained, "items": items, "materials": mats, "companions": comps}
+		"level_before": before, "level_after": level(), "levels": gained, "items": items, "runes": runes_won, "materials": mats, "companions": comps}
 
 
 ## Plus rare des deux raretés (ordre de items.json).
@@ -572,6 +607,289 @@ static func _roll(table: Dictionary, rng: RandomNumberGenerator) -> String:
 
 
 ## Options passées à la simulation pour refléter la progression et les fils du destin.
+# ---------------------------------------------------------------- runes et Forge (docs/design/35-equipement-runes-forge.md)
+
+const ROMAN := ["I", "II", "III", "IV", "V"]
+
+
+static func runes_db() -> Dictionary:
+	return items_db()["runes"]
+
+
+static func rune_inventory() -> Array:
+	if not (data.get("runes") is Array):
+		data["runes"] = []
+	return data["runes"]
+
+
+static func make_rune(family: String, level: int, rarity: String) -> Dictionary:
+	var uid := "r%d" % int(data["next_uid"])
+	data["next_uid"] = int(data["next_uid"]) + 1
+	return {"uid": uid, "rune": family, "level": clampi(level, 1, 5), "rarity": rarity}
+
+
+static func rune_family(r: Dictionary) -> Dictionary:
+	return (runes_db()["families"] as Dictionary).get(str(r.get("rune", "")), {})
+
+
+## Nom court d'une rune : « Pyr III ».
+static func rune_name(r: Dictionary) -> String:
+	return "%s %s" % [str(rune_family(r).get("name", "?")), ROMAN[clampi(int(r.get("level", 1)), 1, 5) - 1]]
+
+
+static func rune_color(r: Dictionary) -> Color:
+	return Color(str(rune_family(r).get("color", "4fe3d2")))
+
+
+## Puissance d'une rune : niveau (I à V) × rareté.
+static func rune_power(r: Dictionary) -> float:
+	var pw: Array = runes_db()["level_pow"]
+	var rar: Dictionary = (items_db()["rarities"] as Dictionary).get(str(r.get("rarity", "commun")), {})
+	return float(pw[clampi(int(r.get("level", 1)), 1, 5) - 1]) * float(rar.get("mult", 1.0))
+
+
+## Catégorie d'un emplacement pour les runes : arme, armure, bijou ou charme.
+static func rune_category(slot: String) -> String:
+	var key := "ring" if slot.begins_with("ring") else slot
+	return str((runes_db()["categories"] as Dictionary).get(key, "armure"))
+
+
+## Effet d'une rune selon la catégorie de l'objet : {stat, value} ou {mod, value, label, fmt}.
+static func rune_effect(r: Dictionary, category: String) -> Dictionary:
+	var e: Dictionary = rune_family(r).get(category, {})
+	if e.is_empty():
+		return {}
+	var p := rune_power(r)
+	if e.has("stat"):
+		return {"stat": str(e["stat"]), "value": maxi(1, int(round(float(e["per"]) * p)))}
+	return {"mod": str(e["mod"]), "value": float(e["per"]) * p, "label": str(e.get("label", "")), "fmt": str(e.get("fmt", "pct"))}
+
+
+static func rune_effect_text(r: Dictionary, category: String) -> String:
+	var e := rune_effect(r, category)
+	if e.is_empty():
+		return ""
+	if e.has("stat"):
+		return "+%d %s" % [int(e["value"]), str(items_db()["stat_names"][str(e["stat"])])]
+	var v := float(e["value"])
+	match str(e["fmt"]):
+		"flat":
+			return "%s +%s" % [str(e["label"]), _num(v)]
+		"sec":
+			return "%s +%s s" % [str(e["label"]), _num(v)]
+		"regen":
+			return "%s +%s PV/s" % [str(e["label"]), _num(v)]
+		"neg":
+			return "%s −%s %%" % [str(e["label"]), _num(v * 100.0)]
+	return "%s +%s %%" % [str(e["label"]), _num(v * 100.0)]
+
+
+static func _num(v: float) -> String:
+	if absf(v - roundf(v)) < 0.05 or absf(v) >= 10.0:
+		return "%d" % int(round(v))
+	return ("%.1f" % v).replace(".", ",")
+
+
+## Emplacements de runes d'un objet (selon sa rareté).
+static func sockets_of(item: Dictionary) -> int:
+	return int(rarity_of(item).get("sockets", 1))
+
+
+## Effets spéciaux des runes gravées sur l'équipement porté (les stats passent par item_stats).
+static func rune_mods_of(who: String) -> Dictionary:
+	var out := {}
+	var eq := equipment_of(who)
+	for sl in eq.keys():
+		var it := find_item(str(eq[sl]))
+		if it.is_empty():
+			continue
+		var cat := rune_category(str(base_of(it).get("slot", "")))
+		for r in it.get("runes", []):
+			var e := rune_effect(r, cat)
+			if e.has("mod"):
+				out[str(e["mod"])] = float(out.get(str(e["mod"]), 0.0)) + float(e["value"])
+	return out
+
+
+static func find_rune(uid: String) -> Dictionary:
+	for r in rune_inventory():
+		if str(r["uid"]) == uid:
+			return r
+	return {}
+
+
+static func engrave_cost(r: Dictionary) -> int:
+	var rar: Dictionary = (items_db()["rarities"] as Dictionary).get(str(r.get("rarity", "commun")), {})
+	return int(runes_db()["engrave_gold"]) * int(r.get("level", 1)) * int(rar.get("value", 1))
+
+
+static func unengrave_cost(r: Dictionary) -> int:
+	return int(runes_db()["remove_gold"]) * int(r.get("level", 1))
+
+
+## "" si la rune peut être gravée sur l'objet, sinon la raison.
+static func engrave_block(item: Dictionary, r: Dictionary) -> String:
+	if item.is_empty() or r.is_empty():
+		return "Choisis un objet et une rune"
+	if (item.get("runes", []) as Array).size() >= sockets_of(item):
+		return "Aucun emplacement libre"
+	if gold() < engrave_cost(r):
+		return "Or insuffisant"
+	return ""
+
+
+static func engrave(item_uid: String, rune_uid: String) -> bool:
+	var it := find_item(item_uid)
+	var r := find_rune(rune_uid)
+	if engrave_block(it, r) != "":
+		return false
+	data["gold"] = gold() - engrave_cost(r)
+	rune_inventory().erase(r)
+	if not (it.get("runes") is Array):
+		it["runes"] = []
+	(it["runes"] as Array).append(r)
+	return true
+
+
+## Retire la rune n° idx d'un objet (payant) : elle retourne dans la réserve.
+static func unengrave(item_uid: String, idx: int) -> bool:
+	var it := find_item(item_uid)
+	var list: Array = it.get("runes", [])
+	if idx < 0 or idx >= list.size():
+		return false
+	var r: Dictionary = list[idx]
+	if gold() < unengrave_cost(r):
+		return false
+	data["gold"] = gold() - unengrave_cost(r)
+	list.remove_at(idx)
+	rune_inventory().append(r)
+	return true
+
+
+static func rune_fuse_cost(r: Dictionary) -> int:
+	return int(runes_db()["fuse_gold"]) * int(r.get("level", 1))
+
+
+## "" si ces 3 runes peuvent fusionner (même famille, même niveau, même rareté, niveau < V).
+static func rune_fuse_block(uids: Array) -> String:
+	if uids.size() != 3:
+		return "Choisis 3 runes identiques"
+	var first := find_rune(str(uids[0]))
+	for u in uids:
+		var r := find_rune(str(u))
+		if r.is_empty() or str(r["rune"]) != str(first["rune"]) or int(r["level"]) != int(first["level"]) or str(r["rarity"]) != str(first["rarity"]):
+			return "Les 3 runes doivent être identiques (famille, niveau, rareté)"
+	if int(first["level"]) >= 5:
+		return "Niveau V : niveau maximum"
+	if gold() < rune_fuse_cost(first):
+		return "Or insuffisant"
+	return ""
+
+
+## Fusionne 3 runes identiques en une rune du niveau au-dessus.
+static func fuse_runes(uids: Array) -> Dictionary:
+	if rune_fuse_block(uids) != "":
+		return {}
+	var first := find_rune(str(uids[0]))
+	data["gold"] = gold() - rune_fuse_cost(first)
+	var out := make_rune(str(first["rune"]), int(first["level"]) + 1, str(first["rarity"]))
+	for u in uids:
+		rune_inventory().erase(find_rune(str(u)))
+	rune_inventory().append(out)
+	return out
+
+
+static func rune_salvage_value(r: Dictionary) -> int:
+	var rar: Dictionary = (items_db()["rarities"] as Dictionary).get(str(r.get("rarity", "commun")), {})
+	return int(runes_db()["salvage_dust"]) * int(r.get("level", 1)) * int(rar.get("value", 1))
+
+
+static func salvage_rune(uid: String) -> int:
+	var r := find_rune(uid)
+	if r.is_empty():
+		return 0
+	var v := rune_salvage_value(r)
+	rune_inventory().erase(r)
+	data["dust"] = dust() + v
+	return v
+
+
+## Fusion d'équipement (Forge) : 3 objets de même rareté → 1 objet de la rareté au-dessus.
+static func fusion_next(rarity: String) -> String:
+	return str((items_db()["fusion"]["next"] as Dictionary).get(rarity, ""))
+
+
+static func fusion_cost(items: Array) -> int:
+	if items.is_empty():
+		return 0
+	var rar := str((items[0] as Dictionary).get("rarity", "commun"))
+	var ilvl := 1
+	for it in items:
+		ilvl = maxi(ilvl, int((it as Dictionary).get("ilvl", 1)))
+	return int(round(float((items_db()["fusion"]["gold"] as Dictionary).get(rar, 100)) * (1.0 + 0.03 * float(ilvl))))
+
+
+## "" si l'objet peut entrer dans une fusion, sinon la raison.
+static func fusion_item_block(it: Dictionary) -> String:
+	if it.is_empty():
+		return "Objet introuvable"
+	if bool(it.get("fused", false)):
+		return "Issu d'une fusion : il ne peut plus fusionner"
+	if bool(base_of(it).get("unique", false)):
+		return "Objet unique"
+	if holder_of(str(it["uid"])) != "":
+		return "Équipé"
+	if fusion_next(str(it.get("rarity", ""))) == "":
+		return "Rareté maximale"
+	return ""
+
+
+## "" si ces 3 objets peuvent fusionner, sinon la raison.
+static func fusion_block(uids: Array) -> String:
+	if uids.size() != int(items_db()["fusion"]["count"]):
+		return "Choisis 3 objets de même rareté"
+	var items: Array = []
+	var rar := ""
+	for u in uids:
+		var it := find_item(str(u))
+		var why := fusion_item_block(it)
+		if why != "":
+			return why
+		if rar == "":
+			rar = str(it["rarity"])
+		elif str(it["rarity"]) != rar:
+			return "Les 3 objets doivent être de même rareté"
+		items.append(it)
+	if gold() < fusion_cost(items):
+		return "Or insuffisant"
+	return ""
+
+
+## Fusionne 3 objets : le premier donne son modèle, le niveau d'objet est le plus haut des trois ;
+## le résultat est marqué « fusion » et ne pourra plus fusionner. Les runes gravées reviennent en réserve.
+static func fuse_items(uids: Array) -> Dictionary:
+	if fusion_block(uids) != "":
+		return {}
+	var items: Array = []
+	for u in uids:
+		items.append(find_item(str(u)))
+	var first: Dictionary = items[0]
+	var ilvl := 1
+	for it in items:
+		ilvl = maxi(ilvl, int(it.get("ilvl", 1)))
+	data["gold"] = gold() - fusion_cost(items)
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	var out := make_item(str(first["base"]), fusion_next(str(first["rarity"])), ilvl, rng)
+	out["fused"] = true
+	for it in items:
+		for r in it.get("runes", []):
+			rune_inventory().append(r)
+		(data["inventory"] as Array).erase(it)
+	(data["inventory"] as Array).append(out)
+	return out
+
+
 static func battle_opts() -> Dictionary:
 	return {"player_level": level(), "gear": gear_stats(), "weapon_element": weapon_element(), "bot_level": maxi(1, level() - 1),
 		"flags": Story.active_flags(), "healed": Story.has_flag("s1.sylvarche_purifiee"),
@@ -983,6 +1301,9 @@ static func all_mods() -> Dictionary:
 	var rm := race_mods()
 	for k in rm.keys():
 		out[k] = float(out.get(k, 0.0)) + float(rm[k])
+	var ru := rune_mods_of("player")
+	for k in ru.keys():
+		out[k] = float(out.get(k, 0.0)) + float(ru[k])
 	return out
 
 

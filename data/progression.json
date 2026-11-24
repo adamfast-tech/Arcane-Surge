@@ -119,5 +119,30 @@
     "per_level": 0.04
   },
   "salvage_dust": 3,
-  "reward_xp_ratio": 0.33
+  "reward_xp_ratio": 0.33,
+  "rune_drops": {
+    "per_star": 0.4,
+    "level_by_zone": {
+      "1": [
+        1,
+        1
+      ],
+      "2": [
+        1,
+        2
+      ],
+      "3": [
+        2,
+        2
+      ],
+      "4": [
+        2,
+        3
+      ],
+      "5": [
+        3,
+        3
+      ]
+    }
+  }
 }

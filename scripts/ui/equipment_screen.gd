@@ -6,6 +6,7 @@ extends Control
 
 signal back
 signal changed
+signal open_forge(uid: String) ## Forge de Durgan : gravure de runes (objet présélectionné) ou fusion
 
 var _col: VBoxContainer
 var _filter := "" ## emplacement filtré dans l'inventaire ("" : tout)
@@ -29,13 +30,19 @@ func _rebuild() -> void:
 	var b := UiTheme.back_button("Havre-Aube")
 	b.pressed.connect(func() -> void: back.emit())
 	head.add_child(b)
+	var fg := UiTheme.button("Forge", 18)
+	fg.icon = Icons.tex("forge", 40)
+	fg.add_theme_constant_override("icon_max_width", 22)
+	fg.add_theme_color_override("font_color", UiTheme.FIRE)
+	fg.pressed.connect(func() -> void: open_forge.emit(""))
+	head.add_child(fg)
 	head.add_child(UiTheme.spacer())
 	head.add_child(UiTheme.currencies())
 	var tv := VBoxContainer.new()
 	tv.add_theme_constant_override("separation", 0)
 	_col.add_child(tv)
 	tv.add_child(UiTheme.title("ÉQUIPEMENT", 46, UiTheme.GOLD))
-	tv.add_child(UiTheme.title("& FORGE" if who == "player" else "& FORGE · %s" % Dialogues.display_name(who).to_upper(), 22, UiTheme.TEXT))
+	tv.add_child(UiTheme.title("& RUNES" if who == "player" else "& RUNES · %s" % Dialogues.display_name(who).to_upper(), 22, UiTheme.TEXT))
 	var comps := Profile.companions_available()
 	if not comps.is_empty():
 		_col.add_child(_wearer_tabs(comps))
@@ -160,10 +167,32 @@ func _icon_tile(base_id: String, slot: String, col: Color, px: int = 44) -> Pane
 	r.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	r.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	r.custom_minimum_size = Vector2(px, px)
-	r.modulate = col
+	r.modulate = Color.WHITE if Icons.item_colored(base_id) else col
 	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	f.add_child(r)
 	return f
+
+
+## Runes gravées : emplacements, effets, et bouton vers la Forge.
+func _runes_line(it: Dictionary, v: VBoxContainer) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	v.add_child(row)
+	row.add_child(ForgeScreen.sockets_row(it, 20))
+	var cat := Profile.rune_category(str(Profile.base_of(it).get("slot", "")))
+	var fx: Array[String] = []
+	for r in it.get("runes", []):
+		fx.append(Profile.rune_effect_text(r, cat))
+	var t := UiTheme.wrap(" · ".join(fx) if not fx.is_empty() else "Aucune rune gravée", 15, UiTheme.TEAL if not fx.is_empty() else UiTheme.MUTED)
+	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(t)
+	var uid := str(it["uid"])
+	var gb := UiTheme.button("Runes", 16)
+	gb.custom_minimum_size = Vector2(84, 40)
+	gb.add_theme_color_override("font_color", UiTheme.FIRE)
+	gb.pressed.connect(func() -> void: open_forge.emit(uid))
+	row.add_child(gb)
+	return row
 
 
 func _equipped_row(slot: String, it: Dictionary) -> PanelContainer:
@@ -180,6 +209,7 @@ func _equipped_row(slot: String, it: Dictionary) -> PanelContainer:
 	v.add_child(UiTheme.label(_slot_name(slot), 16, UiTheme.MUTED))
 	v.add_child(UiTheme.label(Profile.item_name(it), 23, col))
 	v.add_child(UiTheme.wrap(Profile.stats_text(Profile.item_stats(it)), 17, UiTheme.MUTED))
+	_runes_line(it, v)
 	var rm := UiTheme.button("Retirer", 18)
 	rm.custom_minimum_size = Vector2(110, 52)
 	rm.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -239,8 +269,11 @@ func _item_card(it: Dictionary) -> PanelContainer:
 	info.add_child(UiTheme.wrap(Profile.stats_text(Profile.item_stats(it)), 18, UiTheme.TEXT))
 	if base.has("element") and str(base["element"]) != "physique":
 		info.add_child(UiTheme.label("Élément : %s" % str(BattleSim.ELEM_NAMES.get(str(base["element"]), "")), 16, UiTheme.TEAL))
+	if bool(it.get("fused", false)):
+		info.add_child(UiTheme.label("Issu d'une fusion", 15, UiTheme.FIRE))
 	if base.has("lore"):
 		v.add_child(UiTheme.wrap(str(base["lore"]), 16, UiTheme.MUTED))
+	_runes_line(it, v)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	v.add_child(row)

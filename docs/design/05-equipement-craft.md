@@ -1,5 +1,7 @@
 # Étape 5 — Équipement, runes, fabrication et loot
 
+> Mise en œuvre de l'étape 13.8 (catalogue de 94 objets, 16 runes, Forge : gravure et fusions) : voir [`35-equipement-runes-forge.md`](35-equipement-runes-forge.md).
+
 > Canon : [`00-lore.md`](00-lore.md) · Valeurs en data : `data/items/*.json`, `runes.json`, `runewords.json`, `recipes.json`, `loot_tables.json`
 
 ## 1. Raretés

@@ -31,7 +31,8 @@
       "mult": 1.0,
       "affixes": 0,
       "max_up": 5,
-      "value": 1
+      "value": 1,
+      "sockets": 1
     },
     "rare": {
       "name": "Rare",
@@ -40,7 +41,8 @@
       "mult": 1.25,
       "affixes": 1,
       "max_up": 10,
-      "value": 3
+      "value": 3,
+      "sockets": 1
     },
     "epique": {
       "name": "Épique",
@@ -49,7 +51,8 @@
       "mult": 1.55,
       "affixes": 2,
       "max_up": 15,
-      "value": 8
+      "value": 8,
+      "sockets": 2
     },
     "legendaire": {
       "name": "Légendaire",
@@ -58,7 +61,19 @@
       "mult": 1.9,
       "affixes": 3,
       "max_up": 20,
-      "value": 20
+      "value": 20,
+      "sockets": 3
+    },
+    "mythique": {
+      "name": "Mythique",
+      "letter": "M",
+      "color": "FF5A5A",
+      "mult": 2.3,
+      "affixes": 4,
+      "max_up": 25,
+      "value": 50,
+      "sockets": 4,
+      "fusion_only": true
     }
   },
   "stat_names": {
@@ -76,7 +91,13 @@
         "pou": 4,
         "esp": 1
       },
-      "element": "physique"
+      "element": "physique",
+      "art": {
+        "t": "baton",
+        "m": "wood",
+        "c": "moss",
+        "g": "8fd16a"
+      }
     },
     "baguette_saule": {
       "name": "Baguette de saule",
@@ -85,7 +106,13 @@
         "pou": 3,
         "cel": 2
       },
-      "element": "physique"
+      "element": "physique",
+      "art": {
+        "t": "baguette",
+        "m": "wood",
+        "c": "green",
+        "g": "c8f5a0"
+      }
     },
     "baton_lune": {
       "name": "Bâton de bois-lune",
@@ -94,14 +121,73 @@
         "pou": 4,
         "esp": 2
       },
-      "element": "lumiere"
+      "element": "lumiere",
+      "art": {
+        "t": "baton",
+        "m": "moonwood",
+        "c": "blue",
+        "g": "e8e0ff"
+      }
+    },
+    "arc_if": {
+      "name": "Arc d'if",
+      "slot": "weapon",
+      "stats": {
+        "pou": 3,
+        "des": 2
+      },
+      "element": "nature",
+      "art": {
+        "t": "arc",
+        "m": "wood",
+        "c": "green",
+        "g": "8fd16a"
+      },
+      "zone": 1
+    },
+    "epee_ecuyer": {
+      "name": "Épée d'écuyer",
+      "slot": "weapon",
+      "stats": {
+        "pou": 4,
+        "vig": 1
+      },
+      "element": "physique",
+      "art": {
+        "t": "epee",
+        "m": "iron",
+        "c": "brown",
+        "g": "5aa9ff"
+      },
+      "zone": 1
     },
     "orbe_luciole": {
       "name": "Orbe de lucioles",
       "slot": "offhand",
       "stats": {
         "esp": 3
+      },
+      "art": {
+        "t": "orbe",
+        "m": "wood",
+        "c": "green",
+        "g": "f2e28b"
       }
+    },
+    "bouclier_ecorce": {
+      "name": "Bouclier d'écorce",
+      "slot": "offhand",
+      "stats": {
+        "vig": 3,
+        "pou": 1
+      },
+      "art": {
+        "t": "bouclier",
+        "m": "wood",
+        "c": "moss",
+        "g": "8fd16a"
+      },
+      "zone": 1
     },
     "capuche_toile": {
       "name": "Capuche de toile",
@@ -109,7 +195,27 @@
       "stats": {
         "vig": 2,
         "esp": 1
+      },
+      "art": {
+        "t": "capuche",
+        "m": "leather",
+        "c": "brown"
       }
+    },
+    "couronne_feuilles": {
+      "name": "Couronne de feuilles",
+      "slot": "head",
+      "stats": {
+        "esp": 2,
+        "des": 1
+      },
+      "art": {
+        "t": "couronne",
+        "m": "wood",
+        "c": "green",
+        "g": "f2e28b"
+      },
+      "zone": 1
     },
     "robe_apprenti": {
       "name": "Robe d'apprenti",
@@ -117,7 +223,27 @@
       "stats": {
         "vig": 3,
         "esp": 2
+      },
+      "art": {
+        "t": "robe",
+        "m": "leather",
+        "c": "blue",
+        "g": "f2c46b"
       }
+    },
+    "tunique_garde": {
+      "name": "Tunique de garde forestier",
+      "slot": "armor",
+      "stats": {
+        "vig": 3,
+        "cel": 2
+      },
+      "art": {
+        "t": "tunique",
+        "m": "leather",
+        "c": "green"
+      },
+      "zone": 1
     },
     "gants_cuir": {
       "name": "Gants de cuir",
@@ -125,6 +251,11 @@
       "stats": {
         "cel": 2,
         "pou": 1
+      },
+      "art": {
+        "t": "gants",
+        "m": "leather",
+        "c": "brown"
       }
     },
     "bottes_marche": {
@@ -133,6 +264,11 @@
       "stats": {
         "cel": 2,
         "vig": 1
+      },
+      "art": {
+        "t": "bottes",
+        "m": "leather",
+        "c": "brown"
       }
     },
     "amulette_mousse": {
@@ -140,6 +276,12 @@
       "slot": "amulet",
       "stats": {
         "esp": 3
+      },
+      "art": {
+        "t": "medaillon",
+        "m": "wood",
+        "c": "moss",
+        "g": "8fd16a"
       }
     },
     "anneau_cuivre": {
@@ -148,7 +290,26 @@
       "stats": {
         "des": 2,
         "pou": 1
+      },
+      "art": {
+        "t": "anneau",
+        "m": "copper",
+        "g": "4fe3d2"
       }
+    },
+    "bague_gland": {
+      "name": "Bague de gland",
+      "slot": "ring",
+      "stats": {
+        "vig": 2,
+        "des": 1
+      },
+      "art": {
+        "t": "anneau",
+        "m": "wood",
+        "g": "c89a5a"
+      },
+      "zone": 1
     },
     "charme_luciole": {
       "name": "Charme de luciole",
@@ -156,7 +317,1082 @@
       "stats": {
         "des": 2,
         "esp": 1
+      },
+      "art": {
+        "t": "fiole",
+        "m": "crystal",
+        "c": "green",
+        "g": "f2e28b"
       }
+    },
+    "plume_chouette": {
+      "name": "Plume de chouette",
+      "slot": "charm",
+      "stats": {
+        "cel": 2,
+        "des": 1
+      },
+      "art": {
+        "t": "plume",
+        "m": "leather",
+        "c": "white",
+        "g": "e8e0ff"
+      },
+      "zone": 1
+    },
+    "hache_steppe": {
+      "name": "Hache des steppes",
+      "slot": "weapon",
+      "stats": {
+        "pou": 5,
+        "vig": 1
+      },
+      "element": "physique",
+      "art": {
+        "t": "hache",
+        "m": "iron",
+        "c": "brown",
+        "g": "f2b040"
+      },
+      "zone": 2
+    },
+    "arc_corne": {
+      "name": "Arc de corne",
+      "slot": "weapon",
+      "stats": {
+        "pou": 3,
+        "des": 3
+      },
+      "element": "foudre",
+      "art": {
+        "t": "arc",
+        "m": "bone",
+        "c": "red",
+        "g": "f0d23c"
+      },
+      "zone": 2
+    },
+    "lance_ambreval": {
+      "name": "Lance d'Ambreval",
+      "slot": "weapon",
+      "stats": {
+        "pou": 4,
+        "cel": 2
+      },
+      "element": "physique",
+      "art": {
+        "t": "lance",
+        "m": "iron",
+        "c": "red",
+        "g": "f2c46b"
+      },
+      "zone": 2
+    },
+    "sceptre_ambre": {
+      "name": "Sceptre d'ambre",
+      "slot": "weapon",
+      "stats": {
+        "pou": 3,
+        "esp": 3
+      },
+      "element": "foudre",
+      "art": {
+        "t": "sceptre",
+        "m": "gold",
+        "g": "f2b040"
+      },
+      "zone": 2
+    },
+    "bouclier_rond": {
+      "name": "Bouclier rond du clan",
+      "slot": "offhand",
+      "stats": {
+        "vig": 4,
+        "pou": 1
+      },
+      "art": {
+        "t": "bouclier",
+        "m": "iron",
+        "c": "red",
+        "g": "c8402a"
+      },
+      "zone": 2
+    },
+    "carquois_crin": {
+      "name": "Carquois en crin de loup",
+      "slot": "offhand",
+      "stats": {
+        "cel": 2,
+        "des": 2
+      },
+      "art": {
+        "t": "carquois",
+        "m": "leather",
+        "c": "grey",
+        "g": "f2b040"
+      },
+      "zone": 2
+    },
+    "heaume_milicien": {
+      "name": "Heaume de milicien",
+      "slot": "head",
+      "stats": {
+        "vig": 3,
+        "pou": 1
+      },
+      "art": {
+        "t": "heaume",
+        "m": "iron",
+        "c": "red"
+      },
+      "zone": 2
+    },
+    "masque_chaman": {
+      "name": "Masque de chaman",
+      "slot": "head",
+      "stats": {
+        "esp": 3,
+        "des": 1
+      },
+      "art": {
+        "t": "masque",
+        "m": "bone",
+        "c": "red",
+        "g": "f0d23c"
+      },
+      "zone": 2
+    },
+    "cotte_mailles": {
+      "name": "Cotte de mailles d'Ambreval",
+      "slot": "armor",
+      "stats": {
+        "vig": 5,
+        "pou": 1
+      },
+      "art": {
+        "t": "mailles",
+        "m": "iron",
+        "c": "blue"
+      },
+      "zone": 2
+    },
+    "manteau_loup": {
+      "name": "Manteau en peau de loup",
+      "slot": "armor",
+      "stats": {
+        "vig": 3,
+        "cel": 3
+      },
+      "art": {
+        "t": "manteau",
+        "m": "fur",
+        "c": "grey"
+      },
+      "zone": 2
+    },
+    "gantelets_bronze": {
+      "name": "Gantelets de bronze",
+      "slot": "hands",
+      "stats": {
+        "pou": 2,
+        "vig": 2
+      },
+      "art": {
+        "t": "gantelets",
+        "m": "bronze"
+      },
+      "zone": 2
+    },
+    "bandes_guerrier": {
+      "name": "Bandes de guerrier",
+      "slot": "hands",
+      "stats": {
+        "pou": 3,
+        "cel": 1
+      },
+      "art": {
+        "t": "bandages",
+        "m": "leather",
+        "c": "red"
+      },
+      "zone": 2
+    },
+    "bottes_cavalier": {
+      "name": "Bottes de cavalier",
+      "slot": "feet",
+      "stats": {
+        "cel": 3,
+        "vig": 1
+      },
+      "art": {
+        "t": "bottes",
+        "m": "leather",
+        "c": "red",
+        "g": "f2c46b"
+      },
+      "zone": 2
+    },
+    "sandales_nomade": {
+      "name": "Sandales de nomade",
+      "slot": "feet",
+      "stats": {
+        "cel": 3,
+        "des": 1
+      },
+      "art": {
+        "t": "sandales",
+        "m": "leather",
+        "c": "sand"
+      },
+      "zone": 2
+    },
+    "torque_ambre": {
+      "name": "Torque d'ambre",
+      "slot": "amulet",
+      "stats": {
+        "esp": 3,
+        "pou": 1
+      },
+      "art": {
+        "t": "pendentif",
+        "m": "gold",
+        "g": "f2b040"
+      },
+      "zone": 2
+    },
+    "chevaliere_ambreval": {
+      "name": "Chevalière d'Ambreval",
+      "slot": "ring",
+      "stats": {
+        "des": 2,
+        "vig": 2
+      },
+      "art": {
+        "t": "chevaliere",
+        "m": "gold",
+        "g": "5aa9ff"
+      },
+      "zone": 2
+    },
+    "anneau_orage": {
+      "name": "Anneau d'orage",
+      "slot": "ring",
+      "stats": {
+        "pou": 2,
+        "cel": 2
+      },
+      "art": {
+        "t": "anneau",
+        "m": "silver",
+        "g": "f0d23c"
+      },
+      "zone": 2
+    },
+    "dent_ogre": {
+      "name": "Dent d'ogre",
+      "slot": "charm",
+      "stats": {
+        "pou": 2,
+        "des": 2
+      },
+      "art": {
+        "t": "croc",
+        "m": "bone",
+        "c": "red",
+        "g": "c8402a"
+      },
+      "zone": 2
+    },
+    "faux_cendres": {
+      "name": "Faux des Cendres",
+      "slot": "weapon",
+      "stats": {
+        "pou": 5,
+        "esp": 1
+      },
+      "element": "ombre",
+      "art": {
+        "t": "faux",
+        "m": "iron",
+        "c": "black",
+        "g": "b07cff"
+      },
+      "zone": 3
+    },
+    "dague_rituelle": {
+      "name": "Dague rituelle",
+      "slot": "weapon",
+      "stats": {
+        "pou": 3,
+        "cel": 3
+      },
+      "element": "ombre",
+      "art": {
+        "t": "dague",
+        "m": "bone",
+        "c": "violet",
+        "g": "b07cff"
+      },
+      "zone": 3
+    },
+    "masse_aube": {
+      "name": "Masse de l'Aube",
+      "slot": "weapon",
+      "stats": {
+        "pou": 4,
+        "vig": 2
+      },
+      "element": "lumiere",
+      "art": {
+        "t": "masse",
+        "m": "gold",
+        "c": "white",
+        "g": "fff0a0"
+      },
+      "zone": 3
+    },
+    "baton_saule_noir": {
+      "name": "Bâton de saule noir",
+      "slot": "weapon",
+      "stats": {
+        "pou": 4,
+        "esp": 2
+      },
+      "element": "nature",
+      "art": {
+        "t": "baton",
+        "m": "darkwood",
+        "c": "moss",
+        "g": "8fd16a"
+      },
+      "zone": 3
+    },
+    "grimoire_os": {
+      "name": "Grimoire relié d'os",
+      "slot": "offhand",
+      "stats": {
+        "esp": 4,
+        "pou": 1
+      },
+      "art": {
+        "t": "tome",
+        "m": "bone",
+        "c": "violet",
+        "g": "b07cff"
+      },
+      "zone": 3
+    },
+    "lanterne_passeur": {
+      "name": "Lanterne du passeur",
+      "slot": "offhand",
+      "stats": {
+        "esp": 2,
+        "des": 3
+      },
+      "art": {
+        "t": "lanterne",
+        "m": "iron",
+        "g": "f2e28b"
+      },
+      "zone": 3
+    },
+    "capuche_brume": {
+      "name": "Capuche de brume",
+      "slot": "head",
+      "stats": {
+        "esp": 2,
+        "cel": 2
+      },
+      "art": {
+        "t": "capuche",
+        "m": "leather",
+        "c": "ash"
+      },
+      "zone": 3
+    },
+    "diademe_aube": {
+      "name": "Diadème de l'Aube",
+      "slot": "head",
+      "stats": {
+        "esp": 3,
+        "vig": 1
+      },
+      "art": {
+        "t": "couronne",
+        "m": "gold",
+        "g": "fff0a0"
+      },
+      "zone": 3
+    },
+    "robe_cendree": {
+      "name": "Robe cendrée",
+      "slot": "armor",
+      "stats": {
+        "esp": 4,
+        "vig": 2
+      },
+      "art": {
+        "t": "robe",
+        "m": "leather",
+        "c": "ash",
+        "g": "b07cff"
+      },
+      "zone": 3
+    },
+    "cuirasse_inquisitrice": {
+      "name": "Cuirasse d'inquisitrice",
+      "slot": "armor",
+      "stats": {
+        "vig": 5,
+        "des": 1
+      },
+      "art": {
+        "t": "cuirasse",
+        "m": "steel",
+        "c": "white",
+        "g": "f2c46b"
+      },
+      "zone": 3
+    },
+    "gants_tourbe": {
+      "name": "Gants de tourbe",
+      "slot": "hands",
+      "stats": {
+        "cel": 2,
+        "esp": 2
+      },
+      "art": {
+        "t": "gants",
+        "m": "leather",
+        "c": "moss"
+      },
+      "zone": 3
+    },
+    "mitaines_os": {
+      "name": "Mitaines d'os",
+      "slot": "hands",
+      "stats": {
+        "pou": 3,
+        "des": 1
+      },
+      "art": {
+        "t": "gantelets",
+        "m": "bone"
+      },
+      "zone": 3
+    },
+    "bottes_vase": {
+      "name": "Bottes de vase",
+      "slot": "feet",
+      "stats": {
+        "vig": 2,
+        "cel": 2
+      },
+      "art": {
+        "t": "bottes",
+        "m": "leather",
+        "c": "moss"
+      },
+      "zone": 3
+    },
+    "chaussons_passeur": {
+      "name": "Chaussons du passeur",
+      "slot": "feet",
+      "stats": {
+        "cel": 3,
+        "esp": 1
+      },
+      "art": {
+        "t": "sandales",
+        "m": "leather",
+        "c": "ash"
+      },
+      "zone": 3
+    },
+    "pendentif_crane": {
+      "name": "Pendentif au crâne",
+      "slot": "amulet",
+      "stats": {
+        "esp": 3,
+        "pou": 1
+      },
+      "art": {
+        "t": "pendentif",
+        "m": "bone",
+        "g": "b07cff"
+      },
+      "zone": 3
+    },
+    "anneau_liche": {
+      "name": "Anneau d'écaille de liche",
+      "slot": "ring",
+      "stats": {
+        "esp": 2,
+        "des": 2
+      },
+      "art": {
+        "t": "anneau",
+        "m": "obsidian",
+        "g": "8fd16a"
+      },
+      "zone": 3
+    },
+    "bague_saule": {
+      "name": "Bague de saule pleureur",
+      "slot": "ring",
+      "stats": {
+        "vig": 2,
+        "esp": 2
+      },
+      "art": {
+        "t": "anneau",
+        "m": "darkwood",
+        "g": "c8f5a0"
+      },
+      "zone": 3
+    },
+    "fiole_venin": {
+      "name": "Fiole de venin",
+      "slot": "charm",
+      "stats": {
+        "pou": 2,
+        "des": 2
+      },
+      "art": {
+        "t": "fiole",
+        "m": "crystal",
+        "c": "moss",
+        "g": "8fd16a"
+      },
+      "zone": 3
+    },
+    "marteau_runique": {
+      "name": "Marteau runique",
+      "slot": "weapon",
+      "stats": {
+        "pou": 6,
+        "vig": 1
+      },
+      "element": "physique",
+      "art": {
+        "t": "marteau",
+        "m": "iron",
+        "c": "red",
+        "g": "4fe3d2"
+      },
+      "zone": 4
+    },
+    "hache_givre": {
+      "name": "Hache de givre",
+      "slot": "weapon",
+      "stats": {
+        "pou": 5,
+        "cel": 2
+      },
+      "element": "givre",
+      "art": {
+        "t": "hache",
+        "m": "frost",
+        "c": "blue",
+        "g": "cfeaff"
+      },
+      "zone": 4
+    },
+    "arbalete_naine": {
+      "name": "Arbalète naine",
+      "slot": "weapon",
+      "stats": {
+        "pou": 4,
+        "des": 3
+      },
+      "element": "physique",
+      "art": {
+        "t": "arbalete",
+        "m": "iron",
+        "c": "brown",
+        "g": "4fe3d2"
+      },
+      "zone": 4
+    },
+    "baguette_givrargent": {
+      "name": "Baguette de givrargent",
+      "slot": "weapon",
+      "stats": {
+        "pou": 4,
+        "esp": 3
+      },
+      "element": "givre",
+      "art": {
+        "t": "baguette",
+        "m": "frost",
+        "c": "blue",
+        "g": "ffffff"
+      },
+      "zone": 4
+    },
+    "bouclier_forgecoeur": {
+      "name": "Bouclier de Forgecœur",
+      "slot": "offhand",
+      "stats": {
+        "vig": 5,
+        "pou": 1
+      },
+      "art": {
+        "t": "bouclier",
+        "m": "iron",
+        "c": "red",
+        "g": "4fe3d2"
+      },
+      "zone": 4
+    },
+    "orbe_aurore": {
+      "name": "Orbe d'aurore",
+      "slot": "offhand",
+      "stats": {
+        "esp": 4,
+        "des": 2
+      },
+      "art": {
+        "t": "orbe",
+        "m": "silver",
+        "c": "teal",
+        "g": "5ff0a8"
+      },
+      "zone": 4
+    },
+    "heaume_cornu": {
+      "name": "Heaume cornu",
+      "slot": "head",
+      "stats": {
+        "vig": 4,
+        "pou": 1
+      },
+      "art": {
+        "t": "heaume",
+        "m": "iron",
+        "c": "fur",
+        "g": "4fe3d2"
+      },
+      "zone": 4
+    },
+    "capuche_fourree": {
+      "name": "Capuche fourrée",
+      "slot": "head",
+      "stats": {
+        "vig": 2,
+        "esp": 2
+      },
+      "art": {
+        "t": "capuche",
+        "m": "fur",
+        "c": "white"
+      },
+      "zone": 4
+    },
+    "cuirasse_naine": {
+      "name": "Cuirasse naine",
+      "slot": "armor",
+      "stats": {
+        "vig": 6,
+        "pou": 1
+      },
+      "art": {
+        "t": "cuirasse",
+        "m": "iron",
+        "c": "red",
+        "g": "4fe3d2"
+      },
+      "zone": 4
+    },
+    "manteau_yeti": {
+      "name": "Manteau de yéti",
+      "slot": "armor",
+      "stats": {
+        "vig": 4,
+        "cel": 3
+      },
+      "art": {
+        "t": "manteau",
+        "m": "fur",
+        "c": "white"
+      },
+      "zone": 4
+    },
+    "gantelets_runiques": {
+      "name": "Gantelets runiques",
+      "slot": "hands",
+      "stats": {
+        "pou": 3,
+        "vig": 2
+      },
+      "art": {
+        "t": "gantelets",
+        "m": "iron",
+        "g": "4fe3d2"
+      },
+      "zone": 4
+    },
+    "moufles_fourrees": {
+      "name": "Moufles fourrées",
+      "slot": "hands",
+      "stats": {
+        "vig": 2,
+        "cel": 2
+      },
+      "art": {
+        "t": "gants",
+        "m": "fur",
+        "c": "white"
+      },
+      "zone": 4
+    },
+    "greves_naines": {
+      "name": "Grèves naines",
+      "slot": "feet",
+      "stats": {
+        "vig": 3,
+        "cel": 2
+      },
+      "art": {
+        "t": "greves",
+        "m": "iron",
+        "g": "4fe3d2"
+      },
+      "zone": 4
+    },
+    "bottes_neige": {
+      "name": "Bottes de neige",
+      "slot": "feet",
+      "stats": {
+        "cel": 3,
+        "vig": 2
+      },
+      "art": {
+        "t": "bottes",
+        "m": "fur",
+        "c": "white"
+      },
+      "zone": 4
+    },
+    "medaillon_rune": {
+      "name": "Médaillon runique",
+      "slot": "amulet",
+      "stats": {
+        "esp": 3,
+        "vig": 2
+      },
+      "art": {
+        "t": "medaillon",
+        "m": "stone",
+        "g": "4fe3d2"
+      },
+      "zone": 4
+    },
+    "anneau_givrargent": {
+      "name": "Anneau de givrargent",
+      "slot": "ring",
+      "stats": {
+        "esp": 2,
+        "des": 3
+      },
+      "art": {
+        "t": "anneau",
+        "m": "frost",
+        "g": "cfeaff"
+      },
+      "zone": 4
+    },
+    "chevaliere_clan": {
+      "name": "Chevalière du clan",
+      "slot": "ring",
+      "stats": {
+        "pou": 3,
+        "vig": 2
+      },
+      "art": {
+        "t": "chevaliere",
+        "m": "iron",
+        "g": "c8402a"
+      },
+      "zone": 4
+    },
+    "eclat_givre": {
+      "name": "Éclat de cristal de givre",
+      "slot": "charm",
+      "stats": {
+        "esp": 2,
+        "des": 3
+      },
+      "art": {
+        "t": "cristal",
+        "m": "frost",
+        "g": "cfeaff"
+      },
+      "zone": 4
+    },
+    "sceptre_solaire": {
+      "name": "Sceptre solaire",
+      "slot": "weapon",
+      "stats": {
+        "pou": 5,
+        "esp": 2
+      },
+      "element": "feu",
+      "art": {
+        "t": "sceptre",
+        "m": "gold",
+        "g": "ff7a2a"
+      },
+      "zone": 5
+    },
+    "lame_verre": {
+      "name": "Lame de verre",
+      "slot": "weapon",
+      "stats": {
+        "pou": 5,
+        "des": 2
+      },
+      "element": "lumiere",
+      "art": {
+        "t": "epee",
+        "m": "crystal",
+        "c": "teal",
+        "g": "ffffff"
+      },
+      "zone": 5
+    },
+    "arc_dunes": {
+      "name": "Arc des dunes",
+      "slot": "weapon",
+      "stats": {
+        "pou": 4,
+        "cel": 3
+      },
+      "element": "feu",
+      "art": {
+        "t": "arc",
+        "m": "wood",
+        "c": "sand",
+        "g": "ff7a2a"
+      },
+      "zone": 5
+    },
+    "baton_college": {
+      "name": "Bâton du Collège",
+      "slot": "weapon",
+      "stats": {
+        "pou": 4,
+        "esp": 4
+      },
+      "element": "ombre",
+      "art": {
+        "t": "baton",
+        "m": "darkwood",
+        "c": "violet",
+        "g": "b07cff"
+      },
+      "zone": 5
+    },
+    "tome_college": {
+      "name": "Tome du Collège",
+      "slot": "offhand",
+      "stats": {
+        "esp": 5,
+        "des": 1
+      },
+      "art": {
+        "t": "tome",
+        "m": "leather",
+        "c": "violet",
+        "g": "f2c46b"
+      },
+      "zone": 5
+    },
+    "miroir_poche": {
+      "name": "Miroir de poche",
+      "slot": "offhand",
+      "stats": {
+        "des": 3,
+        "esp": 3
+      },
+      "art": {
+        "t": "miroir",
+        "m": "gold",
+        "g": "bfe6f0"
+      },
+      "zone": 5
+    },
+    "coiffe_sables": {
+      "name": "Coiffe des sables",
+      "slot": "head",
+      "stats": {
+        "esp": 3,
+        "cel": 2
+      },
+      "art": {
+        "t": "nemes",
+        "m": "gold",
+        "c": "teal",
+        "g": "3fc1c9"
+      },
+      "zone": 5
+    },
+    "masque_solaire": {
+      "name": "Masque solaire",
+      "slot": "head",
+      "stats": {
+        "vig": 3,
+        "pou": 2
+      },
+      "art": {
+        "t": "masque",
+        "m": "gold",
+        "g": "ff7a2a"
+      },
+      "zone": 5
+    },
+    "tunique_nomade": {
+      "name": "Tunique de nomade",
+      "slot": "armor",
+      "stats": {
+        "vig": 4,
+        "cel": 3
+      },
+      "art": {
+        "t": "tunique",
+        "m": "leather",
+        "c": "sand",
+        "g": "3fc1c9"
+      },
+      "zone": 5
+    },
+    "robe_college": {
+      "name": "Robe d'érudit du Collège",
+      "slot": "armor",
+      "stats": {
+        "esp": 5,
+        "vig": 2
+      },
+      "art": {
+        "t": "robe",
+        "m": "leather",
+        "c": "violet",
+        "g": "f2c46b"
+      },
+      "zone": 5
+    },
+    "brassards_scarabee": {
+      "name": "Brassards du scarabée",
+      "slot": "hands",
+      "stats": {
+        "pou": 3,
+        "des": 2
+      },
+      "art": {
+        "t": "gantelets",
+        "m": "gold",
+        "g": "3fc1c9"
+      },
+      "zone": 5
+    },
+    "gants_erudit": {
+      "name": "Gants d'érudit",
+      "slot": "hands",
+      "stats": {
+        "esp": 3,
+        "cel": 2
+      },
+      "art": {
+        "t": "gants",
+        "m": "leather",
+        "c": "violet"
+      },
+      "zone": 5
+    },
+    "sandales_dorees": {
+      "name": "Sandales dorées",
+      "slot": "feet",
+      "stats": {
+        "cel": 4,
+        "des": 1
+      },
+      "art": {
+        "t": "sandales",
+        "m": "gold",
+        "c": "sand"
+      },
+      "zone": 5
+    },
+    "bottes_caravane": {
+      "name": "Bottes de caravanier",
+      "slot": "feet",
+      "stats": {
+        "vig": 3,
+        "cel": 2
+      },
+      "art": {
+        "t": "bottes",
+        "m": "leather",
+        "c": "sand"
+      },
+      "zone": 5
+    },
+    "amulette_scarabee": {
+      "name": "Amulette du scarabée",
+      "slot": "amulet",
+      "stats": {
+        "esp": 3,
+        "des": 2
+      },
+      "art": {
+        "t": "pendentif",
+        "m": "gold",
+        "g": "3fc1c9"
+      },
+      "zone": 5
+    },
+    "anneau_verre_soleil": {
+      "name": "Anneau de verre-soleil",
+      "slot": "ring",
+      "stats": {
+        "pou": 3,
+        "esp": 2
+      },
+      "art": {
+        "t": "anneau",
+        "m": "gold",
+        "g": "ff7a2a"
+      },
+      "zone": 5
+    },
+    "bague_sablier": {
+      "name": "Bague-sablier",
+      "slot": "ring",
+      "stats": {
+        "cel": 3,
+        "des": 2
+      },
+      "art": {
+        "t": "anneau",
+        "m": "silver",
+        "g": "f2d090"
+      },
+      "zone": 5
+    },
+    "sablier_fige": {
+      "name": "Sablier figé",
+      "slot": "charm",
+      "stats": {
+        "des": 3,
+        "esp": 2
+      },
+      "art": {
+        "t": "sablier",
+        "m": "gold",
+        "c": "sand",
+        "g": "f2d090"
+      },
+      "zone": 5
     },
     "croc_gharok": {
       "name": "Croc de Gharok",
@@ -166,7 +1402,13 @@
         "cel": 5
       },
       "unique": true,
-      "lore": "Arraché au seigneur de guerre des Collines d'Ambre. La foudre y gronde encore."
+      "lore": "Arraché au seigneur de guerre des Collines d'Ambre. La foudre y gronde encore.",
+      "art": {
+        "t": "croc",
+        "m": "bone",
+        "c": "red",
+        "g": "f0d23c"
+      }
     },
     "enclume_coeur": {
       "name": "Enclume-Cœur",
@@ -177,7 +1419,12 @@
       },
       "element": "foudre",
       "unique": true,
-      "lore": "Forgée dans le cœur du Colosse runique. Elle bat encore, tiède, au rythme de la forteresse Forgecœur."
+      "lore": "Forgée dans le cœur du Colosse runique. Elle bat encore, tiède, au rythme de la forteresse Forgecœur.",
+      "art": {
+        "t": "enclume",
+        "m": "iron",
+        "g": "ff9a4a"
+      }
     },
     "couronne_enigme": {
       "name": "Couronne de l'Énigme",
@@ -188,7 +1435,13 @@
       },
       "element": "lumiere",
       "unique": true,
-      "lore": "Tombée du front du Sphinx de verre, pour qui sut répondre à ses deux énigmes."
+      "lore": "Tombée du front du Sphinx de verre, pour qui sut répondre à ses deux énigmes.",
+      "art": {
+        "t": "nemes",
+        "m": "crystal",
+        "c": "violet",
+        "g": "b07cff"
+      }
     },
     "baton_seve": {
       "name": "Bâton de la Première Sève",
@@ -199,7 +1452,13 @@
       },
       "element": "nature",
       "unique": true,
-      "lore": "Taillé dans la première branche tombée de la Sylvarche."
+      "lore": "Taillé dans la première branche tombée de la Sylvarche.",
+      "art": {
+        "t": "baton",
+        "m": "wood",
+        "c": "green",
+        "g": "8fd16a"
+      }
     }
   },
   "loot_pool": {
@@ -207,66 +1466,101 @@
       "baton_chene",
       "baguette_saule",
       "baton_lune",
+      "arc_if",
+      "epee_ecuyer",
       "orbe_luciole",
+      "bouclier_ecorce",
       "capuche_toile",
+      "couronne_feuilles",
       "robe_apprenti",
+      "tunique_garde",
       "gants_cuir",
       "bottes_marche",
       "amulette_mousse",
       "anneau_cuivre",
-      "charme_luciole"
+      "bague_gland",
+      "charme_luciole",
+      "plume_chouette"
     ],
     "2": [
-      "baton_chene",
-      "baguette_saule",
-      "baton_lune",
-      "orbe_luciole",
-      "capuche_toile",
-      "robe_apprenti",
-      "gants_cuir",
-      "bottes_marche",
-      "amulette_mousse",
-      "anneau_cuivre",
-      "charme_luciole"
+      "hache_steppe",
+      "arc_corne",
+      "lance_ambreval",
+      "sceptre_ambre",
+      "bouclier_rond",
+      "carquois_crin",
+      "heaume_milicien",
+      "masque_chaman",
+      "cotte_mailles",
+      "manteau_loup",
+      "gantelets_bronze",
+      "bandes_guerrier",
+      "bottes_cavalier",
+      "sandales_nomade",
+      "torque_ambre",
+      "chevaliere_ambreval",
+      "anneau_orage",
+      "dent_ogre"
     ],
     "3": [
-      "baton_chene",
-      "baguette_saule",
-      "baton_lune",
-      "orbe_luciole",
-      "capuche_toile",
-      "robe_apprenti",
-      "gants_cuir",
-      "bottes_marche",
-      "amulette_mousse",
-      "anneau_cuivre",
-      "charme_luciole"
+      "faux_cendres",
+      "dague_rituelle",
+      "masse_aube",
+      "baton_saule_noir",
+      "grimoire_os",
+      "lanterne_passeur",
+      "capuche_brume",
+      "diademe_aube",
+      "robe_cendree",
+      "cuirasse_inquisitrice",
+      "gants_tourbe",
+      "mitaines_os",
+      "bottes_vase",
+      "chaussons_passeur",
+      "pendentif_crane",
+      "anneau_liche",
+      "bague_saule",
+      "fiole_venin"
     ],
     "4": [
-      "baton_chene",
-      "baguette_saule",
-      "baton_lune",
-      "orbe_luciole",
-      "capuche_toile",
-      "robe_apprenti",
-      "gants_cuir",
-      "bottes_marche",
-      "amulette_mousse",
-      "anneau_cuivre",
-      "charme_luciole"
+      "marteau_runique",
+      "hache_givre",
+      "arbalete_naine",
+      "baguette_givrargent",
+      "bouclier_forgecoeur",
+      "orbe_aurore",
+      "heaume_cornu",
+      "capuche_fourree",
+      "cuirasse_naine",
+      "manteau_yeti",
+      "gantelets_runiques",
+      "moufles_fourrees",
+      "greves_naines",
+      "bottes_neige",
+      "medaillon_rune",
+      "anneau_givrargent",
+      "chevaliere_clan",
+      "eclat_givre"
     ],
     "5": [
-      "baton_chene",
-      "baguette_saule",
-      "baton_lune",
-      "orbe_luciole",
-      "capuche_toile",
-      "robe_apprenti",
-      "gants_cuir",
-      "bottes_marche",
-      "amulette_mousse",
-      "anneau_cuivre",
-      "charme_luciole"
+      "sceptre_solaire",
+      "lame_verre",
+      "arc_dunes",
+      "baton_college",
+      "tome_college",
+      "miroir_poche",
+      "coiffe_sables",
+      "masque_solaire",
+      "tunique_nomade",
+      "robe_college",
+      "brassards_scarabee",
+      "gants_erudit",
+      "sandales_dorees",
+      "bottes_caravane",
+      "amulette_scarabee",
+      "anneau_verre_soleil",
+      "bague_sablier",
+      "sablier_fige"
     ]
   },
   "materials": {
@@ -312,5 +1606,514 @@
       "rarity": "commun",
       "ilvl": 1
     }
-  ]
+  ],
+  "runes": {
+    "families": {
+      "kaor": {
+        "name": "Kaor",
+        "theme": "Puissance",
+        "color": "ff8a5a",
+        "arme": {
+          "mod": "unit_atk",
+          "per": 0.012,
+          "label": "Attaque des invocations",
+          "fmt": "pct"
+        },
+        "armure": {
+          "stat": "pou",
+          "per": 3
+        },
+        "bijou": {
+          "mod": "spell_dmg",
+          "per": 0.01,
+          "label": "Dégâts des sorts",
+          "fmt": "pct"
+        },
+        "charme": {
+          "mod": "champ_atk",
+          "per": 0.025,
+          "label": "Attaque du Champion",
+          "fmt": "pct"
+        }
+      },
+      "vigr": {
+        "name": "Vigr",
+        "theme": "Vigueur",
+        "color": "ff5a7a",
+        "arme": {
+          "mod": "unit_hp",
+          "per": 0.012,
+          "label": "PV des invocations",
+          "fmt": "pct"
+        },
+        "armure": {
+          "mod": "barrier_max",
+          "per": 0.01,
+          "label": "PV de Barrière",
+          "fmt": "pct"
+        },
+        "bijou": {
+          "stat": "vig",
+          "per": 3
+        },
+        "charme": {
+          "mod": "champ_hp",
+          "per": 0.025,
+          "label": "PV du Champion",
+          "fmt": "pct"
+        }
+      },
+      "ilm": {
+        "name": "Ilm",
+        "theme": "Esprit",
+        "color": "7aa8ff",
+        "arme": {
+          "mod": "spell_dmg",
+          "per": 0.012,
+          "label": "Dégâts des sorts",
+          "fmt": "pct"
+        },
+        "armure": {
+          "mod": "mana_regen",
+          "per": 0.015,
+          "label": "Régénération de mana",
+          "fmt": "pct"
+        },
+        "bijou": {
+          "stat": "esp",
+          "per": 3
+        },
+        "charme": {
+          "mod": "kill_mana",
+          "per": 0.06,
+          "label": "Mana par ennemi abattu",
+          "fmt": "flat"
+        }
+      },
+      "sael": {
+        "name": "Sael",
+        "theme": "Célérité",
+        "color": "5ff0c8",
+        "arme": {
+          "mod": "cadence",
+          "per": 0.006,
+          "label": "Cadence du Flux",
+          "fmt": "pct"
+        },
+        "armure": {
+          "mod": "unit_speed",
+          "per": 0.01,
+          "label": "Vitesse des invocations",
+          "fmt": "pct"
+        },
+        "bijou": {
+          "mod": "cd_red",
+          "per": 0.008,
+          "label": "Recharge des sorts",
+          "fmt": "neg"
+        },
+        "charme": {
+          "stat": "cel",
+          "per": 3
+        }
+      },
+      "wyrd": {
+        "name": "Wyrd",
+        "theme": "Destin",
+        "color": "f2c46b",
+        "arme": {
+          "mod": "crit",
+          "per": 0.002,
+          "label": "Critique",
+          "fmt": "pct"
+        },
+        "armure": {
+          "mod": "dodge",
+          "per": 0.004,
+          "label": "Esquive des invocations",
+          "fmt": "pct"
+        },
+        "bijou": {
+          "mod": "luck",
+          "per": 0.01,
+          "label": "Chance de butin plus rare",
+          "fmt": "pct"
+        },
+        "charme": {
+          "stat": "des",
+          "per": 3
+        }
+      },
+      "pyr": {
+        "name": "Pyr",
+        "theme": "Feu",
+        "color": "ff7a2a",
+        "element": "feu",
+        "arme": {
+          "mod": "elem_dmg.feu",
+          "per": 0.015,
+          "label": "Sorts de Feu",
+          "fmt": "pct"
+        },
+        "armure": {
+          "mod": "resist.feu",
+          "per": 0.015,
+          "label": "Résistance au Feu",
+          "fmt": "pct"
+        },
+        "bijou": {
+          "mod": "burn_dmg",
+          "per": 0.04,
+          "label": "Dégâts de brûlure",
+          "fmt": "pct"
+        },
+        "charme": {
+          "mod": "unit_elem.feu",
+          "per": 0.012,
+          "label": "Invocations de Feu : dégâts",
+          "fmt": "pct"
+        }
+      },
+      "isa": {
+        "name": "Isa",
+        "theme": "Givre",
+        "color": "8fd8ff",
+        "element": "givre",
+        "arme": {
+          "mod": "elem_dmg.givre",
+          "per": 0.015,
+          "label": "Sorts de Givre",
+          "fmt": "pct"
+        },
+        "armure": {
+          "mod": "resist.givre",
+          "per": 0.015,
+          "label": "Résistance au Givre",
+          "fmt": "pct"
+        },
+        "bijou": {
+          "mod": "frozen_dur",
+          "per": 0.05,
+          "label": "Durée du gel",
+          "fmt": "sec"
+        },
+        "charme": {
+          "mod": "unit_elem.givre",
+          "per": 0.012,
+          "label": "Invocations de Givre : dégâts",
+          "fmt": "pct"
+        }
+      },
+      "thun": {
+        "name": "Thun",
+        "theme": "Foudre",
+        "color": "f0d23c",
+        "element": "foudre",
+        "arme": {
+          "mod": "elem_dmg.foudre",
+          "per": 0.015,
+          "label": "Sorts de Foudre",
+          "fmt": "pct"
+        },
+        "armure": {
+          "mod": "resist.foudre",
+          "per": 0.015,
+          "label": "Résistance à la Foudre",
+          "fmt": "pct"
+        },
+        "bijou": {
+          "mod": "cadence",
+          "per": 0.004,
+          "label": "Cadence du Flux",
+          "fmt": "pct"
+        },
+        "charme": {
+          "mod": "unit_elem.foudre",
+          "per": 0.012,
+          "label": "Invocations de Foudre : dégâts",
+          "fmt": "pct"
+        }
+      },
+      "ver": {
+        "name": "Ver",
+        "theme": "Nature",
+        "color": "8fd16a",
+        "element": "nature",
+        "arme": {
+          "mod": "elem_dmg.nature",
+          "per": 0.015,
+          "label": "Sorts de Nature",
+          "fmt": "pct"
+        },
+        "armure": {
+          "mod": "resist.nature",
+          "per": 0.015,
+          "label": "Résistance à la Nature",
+          "fmt": "pct"
+        },
+        "bijou": {
+          "mod": "poison_dmg",
+          "per": 0.04,
+          "label": "Dégâts de poison",
+          "fmt": "pct"
+        },
+        "charme": {
+          "mod": "unit_elem.nature",
+          "per": 0.012,
+          "label": "Invocations de Nature : dégâts",
+          "fmt": "pct"
+        }
+      },
+      "lux": {
+        "name": "Lux",
+        "theme": "Lumière",
+        "color": "fff0a0",
+        "element": "lumiere",
+        "arme": {
+          "mod": "elem_dmg.lumiere",
+          "per": 0.015,
+          "label": "Sorts de Lumière",
+          "fmt": "pct"
+        },
+        "armure": {
+          "mod": "resist.lumiere",
+          "per": 0.015,
+          "label": "Résistance à la Lumière",
+          "fmt": "pct"
+        },
+        "bijou": {
+          "mod": "anti_heal",
+          "per": 0.015,
+          "label": "Soins ennemis",
+          "fmt": "neg"
+        },
+        "charme": {
+          "mod": "unit_elem.lumiere",
+          "per": 0.012,
+          "label": "Invocations de Lumière : dégâts",
+          "fmt": "pct"
+        }
+      },
+      "nox": {
+        "name": "Nox",
+        "theme": "Ombre",
+        "color": "b07cff",
+        "element": "ombre",
+        "arme": {
+          "mod": "elem_dmg.ombre",
+          "per": 0.015,
+          "label": "Sorts de Ombre",
+          "fmt": "pct"
+        },
+        "armure": {
+          "mod": "resist.ombre",
+          "per": 0.015,
+          "label": "Résistance à l'Ombre",
+          "fmt": "pct"
+        },
+        "bijou": {
+          "mod": "lifesteal",
+          "per": 0.003,
+          "label": "Vol de vie des invocations",
+          "fmt": "pct"
+        },
+        "charme": {
+          "mod": "unit_elem.ombre",
+          "per": 0.012,
+          "label": "Invocations de Ombre : dégâts",
+          "fmt": "pct"
+        }
+      },
+      "ark": {
+        "name": "Ark",
+        "theme": "Arcane",
+        "color": "d07cff",
+        "element": "arcane",
+        "arme": {
+          "mod": "elem_dmg.arcane",
+          "per": 0.015,
+          "label": "Sorts d'Arcane",
+          "fmt": "pct"
+        },
+        "armure": {
+          "mod": "barrier_regen",
+          "per": 0.004,
+          "label": "Régénération de la Barrière",
+          "fmt": "regen"
+        },
+        "bijou": {
+          "mod": "ult_dmg",
+          "per": 0.02,
+          "label": "Dégâts de l'Ultime",
+          "fmt": "pct"
+        },
+        "charme": {
+          "mod": "ult_radius",
+          "per": 0.012,
+          "label": "Rayon de l'Ultime",
+          "fmt": "pct"
+        }
+      },
+      "ferr": {
+        "name": "Ferr",
+        "theme": "Physique",
+        "color": "c8c8d8",
+        "element": "physique",
+        "arme": {
+          "mod": "elem_dmg.physique",
+          "per": 0.015,
+          "label": "Techniques physiques",
+          "fmt": "pct"
+        },
+        "armure": {
+          "mod": "resist.physique",
+          "per": 0.008,
+          "label": "Résistance physique",
+          "fmt": "pct"
+        },
+        "bijou": {
+          "mod": "riposte",
+          "per": 0.006,
+          "label": "Riposte des invocations",
+          "fmt": "pct"
+        },
+        "charme": {
+          "mod": "unit_elem.physique",
+          "per": 0.012,
+          "label": "Invocations physiques : dégâts",
+          "fmt": "pct"
+        }
+      },
+      "mor": {
+        "name": "Mor",
+        "theme": "Vie",
+        "color": "6fe39a",
+        "arme": {
+          "mod": "lifesteal",
+          "per": 0.003,
+          "label": "Vol de vie des invocations",
+          "fmt": "pct"
+        },
+        "armure": {
+          "mod": "unit_regen",
+          "per": 0.002,
+          "label": "Régénération des invocations",
+          "fmt": "pct"
+        },
+        "bijou": {
+          "mod": "heal_bonus",
+          "per": 0.02,
+          "label": "Soins",
+          "fmt": "pct"
+        },
+        "charme": {
+          "mod": "aura_heal",
+          "per": 0.03,
+          "label": "Auras de soin",
+          "fmt": "pct"
+        }
+      },
+      "gard": {
+        "name": "Gard",
+        "theme": "Garde",
+        "color": "a8c0d8",
+        "arme": {
+          "mod": "spawn_shield",
+          "per": 0.006,
+          "label": "Bouclier des invocations",
+          "fmt": "pct"
+        },
+        "armure": {
+          "mod": "unit_def",
+          "per": 0.015,
+          "label": "Défense des invocations",
+          "fmt": "pct"
+        },
+        "bijou": {
+          "mod": "start_shield",
+          "per": 1.5,
+          "label": "Bouclier de Barrière au départ",
+          "fmt": "flat"
+        },
+        "charme": {
+          "mod": "barrier_dr",
+          "per": 0.006,
+          "label": "Dégâts subis par la Barrière",
+          "fmt": "neg"
+        }
+      },
+      "mult": {
+        "name": "Mult",
+        "theme": "Multiplicité",
+        "color": "4fe3d2",
+        "arme": {
+          "mod": "free_clone",
+          "per": 0.004,
+          "label": "Invocation en double (chance)",
+          "fmt": "pct"
+        },
+        "armure": {
+          "mod": "portal_plus",
+          "per": 0.006,
+          "label": "Portails Nombre +1 (chance)",
+          "fmt": "pct"
+        },
+        "bijou": {
+          "mod": "surge_gain",
+          "per": 0.012,
+          "label": "Gain de Surge",
+          "fmt": "pct"
+        },
+        "charme": {
+          "mod": "luck",
+          "per": 0.008,
+          "label": "Chance de butin plus rare",
+          "fmt": "pct"
+        }
+      }
+    },
+    "level_pow": [
+      1.0,
+      2.0,
+      3.5,
+      5.5,
+      8.0
+    ],
+    "categories": {
+      "weapon": "arme",
+      "offhand": "arme",
+      "head": "armure",
+      "armor": "armure",
+      "hands": "armure",
+      "feet": "armure",
+      "amulet": "bijou",
+      "ring": "bijou",
+      "charm": "charme"
+    },
+    "category_names": {
+      "arme": "Arme",
+      "armure": "Armure",
+      "bijou": "Bijou",
+      "charme": "Charme"
+    },
+    "engrave_gold": 25,
+    "remove_gold": 15,
+    "fuse_gold": 40,
+    "salvage_dust": 2
+  },
+  "fusion": {
+    "count": 3,
+    "gold": {
+      "commun": 120,
+      "rare": 360,
+      "epique": 900,
+      "legendaire": 2400
+    },
+    "next": {
+      "commun": "rare",
+      "rare": "epique",
+      "epique": "legendaire",
+      "legendaire": "mythique"
+    }
+  }
 }

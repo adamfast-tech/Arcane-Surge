@@ -152,6 +152,11 @@ static func _svg_of(name: String) -> String:
 
 
 ## Icône blanche de « px » pixels de côté (à teinter). Trait plus épais pour les petites tailles.
+## Vrai si l'icône de cet objet est déjà en couleurs (ne pas la teinter à la couleur de la rareté).
+static func item_colored(base_id: String) -> bool:
+	return ((Profile.items_db()["bases"] as Dictionary).get(base_id, {}) as Dictionary).has("art")
+
+
 static func tex(name: String, px: int = 48, stroke: float = 1.5) -> Texture2D:
 	var key := "%s|%d|%.2f" % [name, px, stroke]
 	if _cache.has(key):
@@ -172,7 +177,11 @@ static func tex(name: String, px: int = 48, stroke: float = 1.5) -> Texture2D:
 
 
 ## Icône d'un objet (par sa base) ou, à défaut, de son emplacement.
+## Icône d'un objet : pixel-art en couleurs (ItemArt) si la base a un visuel, sinon icône au trait.
 static func item(base_id: String, slot: String, px: int = 48) -> Texture2D:
+	var art := ItemArt.item(base_id, px)
+	if art != null:
+		return art
 	if SHAPES.has(base_id):
 		return tex(base_id, px)
 	return tex(str(SLOT_ICON.get(slot, "rune")), px)

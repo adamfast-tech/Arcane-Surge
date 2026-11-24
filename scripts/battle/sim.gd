@@ -646,6 +646,8 @@ func _setup_casters(party: Dictionary, opts: Dictionary = {}) -> void:
 	ultimate_id = str(cls.get("ultimate", "meteore"))
 	barrier_max = roundf((100.0 + float(pc.stats["vig"]) * 0.5) * (1.0 + _mod("barrier_max")))
 	barrier_hp = barrier_max
+	# Rune Gard sur un bijou : bouclier de Barrière dès le départ.
+	barrier_shield += _mod("start_shield")
 	if autoplay:
 		pc.brain = BotBrain.new()
 		pc.think_interval = 0.35
@@ -1044,11 +1046,13 @@ func _apply_portal(p: Portal, u: Unit) -> void:
 			if p.ready:
 				p.ready = false
 				p.recharge_t = 0.0
-				for i in range(p.value + extra_number):
+				var bonus_a := 1 if u.owner_idx == 0 and _mod("portal_plus") > 0.0 and rng.randf() < _mod("portal_plus") else 0
+				for i in range(p.value + extra_number + bonus_a):
 					_add_ally(_clone(u, Vector2(rng.randf_range(-0.4, 0.4), -0.12 - 0.1 * float(i % 4))))
 				_event({"t": "text", "pos": Vector2(p.x, p.y + 0.5), "text": "+%d" % (p.value + extra_number), "color": "4FE3D2"})
 		"mult":
-			for i in range(p.value - 1 + extra_number):
+			var bonus := 1 if u.owner_idx == 0 and _mod("portal_plus") > 0.0 and rng.randf() < _mod("portal_plus") else 0
+			for i in range(p.value - 1 + extra_number + bonus):
 				_add_ally(_clone(u, Vector2(rng.randf_range(-0.3, 0.3), -0.08)))
 		"elem":
 			u.element = p.element
@@ -1176,6 +1180,9 @@ func _spawn_familiar(c: Caster, p: Vector2) -> Unit:
 		u.element = c.element
 	summoned += 1
 	_add_ally(u)
+	if c.idx == 0 and _mod("free_clone") > 0.0 and rng.randf() < _mod("free_clone"):
+		# Rune Mult sur une arme : l'invocation arrive parfois en double.
+		_add_ally(_clone(u, Vector2(rng.randf_range(-0.3, 0.3), -0.1)))
 	if c.idx == 0 and _mod("ghost_double") > 0.0 and rng.randf() < _mod("ghost_double"):
 		# Double fantôme (Lame spectrale) : l'invocation surgit avec son double.
 		_add_ally(_clone(u, Vector2(rng.randf_range(-0.3, 0.3), -0.1)))
@@ -1184,6 +1191,7 @@ func _spawn_familiar(c: Caster, p: Vector2) -> Unit:
 
 ## Passifs de race et arbre d'héritage sur une invocation du joueur.
 func _player_unit_mods(u: Unit) -> void:
+	u.speed *= 1.0 + _mod("unit_speed")
 	u.atk *= 1.0 + _mod("unit_atk")
 	u.hp *= 1.0 + _mod("unit_hp")
 	u.defense += 20.0 * _mod("unit_def")
@@ -2121,6 +2129,11 @@ func _hurt_barrier(amount: float) -> void:
 
 
 func _hit(src: Unit, tgt: Unit, mult: float = 1.0) -> void:
+	if tgt.team == 0 and tgt.owner_idx == 0 and _mod("dodge") > 0.0 and rng.randf() < minf(0.4, _mod("dodge")):
+		# Rune Wyrd sur une armure : l'invocation esquive le coup.
+		return
+	if src.team == 0 and src.owner_idx == 0:
+		mult *= 1.0 + _mod("unit_elem." + src.element)
 	if src.enraged_t > 0.0:
 		mult *= 1.3
 	if src.team == 0 and rally_t > 0.0:
@@ -2252,6 +2265,9 @@ func _damage(tgt: Unit, amount: float, elem: String) -> void:
 		return
 	if tgt.team == 0 and elem == "feu" and _mod("fire_resist") > 0.0:
 		amount *= 1.0 - _mod("fire_resist")
+	if tgt.team == 0 and elem != "" and _mod("resist." + elem) > 0.0:
+		# Runes élémentaires sur une armure : les invocations résistent à cet élément.
+		amount *= 1.0 - clampf(_mod("resist." + elem), 0.0, 0.6)
 	if tgt.shield > 0.0:
 		var a := minf(tgt.shield, amount)
 		tgt.shield -= a
@@ -2559,7 +2575,7 @@ func cast_spell(c: Caster, id: String, at: Vector2) -> bool:
 	if not ok:
 		return false
 	c.mana -= spell_cost(c, id)
-	c.spell_cd[id] = float(sp.get("cd", 0))
+	c.spell_cd[id] = float(sp.get("cd", 0)) * (1.0 - clampf(_mod("cd_red"), 0.0, 0.4) if c.idx == 0 else 1.0)
 	var price := float(sp.get("barrier_cost", 0.0))
 	if price > 0.0:
 		# Prix de la magie interdite : prélevé sur la Barrière elle-même (le bouclier ne protège pas).
@@ -2820,7 +2836,7 @@ func _spell_mod(c: Caster, prefix: String, sp: Dictionary) -> float:
 
 ## Bonus de dégâts de l'arbre pour l'élément du sort (« elem_dmg.feu »), pour le joueur.
 func _elem_mult(c: Caster, sp: Dictionary) -> float:
-	return 1.0 + (_mod("elem_dmg." + str(sp.get("element", ""))) if c.idx == 0 else 0.0)
+	return 1.0 + (_mod("elem_dmg." + str(sp.get("element", ""))) + _mod("spell_dmg") if c.idx == 0 else 0.0)
 
 
 ## Impact d'un sort de zone instantané (ou à la fin de son projectile).
