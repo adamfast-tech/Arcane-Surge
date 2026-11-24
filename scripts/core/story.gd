@@ -8,7 +8,11 @@ extends RefCounted
 ## « fragments » (Fragments de Morvaen, 0 à 10).
 ## Drapeaux rangés par saison : « s1.fees_liberees », « s1.sylvarche_purifiee »…
 
-const COMPANIONS := {"brann": "Brann", "sylwen": "Sylwen", "krag": "Krag", "nyx": "Nyx"}
+const COMPANIONS := {"brann": "Brann", "sylwen": "Sylwen", "krag": "Krag", "nyx": "Nyx", "ignara": "Ignara"}
+## Acte 6 : un compagnon dont la loyauté est sous ce seuil au début de l'acte peut trahir (06-monde §4.1).
+const TRAITOR_LOYALTY := 25
+## … sauf si, au moment du combat contre le Wyrm, sa loyauté est remontée jusqu'ici : il résiste à la Marque.
+const RESIST_LOYALTY := 40
 const FACTIONS := {
 	"elfes": "Elfes", "orcs": "Clans orcs", "humains": "Royaumes humains", "nains": "Nains",
 	"cendres": "Cercle des Cendres", "aube": "Ordre de l'Aube", "dragons": "Dragons", "archivistes": "Archivistes",
@@ -193,6 +197,15 @@ static func apply(eff: Dictionary, ilvl: int = 0) -> Array[String]:
 		var d := add_value(str(k), int(add[k]))
 		if d != 0:
 			out.append("%s %+d" % [value_label(str(k)), d])
+	if bool(eff.get("traitor_check", false)):
+		pick_traitor()
+	if bool(eff.get("betrayal", false)):
+		out.append_array(betrayal())
+	if bool(eff.get("redeem", false)):
+		out.append_array(redeem())
+	if bool(eff.get("exile", false)) and traitor() != "":
+		set_flag("s1.exile_" + traitor())
+		out.append("%s quitte le groupe" % str(COMPANIONS.get(traitor(), traitor())))
 	var g: Dictionary = eff.get("grant", {})
 	if not g.is_empty():
 		out.append(_grant(str(g["base"]), str(g.get("rarity", "commun")), ilvl if ilvl > 0 else Profile.level()))
@@ -267,3 +280,67 @@ static func on_battle(present: Array[String]) -> void:
 		if n < PLAY_BONUS_DAILY:
 			pb[who] = n + 1
 			add_value("loy." + who, 1)
+
+
+# ---------------------------------------------------------------- acte 6 : la Marque du Wyrm (06-monde §4.1)
+
+## Compagnon marqué par le Wyrm ("" s'il n'y en a pas).
+static func traitor() -> String:
+	return str(st().get("traitor", ""))
+
+
+## Début de l'acte 6 : le compagnon recruté à la loyauté la plus basse, sous 25, porte la Marque.
+static func pick_traitor() -> String:
+	if traitor() != "" or has_flag("s1.acte6_marque"):
+		return traitor()
+	set_flag("s1.acte6_marque")
+	var best := ""
+	var low := TRAITOR_LOYALTY
+	for who in Profile.companions_available():
+		if loyalty(who) < low:
+			low = loyalty(who)
+			best = who
+	if best != "":
+		st()["traitor"] = best
+		set_flag("s1.traitre")
+		set_flag("s1.traitre_" + best)
+	return best
+
+
+## Avant le Wyrm : le compagnon marqué trahit, ou résiste si sa loyauté est remontée à 40.
+static func betrayal() -> Array[String]:
+	var out: Array[String] = []
+	var t := traitor()
+	if t == "" or has_flag("s1.trahison") or has_flag("s1.marque_resistee"):
+		return out
+	if loyalty(t) >= RESIST_LOYALTY:
+		set_flag("s1.marque_resistee")
+		set_flag("s1.traitre", false)
+		add_value("loy." + t, 10)
+		out.append("%s résiste à la Marque du Wyrm" % str(COMPANIONS.get(t, t)))
+	else:
+		set_flag("s1.trahison")
+	return out
+
+
+## Quête « Les Cendres du Pardon » réussie : le compagnon revient (loyauté 60) avec l'Héritage de cendre.
+static func redeem() -> Array[String]:
+	var out: Array[String] = []
+	var t := traitor()
+	if t == "" or has_flag("s1.redemption_" + t):
+		return out
+	set_flag("s1.redemption_" + t)
+	set_flag("s1.heritage_" + t)
+	set_flag("s1.quete_pardon", false)
+	st()["loyalty"][t] = 60
+	out.append("%s revient : loyauté 60" % str(COMPANIONS.get(t, t)))
+	out.append("Héritage de cendre : Sang du Wyrm, Souffle de cendre, Renaissance")
+	return out
+
+
+## Compagnon absent du groupe : mort, parti, ou passé au Wyrm sans avoir été racheté.
+static func companion_lost(who: String, flags: Array = []) -> bool:
+	var fl: Array = flags if not flags.is_empty() else active_flags()
+	if fl.has("s1.mort_" + who) or fl.has("s1.exile_" + who):
+		return true
+	return fl.has("s1.trahison") and fl.has("s1.traitre_" + who) and not fl.has("s1.redemption_" + who)

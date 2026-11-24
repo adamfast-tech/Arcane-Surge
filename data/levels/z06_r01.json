@@ -1,0 +1,136 @@
+{
+  "id": "z06_r01",
+  "name": "Les Cendres du Pardon",
+  "zone": 6,
+  "number": "6-R",
+  "global_level": 60,
+  "type": "Boss",
+  "party": "traitre",
+  "objective": "boss",
+  "desc": "Quête de rédemption. La Marque du Wyrm ronge encore ton compagnon : détruis-la pendant qu'il combat à tes côtés. Elle craint le Givre.",
+  "par_time": 120,
+  "boss": {
+    "kind": "wyrm_mark",
+    "hp": 12000,
+    "x": 4.5,
+    "y": 13.6,
+    "phases": [
+      [
+        {
+          "type": "lane_strike",
+          "cd": 9,
+          "delay": 1.3,
+          "dmg": 50,
+          "width": 1.4,
+          "barrier": 1.0,
+          "fire": true,
+          "log": "%s crache une langue de braise !"
+        },
+        {
+          "type": "summon",
+          "cd": 14,
+          "kind": "ember_imp",
+          "count": 4
+        }
+      ],
+      [
+        {
+          "type": "shield",
+          "cd": 18,
+          "dur": 5,
+          "element": "givre"
+        },
+        {
+          "type": "lane_strike",
+          "cd": 9,
+          "delay": 1.2,
+          "dmg": 52,
+          "width": 1.4,
+          "barrier": 1.0,
+          "fire": true,
+          "log": "%s crache une langue de braise !"
+        },
+        {
+          "type": "summon",
+          "cd": 18,
+          "kind": "wyrm_cultist",
+          "count": 2
+        }
+      ],
+      [
+        {
+          "type": "lane_strike",
+          "cd": 8,
+          "delay": 1.2,
+          "dmg": 54,
+          "width": 1.4,
+          "count": 2,
+          "barrier": 1.0,
+          "fire": true,
+          "log": "%s crache une langue de braise !"
+        },
+        {
+          "type": "summon",
+          "cd": 14,
+          "kind": "salamander",
+          "count": 4
+        }
+      ]
+    ]
+  },
+  "towers": [],
+  "portals": [
+    {
+      "kind": "elem",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "givre"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 1.8,
+      "value": 2,
+      "motion": "slide",
+      "range": 1.4,
+      "speed": 0.5
+    },
+    {
+      "kind": "elem",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "givre"
+    },
+    {
+      "kind": "add",
+      "x": 4.5,
+      "y": 10.2,
+      "width": 2.0,
+      "value": 5
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      9,
+      13
+    ],
+    "budget_base": 7,
+    "budget_per_level": 2,
+    "local_level": 10,
+    "growth": 0.03,
+    "spawn_y": 14.6,
+    "pool": {
+      "ember_imp": 5,
+      "salamander": 2
+    }
+  },
+  "initial_enemies": [],
+  "requires": "s1.quete_pardon",
+  "on_win": {
+    "redeem": true
+  }
+}

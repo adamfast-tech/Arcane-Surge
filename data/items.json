@@ -3355,6 +3355,24 @@
         "g": "ff6a2a"
       },
       "zone": 6
+    },
+    "oeuf_cendre": {
+      "name": "Œuf de cendre",
+      "slot": "charm",
+      "stats": {
+        "pou": 8,
+        "esp": 8,
+        "des": 4
+      },
+      "element": "feu",
+      "unique": true,
+      "lore": "Le dernier œuf de la Mère-Dragon, volé sous la Montagne de Braise. Il bat contre ta poitrine comme un second cœur, et les dragons ne l'oublieront pas.",
+      "art": {
+        "t": "orbe",
+        "m": "ember",
+        "c": "black",
+        "g": "ff6a2a"
+      }
     }
   },
   "loot_pool": {

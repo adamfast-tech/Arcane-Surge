@@ -32,6 +32,7 @@ const HEIGHT_M := {
 	"beast_wolf": 0.55, "beast_alpha": 0.8, "beast_bear": 0.95, "beast_void": 1.15, "beast_stag": 1.3, "beast_falcon": 0.42, "baliste": 0.85,
 	"ice_goblin": 0.6, "white_wolf": 0.55, "yeti": 1.1, "stalactite_kobold": 0.55, "ice_golem": 0.85, "blizzard_elemental": 0.9, "aurora_spirit": 0.9, "ancient_sentinel": 1.2, "rune_sentinel": 1.6, "rune_colossus": 3.2, "body_rune": 0.7, "rune_cart": 1.1,
 	"glass_scarab": 0.45, "sand_jackal": 0.55, "sandstone_golem": 0.9, "mummy_archer": 0.75, "mirror_construct": 1.0, "college_specter": 0.9, "solar_priestess": 0.85, "crystal_scorpion": 0.75, "glass_mirror": 1.5, "sun_scarab": 1.9, "glass_sphinx": 2.8, "desert_caravan": 1.1,
+	"mere_dragon": 3.4, "ignara": 1.4, "brann_cendre": 1.25, "sylwen_cendre": 1.45, "krag_cendre": 1.55, "nyx_cendre": 1.05, "wyrm_mark": 2.2,
 	"ember_imp": 0.55, "salamander": 0.45, "drakonid": 0.8, "wyvernling": 0.6, "magma_golem": 1.0, "wyrm_cultist": 0.85, "minor_phoenix": 0.8, "ash_demon": 1.35, "dragon_egg": 0.7, "ancient_drake": 2.4, "ash_wyrm": 3.2, "refugee_convoy": 1.2,
 }
 ## Sprites dont les lettres o/d/m/l prennent les couleurs de l'élément.
@@ -2727,6 +2728,14 @@ const DEFS := {
 	"wyrm_cultist": {"base": "renegade_adept", "pal": {"o": "140606", "h": "5a1414", "H": "8a2a1a", "s": "c8a088", "e": "ffb050", "p": "c83a1a", "P": "ffd070"}},
 	"ash_demon": {"base": "ogre", "pal": {"o": "0a0606", "s": "3a2a2a", "S": "5a4040", "d": "1e1414", "e": "ffd070", "n": "ff6a2a", "a": "ff6a2a", "A": "ffd070", "f": "2a1a1a", "F": "4a2a22", "w": "e8dcc0"}},
 	"refugee_convoy": {"base": "caravan", "pal": {"o": "140c08", "c": "b8ac98", "C": "8a8478", "w": "5a3a22", "W": "7a5230", "k": "2a1a10", "y": "ff9b4a", "r": "6a2a1a"}},
+	# Acte 6 : Ignara, les compagnons marqués par le Wyrm (et leur Héritage de cendre), la Marque du Wyrm.
+	"ignara": {"base": "mage", "pal": {"o": "1a0806", "H": "b02a22", "h": "7a1a1a", "C": "d8502a", "c": "8a2a1a", "t": "f2c46b", "b": "5a3020", "s": "8a4a2a", "g": "ffd070", "w": "fff6d0", "k": "2a1410"}},
+	"brann_cendre": {"base": "brann", "pal": {"o": "0e0808", "s": "6a6a74", "S": "3a3a44", "n": "c8b8a0", "R": "ff6a2a", "r": "8a2a1a", "B": "ffb050", "b": "4a3020", "y": "ff9b4a", "k": "1a1414"}},
+	"sylwen_cendre": {"base": "sylwen", "pal": {"o": "0e0808", "G": "5a3a30", "g": "3a2420", "e": "d8a890", "h": "ffb050", "H": "c86a2a", "l": "4a3020", "q": "3a2a1a", "w": "c8b8a8", "c": "4a2a24", "C": "6a3a2a", "k": "1a1414"}},
+	"krag_cendre": {"base": "krag", "pal": {"o": "0e0808", "g": "6a4a3a", "G": "8a6a5a", "h": "1a0e0c", "H": "3a2420", "f": "8a4a2a", "F": "c8642a", "l": "3a2a20", "a": "ffb050", "A": "c86a2a", "w": "4a2a1a", "r": "ff6a2a"}},
+	"nyx_cendre": {"base": "nyx", "pal": {"o": "0e0808", "w": "5a3a30", "W": "8a5a40", "x": "ffb050", "h": "c8a8a0", "H": "e8d0c0", "d": "3a1a14", "D": "6a2a1a", "s": "c8a090", "g": "ff6a2a"}},
+	"mere_dragon": {"base": "ash_wyrm", "pal": {"o": "2a1006", "s": "c8702a", "S": "f0a050", "w": "8a3a1a", "W": "e8903a", "b": "5a2a10", "h": "f0e0c0", "e": "fff6c0", "t": "ffe0a0", "k": "ffd890"}},
+	"wyrm_mark": {"base": "body_rune", "pal": {"o": "2a0806", "d": "6a1a0a", "m": "d84a1a", "l": "ffb050", "s": "fff0a0"}},
 	"cross": {"pal": {"g": "6fe39a", "o": "0f2a18"}, "frames": [[
 		".ooo.",
 		"oggo.",

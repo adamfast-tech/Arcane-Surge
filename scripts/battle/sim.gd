@@ -227,6 +227,14 @@ var fire_by: Dictionary = {} ## PV brûlés par origine du feu (incendie, magma,
 var _fire_seq := 0
 var dragon_cfg: Dictionary = {} ## {first, every, warn, dmg, band, patches}
 var dragon_t := 0.0
+## Acte 6 : la Marque du Wyrm (06-monde §4.1). Le compagnon marqué combat aux côtés du Wyrm en phase 3.
+var flags_in: Array = [] ## drapeaux de l'histoire reçus au départ
+var traitor_id := "" ## compagnon passé au Wyrm ("" sinon)
+var traitor_unit: Unit = null
+var traitor_broken := false ## réduit à 0 PV : brisé, pas mort (épargné si on le laisse)
+var traitor_killed := false ## achevé par un sort une fois brisé
+var story_out: Array[String] = [] ## drapeaux écrits par le combat, appliqués en cas de victoire
+var _ash_renew := false ## Héritage de cendre (Renaissance) : la Barrière se ranime une fois
 
 var don: Dictionary = {}
 var don_t := 0.0
@@ -243,6 +251,7 @@ var _thirst_budget := 2.0 ## Soif : PV de Barrière rendus au plus par seconde
 var _wrath_acc := 0.0 ## Courroux céleste : soins en excès à convertir en dégâts
 var _legion_count := 0 ## Légion : squelettes invoqués depuis le dernier Colosse
 var _last_crit := false
+var _sid_owner := -1 ## lanceur du sort en cours (0 : le joueur)
 var _sid := "" ## sort en cours de résolution : chaque évènement émis porte son identifiant (animations propres)
 var frenzy_until := 0.0 ## fin de la dernière frénésie lancée (Rage de sang : la Barrière paie)
 var sacrificed := 0 ## invocations sacrifiées (Moisson d'âmes)
@@ -274,6 +283,7 @@ func setup(level_data: Dictionary, party: Dictionary, seed_value: int, opts: Dic
 	for i in range(GRID_W * GRID_H):
 		_grid_e.append([])
 		_grid_a.append([])
+	flags_in = opts.get("flags", [])
 	_setup_nexi()
 	_setup_portals()
 	_setup_towers()
@@ -690,9 +700,16 @@ func _setup_casters(party: Dictionary, opts: Dictionary = {}) -> void:
 	var cands: Array[Dictionary] = []
 	for bd in party["bots"]:
 		var bid := str(bd.get("id", ""))
+		if allowed is String and str(allowed) == "traitre":
+			# « Les Cendres du Pardon » : seul le compagnon marqué combat à tes côtés.
+			if flags.has("s1.traitre_" + bid):
+				cands.append(bd)
+			continue
 		if allowed is Array and not (allowed as Array).has(bid):
 			continue
 		if str(bd.get("requires", "")) != "" and not flags.has(str(bd["requires"])):
+			continue
+		if Story.companion_lost(bid, flags if not flags.is_empty() else ["-"]):
 			continue
 		cands.append(bd)
 	var chosen: Array[Dictionary] = []
@@ -726,7 +743,19 @@ func _setup_casters(party: Dictionary, opts: Dictionary = {}) -> void:
 			bdd["order"] = str(mine["order"])
 		if mine.has("spell") and spells_db.has(str(mine["spell"])):
 			bdd["spells"] = [str(mine["spell"])]
+		var heritage := flags.has("s1.heritage_" + str(bd.get("id", "")))
+		if heritage:
+			# Héritage de cendre : Sang du Wyrm (familiers de Feu, +15 %), Souffle de cendre, aura de braise.
+			bdd["weapon_element"] = "feu"
+			bdd["sprite"] = str(bd.get("sprite", "")) + "_cendre"
+			var sps: Array = (bdd.get("spells", []) as Array).duplicate()
+			if not sps.has("souffle_de_cendre"):
+				sps.append("souffle_de_cendre")
+			bdd["spells"] = sps
+			_ash_renew = true
 		var c := _make_caster(casters.size(), bdd, classes, races, bot_gear)
+		if heritage:
+			c.atk_mult *= 1.15
 		c.is_bot = true
 		c.side = str(bd.get("side", "left"))
 		if chosen.size() == 2:
@@ -1455,6 +1484,8 @@ func _nearest(grid: Array, p: Vector2, r: float) -> Unit:
 	var best: Unit = null
 	var bd := r * r
 	for u in _query(grid, p, r):
+		if traitor_broken and u == traitor_unit:
+			continue
 		var d: float = u.pos.distance_squared_to(p)
 		if d <= bd:
 			bd = d
@@ -1476,7 +1507,7 @@ func _resolve_contacts() -> void:
 		for yy in range(maxi(0, cy - 1), mini(GRID_H - 1, cy + 1) + 1):
 			for xx in range(maxi(0, cx - 1), mini(GRID_W - 1, cx + 1) + 1):
 				for e in _grid_e[yy * GRID_W + xx]:
-					if not e.alive or (e.role == "rune" and e.element != a.element):
+					if not e.alive or (e.role == "rune" and e.element != a.element) or (traitor_broken and e == traitor_unit):
 						continue
 					var rr: float = a.radius + e.radius
 					var d2: float = a.pos.distance_squared_to(e.pos)
@@ -1954,6 +1985,8 @@ func _boss_ability(ab: Dictionary) -> void:
 			_event({"t": "shake"})
 		"riddle":
 			_start_riddle(ab)
+		"traitor":
+			_spawn_traitor()
 		"take_off":
 			boss.airborne_t = float(ab.get("dur", 8.0))
 			_log("%s s'envole : seuls les tirs et les sorts l'atteignent !" % boss_name)
@@ -2213,6 +2246,12 @@ func _hurt_barrier(amount: float) -> void:
 	barrier_hp -= amount
 	barrier_flash = 0.25
 	_event({"t": "barrier"})
+	if _ash_renew and barrier_hp > 0.0 and barrier_hp < barrier_max * 0.25:
+		# Héritage de cendre (Renaissance) : le compagnon racheté ranime la Barrière, une fois.
+		_ash_renew = false
+		barrier_hp = minf(barrier_max, barrier_hp + 20.0)
+		_log("Renaissance : la braise du compagnon ranime la Barrière (+20) !")
+		_event({"t": "ring", "pos": Vector2(W * 0.5, BARRIER_Y), "r": 3.0, "color": "FF9B4A", "dur": 0.8})
 
 
 func _hit(src: Unit, tgt: Unit, mult: float = 1.0) -> void:
@@ -2359,6 +2398,8 @@ func _damage(tgt: Unit, amount: float, elem: String) -> void:
 		var a := minf(tgt.shield, amount)
 		tgt.shield -= a
 		amount -= a
+	if tgt == traitor_unit and not _traitor_damage(tgt, amount):
+		return
 	tgt.hp -= amount
 	tgt.flash_t = 0.08
 	if elem != "":
@@ -2538,6 +2579,11 @@ func _check_end() -> void:
 			won = _all_nexi_dead()
 	if won:
 		state = "victory"
+		if traitor_id != "":
+			# Le Wyrm tombé, la Marque se dissipe : le compagnon brisé (ou jamais abattu) est épargné.
+			story_out.append("s1.traitre_tue" if traitor_killed else "s1.traitre_epargne")
+			if traitor_killed:
+				story_out.append("s1.mort_" + traitor_id)
 		stars = 1
 		if barrier_hp / barrier_max > 0.5:
 			stars += 1
@@ -2668,6 +2714,7 @@ func cast_spell(c: Caster, id: String, at: Vector2) -> bool:
 		return false
 	var sp: Dictionary = spells_db[id]
 	_sid = id
+	_sid_owner = c.idx
 	_event({"t": "spell", "pos": at, "from": Vector2(c.x, CASTER_Y + 0.3), "r": float(sp.get("radius", 1.0)), "color": str(sp.get("color", "FFFFFF"))})
 	var ok := _apply_spell(c, sp, at)
 	if ok and sp.has("rally") and str(sp["type"]) != "rally":
@@ -3034,6 +3081,9 @@ func _strike(c: Caster, sp: Dictionary, e: Unit, dmg: float, elem: String, origi
 		_apply_status(e, str(st))
 	if sp.has("weak"):
 		e.weak_t = maxf(e.weak_t, float(sp["weak"]))
+	if sp.has("wither"):
+		# Flétrissure (Souffle de cendre) : les soins reçus sont réduits de moitié.
+		e.wither_t = maxf(e.wither_t, float(sp["wither"]))
 	if sp.has("stun") and e.role != "boss":
 		e.rooted_t = maxf(e.rooted_t, float(sp["stun"]))
 	if sp.has("bleed") and e.alive:
@@ -3098,6 +3148,7 @@ func _update_impacts() -> void:
 		if float(p["t"]) <= 0.0:
 			pending_impacts.remove_at(i)
 			_sid = str((p["sp"] as Dictionary).get("id", ""))
+			_sid_owner = int(p["c"])
 			_resolve_aoe(casters[int(p["c"])], p["sp"], p["at"])
 			_sid = ""
 		else:
@@ -3388,6 +3439,7 @@ func cast_ultimate(at: Vector2) -> bool:
 		sp["chain_bolt"] = true
 	sp["is_ult"] = true
 	_sid = ultimate_id
+	_sid_owner = 0
 	_event({"t": "spell", "pos": at, "from": Vector2(casters[0].x, CASTER_Y + 0.3), "r": float(sp["radius"]), "color": str(sp.get("color", "FFFFFF")), "ult": true})
 	_apply_spell(casters[0], sp, at)
 	_sid = ""
@@ -4069,3 +4121,59 @@ func _update_dragons() -> void:
 		"barrier": 0.0, "dragon": true, "patches": int(dragon_cfg.get("patches", 2))})
 	_event({"t": "text", "pos": Vector2(W * 0.5, y + 0.7), "text": "UN DRAGON !", "color": "FF9B4A"})
 	_log("Une ombre ailée passe sur la forêt : un dragon !")
+
+
+# ---------------------------------------------------------------- acte 6 : la Marque du Wyrm
+
+## Compagnon passé au Wyrm (drapeaux « s1.trahison » et « s1.traitre_<id> ») : il apparaît en phase 3.
+func _traitor_from_flags() -> String:
+	if not flags_in.has("s1.trahison"):
+		return ""
+	for f in flags_in:
+		var fs := str(f)
+		if fs.begins_with("s1.traitre_") and fs not in ["s1.traitre_epargne", "s1.traitre_tue"]:
+			var who := fs.trim_prefix("s1.traitre_")
+			if not flags_in.has("s1.redemption_" + who):
+				return who
+	return ""
+
+
+func _spawn_traitor() -> void:
+	var who := _traitor_from_flags()
+	if who == "" or traitor_unit != null:
+		return
+	traitor_id = who
+	var p := boss.pos + Vector2(2.4 if boss.pos.x < W * 0.5 else -2.4, -1.8)
+	traitor_unit = _spawn_enemy("ash_traitor", Vector2(clampf(p.x, 1.0, W - 1.0), p.y))
+	traitor_unit.hold_y = traitor_unit.pos.y
+	traitor_unit.sprite = who + "_cendre"
+	var nm := str(Story.COMPANIONS.get(who, who))
+	_log("%s se dresse aux côtés du Wyrm, la Marque en flammes ! À 0 PV, la Marque se brise ; un de tes sorts l'achèverait ensuite." % nm)
+	_event({"t": "ring", "pos": traitor_unit.pos, "r": 2.0, "color": "FF6A2A", "dur": 0.8})
+	_event({"t": "text", "pos": traitor_unit.pos + Vector2(0.0, 0.8), "text": nm.to_upper() + " !", "color": "FF9B4A"})
+
+
+## Le compagnon marqué ne meurt pas sous les coups : à 0 PV il est brisé ; brisé, seul un sort l'achève.
+## Retourne vrai si les dégâts s'appliquent normalement.
+func _traitor_damage(tgt: Unit, amount: float) -> bool:
+	var nm := str(Story.COMPANIONS.get(traitor_id, traitor_id))
+	if traitor_broken:
+		# Seul un sort lancé par le joueur l'achève (pas ceux des compagnons, ni les coups).
+		if _sid == "" or _sid_owner != 0:
+			return false
+		traitor_killed = true
+		tgt.hp = 0.0
+		_log("%s ne se relèvera pas. La Marque s'éteint avec sa vie." % nm)
+		_event({"t": "text", "pos": tgt.pos + Vector2(0.0, 0.8), "text": "ACHEVÉ", "color": "FF4A3A"})
+		_kill(tgt)
+		return false
+	if tgt.hp - amount > 0.0:
+		return true
+	traitor_broken = true
+	tgt.hp = 1.0
+	tgt.cast_interval = 0.0
+	tgt.atk = 0.0
+	_log("%s est à terre, sans forces : la Marque est brisée. Épargne ton compagnon : un de tes sorts l'achèverait." % nm)
+	_event({"t": "text", "pos": tgt.pos + Vector2(0.0, 0.8), "text": "À TERRE", "color": "FFD070"})
+	_event({"t": "ring", "pos": tgt.pos, "r": 1.4, "color": "FFD070", "dur": 0.7})
+	return false

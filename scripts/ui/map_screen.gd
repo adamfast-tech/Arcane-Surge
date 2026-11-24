@@ -15,6 +15,7 @@ const ZONE_BLURB := {
 	3: "Niveaux 21 à 30 · acte 3, les Cendres : morts du marais, brume qui cache les ennemis, mares de poison.",
 	4: "Niveaux 31 à 40 · acte 4, les Runes : bêtes des montagnes et élémentaires de givre, glace qui fait glisser, avalanches, Portes naines « Forge ».",
 	5: "Niveaux 41 à 50 · acte 5, le Désert de Verre : cycle du soleil et de la lune, mirages, miroirs qui renvoient les tirs, et le Sphinx et ses énigmes.",
+	6: "Niveaux 51 à 60 · acte 6, le Sang : dragons et démons de feu, incendies que le Givre éteint, et le Wyrm de cendre.",
 }
 
 
@@ -48,7 +49,11 @@ func _build() -> void:
 	for z in index.get("zones", []):
 		if int(z["id"]) == zone:
 			zd = z
-	var ids: Array = zd.get("levels", [])
+	var ids: Array = []
+	for lid in zd.get("levels", []):
+		# Niveau bonus (6-R) : visible seulement quand l'histoire l'ouvre.
+		if str(GameData.level(str(lid)).get("requires", "")) == "" or Profile.is_unlocked(str(lid)):
+			ids.append(lid)
 	var stars := 0
 	for id in ids:
 		stars += int(Profile.level_record(str(id))["stars"])

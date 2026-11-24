@@ -9,7 +9,8 @@
     "brann",
     "sylwen",
     "krag",
-    "nyx"
+    "nyx",
+    "ignara"
   ],
   "objective": "boss",
   "desc": "Le Wyrm de cendre, père de tous les incendies. Au sol, son souffle embrase des couloirs ; en vol, seuls les tirs et les sorts l'atteignent, et il mitraille des rangées entières. À la fin, ses œufs éclosent : brise-les avant. Il craint le Givre.",
@@ -112,10 +113,29 @@
         {
           "type": "eggs",
           "count": 3
+        },
+        {
+          "type": "traitor"
         }
       ]
     ]
   },
+  "story_mods": [
+    {
+      "if": "s1.pacte_dragons",
+      "boss_hp": 0.85,
+      "log": "La Mère-Dragon a blessé le Wyrm avant ton arrivée : il commence à 85 % de ses PV."
+    },
+    {
+      "if": "s1.phenix_epargne",
+      "barrier_shield": 30,
+      "log": "Le phénix épargné couve la Barrière : bouclier +30."
+    },
+    {
+      "if": "s1.trahison",
+      "log": "{traitre} n'est plus à tes côtés. La Marque du Wyrm l'appelle."
+    }
+  ],
   "towers": [],
   "portals": [
     {

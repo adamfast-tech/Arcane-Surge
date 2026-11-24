@@ -90,6 +90,8 @@ func _init() -> void:
 		print("  #%02d %-8s %5.1fs  barrière %3d%%  étoiles %d  kills %4d  invocations %5d  soins +%d  reste %d%%  %s" % [
 			i + 1, s.state, s.time, int(100.0 * s.barrier_hp / s.barrier_max), s.stars, s.kills, s.summoned,
 			int(s.healed_total), int(100.0 * s.objective_ratio()), s.objective_info()])
+		if s.traitor_id != "":
+			print("      Marque du Wyrm : %s %s · %s" % [s.traitor_id, "achevé" if s.traitor_killed else ("brisé" if s.traitor_broken else "debout"), JSON.stringify(s.story_out)])
 		if s.fire_burned > 0.0 or s.fires_out > 0:
 			var by: Array[String] = []
 			for src in s.fire_by.keys():

@@ -313,7 +313,7 @@ func _set_subject(name: String) -> void:
 
 
 func _show_line(l: Dictionary) -> void:
-	var who := str(l.get("who", "narrateur"))
+	var who := Dialogues.resolve_who(str(l.get("who", "narrateur")))
 	var text := Dialogues.fmt(str(l.get("text", "")))
 	var narr := who == "narrateur" or not PortraitArt.has_portrait(who)
 	head_row.visible = not narr
@@ -473,7 +473,7 @@ func _skip() -> void:
 			Story.apply(l["effects"], _ilvl())
 		if l.has("text"):
 			last = l
-			var who := str(l.get("who", "narrateur"))
+			var who := Dialogues.resolve_who(str(l.get("who", "narrateur")))
 			_history.append(Dialogues.fmt(str(l["text"])) if who == "narrateur" else "%s : %s" % [Dialogues.display_name(who), Dialogues.fmt(str(l["text"]))])
 
 

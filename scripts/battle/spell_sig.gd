@@ -1881,3 +1881,36 @@ func s_seisme(_ph: String, _e: Dictionary) -> bool:
 
 func s_purifier(_ph: String, _e: Dictionary) -> bool:
 	return false # référence : colonne de lumière générique
+
+
+# ================================================================ ACTE 6 · souffles draconiques
+
+## Souffle draconique (Ignara) : un torrent de flammes court le long de la colonne, des braises en jaillissent.
+func s_souffle_draconique(ph: String, e: Dictionary) -> bool:
+	match ph:
+		"beam", "arrow":
+			return true
+		"column":
+			var x := float(e["x"])
+			var a := Vector2(x, float(e["y0"]))
+			var b := Vector2(x, float(e["y1"]))
+			for i in range(10):
+				var p := a.lerp(b, float(i) / 9.0)
+				emit(w3(p, 0.3), Vector3(0.18, 0.08, 0.18), 14, 0.5, Vector3.UP, 25.0, Vector2(0.8, 1.8), 0.6, 0.1,
+					[Color("fff3b0"), Color("ff8a3a"), Color(0.6, 0.12, 0.04, 0.0)], 0.04 * float(i))
+			line("vring", {"pos": a, "h": 0.4, "r": 0.6, "dur": 0.4, "color": Color("ffb050"), "r0": 0.2})
+			return true
+	return false
+
+
+## Souffle de cendre (Héritage) : un nuage de braises et de cendre noire qui retombe sur la zone.
+func s_souffle_de_cendre(ph: String, e: Dictionary) -> bool:
+	if ph != "explosion":
+		return false
+	var pos: Vector2 = e["pos"]
+	var r := float(e["r"])
+	_burst(w3(pos, 0.4), 26, [Color("ffd070"), Color("ff6a2a"), Color(0.15, 0.1, 0.1, 0.0)], 2.6, 0.06, 0.7, 0.4, 180.0)
+	emit(w3(pos, 0.2), Vector3(r * 0.6, 0.05, r * 0.6), 30, 1.0, Vector3.UP, 30.0, Vector2(0.4, 1.0), -0.2, 0.12,
+		[Color(0.3, 0.25, 0.25, 0.8), Color(0.12, 0.1, 0.1, 0.5), Color(0.05, 0.05, 0.05, 0.0)], 0.0)
+	line("shock", {"pos": pos, "r": r, "dur": 0.5, "color": Color("ff6a2a")})
+	return true

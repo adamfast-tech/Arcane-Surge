@@ -1072,6 +1072,9 @@ func _run() -> void:
 	if not await _act5_ok():
 		quit(1)
 		return
+	if not await _act6_ok():
+		quit(1)
+		return
 	main.call("_show_room", "circle")
 	await _frames(5)
 	Profile.swap_active("krag", "brann")
@@ -1767,4 +1770,142 @@ func _zone6_ok() -> bool:
 		push_error("zone 6 : " + " · ".join(errs))
 		return false
 	print("zone 6 : incendies, Givre, dragons, phénix, œufs, envol OK")
+	return true
+
+
+## Acte 6 : scènes, portraits, planches ; la Marque du Wyrm (choix du traître, résistance, combat, épargné ou achevé),
+## la quête de rédemption et l'Héritage de cendre, l'exil ; les choix 6-7 et 6-9 devant le Wyrm.
+func _act6_ok() -> bool:
+	var errs: Array[String] = []
+	for n in range(1, 11):
+		for part in ["intro", "outro"]:
+			if not Dialogues.has_scene("z06_l%02d_%s" % [n, part]):
+				errs.append("scène z06_l%02d_%s" % [n, part])
+	for sid in ["z06_r01_intro", "z06_r01_outro"]:
+		if not Dialogues.has_scene(sid):
+			errs.append("scène " + sid)
+	for who in ["ignara", "mere_dragon", "wyrm"]:
+		for mood in ["neutre", "joie", "triste", "colere", "surpris"]:
+			if PortraitArt.texture(who, mood) == null:
+				errs.append("portrait %s/%s" % [who, mood])
+	for kind in ["cendres", "coulee", "braisemont", "nid", "autels", "citadelle", "caldeira", "antre"]:
+		if StoryArt.plate(kind, Vector2i(320, 180)) == null:
+			errs.append("planche " + kind)
+	for spr in ["ignara", "brann_cendre", "sylwen_cendre", "krag_cendre", "nyx_cendre", "wyrm_mark"]:
+		if SpriteAtlas.single(spr) == null:
+			errs.append("sprite " + spr)
+	var saved: Dictionary = (Story.st() as Dictionary).duplicate(true)
+	var st: Dictionary = Story.st()
+	for f in ["s1.acte6_marque", "s1.traitre", "s1.trahison", "s1.marque_resistee", "s1.traitre_krag", "s1.quete_pardon", "s1.redemption_krag", "s1.heritage_krag", "s1.exile_krag", "s1.mort_krag"]:
+		Story.set_flag(f, false)
+	st.erase("traitor")
+	Story.set_flag("s1.krag_allie")
+	Story.set_flag("s1.nyx_allie")
+	st["loyalty"]["krag"] = 20
+	st["loyalty"]["sylwen"] = 22
+	st["loyalty"]["brann"] = 50
+	st["loyalty"]["nyx"] = 60
+	# Le plus bas sous 25 porte la Marque (Krag 20 plutôt que Sylwen 22).
+	Story.apply({"traitor_check": true})
+	if Story.traitor() != "krag" or not Story.has_flag("s1.traitre_krag"):
+		errs.append("traître choisi : %s" % Story.traitor())
+	# Loyauté remontée à 40 : il résiste à la Marque.
+	st["loyalty"]["krag"] = 42
+	Story.apply({"betrayal": true})
+	var resisted := Story.has_flag("s1.marque_resistee") and not Story.has_flag("s1.trahison") and not Story.companion_lost("krag")
+	Story.set_flag("s1.marque_resistee", false)
+	Story.set_flag("s1.traitre")
+	st["loyalty"]["krag"] = 20
+	Story.apply({"betrayal": true})
+	var betrayed := Story.has_flag("s1.trahison") and Story.companion_lost("krag") and not Profile.companions_available().has("krag")
+	if not resisted or not betrayed:
+		errs.append("Marque : résiste %s, trahit %s" % [resisted, betrayed])
+	# Combat contre le Wyrm : Krag absent du groupe, puis à côté du Wyrm en phase 3.
+	var fl: Array = ["s1.krag_allie", "s1.nyx_allie", "s1.ignara_allie", "s1.trahison", "s1.traitre", "s1.traitre_krag", "s1.phenix_epargne", "s1.pacte_dragons"]
+	var w := BattleSim.new()
+	w.setup(GameData.level("z06_l10"), GameData.party(), 4, {"flags": fl, "active": ["krag", "sylwen"]})
+	w._flush()
+	var ids: Array[String] = []
+	for c in w.casters:
+		ids.append(c.id)
+	var mods_ok := w.barrier_shield >= 30.0 and w.boss.hp <= w.boss.max_hp * 0.86
+	w._enter_phase(2)
+	w._flush()
+	var tu := w.traitor_unit
+	if ids.has("krag") or tu == null or tu.sprite != "krag_cendre" or not mods_ok:
+		errs.append("Wyrm : groupe %s, traître %s, bouclier/PV %s" % [ids, tu != null, mods_ok])
+	else:
+		w._damage(tu, tu.hp + 50.0, "physique")
+		var broken := tu.alive and w.traitor_broken
+		w._damage(tu, 999.0, "physique")
+		w._sid = "souffle_draconique"
+		w._sid_owner = 1
+		w._damage(tu, 999.0, "feu")
+		var bots_spare := tu.alive
+		w._sid = "boule_de_feu"
+		w._sid_owner = 0
+		w._damage(tu, 10.0, "feu")
+		w._sid = ""
+		var killed := not tu.alive and w.traitor_killed
+		w.boss.alive = false
+		w._check_end()
+		if not (broken and bots_spare and killed and w.story_out.has("s1.traitre_tue") and w.story_out.has("s1.mort_krag")):
+			errs.append("traître brisé %s, épargné par les bots %s, achevé %s, fils %s" % [broken, bots_spare, killed, w.story_out])
+	w.terrain.sim = null
+	var w2 := BattleSim.new()
+	w2.setup(GameData.level("z06_l10"), GameData.party(), 5, {"flags": fl})
+	w2._flush()
+	w2._enter_phase(2)
+	w2._flush()
+	w2._damage(w2.traitor_unit, w2.traitor_unit.hp + 1.0, "givre")
+	w2.boss.alive = false
+	w2._check_end()
+	if not w2.story_out.has("s1.traitre_epargne"):
+		errs.append("épargné : %s" % [w2.story_out])
+	w2.terrain.sim = null
+	# Épargné : tendre la main ouvre 6-R ; la victoire rachète Krag (loyauté 60, Héritage de cendre).
+	Story.set_flag("s1.traitre_epargne")
+	var locked := not Profile.is_unlocked("z06_r01")
+	Story.set_flag("s1.quete_pardon")
+	var open := Profile.is_unlocked("z06_r01")
+	var r := BattleSim.new()
+	r.setup(GameData.level("z06_r01"), GameData.party(), 6, {"flags": Story.active_flags()})
+	var rparty: Array[String] = []
+	for c in r.casters:
+		if c.id != "player":
+			rparty.append(c.id)
+	r.terrain.sim = null
+	var res := Profile.apply_battle("z06_r01", true, 3, 90.0, ["krag"])
+	var back := Story.has_flag("s1.redemption_krag") and Story.loyalty("krag") == 60 and Profile.companions_available().has("krag") \
+		and Profile.companion_spells("krag").has("souffle_de_cendre") and not (res.get("story", []) as Array).is_empty()
+	var h := BattleSim.new()
+	h.setup(GameData.level("z06_l05"), GameData.party(), 7, {"flags": Story.active_flags(), "active": ["krag", "sylwen"]})
+	var kc: BattleSim.Caster = null
+	for c in h.casters:
+		if c.id == "krag":
+			kc = c
+	var heritage := kc != null and kc.sprite == "krag_cendre" and kc.spells.has("souffle_de_cendre") and kc.element == "feu"
+	h.terrain.sim = null
+	if not (locked and open and rparty == ["krag"] and back and heritage):
+		errs.append("6-R fermé %s, ouvert %s, groupe %s, retour %s, Héritage %s" % [locked, open, rparty, back, heritage])
+	# Laisser partir : le compagnon quitte le groupe.
+	Story.set_flag("s1.redemption_krag", false)
+	Story.apply({"exile": true})
+	if not Story.companion_lost("krag") or Profile.companions_available().has("krag"):
+		errs.append("exil")
+	# Scènes à choix jouées à l'écran (sans traître : la Marque du Wyrm, option C).
+	Profile.data["story"] = saved.duplicate(true)
+	for sid in ["z06_l07_outro", "z06_l09_outro", "z06_l10_outro"]:
+		main.call("_show_dialogue", [sid], Callable(main, "_show_map"))
+		await _frames(3)
+		await _through_dialogues(0)
+	print("acte 6 : 6-7 %s · 6-9 %s · ✦ 6-10 %s · dragons %d · Ignara %d" % [Story.choice("z06_l07"), Story.choice("z06_l09"), Story.choice("z06_l10"), Story.value("rep.dragons"), Story.loyalty("ignara")])
+	if Story.choice("z06_l07") != "A" or not Story.has_flag("s1.phenix_epargne") or Story.choice("z06_l09") != "A" or not Story.has_flag("s1.pacte_dragons") \
+			or Story.choice("z06_l10") != "C" or not Story.has_flag("s1.marque_brisee"):
+		errs.append("choix joués à l'écran")
+	Profile.data["story"] = saved
+	if not errs.is_empty():
+		push_error("acte 6 : " + " · ".join(errs))
+		return false
+	print("acte 6 : scènes, Marque (choix, résistance, trahison), combat (brisé, achevé, épargné), 6-R, Héritage, exil OK")
 	return true

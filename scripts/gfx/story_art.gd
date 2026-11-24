@@ -34,7 +34,7 @@ static func plate(kind: String, size: Vector2i) -> ImageTexture:
 			_forge(img, rng)
 		"dunes", "oasis", "miroirs", "college", "desert_nuit", "sphinx":
 			_desert(img, rng, kind)
-		"cendres":
+		"cendres", "coulee", "braisemont", "nid", "autels", "citadelle", "caldeira", "antre":
 			_cendres(img, rng, kind)
 		_:
 			_forest(img, rng, kind)
@@ -1057,9 +1057,14 @@ static func _burnt_tree(img: Image, rng: RandomNumberGenerator, x: int, base: in
 
 
 ## Forêt Cendrée : ciel de fumée rougeoyant, arbres calcinés en flammes, braises, dragon dans les fumées.
+## Variantes : coulee (rivières de magma), braisemont (village et gué), nid (nid des phénix), autels (autels du
+## croissant), citadelle (forteresse draconide), caldeira (la Mère-Dragon enchaînée), antre (l'antre du Wyrm).
 static func _cendres(img: Image, rng: RandomNumberGenerator, kind: String) -> void:
 	var w := img.get_width()
 	var h := img.get_height()
+	if kind in ["caldeira", "antre"]:
+		_cendres_cave(img, rng, kind)
+		return
 	_sky(img, rng, [[0.0, Color("120a10")], [0.35, Color("3a141a")], [0.55, Color("8a2a1a")], [0.66, Color("d8602a")], [0.72, Color("4a1e16")], [1.0, Color("1a100e")]], 0.15)
 	# Lune rougie derrière la fumée.
 	var mx := int(w * 0.72)
@@ -1097,6 +1102,138 @@ static func _cendres(img: Image, rng: RandomNumberGenerator, kind: String) -> vo
 		for d in range(rng.randi_range(10, 30)):
 			_px(img, lx + d, ly + int(sin(float(d) * 0.3) * 1.5), Color("ff6a2a"))
 	_fireflies(img, rng, int(w * h / 900.0), int(h * 0.2), h - 2, Color("ffb050"))
+	var gy := int(h * 0.7)
+	match kind:
+		"coulee":
+			# Rivières de magma qui serpentent jusqu'au premier plan.
+			for k in range(3):
+				var x0 := int(w * (0.15 + 0.35 * float(k))) + rng.randi_range(-10, 10)
+				var fx := float(x0)
+				for y in range(int(h * 0.62), h):
+					fx += sin(float(y) * 0.06 + float(k)) * 0.8
+					var half := 2 + int(float(y - int(h * 0.62)) * 0.06)
+					for dx in range(-half, half + 1):
+						_px(img, int(fx) + dx, y, Color("ffd070") if absi(dx) < half / 2 else Color("ff5a1a"))
+				_glow_px(img, x0, int(h * 0.8), int(minf(w, h) * 0.12), Color("ff6a2a"), 0.2)
+		"braisemont":
+			# Le village : maisons à colombages, toits pointus, l'incendie derrière, le gué au premier plan.
+			for k in range(5):
+				var hx := int(w * (0.08 + 0.2 * float(k))) + rng.randi_range(-6, 6)
+				var hb := gy - rng.randi_range(0, 6)
+				var hw := maxi(10, int(w * 0.09))
+				img.fill_rect(Rect2i(hx, hb - hw, hw, hw), Color("4a3428"))
+				for yy in range(hw / 2 + 2):
+					img.fill_rect(Rect2i(hx - 2 + yy, hb - hw - hw / 2 - 2 + yy, maxi(1, hw + 4 - yy * 2), 1), Color("2a1a14"))
+				img.fill_rect(Rect2i(hx + hw / 3, hb - hw / 2, hw / 4, hw / 3), Color("ffb050"))
+				_glow_px(img, hx + hw / 2, hb - hw - 4, hw, Color("ff6a2a"), 0.25)
+			for y in range(int(h * 0.84), int(h * 0.92)):
+				img.fill_rect(Rect2i(0, y, w, 1), Color("1e3a4a").lerp(Color("2a5a6a"), float(y - int(h * 0.84)) / maxf(1.0, h * 0.08)))
+			for i in range(w / 6):
+				_px(img, rng.randi_range(0, w), rng.randi_range(int(h * 0.84), int(h * 0.92)), Color("ff9b4a"))
+			for k in range(6):
+				var px := int(w * (0.3 + 0.07 * float(k)))
+				img.fill_rect(Rect2i(px, int(h * 0.8), 2, 6), Color("1a1010"))
+				_px(img, px, int(h * 0.8) - 1, Color("1a1010"))
+		"nid":
+			# Nid géant au sommet d'un piton, phénix d'or au centre.
+			var nx := w / 2
+			var ny := int(h * 0.5)
+			var nr := int(minf(w, h) * 0.2)
+			for y in range(ny, h):
+				var half := int(float(y - ny) * 0.5) + nr / 2
+				img.fill_rect(Rect2i(nx - half, y, half * 2, 1), Color("1e1210"))
+			for i in range(nr * 8):
+				var a := rng.randf_range(PI, TAU)
+				var rr := rng.randf_range(nr * 0.6, nr * 1.05)
+				var p0 := Vector2(nx + cos(a) * rr, ny + sin(a) * rr * 0.35)
+				_px(img, int(p0.x), int(p0.y), Color("5a3a22") if i % 3 else Color("8a5a2a"))
+			_glow_px(img, nx, ny - nr / 3, nr, Color("ffb050"), 0.5)
+			for k in range(-nr / 2, nr / 2 + 1):
+				_px(img, nx + k, ny - nr / 3 - absi(k) / 3, Color("ffd070"))
+				_px(img, nx + k, ny - nr / 3 - absi(k) / 3 + 1, Color("ff8a2a"))
+			_disc(img, nx, ny - nr / 3, maxi(2, nr / 6), Color("fff0a0"))
+		"autels":
+			# Marches du temple et deux autels d'obsidienne au croissant violet.
+			for k in range(4):
+				img.fill_rect(Rect2i(int(w * 0.2) + k * 4, gy - k * 4, int(w * 0.6) - k * 8, 4), Color("2a2026").lightened(0.05 * float(k)))
+			for sx in [0.27, 0.73]:
+				var ax := int(w * sx)
+				var ab := gy + 2
+				var aw := maxi(8, int(w * 0.08))
+				img.fill_rect(Rect2i(ax - aw / 2, ab - aw * 2, aw, aw * 2), Color("140e16"))
+				img.fill_rect(Rect2i(ax - aw / 2 - 2, ab - aw * 2 - 2, aw + 4, 3), Color("2a2030"))
+				_glow_px(img, ax, ab - aw, aw, Color("b07cff"), 0.4)
+				for t in range(12):
+					var a := lerpf(-1.2, 1.2, float(t) / 11.0)
+					_px(img, ax + int(sin(a) * aw * 0.3), ab - aw + int(cos(a) * aw * 0.3) - aw / 4, Color("d8b0ff"))
+				_fire(img, rng, ax + aw, ab - aw * 2 - 4)
+		"citadelle":
+			# Forteresse draconide sur la montagne, bannières rouges.
+			var cx := w / 2
+			var cb := int(h * 0.62)
+			var cw := int(w * 0.5)
+			img.fill_rect(Rect2i(cx - cw / 2, cb - int(h * 0.12), cw, int(h * 0.12)), Color("1a1214"))
+			for k in range(4):
+				var tx := cx - cw / 2 + k * cw / 3
+				var th := int(h * (0.18 + 0.05 * float(k % 2)))
+				img.fill_rect(Rect2i(tx - 4, cb - th, 9, th), Color("221618"))
+				for yy in range(6):
+					img.fill_rect(Rect2i(tx - 5 + yy, cb - th - 6 + yy, maxi(1, 11 - yy * 2), 1), Color("3a1a1a"))
+				_banner(img, tx + 5, cb - th + 4, 12, Color("a8221a"))
+				_px(img, tx, cb - th / 2, Color("ffb050"))
+	if kind != "cendres":
+		_mist(img, rng, int(h * 0.6), h - 2, Color(0.2, 0.08, 0.06, 0.2), 20)
+
+
+## Cavernes : la caldeira de la Mère-Dragon (dragonne endormie, chaînes brisées, l'Œuf de cendre) et l'antre du Wyrm.
+static func _cendres_cave(img: Image, rng: RandomNumberGenerator, kind: String) -> void:
+	var w := img.get_width()
+	var h := img.get_height()
+	var mother := kind == "caldeira"
+	_sky(img, rng, [[0.0, Color("0a0606")], [0.5, Color("2a0e0a") if mother else Color("1a0a0c")], [1.0, Color("120808")]], 0.0)
+	# Parois de basalte veinées de feu.
+	for side in [0, 1]:
+		for y in range(h):
+			var k := float(y) / float(h)
+			var x_edge := int(w * (0.12 + 0.1 * sin(k * 5.0 + float(side))))
+			if side == 0:
+				img.fill_rect(Rect2i(0, y, x_edge, 1), Color("1a1010"))
+			else:
+				img.fill_rect(Rect2i(w - x_edge, y, x_edge, 1), Color("1a1010"))
+	for i in range(maxi(6, w / 25)):
+		var vx := rng.randi_range(0, w)
+		var vy := rng.randi_range(0, h)
+		for d in range(rng.randi_range(8, 24)):
+			_px(img, vx + d / 2, vy + d, Color("ff5a1a") if mother else Color("8a2a1a"))
+	var cx := w / 2
+	var cy := int(h * 0.55)
+	var r := int(minf(w, h) * 0.32)
+	_glow_px(img, cx, cy, r + 10, Color("ffb050") if mother else Color("ff3a1a"), 0.3)
+	# Le dragon lui-même est le sujet de la scène (sprite au premier plan) : ici, son halo et ses yeux dans l'ombre.
+	if mother:
+		# Chaînes de cendre brisées et l'Œuf noir veiné de feu.
+		for k in range(3):
+			var ax := cx - r / 2 + k * r / 2
+			for d in range(0, int(h * 0.2), 3):
+				_px(img, ax + (d / 6) % 2, cy - r / 2 - d, Color("6a6060"))
+		var ex := cx + r / 2
+		var ey := cy + r / 2 + 10
+		_disc(img, ex, ey, maxi(4, r / 5), Color("120a0a"))
+		for d in range(r / 5):
+			_px(img, ex - r / 10 + d / 2, ey - r / 10 + d, Color("ff6a2a"))
+		_glow_px(img, ex, ey, r / 4, Color("ff6a2a"), 0.3)
+	else:
+		# Ossements et yeux dans l'ombre.
+		for i in range(maxi(6, w / 20)):
+			var bx := rng.randi_range(0, w)
+			var by := rng.randi_range(int(h * 0.75), h - 3)
+			img.fill_rect(Rect2i(bx, by, rng.randi_range(4, 9), 2), Color("c8b8a0"))
+		for i in range(4):
+			var gx := rng.randi_range(int(w * 0.1), int(w * 0.9))
+			var gy2 := rng.randi_range(int(h * 0.1), int(h * 0.35))
+			_px(img, gx, gy2, Color("ff6a2a"))
+			_px(img, gx + 3, gy2, Color("ff6a2a"))
+	_fireflies(img, rng, int(w * h / 700.0), int(h * 0.1), h - 2, Color("ffb050") if mother else Color("ff6a2a"))
 
 
 static func icon(kind: String, col: Color) -> ImageTexture:

@@ -518,6 +518,10 @@ static func level_record(level_id: String) -> Dictionary:
 
 
 static func is_unlocked(level_id: String) -> bool:
+	# Niveau bonus (6-R) : ouvert par un fil de l'histoire.
+	var req := str(GameData.level(level_id).get("requires", ""))
+	if req != "":
+		return Story.has_flag(req) or int(level_record(level_id)["clears"]) > 0
 	var ids: Array = GameData.level_index()["levels"]
 	var i := ids.find(level_id)
 	if i <= 0:
@@ -543,7 +547,7 @@ static func stars_total() -> int:
 ## Applique le résultat d'une partie et retourne le détail des récompenses.
 ## « unique » : base d'un objet unique gagné en combat (ex. Couronne de l'Énigme : les deux énigmes du
 ## Sphinx résolues), donné une seule fois, en légendaire.
-static func apply_battle(level_id: String, victory: bool, stars: int, time: float, present: Array = [], unique: String = "") -> Dictionary:
+static func apply_battle(level_id: String, victory: bool, stars: int, time: float, present: Array = [], unique: String = "", story_flags: Array = []) -> Dictionary:
 	var lv := GameData.level(level_id)
 	var gl := int(lv.get("global_level", 1))
 	var zone := str(int(lv.get("zone", 1)))
@@ -619,6 +623,13 @@ static func apply_battle(level_id: String, victory: bool, stars: int, time: floa
 	else:
 		xp_gain *= float(p["defeat_xp"])
 		gold_gain = 0.0
+	# Fils de l'histoire écrits par le combat (acte 6 : compagnon épargné ou achevé) et effets de victoire du niveau.
+	var story_lines: Array[String] = []
+	if victory:
+		for f in story_flags:
+			Story.set_flag(str(f))
+		if lv.has("on_win"):
+			story_lines = Story.apply(lv["on_win"], gl)
 	data["levels"][level_id] = rec
 	var before := level()
 	# Difficulté : de -25 % (Facile) à +200 % (Impossible) d'XP, compagnons compris.
@@ -635,7 +646,8 @@ static func apply_battle(level_id: String, victory: bool, stars: int, time: floa
 	data["gold"] = gold() + int(round(gold_gain))
 	save_local()
 	return {"victory": victory, "first": first, "xp": int(round(xp_gain)), "gold": int(round(gold_gain)),
-		"level_before": before, "level_after": level(), "levels": gained, "items": items, "runes": runes_won, "materials": mats, "companions": comps}
+		"level_before": before, "level_after": level(), "levels": gained, "items": items, "runes": runes_won, "materials": mats, "companions": comps,
+		"story": story_lines}
 
 
 ## Plus rare des deux raretés (ordre de items.json).
@@ -945,7 +957,7 @@ static func battle_opts() -> Dictionary:
 		"flags": Story.active_flags(), "healed": Story.has_flag("s1.sylvarche_purifiee"),
 		"mods": all_mods(), "don": don_info(), "deck": deck() if spell_mode() == "deck" else drawer_spells(), "spell_mode": spell_mode(), "circle": circle(),
 		"player_race": race(), "look": look(), "player_class": player_class(),
-		"loyalty": {"brann": Story.loyalty("brann"), "sylwen": Story.loyalty("sylwen"), "krag": Story.loyalty("krag"), "nyx": Story.loyalty("nyx")},
+		"loyalty": {"brann": Story.loyalty("brann"), "sylwen": Story.loyalty("sylwen"), "krag": Story.loyalty("krag"), "nyx": Story.loyalty("nyx"), "ignara": Story.loyalty("ignara")},
 		"active": active_companions(), "bots": bots_opts(), "difficulty": difficulty_mult()}
 
 
@@ -1607,7 +1619,7 @@ static func learn(id: String) -> bool:
 static func default_circle() -> Dictionary:
 	return {"swap": false, "active": ["brann", "sylwen"], "brann": {"order": "defends", "spell": "bouclier_leve"},
 		"sylwen": {"order": "focus_nexus", "spell": "tir_precision"}, "krag": {"order": "defends", "spell": "hache_tournoyante"},
-		"nyx": {"order": "focus_nexus", "spell": "linceul"}}
+		"nyx": {"order": "focus_nexus", "spell": "linceul"}, "ignara": {"order": "focus_nexus", "spell": "souffle_draconique"}}
 
 
 ## Compagnons qui ont rejoint le groupe (Krag : selon les choix de l'acte 2).
@@ -1615,7 +1627,7 @@ static func companions_available() -> Array[String]:
 	var out: Array[String] = []
 	for bd in GameData.party()["bots"]:
 		var req := str(bd.get("requires", ""))
-		if req == "" or Story.has_flag(req):
+		if (req == "" or Story.has_flag(req)) and not Story.companion_lost(str(bd["id"])):
 			out.append(str(bd["id"]))
 	return out
 
@@ -1738,8 +1750,17 @@ static func set_companion_class(who: String, cls: String) -> bool:
 
 static func companion_spells(who: String) -> Array[String]:
 	var out: Array[String] = []
+	var bd := _bot_def(who)
+	if companion_class(who) == str(bd.get("class", "")):
+		# Sort propre au compagnon (Souffle draconique d'Ignara).
+		for sid in bd.get("spells", []):
+			if not out.has(str(sid)):
+				out.append(str(sid))
 	for sid in CLASS_SPELLS.get(companion_class(who), []):
-		out.append(str(sid))
+		if not out.has(str(sid)):
+			out.append(str(sid))
+	if Story.has_flag("s1.heritage_" + who):
+		out.append("souffle_de_cendre")
 	return out
 
 

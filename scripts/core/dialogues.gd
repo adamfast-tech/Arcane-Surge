@@ -40,7 +40,17 @@ static func character(who: String, zone: int = 1) -> Dictionary:
 
 
 static func fmt(text: String) -> String:
-	return text.replace("{pseudo}", Story.player_name())
+	var t := text.replace("{pseudo}", Story.player_name())
+	if t.contains("{traitre}"):
+		t = t.replace("{traitre}", str(Story.COMPANIONS.get(Story.traitor(), "ton compagnon")))
+	return t
+
+
+## « traitre » désigne le compagnon marqué par le Wyrm (acte 6).
+static func resolve_who(who: String) -> String:
+	if who == "traitre":
+		return Story.traitor() if Story.traitor() != "" else "narrateur"
+	return who
 
 
 ## Nom affiché, titre (faction, loyauté) et couleur d'un personnage.

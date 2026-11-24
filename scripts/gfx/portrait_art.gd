@@ -71,6 +71,12 @@ static func texture(who: String, mood: String = "neutre") -> Texture2D:
 			_thalren(img, mood)
 		"sphinx":
 			_sphinx(img, mood)
+		"ignara":
+			_ignara(img, mood)
+		"mere_dragon":
+			_mere_dragon(img, mood)
+		"wyrm":
+			_wyrm(img, mood)
 		_:
 			return null
 	_outline(img)
@@ -80,7 +86,7 @@ static func texture(who: String, mood: String = "neutre") -> Texture2D:
 
 
 static func has_portrait(who: String) -> bool:
-	return who in ["porteur", "sylwen", "brann", "ancien", "cerf", "sylvarche", "fee", "voix", "krag", "gharok", "prevote", "varg", "nyx", "vesper", "aurele", "corvin", "aelis", "durgan", "ysolde", "orrin", "thalren", "sphinx"] \
+	return who in ["porteur", "sylwen", "brann", "ancien", "cerf", "sylvarche", "fee", "voix", "krag", "gharok", "prevote", "varg", "nyx", "vesper", "aurele", "corvin", "aelis", "durgan", "ysolde", "orrin", "thalren", "sphinx", "ignara", "mere_dragon", "wyrm"] \
 		or ResourceLoader.exists("res://assets/portraits/%s.png" % who)
 
 
@@ -1268,3 +1274,96 @@ static func _sphinx(img: Image, mood: String) -> void:
 		for x in range(29, 36):
 			_px(img, x, 40, Color("8aa8c0"))
 	_rim(img, 6, 60, 10, 63, Color("ffe8a8"))
+
+
+## Ignara : jeune draconique, cheveux cuivre, cornes recourbées, écailles sur les tempes, yeux d'ambre fendus,
+## robe cramoisie brodée d'or, braises au creux des mains.
+static func _ignara(img: Image, mood: String) -> void:
+	var skin := _ramp(["a8644a", "d8906a", "f0b48a"])
+	var hair := _ramp(["6a1a0e", "a83a1a", "e0602a", "ffa050"])
+	var robe := _ramp(["4a0e12", "7a1a1a", "b02a22", "d8502a"])
+	var horn := _ramp(["3a2a24", "6a5248", "a88a70", "d8c0a0"])
+	var scale := _ramp(["7a3a1a", "c8642a", "f0a050"])
+	var gold := Color("f2c46b")
+	_glow(img, 32, 40, 28, Color("ff7a2a"), 0.18)
+	_poly(img, PackedVector2Array([Vector2(4, 64), Vector2(8, 51), Vector2(20, 45), Vector2(44, 45), Vector2(56, 51), Vector2(60, 64)]), robe)
+	for x in range(20, 45):
+		_px(img, x, 47 + int(absf(float(x) - 32.0) / 4.0), gold)
+	_ellipse(img, 32.0, 44.0, 3.6, 3.6, skin)
+	# Chevelure de flammes derrière la tête.
+	_poly(img, PackedVector2Array([Vector2(16, 46), Vector2(15, 30), Vector2(18, 18), Vector2(26, 11), Vector2(32, 9), Vector2(40, 11), Vector2(46, 18), Vector2(49, 30), Vector2(48, 46), Vector2(44, 40), Vector2(20, 40)]), hair)
+	for i in range(5):
+		_line(img, Vector2(17 + i, 44), Vector2(13 + i * 2, 52 + i), Color("a83a1a"))
+		_line(img, Vector2(47 - i, 44), Vector2(51 - i * 2, 52 + i), Color("a83a1a"))
+	# Cornes recourbées vers l'arrière.
+	_poly(img, PackedVector2Array([Vector2(22, 20), Vector2(17, 15), Vector2(14, 7), Vector2(18, 10), Vector2(24, 15)]), horn)
+	_poly(img, PackedVector2Array([Vector2(42, 20), Vector2(47, 15), Vector2(50, 7), Vector2(46, 10), Vector2(40, 15)]), horn)
+	_ellipse(img, 32.0, 31.0, 10.0, 12.0, skin)
+	# Écailles cuivrées sur les tempes et les pommettes.
+	for q in [Vector2i(23, 28), Vector2i(23, 31), Vector2i(24, 34), Vector2i(41, 28), Vector2i(41, 31), Vector2i(40, 34)]:
+		_px(img, q.x, q.y, scale[1])
+		_px(img, q.x, q.y + 1, scale[0])
+	# Frange.
+	_poly(img, PackedVector2Array([Vector2(21, 27), Vector2(22, 19), Vector2(28, 15), Vector2(34, 14), Vector2(40, 17), Vector2(43, 25), Vector2(39, 21), Vector2(35, 23), Vector2(31, 19), Vector2(27, 23), Vector2(24, 22)]), hair)
+	_brow(img, 26, 27, -1, mood, Color("8a2a12"), 1)
+	_brow(img, 36, 27, 1, mood, Color("8a2a12"), 1)
+	_eye(img, 25, 29, -1, mood, Color("ffb030"), Color("2a1008"))
+	_eye(img, 35, 29, 1, mood, Color("ffb030"), Color("2a1008"))
+	# Pupilles fendues.
+	_px(img, 27, 30, Color("1a0804"))
+	_px(img, 37, 30, Color("1a0804"))
+	_mouth(img, 32, 38, mood, Color("8a3a2a"), Color("3a1008"))
+	# Braises au creux des mains jointes.
+	_glow(img, 32, 58, 7, Color("ffb050"), 0.5)
+	_ellipse(img, 32.0, 58.0, 2.0, 2.0, _ramp(["ff6a2a", "ffd070", "fff6d0"]))
+	_rim(img, 6, 58, 10, 63, Color("ffd8a0"))
+
+
+## La Mère-Dragon : tête de dragonne dorée, crête et grandes cornes en arrière, yeux d'or ancien, regard doux.
+static func _mere_dragon(img: Image, mood: String) -> void:
+	_dragon_head(img, mood, _ramp(["6a2a0e", "b8582a", "e8903a", "ffc870"]), _ramp(["4a3a2a", "8a7050", "c8b088", "f0e0c0"]),
+		_ramp(["7a3a14", "c8702a", "f0a050"]), Color("fff0a0"), Color("f2c46b"), false)
+	# Crête d'écailles sur le front.
+	for i in range(5):
+		var x := 24 + i * 4
+		_poly(img, PackedVector2Array([Vector2(x - 2, 17), Vector2(x, 9 + absi(2 - i) * 2), Vector2(x + 2, 17)]), _ramp(["8a4a1a", "e8903a", "ffd890"]))
+	_glow(img, 32, 62, 5, Color("ffd070"), 0.3)
+	_rim(img, 8, 56, 6, 60, Color("ffe0a0"))
+
+
+## Tête de dragon vue de face (Mère-Dragon, Wyrm) : cornes en arrière, crâne, long museau, gueule.
+static func _dragon_head(img: Image, mood: String, sc: Array[Color], horn: Array[Color], mouth: Array[Color], eye_core: Color, eye_halo: Color, open_jaw: bool) -> void:
+	_glow(img, 32, 34, 30, eye_halo, 0.2)
+	_poly(img, PackedVector2Array([Vector2(16, 22), Vector2(6, 4), Vector2(12, 8), Vector2(22, 20)]), horn)
+	_poly(img, PackedVector2Array([Vector2(48, 22), Vector2(58, 4), Vector2(52, 8), Vector2(42, 20)]), horn)
+	_ellipse(img, 32.0, 27.0, 17.0, 13.0, sc)
+	_poly(img, PackedVector2Array([Vector2(18, 30), Vector2(20, 50), Vector2(26, 62), Vector2(38, 62), Vector2(44, 50), Vector2(46, 30)]), sc)
+	if open_jaw:
+		_poly(img, PackedVector2Array([Vector2(24, 50), Vector2(28, 60), Vector2(36, 60), Vector2(40, 50), Vector2(32, 54)]), mouth, 0.0, true)
+		for x in range(25, 40, 3):
+			_px(img, x, 50, Color("e8dcc0"))
+			_px(img, x + 1, 59, Color("e8dcc0"))
+	else:
+		_line(img, Vector2(24, 52), Vector2(32, 56), mouth[0])
+		_line(img, Vector2(32, 56), Vector2(40, 52), mouth[0])
+	_px(img, 28, 58, Color("1a0804"))
+	_px(img, 36, 58, Color("1a0804"))
+	for y in range(18, 48, 5):
+		for x in range(21, 44, 6):
+			_px(img, x + (y / 5) % 2 * 3, y, sc[3])
+	# Orbites sombres, puis yeux lumineux.
+	_ellipse(img, 25.0, 30.0, 4.0, 2.6, _ramp(["1a0a06"]), 0.0, true)
+	_ellipse(img, 38.0, 30.0, 4.0, 2.6, _ramp(["1a0a06"]), 0.0, true)
+	_glow_eye(img, 24, 30, -1, mood, eye_core, eye_halo)
+	_glow_eye(img, 37, 30, 1, mood, eye_core, eye_halo)
+
+
+## Le Wyrm de cendre : tête de dragon calcinée, écailles noires fendues de braise, gueule pleine de braises, yeux de feu.
+static func _wyrm(img: Image, mood: String) -> void:
+	var core := Color("ffd070") if mood != "colere" else Color("fff0a0")
+	_dragon_head(img, mood, _ramp(["0e0a0c", "2a2026", "4a3a40", "6a5a60"]), _ramp(["2a2420", "5a4a40", "a89078", "d8c8b0"]),
+		_ramp(["8a1a0a", "ff5a1a", "ffb050"]), core, Color("ff4a1a"), true)
+	# Fissures de braise dans les écailles.
+	for q in [[Vector2(20, 18), Vector2(26, 28)], [Vector2(44, 16), Vector2(40, 30)], [Vector2(24, 38), Vector2(22, 48)], [Vector2(40, 38), Vector2(43, 47)], [Vector2(30, 14), Vector2(33, 22)]]:
+		_line(img, q[0], q[1], Color("ff6a2a"))
+	_rim(img, 6, 58, 6, 60, Color("ff9b4a"))

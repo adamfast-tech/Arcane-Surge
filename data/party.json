@@ -462,6 +462,25 @@
       "id": "nyx",
       "requires": "s1.nyx_allie",
       "role": "Ombre : ses squelettes liés et son Linceul ralentissent et affaiblissent l'ennemi"
+    },
+    {
+      "name": "Ignara",
+      "class": "mage",
+      "race": "draconique",
+      "level": 7,
+      "side": "right",
+      "sprite": "ignara",
+      "personality": "agressif",
+      "order": "focus_nexus",
+      "spells": [
+        "souffle_draconique"
+      ],
+      "think": 0.4,
+      "aim_error": 0.35,
+      "cadence_mult": 0.8,
+      "id": "ignara",
+      "requires": "s1.ignara_allie",
+      "role": "Feu draconique : son souffle embrase toute une colonne"
     }
   ]
 }
