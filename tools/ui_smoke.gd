@@ -754,6 +754,9 @@ func _run() -> void:
 	if not _zone5_ok():
 		quit(1)
 		return
+	if not _zone6_ok():
+		quit(1)
+		return
 	if not await _gear_ok():
 		quit(1)
 		return
@@ -1421,7 +1424,7 @@ func _gear_ok() -> bool:
 	for id in bases.keys():
 		if ItemArt.item(str(id), 48) == null:
 			errs.append("icône %s" % id)
-	for z in range(1, 6):
+	for z in range(1, 7):
 		if ((db["loot_pool"] as Dictionary).get(str(z), []) as Array).size() < 36:
 			errs.append("butin de zone %d" % z)
 	var fams: Dictionary = db["runes"]["families"]
@@ -1647,4 +1650,121 @@ func _compare_ok() -> bool:
 	if not (ok1 and ok2 and ok3):
 		push_error("comparaison avec l'équipé incorrecte")
 		return false
+	return true
+
+
+## Zone 6 · Forêt Cendrée : incendies (avancée, brûlure, Givre), dragons, envol, phénix, œufs, flaques de magma.
+func _zone6_ok() -> bool:
+	var errs: Array[String] = []
+	for k in ["ember_imp", "salamander", "drakonid", "wyvernling", "magma_golem", "wyrm_cultist", "minor_phoenix", "ash_demon",
+			"dragon_egg", "ancient_drake", "ash_wyrm", "refugee_convoy"]:
+		if SpriteAtlas.single(k) == null:
+			errs.append("sprite %s" % k)
+	var ids: Array = GameData.level_index()["levels"]
+	for i in range(1, 11):
+		if not ids.has("z06_l%02d" % i):
+			errs.append("niveau z06_l%02d absent de l'index" % i)
+	if (Profile.items_db()["loot_pool"] as Dictionary).get("6", []).size() != 36:
+		errs.append("butin de zone 6")
+	# Incendie : il descend vers la Barrière, brûle une invocation, épargne un ennemi de Feu ; le Givre le fait reculer.
+	var s := BattleSim.new()
+	s.setup(GameData.level("z06_l02"), GameData.party(), 3, {"solo": true})
+	s.start_wildfire(4.5)
+	var f: Dictionary = s.fires.back()
+	var front0 := float(f["front"])
+	for k in range(int(10.0 / BattleSim.TICK)):
+		s._update_fires()
+	var advanced := float(f["front"]) < front0 - 3.0
+	var a := s._spawn_familiar(s.player(), Vector2(4.5, float(f["front"]) + 0.5))
+	var imp := s._spawn_enemy("ember_imp", Vector2(4.5, float(f["front"]) + 1.0))
+	var golem := s._spawn_enemy("drakonid", Vector2(4.6, float(f["front"]) + 1.2))
+	s._flush()
+	var ah := a.hp
+	var ih := imp.hp
+	var gh := golem.hp
+	for k in range(int(0.5 / BattleSim.TICK)):
+		s._update_fires()
+	var burns := a.hp < ah and is_equal_approx(imp.hp, ih) and golem.hp < gh
+	var cut_y := float(f["front"]) + 2.0
+	var hit := s.extinguish(Vector2(4.5, cut_y - 1.0), 1.0)
+	var pushed := hit and float(f["front"]) >= cut_y - 0.01 and float(f["stall"]) > 0.0
+	if not (advanced and burns and pushed):
+		errs.append("incendie avance %s, brûle %s, Givre %s" % [advanced, burns, pushed])
+	# Le Givre lancé par un sort éteint un foyer posé (impact sur le terrain).
+	s.add_fire_patch(Vector2(2.0, 6.0), 0.7, 6.0)
+	var nf := s.fires.size()
+	s.terrain.on_impact(s.player(), {"element": "givre", "type": "aoe"}, Vector2(2.0, 6.0), 1.2, 30.0)
+	if s.fires.size() != nf - 1:
+		errs.append("Givre sur un foyer : %d -> %d" % [nf, s.fires.size()])
+	s.terrain.sim = null
+	# Dragon : rangée annoncée, puis foyers laissés sur la rangée.
+	var d := BattleSim.new()
+	d.setup(GameData.level("z06_l03"), GameData.party(), 4, {"solo": true})
+	d.dragon_t = 0.0
+	d._update_dragons()
+	var tg_ok := d.telegraphs.size() == 1 and bool(d.telegraphs[0].get("dragon", false))
+	d.telegraphs[0]["t"] = 0.0
+	var before := d.fires.size()
+	d._update_telegraphs()
+	if not tg_ok or d.fires.size() != before + 2:
+		errs.append("dragon annonce %s, foyers %d" % [tg_ok, d.fires.size() - before])
+	# Phénix : renaît une fois, sauf si le Givre l'a frappé en dernier ; œuf qui éclot ; flaque du Golem de magma.
+	var ph := d._spawn_enemy("minor_phoenix", Vector2(3.0, 12.0))
+	var ph2 := d._spawn_enemy("minor_phoenix", Vector2(6.0, 12.0))
+	var mg := d._spawn_enemy("magma_golem", Vector2(4.5, 9.0))
+	var egg := d._spawn_enemy("dragon_egg", Vector2(4.5, 12.0))
+	d._flush()
+	d._damage(ph, ph.hp + 1.0, "feu")
+	var reborn := ph.alive and ph.reborn
+	d._damage(ph, ph.hp + 1.0, "feu")
+	var dead_after := not ph.alive
+	d._damage(ph2, ph2.hp + 1.0, "givre")
+	var frost_kill := not ph2.alive
+	var f0 := d.fires.size()
+	d._damage(mg, mg.hp + 1.0, "givre")
+	var pool := d.fires.size() == f0 + 1
+	var n_wyv := 0
+	egg.cast_cd = 0.0
+	d._enemy_abilities()
+	d._flush()
+	for e in d.enemies:
+		if e.alive and e.kind == "wyvernling":
+			n_wyv += 1
+	if not (reborn and dead_after and frost_kill and pool and not egg.alive and n_wyv == 2):
+		errs.append("phénix %s/%s/%s, flaque %s, œuf %s (%d wyverneaux)" % [reborn, dead_after, frost_kill, pool, not egg.alive, n_wyv])
+	d.terrain.sim = null
+	# Envol : les invocations au corps à corps attendent sous le boss ; un sort le touche.
+	var b := BattleSim.new()
+	b.setup(GameData.level("z06_l05"), GameData.party(), 5, {"solo": true})
+	b._flush()
+	b._boss_ability({"type": "take_off", "dur": 5.0})
+	var u := b._spawn_familiar(b.player(), b.boss.pos - Vector2(0.0, 0.3))
+	b._flush()
+	b._build_grids()
+	var bh := b.boss.hp
+	b._resolve_contacts()
+	var waits := u.alive and u.engaged and is_equal_approx(b.boss.hp, bh)
+	b._damage(b.boss, 100.0, "givre")
+	var spell_hits := b.boss.hp < bh
+	for k in range(int(5.2 / BattleSim.TICK)):
+		b._update_boss()
+	var landed := b.boss.airborne_t <= 0.0
+	b._build_grids()
+	var bh2 := b.boss.hp
+	b._resolve_contacts()
+	if not (waits and spell_hits and landed and b.boss.hp < bh2):
+		errs.append("envol attente %s, sort %s, posé %s, coup après %s" % [waits, spell_hits, landed, b.boss.hp < bh2])
+	b._boss_ability({"type": "eggs", "count": 3})
+	b._flush()
+	var eggs := 0
+	for e in b.enemies:
+		if e.alive and e.kind == "dragon_egg":
+			eggs += 1
+	if eggs != 3:
+		errs.append("œufs du Wyrm : %d" % eggs)
+	b.terrain.sim = null
+	if not errs.is_empty():
+		push_error("zone 6 : " + " · ".join(errs))
+		return false
+	print("zone 6 : incendies, Givre, dragons, phénix, œufs, envol OK")
 	return true

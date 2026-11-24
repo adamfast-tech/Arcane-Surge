@@ -1,0 +1,105 @@
+{
+  "id": "z06_l07",
+  "name": "Le Nid des Phénix",
+  "zone": 6,
+  "number": "6-7",
+  "global_level": 57,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "desc": "Deux Phénix mineurs couvent le Nexus et le soignent. Un phénix abattu renaît de ses cendres, sauf si le Givre l'a frappé en dernier. Les dragons rôdent au-dessus du nid.",
+  "par_time": 170,
+  "nexus": {
+    "hp": 30000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 380
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 380
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "givre"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 2,
+      "motion": "slide",
+      "range": 1.6,
+      "speed": 0.5
+    },
+    {
+      "kind": "elem",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "givre"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 10.4,
+      "width": 2.2,
+      "value": 2
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 16,
+    "budget_per_level": 4,
+    "local_level": 7,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "ember_imp": 5,
+      "salamander": 2.5,
+      "wyvernling": 1,
+      "magma_golem": 0.6
+    }
+  },
+  "initial_enemies": [
+    {
+      "kind": "minor_phoenix",
+      "x": 2.6,
+      "y": 13.3
+    },
+    {
+      "kind": "minor_phoenix",
+      "x": 6.4,
+      "y": 13.3
+    }
+  ],
+  "dragons": {
+    "first": 16,
+    "every": [
+      20,
+      26
+    ],
+    "warn": 1.7,
+    "dmg": 44,
+    "band": 1.4,
+    "patches": 2
+  }
+}

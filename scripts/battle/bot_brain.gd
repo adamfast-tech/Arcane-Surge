@@ -67,6 +67,15 @@ func _use_abilities(sim: BattleSim, c: BattleSim.Caster) -> void:
 			if str(fs.get("element", "")) == "feu" and str(fs["type"]) in ["aoe", "zone", "barrage", "ground"] and sim.spell_ready(c, id):
 				if sim.cast_spell(c, id, sim.stumps[0]["pos"]):
 					return
+	# Forêt Cendrée : éteindre au Givre l'incendie qui descend (ou le foyer où passent les invocations).
+	if not sim.fires.is_empty():
+		var ft := sim.fire_target()
+		if ft.x >= 0.0:
+			for id in c.spells:
+				var gs: Dictionary = sim.spells_db[id]
+				if str(gs.get("element", "")) == "givre" and str(gs["type"]) in ["aoe", "zone", "column", "barrage"] and not bool(gs.get("single", false)) and sim.spell_ready(c, id):
+					if sim.cast_spell(c, id, ft):
+						return
 	for id in c.spells:
 		if not sim.spell_ready(c, id):
 			continue

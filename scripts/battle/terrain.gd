@@ -358,6 +358,9 @@ func on_impact(c: BattleSim.Caster, sp: Dictionary, at: Vector2, r: float, dmg: 
 					st["t"] = -99.0
 		else:
 			sim.burn_stumps(at, r)
+	if str(sp.get("element", "")) == "givre" and not sim.fires.is_empty():
+		# Forêt Cendrée : le Givre éteint les incendies.
+		sim.extinguish(at, r, rect)
 	_reactions(c, sp, at, r, dmg, rect)
 	_leave_ground(c, sp, at, r, dmg, rect)
 	for p in props:

@@ -17,6 +17,7 @@ const MAT := {
 	"crystal": ["2a6a88", "4fa8c8", "a8e4f0", "ffffff"], "frost": ["3a6a98", "6fa8d8", "bfe4ff", "ffffff"],
 	"obsidian": ["120e1a", "2a2438", "4a4060", "8a7aa8"], "leather": ["3a2414", "6a4228", "9a6438", "c8925a"],
 	"fur": ["6a6a74", "a8a8b4", "dcdce4", "ffffff"], "stone": ["3a3a44", "64646e", "9696a0", "c8c8d0"],
+	"ember": ["2a0e08", "8a2a10", "e0602a", "ffd070"], "scale": ["3a1410", "7a2418", "b8482a", "e8905a"],
 }
 ## Teintes (tissu, cuir, ruban).
 const DYE := {

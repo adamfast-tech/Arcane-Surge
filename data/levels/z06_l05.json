@@ -1,0 +1,161 @@
+{
+  "id": "z06_l05",
+  "name": "Le Drake ancien",
+  "zone": 6,
+  "number": "6-5",
+  "global_level": 55,
+  "type": "Mini-boss",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "objective": "boss",
+  "desc": "Un drake ancien règne sur la clairière brûlée. Son souffle embrase des couloirs entiers ; quand il s'envole, seuls les tirs et les sorts l'atteignent, et tes invocations l'attendent sous lui. Il craint le Givre.",
+  "par_time": 240,
+  "boss": {
+    "kind": "ancient_drake",
+    "hp": 23000,
+    "x": 4.5,
+    "y": 13.6,
+    "phases": [
+      [
+        {
+          "type": "lane_strike",
+          "cd": 9,
+          "delay": 1.3,
+          "dmg": 56,
+          "width": 1.5,
+          "barrier": 1.0,
+          "fire": true,
+          "log": "%s crache son souffle !"
+        },
+        {
+          "type": "summon",
+          "cd": 15,
+          "kind": "ember_imp",
+          "count": 4
+        }
+      ],
+      [
+        {
+          "type": "take_off",
+          "cd": 26,
+          "dur": 7
+        },
+        {
+          "type": "row_sweep",
+          "cd": 14,
+          "delay": 1.6,
+          "dmg": 50,
+          "width": 1.3,
+          "barrier": 0.5,
+          "dragon": true,
+          "log": "%s mitraille la clairière !"
+        },
+        {
+          "type": "lane_strike",
+          "cd": 9,
+          "delay": 1.2,
+          "dmg": 58,
+          "width": 1.5,
+          "barrier": 1.0,
+          "fire": true,
+          "log": "%s crache son souffle !"
+        },
+        {
+          "type": "summon",
+          "cd": 14,
+          "kind": "salamander",
+          "count": 4
+        }
+      ],
+      [
+        {
+          "type": "take_off",
+          "cd": 26,
+          "dur": 7
+        },
+        {
+          "type": "row_sweep",
+          "cd": 13,
+          "delay": 1.5,
+          "dmg": 52,
+          "width": 1.3,
+          "barrier": 0.5,
+          "dragon": true,
+          "log": "%s mitraille la clairière !"
+        },
+        {
+          "type": "lane_strike",
+          "cd": 8,
+          "delay": 1.2,
+          "dmg": 60,
+          "width": 1.5,
+          "count": 2,
+          "barrier": 1.0,
+          "fire": true,
+          "log": "%s crache son souffle !"
+        },
+        {
+          "type": "summon",
+          "cd": 12,
+          "kind": "drakonid",
+          "count": 2
+        }
+      ]
+    ]
+  },
+  "towers": [],
+  "portals": [
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 2,
+      "motion": "slide",
+      "range": 2.2,
+      "speed": 0.5
+    },
+    {
+      "kind": "elem",
+      "x": 1.8,
+      "y": 10.2,
+      "width": 2.0,
+      "element": "givre"
+    },
+    {
+      "kind": "elem",
+      "x": 7.2,
+      "y": 10.2,
+      "width": 2.0,
+      "element": "givre"
+    },
+    {
+      "kind": "add",
+      "x": 4.5,
+      "y": 8.0,
+      "width": 1.8,
+      "value": 5
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      9,
+      12
+    ],
+    "budget_base": 11,
+    "budget_per_level": 4,
+    "local_level": 5,
+    "growth": 0.03,
+    "spawn_y": 14.6,
+    "pool": {
+      "ember_imp": 5,
+      "salamander": 2
+    }
+  },
+  "initial_enemies": []
+}

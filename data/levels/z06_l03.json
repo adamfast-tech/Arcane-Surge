@@ -1,0 +1,97 @@
+{
+  "id": "z06_l03",
+  "name": "L'Ombre des Ailes",
+  "zone": 6,
+  "number": "6-3",
+  "global_level": 53,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "desc": "Des dragons survolent la forêt. Une ombre ailée annonce leur passage : ils mitraillent toute une rangée et y laissent des foyers. Les Wyverneaux tirent de loin.",
+  "par_time": 130,
+  "nexus": {
+    "hp": 34000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 380
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 380
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "givre"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 2,
+      "motion": "slide",
+      "range": 1.6,
+      "speed": 0.5
+    },
+    {
+      "kind": "add",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 5
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 10.4,
+      "width": 2.2,
+      "value": 2,
+      "motion": "slide",
+      "range": 2.0,
+      "speed": 0.45
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 19,
+    "budget_per_level": 5,
+    "local_level": 3,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "ember_imp": 5,
+      "salamander": 2,
+      "wyvernling": 1.1,
+      "drakonid": 0.5
+    }
+  },
+  "dragons": {
+    "first": 12,
+    "every": [
+      16,
+      20
+    ],
+    "warn": 1.7,
+    "dmg": 44,
+    "band": 1.4,
+    "patches": 2
+  },
+  "initial_enemies": []
+}

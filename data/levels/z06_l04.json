@@ -1,0 +1,116 @@
+{
+  "id": "z06_l04",
+  "name": "La Coulée de Magma",
+  "zone": 6,
+  "number": "6-4",
+  "global_level": 54,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "desc": "Des coulées de magma barrent la forêt : elles brûlent tes invocations qui les traversent. Les Golems de magma laissent une flaque de feu en tombant ; les Drakonides bloquent de face.",
+  "par_time": 180,
+  "nexus": {
+    "hp": 34000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 380
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 380
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "givre"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 1.8,
+      "value": 2
+    },
+    {
+      "kind": "add",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 5
+    },
+    {
+      "kind": "mult",
+      "x": 2.4,
+      "y": 10.4,
+      "width": 2.0,
+      "value": 2
+    },
+    {
+      "kind": "elem",
+      "x": 6.6,
+      "y": 10.4,
+      "width": 2.0,
+      "element": "givre"
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 17,
+    "budget_per_level": 4,
+    "local_level": 4,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "ember_imp": 5,
+      "salamander": 2,
+      "magma_golem": 0.7,
+      "drakonid": 0.7,
+      "wyvernling": 0.5
+    }
+  },
+  "lava": [
+    {
+      "x": 0.9,
+      "y": 7.2,
+      "r": 0.6
+    },
+    {
+      "x": 8.1,
+      "y": 9.0,
+      "r": 0.6
+    },
+    {
+      "x": 2.4,
+      "y": 12.8,
+      "r": 0.5
+    }
+  ],
+  "wildfire": {
+    "first": 22,
+    "every": [
+      30,
+      36
+    ],
+    "max": 1,
+    "speed": 0.45,
+    "life": 20,
+    "dps": 9
+  },
+  "initial_enemies": []
+}

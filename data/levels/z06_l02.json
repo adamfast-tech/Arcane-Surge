@@ -1,0 +1,102 @@
+{
+  "id": "z06_l02",
+  "name": "Les Couloirs de Feu",
+  "zone": 6,
+  "number": "6-2",
+  "global_level": 52,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "desc": "Deux incendies à la fois dévalent la forêt vers la Barrière. Les Cultistes du Wyrm lancent des boules de feu qui laissent des foyers. Éteins les couloirs au Givre, ou évite-les.",
+  "par_time": 130,
+  "nexus": {
+    "hp": 34000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 380
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 380
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "givre"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 1.8,
+      "value": 2
+    },
+    {
+      "kind": "elem",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "givre"
+    },
+    {
+      "kind": "mult",
+      "x": 2.4,
+      "y": 10.4,
+      "width": 2.0,
+      "value": 2,
+      "motion": "slide",
+      "range": 1.4,
+      "speed": 0.5
+    },
+    {
+      "kind": "add",
+      "x": 6.6,
+      "y": 10.4,
+      "width": 2.0,
+      "value": 5
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 22,
+    "budget_per_level": 6,
+    "local_level": 2,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "ember_imp": 5,
+      "salamander": 2.5,
+      "wyrm_cultist": 0.4,
+      "drakonid": 0.5
+    }
+  },
+  "wildfire": {
+    "first": 10,
+    "every": [
+      17,
+      22
+    ],
+    "max": 2,
+    "speed": 0.4,
+    "life": 16,
+    "width": 1.2,
+    "dps": 8
+  },
+  "initial_enemies": []
+}

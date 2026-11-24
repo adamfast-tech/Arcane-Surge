@@ -1,0 +1,232 @@
+{
+  "characters": {
+    "narrateur": {
+      "name": "",
+      "color": "A99FD0"
+    },
+    "porteur": {
+      "name": "{pseudo}",
+      "title": "Canalisateur",
+      "title_flag": {
+        "s1.sceau_echo": "Porteur d'Écho"
+      },
+      "color": "4FE3D2",
+      "portrait": "porteur"
+    },
+    "sylwen": {
+      "name": "Sylwen",
+      "title": "Vigiles Sylvestres",
+      "color": "8FD16A",
+      "portrait": "sylwen",
+      "loyalty": true
+    },
+    "brann": {
+      "name": "Brann",
+      "title": "Bastion d'Argent",
+      "color": "B8C6E8",
+      "portrait": "brann",
+      "loyalty": true,
+      "title_flag": {
+        "s1.honneur_forgecoeur": "Héritier de Forgecœur"
+      }
+    },
+    "krag": {
+      "name": "Krag",
+      "title": "Enfants de la Fureur",
+      "color": "E8703A",
+      "portrait": "krag",
+      "loyalty": true,
+      "loyalty_if": "s1.krag_allie"
+    },
+    "nyx": {
+      "name": "Nyx",
+      "title": "Cercle des Cendres",
+      "color": "C87CF0",
+      "portrait": "nyx",
+      "loyalty": true,
+      "loyalty_if": "s1.nyx_allie"
+    },
+    "voix": {
+      "name": "Voix inconnue",
+      "title": "???",
+      "color": "B07CFF",
+      "portrait": "voix"
+    }
+  },
+  "scenes": {},
+  "barks": {
+    "start": [
+      {
+        "who": "brann",
+        "text": "Ça sent le charbon et la barbe roussie. Reste loin des flammes."
+      },
+      {
+        "who": "sylwen",
+        "text": "Cette forêt brûle depuis des années… et elle ne meurt jamais. Ce n'est pas un feu ordinaire.",
+        "mood": "triste"
+      },
+      {
+        "who": "sylwen",
+        "text": "Un couloir de feu descend vers nous : éteins-le au Givre, ou envoie tes troupes ailleurs."
+      },
+      {
+        "who": "krag",
+        "text": "Des dragons ! Enfin des adversaires à ma taille.",
+        "if": "s1.krag_allie",
+        "mood": "joie"
+      },
+      {
+        "who": "nyx",
+        "text": "Des cendres partout. C'est presque chez moi.",
+        "mood": "joie"
+      }
+    ],
+    "barrier_low": [
+      {
+        "who": "brann",
+        "text": "La Barrière chauffe au rouge ! Tiens bon !"
+      },
+      {
+        "who": "sylwen",
+        "text": "Ils passent ! Le feu nous pousse dans le dos !"
+      },
+      {
+        "who": "krag",
+        "text": "Qu'ils viennent se brûler sur nous !",
+        "if": "s1.krag_allie"
+      },
+      {
+        "who": "nyx",
+        "text": "La Barrière fond. Fais quelque chose. Vite."
+      }
+    ],
+    "half": [
+      {
+        "who": "sylwen",
+        "text": "À moitié ! La forêt nous regarde passer."
+      },
+      {
+        "who": "brann",
+        "text": "La moitié. Et pas un poil de barbe en moins. Presque."
+      },
+      {
+        "who": "nyx",
+        "text": "À moitié en cendres. Comme le reste."
+      }
+    ],
+    "boss_phase": [
+      {
+        "who": "sylwen",
+        "text": "Il prend son envol ! Seuls les tirs et les sorts l'atteindront là-haut !"
+      },
+      {
+        "who": "brann",
+        "text": "Il change de rythme. Garde un œil sur le ciel."
+      },
+      {
+        "who": "krag",
+        "text": "Il se fâche ? Qu'il descende me le dire en face !",
+        "if": "s1.krag_allie"
+      },
+      {
+        "who": "nyx",
+        "text": "Nouvelle phase. Il brûle plus fort."
+      }
+    ],
+    "echo": [
+      {
+        "who": "sylwen",
+        "text": "Le Sceau répond… même au milieu des flammes."
+      }
+    ],
+    "ultimate": [
+      {
+        "who": "brann",
+        "text": "Voilà un incendie dans le bon sens !",
+        "mood": "joie"
+      }
+    ],
+    "crowd": [
+      {
+        "who": "nyx",
+        "text": "Une armée dans la fumée. Les dragons n'ont qu'à bien se tenir.",
+        "mood": "joie"
+      }
+    ],
+    "escort_low": [
+      {
+        "who": "brann",
+        "text": "Les réfugiés ! Couvre le convoi !"
+      },
+      {
+        "who": "sylwen",
+        "text": "Le convoi est touché ! Protège les villageois !"
+      }
+    ]
+  },
+  "barks_level": {
+    "z06_l02": {
+      "start": [
+        {
+          "who": "sylwen",
+          "text": "Deux incendies à la fois… Le Givre est notre seule eau ici."
+        }
+      ]
+    },
+    "z06_l03": {
+      "start": [
+        {
+          "who": "brann",
+          "text": "Une ombre ailée ! Quand le sol s'assombrit, dégage la rangée !",
+          "mood": "surpris"
+        }
+      ]
+    },
+    "z06_l04": {
+      "start": [
+        {
+          "who": "sylwen",
+          "text": "Des coulées de magma. Le Givre les refroidit un moment, pas plus."
+        }
+      ]
+    },
+    "z06_l05": {
+      "start": [
+        {
+          "who": "sylwen",
+          "text": "Un drake ancien ! Quand il s'envole, tes invocations l'attendent en dessous.",
+          "mood": "surpris"
+        }
+      ]
+    },
+    "z06_l06": {
+      "start": [
+        {
+          "who": "brann",
+          "text": "Des villageois de Braisemont. On les fait passer, quoi qu'il en coûte."
+        }
+      ]
+    },
+    "z06_l07": {
+      "start": [
+        {
+          "who": "nyx",
+          "text": "Des phénix. Achève-les au Givre, sinon ils renaissent."
+        }
+      ]
+    },
+    "z06_l10": {
+      "start": [
+        {
+          "who": "sylwen",
+          "text": "Le Wyrm de cendre… Le père de tous ces feux.",
+          "mood": "surpris"
+        },
+        {
+          "who": "brann",
+          "text": "Ses œufs ! Brise-les avant qu'ils éclosent !"
+        }
+      ]
+    }
+  }
+}

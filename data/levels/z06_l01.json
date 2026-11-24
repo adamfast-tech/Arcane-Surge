@@ -1,0 +1,96 @@
+{
+  "id": "z06_l01",
+  "name": "La Lisière Cendrée",
+  "zone": 6,
+  "number": "6-1",
+  "global_level": 51,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "desc": "La Forêt Cendrée brûle depuis des années sans jamais s'éteindre. Diablotins de braise et salamandres jaillissent des troncs calcinés. Un incendie descend parfois un couloir de la forêt : il brûle tes invocations. Le Givre l'éteint, et bat les ennemis de Feu.",
+  "par_time": 120,
+  "nexus": {
+    "hp": 36000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 380
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 380
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "givre"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 2,
+      "motion": "slide",
+      "range": 1.6,
+      "speed": 0.5
+    },
+    {
+      "kind": "add",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 5
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 10.4,
+      "width": 2.2,
+      "value": 2,
+      "motion": "slide",
+      "range": 2.2,
+      "speed": 0.45
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 28,
+    "budget_per_level": 8,
+    "local_level": 1,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "ember_imp": 5,
+      "salamander": 2.5,
+      "wyvernling": 0.5
+    }
+  },
+  "wildfire": {
+    "first": 16,
+    "every": [
+      24,
+      30
+    ],
+    "max": 1,
+    "speed": 0.4,
+    "life": 20,
+    "dps": 8
+  },
+  "initial_enemies": []
+}

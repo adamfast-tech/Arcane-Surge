@@ -1,0 +1,109 @@
+{
+  "id": "z06_l09",
+  "name": "La Citadelle draconide",
+  "zone": 6,
+  "number": "6-9",
+  "global_level": 59,
+  "type": "Siège",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "desc": "La citadelle des Drakonides, adossée au nid du Wyrm. Deux Nexus, une tour au centre, des Démons des cendres, et des dragons qui mitraillent la cour.",
+  "par_time": 180,
+  "nexus": {
+    "hp": 15000
+  },
+  "nexi": [
+    {
+      "x": 2.4,
+      "y": 14.9
+    },
+    {
+      "x": 6.6,
+      "y": 14.9
+    }
+  ],
+  "towers": [
+    {
+      "x": 4.5,
+      "y": 14.0,
+      "hp": 600
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "givre"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 2,
+      "motion": "slide",
+      "range": 1.6,
+      "speed": 0.5
+    },
+    {
+      "kind": "add",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 5
+    },
+    {
+      "kind": "mult",
+      "x": 2.4,
+      "y": 10.4,
+      "width": 2.0,
+      "value": 2
+    },
+    {
+      "kind": "elem",
+      "x": 6.6,
+      "y": 10.4,
+      "width": 2.0,
+      "element": "givre"
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 14,
+    "budget_per_level": 3,
+    "local_level": 9,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "ember_imp": 6,
+      "salamander": 3,
+      "wyvernling": 1,
+      "drakonid": 1,
+      "wyrm_cultist": 0.5,
+      "magma_golem": 0.5,
+      "ash_demon": 0.15
+    }
+  },
+  "dragons": {
+    "first": 14,
+    "every": [
+      20,
+      26
+    ],
+    "warn": 1.7,
+    "dmg": 46,
+    "band": 1.4,
+    "patches": 2
+  },
+  "initial_enemies": []
+}

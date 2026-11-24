@@ -83,9 +83,31 @@ static func _desert(img: Image, lift: float = 1.0) -> void:
 			img.set_pixel(x, y, out)
 
 
-## Recoloriage du décor selon la zone (2 : jour, 3 : marais, 4 : glace, 5 : désert).
+## Zone 6 : Forêt Cendrée. Herbe -> cendre grise semée de braises, pierre -> basalte, feuillage calciné.
+static func _cinder(img: Image, lift: float = 1.0) -> void:
+	for y in range(img.get_height()):
+		for x in range(img.get_width()):
+			var c := img.get_pixel(x, y)
+			if c.a <= 0.0:
+				continue
+			var h := c.h
+			var out: Color
+			if c.s > 0.12 and h > 0.18 and h < 0.5:
+				out = Color.from_hsv(0.03, clampf(c.s * 0.25 + 0.08, 0.0, 0.3), clampf(c.v * 0.7 * lift + 0.06, 0.0, 0.5), c.a)
+				if (x * 7 + y * 13) % 97 == 0:
+					out = Color.from_hsv(0.06, 0.85, 0.95, c.a)
+			elif h >= 0.5 and h < 0.9 or c.s <= 0.12:
+				out = Color.from_hsv(0.02, clampf(c.s * 0.2 + 0.1, 0.0, 0.3), clampf(c.v * 0.85 * lift + 0.03, 0.0, 0.6), c.a)
+			else:
+				out = Color.from_hsv(0.05, clampf(c.s, 0.0, 1.0), clampf(c.v * 1.1, 0.0, 1.0), c.a)
+			img.set_pixel(x, y, out)
+
+
+## Recoloriage du décor selon la zone (2 : jour, 3 : marais, 4 : glace, 5 : désert, 6 : cendres).
 static func _zone_tint(img: Image, warm_h: float = 0.115, lift: float = 1.0) -> void:
 	match zone:
+		6:
+			_cinder(img, lift)
 		2:
 			_warm(img, warm_h, lift)
 		3:
@@ -485,6 +507,8 @@ static func backdrop(size: Vector2i) -> ImageTexture:
 		return _backdrop_frost(size)
 	if zone == 5:
 		return _backdrop_desert(size)
+	if zone == 6:
+		return _backdrop_ash(size)
 	var w := maxi(8, size.x)
 	var h := maxi(8, size.y)
 	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
@@ -787,6 +811,69 @@ static func _backdrop_desert(size: Vector2i) -> ImageTexture:
 		var x := rng.randi_range(-40, w)
 		for dx in range(rng.randi_range(20, 70)):
 			_px(img, x + dx, y, Color(1.0, 0.9, 0.7, 0.08))
+	return _tex(img)
+
+
+## Zone 6 : ciel de fumée rougeoyant, volcan lointain, forêt calcinée en flammes, dragons sur l'horizon.
+static func _backdrop_ash(size: Vector2i) -> ImageTexture:
+	var w := maxi(8, size.x)
+	var h := maxi(8, size.y)
+	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 6606
+	var stops := [[0.0, Color("140a0e")], [0.28, Color("3a1418")], [0.46, Color("8a2a1a")], [0.56, Color("d8602a")], [0.62, Color("5a2a1e")], [1.0, Color("1e1412")]]
+	for y in range(h):
+		var k := float(y) / float(h - 1)
+		var c: Color = stops[0][1]
+		for i in range(stops.size() - 1):
+			var a: Array = stops[i]
+			var b: Array = stops[i + 1]
+			if k >= float(a[0]) and k <= float(b[0]):
+				c = (a[1] as Color).lerp(b[1], (k - float(a[0])) / (float(b[0]) - float(a[0])))
+		img.fill_rect(Rect2i(0, y, w, 1), c)
+	# Volutes de fumée.
+	for i in range(int(w * h / 500.0)):
+		var y := rng.randi_range(int(h * 0.05), int(h * 0.45))
+		var x := rng.randi_range(-40, w)
+		for dx in range(rng.randi_range(20, 80)):
+			_px(img, x + dx, y + int(sin(float(dx) * 0.1) * 2.0), Color(0.1, 0.06, 0.06, 0.18))
+	# Volcan et sa coulée.
+	var vx := int(w * 0.72)
+	var vb := int(h * 0.55)
+	var vh := int(h * 0.2)
+	for y in range(vh):
+		var half := int(float(y) * 1.3) + 3
+		img.fill_rect(Rect2i(vx - half, vb - vh + y, half * 2, 1), Color("2a1a1a"))
+	for y in range(vh):
+		_px(img, vx + int(sin(float(y) * 0.4) * 2.0), vb - vh + y, Color("ff7a2a"))
+	for r in range(int(h * 0.08), 2, -1):
+		_disc(img, vx, vb - vh, r, Color(1.0, 0.45, 0.15, 0.03))
+	# Dragons sur l'horizon.
+	for i in range(3):
+		var dx := int(w * (0.2 + 0.22 * float(i))) + rng.randi_range(-8, 8)
+		var dy := int(h * (0.22 + 0.06 * float(i % 2)))
+		var sp := 3 + i
+		for k in range(-sp, sp + 1):
+			_px(img, dx + k, dy - absi(k) / 2, Color("1a0a0a"))
+		_px(img, dx, dy + 1, Color("1a0a0a"))
+	# Forêt calcinée : troncs noirs, braises et flammes.
+	_ridge(img, rng, int(h * 0.56), int(h * 0.02), Color("2a1614"), Color("6a2a1a"))
+	for i in range(maxi(10, int(w / 9.0))):
+		var tx := rng.randi_range(0, w)
+		var base := int(h * 0.6) + rng.randi_range(-4, 4)
+		var th := rng.randi_range(int(h * 0.06), int(h * 0.16))
+		img.fill_rect(Rect2i(tx, base - th, 2, th), Color("140a08"))
+		for b in range(2):
+			var by := base - th + rng.randi_range(2, maxi(3, th / 2))
+			var dir := -1 if b == 0 else 1
+			for d in range(rng.randi_range(3, 7)):
+				_px(img, tx + dir * d, by - d / 2, Color("140a08"))
+		if rng.randf() < 0.45:
+			for f in range(rng.randi_range(3, 7)):
+				_px(img, tx + rng.randi_range(-2, 3), base - th + rng.randi_range(-3, th / 2), Color("ffb050") if rng.randf() < 0.5 else Color("ff5a1a"))
+	img.fill_rect(Rect2i(0, int(h * 0.62), w, h - int(h * 0.62)), Color("1e1412"))
+	for i in range(int(w * h / 260.0)):
+		_px(img, rng.randi_range(0, w - 1), rng.randi_range(int(h * 0.3), h - 1), Color(1.0, rng.randf_range(0.4, 0.8), 0.2, rng.randf_range(0.3, 0.9)))
 	return _tex(img)
 
 

@@ -1,0 +1,117 @@
+{
+  "id": "z06_l08",
+  "name": "Les Autels du Wyrm",
+  "zone": 6,
+  "number": "6-8",
+  "global_level": 58,
+  "type": "Purification",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "desc": "Les cultistes ont dressé deux autels au Wyrm devant leur Nexus. Fais passer des invocations de Lumière par les deux sceaux (ou lance Purifier) pour l'exposer. Un phénix veille sur le Nexus, et le feu descend sans répit.",
+  "par_time": 220,
+  "nexus": {
+    "hp": 15000
+  },
+  "towers": [
+    {
+      "x": 1.4,
+      "y": 14.1,
+      "hp": 420
+    },
+    {
+      "x": 7.6,
+      "y": 14.1,
+      "hp": 420
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "x": 1.7,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "givre"
+    },
+    {
+      "kind": "elem",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "lumiere",
+      "motion": "slide",
+      "range": 2.6,
+      "speed": 0.45
+    },
+    {
+      "kind": "mult",
+      "x": 7.3,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 2
+    },
+    {
+      "kind": "corrupt",
+      "x": 2.0,
+      "y": 10.4,
+      "width": 2.2,
+      "seal": true,
+      "purity": 8
+    },
+    {
+      "kind": "add",
+      "x": 4.5,
+      "y": 10.4,
+      "width": 1.8,
+      "value": 5
+    },
+    {
+      "kind": "corrupt",
+      "x": 7.0,
+      "y": 10.4,
+      "width": 2.2,
+      "seal": true,
+      "purity": 8
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 12,
+    "budget_per_level": 3,
+    "local_level": 8,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "ember_imp": 6,
+      "salamander": 3,
+      "wyvernling": 0.6,
+      "drakonid": 0.6
+    }
+  },
+  "initial_enemies": [
+    {
+      "kind": "minor_phoenix",
+      "x": 4.5,
+      "y": 13.3
+    }
+  ],
+  "corrupt_spawn": "ember_imp",
+  "wildfire": {
+    "first": 10,
+    "every": [
+      18,
+      22
+    ],
+    "max": 1,
+    "speed": 0.5,
+    "life": 22,
+    "dps": 9
+  }
+}

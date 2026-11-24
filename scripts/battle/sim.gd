@@ -210,6 +210,24 @@ const RIDDLES := [
 	{"q": "Plus on me brise, plus je montre de visages.", "a": ["UN MIROIR", "UN CRÂNE", "UN SCEAU"]},
 ]
 
+## Zone 6 : Forêt Cendrée (docs/design/37-zone6.md) : incendies, dragons, envol des boss.
+const FIRE_TOP := 13.4 ## un incendie part de la lisière ennemie
+const FIRE_STALL := 4.0 ## un couloir éteint au Givre ne repart qu'après 4 s
+const LAVA_COOL := 6.0 ## une coulée de magma refroidie au Givre ne brûle plus pendant 6 s
+const MAX_FIRES := 16
+var wildfire_cfg: Dictionary = {} ## {first, every, max, width, speed, stop, life, dps}
+var wildfire_t := 0.0
+## Foyers : couloirs qui descendent vers la Barrière, foyers posés (dragons, cultistes, souffle), coulées de magma.
+## {id, x, w, front, top, stop, speed, t, stall, patch, lava, cool}
+var fires: Array[Dictionary] = []
+var fire_dps := 0.0 ## PV perdus par seconde dans le feu par une invocation (la moitié pour les ennemis qui ne sont pas de Feu)
+var fires_out := 0 ## foyers éteints au Givre
+var fire_burned := 0.0 ## PV d'invocations brûlés (statistiques du simulateur)
+var fire_by: Dictionary = {} ## PV brûlés par origine du feu (incendie, magma, flaque, cultiste, dragon, souffle)
+var _fire_seq := 0
+var dragon_cfg: Dictionary = {} ## {first, every, warn, dmg, band, patches}
+var dragon_t := 0.0
+
 var don: Dictionary = {}
 var don_t := 0.0
 var rally_t := 0.0
@@ -362,6 +380,16 @@ func _setup_zone_mechanics() -> void:
 		is_day = str(daynight_cfg.get("start", "jour")) == "jour"
 		daynight_t = float(daynight_cfg.get("day" if is_day else "night", 30.0))
 	mirage_reform = float(level.get("mirage_reform", 12.0))
+	wildfire_cfg = level.get("wildfire", {})
+	# Le feu ne suit pas le niveau des ennemis : il se règle sur les PV des invocations (environ 1 s pour en brûler une).
+	fire_dps = float(wildfire_cfg.get("dps", level.get("fire_dps", 9.0))) * diff
+	if not wildfire_cfg.is_empty():
+		wildfire_t = float(wildfire_cfg.get("first", 12.0))
+	dragon_cfg = level.get("dragons", {})
+	if not dragon_cfg.is_empty():
+		dragon_t = float(dragon_cfg.get("first", 14.0))
+	for ld in level.get("lava", []):
+		add_fire_patch(Vector2(float(ld["x"]), float(ld["y"])), float(ld.get("r", 1.0)), 0.0, "magma")
 	for md in level.get("mirrors", []):
 		# Miroirs de verre : immobiles, ils renvoient les tirs et, le jour, projettent un rayon de soleil.
 		var mr := _spawn_enemy(str(md.get("kind", "glass_mirror")), Vector2(float(md["x"]), float(md["y"])))
@@ -788,6 +816,8 @@ func step() -> void:
 	_update_wind()
 	_update_pylons()
 	_update_avalanche()
+	_update_wildfire()
+	_update_dragons()
 	_update_daynight()
 	_update_riddle()
 	_update_gate_curses()
@@ -799,6 +829,7 @@ func step() -> void:
 	_update_zones()
 	_update_fog()
 	_update_stumps()
+	_update_fires()
 	terrain.update()
 	_resolve_contacts()
 	_ranged_attacks()
@@ -1454,6 +1485,10 @@ func _resolve_contacts() -> void:
 						best = e
 		if best == null:
 			continue
+		if best == boss and boss.airborne_t > 0.0:
+			# Boss en vol : l'invocation l'attend sous lui (seuls les tirs et les sorts l'atteignent).
+			a.engaged = true
+			continue
 		if best == boss and not a.siege:
 			# Comme sur un Nexus : l'invocation frappe une fois le boss et se dissipe.
 			_hit(a, best)
@@ -1572,12 +1607,25 @@ func _enemy_abilities() -> void:
 					a.slow_stacks = maxi(a.slow_stacks, 3)
 					a.slow_t = maxf(a.slow_t, chill)
 			_event({"t": "ring", "pos": tgt.pos, "r": r, "color": "FFF2A8", "dur": 0.35})
+			if d.has("ignite"):
+				# Cultiste du Wyrm : sa boule de feu laisse un foyer.
+				add_fire_patch(tgt.pos, float(d["ignite"]), 4.0, "cultiste")
 			if d.has("blink") and e.pos.y > 7.5 and e.hold_y <= 0.0 and not e.engaged:
 				# Spectre du Collège : il se dématérialise et réapparaît plus près de la Barrière.
 				_event({"t": "puff", "pos": e.pos, "color": "8A7CC8"})
 				e.pos.y -= float(d["blink"])
 				e.prev_pos = e.pos
 				_event({"t": "puff", "pos": e.pos, "color": "8A7CC8"})
+		elif e.role == "oeuf":
+			# Œuf de wyrm : il éclot en Wyverneaux.
+			for k in range(int(d.get("hatch_count", 2))):
+				if enemies.size() + _pending_enemies.size() >= MAX_ENEMIES:
+					break
+				_spawn_enemy(str(d.get("hatch", "wyvernling")), e.pos + Vector2(rng.randf_range(-0.5, 0.5), rng.randf_range(-0.5, 0.1)))
+			_event({"t": "ring", "pos": e.pos, "r": 1.0, "color": "FF6A2A", "dur": 0.5})
+			_event({"t": "text", "pos": e.pos + Vector2(0.0, 0.6), "text": "ÉCLOSION !", "color": "FFB04A"})
+			_log("Un œuf éclot : des Wyverneaux !")
+			e.alive = false
 		elif e.role == "miroir":
 			e.cast_cd = e.cast_interval
 			if not daynight_cfg.is_empty() and not is_day:
@@ -1755,6 +1803,13 @@ func _update_boss() -> void:
 		return
 	boss_shield_t = maxf(0.0, boss_shield_t - TICK)
 	boss_exposed_t = maxf(0.0, boss_exposed_t - TICK)
+	if boss.airborne_t > 0.0:
+		boss.airborne_t -= TICK
+		if boss.airborne_t <= 0.0:
+			boss.airborne_t = 0.0
+			_log("%s se pose : frappe-le !" % boss_name)
+			_event({"t": "ring", "pos": boss.pos, "r": 3.2, "color": "FF9B4A", "dur": 0.7})
+			_event({"t": "shake"})
 	var ratio := boss.hp / boss.max_hp
 	var want := 2 if ratio <= 0.33 else (1 if ratio <= 0.66 else 0)
 	if want > boss_phase:
@@ -1779,9 +1834,13 @@ func _boss_ability(ab: Dictionary) -> void:
 				var y := _target_row(used)
 				used.append(y)
 				var hw := float(ab.get("width", 1.2)) * 0.5
-				_telegraph(Rect2(0.0, y - hw, W, hw * 2.0), float(ab.get("delay", 1.5)), float(ab.get("dmg", 40)), 2.0)
+				_telegraph(Rect2(0.0, y - hw, W, hw * 2.0), float(ab.get("delay", 1.5)), float(ab.get("dmg", 40)), float(ab.get("barrier", 2.0)))
 				if bool(ab.get("sun", false)):
 					telegraphs.back()["sun"] = true
+				if bool(ab.get("dragon", false)):
+					# Mitraillage d'un dragon : la rangée garde des foyers.
+					telegraphs.back()["dragon"] = true
+					telegraphs.back()["patches"] = int(ab.get("patches", 2))
 			_log(str(ab.get("log", "%s : balayage de racines !")) % boss_name)
 		"lane_strike":
 			var used_x: Array[float] = []
@@ -1792,6 +1851,9 @@ func _boss_ability(ab: Dictionary) -> void:
 				_telegraph(Rect2(x - hw, BARRIER_Y, hw * 2.0, boss.pos.y - 0.6 - BARRIER_Y), float(ab.get("delay", 1.2)), float(ab.get("dmg", 40)), float(ab.get("barrier", 3.0)))
 				if bool(ab.get("sun", false)):
 					telegraphs.back()["sun"] = true
+				if bool(ab.get("fire", false)):
+					# Souffle de feu : le couloir reste en flammes.
+					telegraphs.back()["fire"] = true
 			_log(str(ab.get("log", "%s charge !")) % boss_name)
 		"summon":
 			var kind := str(ab.get("kind", "mushroom"))
@@ -1892,6 +1954,23 @@ func _boss_ability(ab: Dictionary) -> void:
 			_event({"t": "shake"})
 		"riddle":
 			_start_riddle(ab)
+		"take_off":
+			boss.airborne_t = float(ab.get("dur", 8.0))
+			_log("%s s'envole : seuls les tirs et les sorts l'atteignent !" % boss_name)
+			_event({"t": "ring", "pos": boss.pos, "r": 3.0, "color": "FFB04A", "dur": 0.7})
+			_event({"t": "text", "pos": boss.pos + Vector2(0.0, -1.4), "text": "EN VOL !", "color": "FFD070"})
+		"eggs":
+			# Œufs du Wyrm : ils éclosent en Wyverneaux si on ne les brise pas à temps.
+			var count := int(ab.get("count", 3))
+			for k in range(count):
+				if enemies.size() + _pending_enemies.size() >= MAX_ENEMIES:
+					break
+				var x := clampf(boss.pos.x + (float(k) - float(count - 1) * 0.5) * 2.4, 0.8, W - 0.8)
+				var egg := _spawn_enemy(str(ab.get("kind", "dragon_egg")), Vector2(x, boss.pos.y - 2.3))
+				egg.hold_y = egg.pos.y
+				egg.cast_cd = egg.cast_interval
+			_log("%s pond ses œufs : brise-les avant qu'ils n'éclosent !" % boss_name)
+			_event({"t": "ring", "pos": boss.pos, "r": 3.0, "color": "FF6A2A", "dur": 0.7})
 		"mirage_gates":
 			# Le Sphinx change des portails en mirages : ils gardent leur aspect, mais n'ont plus d'effet.
 			var cands: Array[Portal] = []
@@ -2020,6 +2099,14 @@ func _update_telegraphs() -> void:
 			_event({"t": "shake"})
 		if float(tg["barrier"]) > 0.0:
 			_hurt_barrier(float(tg["barrier"]))
+		if bool(tg.get("dragon", false)):
+			# Passage de dragon : des foyers restent sur la rangée mitraillée.
+			for k in range(int(tg.get("patches", 2))):
+				add_fire_patch(Vector2(rng.randf_range(0.9, W - 0.9), r.get_center().y), 0.75, 7.0, "dragon")
+			_event({"t": "dragon", "y": r.get_center().y, "dur": 1.1})
+		if bool(tg.get("fire", false)):
+			# Souffle de feu : le couloir brûle encore quelques secondes.
+			_add_fire(r.get_center().x, r.size.x * 0.8, r.position.y + 1.2, r.end.y, 0.0, 7.0, true, "souffle")
 		if bool(tg.get("venom", false)):
 			# Souffle de venin : des mares de poison restent le long du couloir.
 			for k in range(3):
@@ -2332,6 +2419,16 @@ func _on_hit_effects(src: Unit, tgt: Unit, dmg: float, elem: String) -> void:
 func _kill(u: Unit) -> void:
 	if not u.alive:
 		return
+	if u.team == 1 and not u.reborn and u.last_elem != "givre":
+		var rb := float((units_db.get(u.kind, {}) as Dictionary).get("rebirth", 0.0))
+		if rb > 0.0:
+			# Phénix mineur : il renaît de ses cendres, sauf si le Givre l'a frappé en dernier.
+			u.reborn = true
+			u.hp = u.max_hp * rb
+			_event({"t": "ring", "pos": u.pos, "r": 1.2, "color": "FFB04A", "dur": 0.6})
+			_event({"t": "text", "pos": u.pos + Vector2(0.0, 0.6), "text": "RENAÎT !", "color": "FFD070"})
+			_log("Le phénix renaît de ses cendres ! Achève-le au Givre.")
+			return
 	u.alive = false
 	if u == boss:
 		_log("%s est %s !" % [boss_name, _defeated_word()])
@@ -2368,6 +2465,11 @@ func _kill(u: Unit) -> void:
 		var dp := float((units_db.get(u.kind, {}) as Dictionary).get("death_pool", 0.0))
 		if dp > 0.0:
 			terrain.add_poison(u.pos, dp, 8.0, false)
+		var fp := float((units_db.get(u.kind, {}) as Dictionary).get("fire_pool", 0.0))
+		if fp > 0.0:
+			# Golem de magma, Démon des cendres : une flaque de feu reste où il tombe (elle brûle moitié moins).
+			add_fire_patch(u.pos, fp, 4.0, "flaque")
+			fires.back()["k"] = 0.5
 		if heads.has(u):
 			stumps.append({"pos": u.pos, "t": STUMP_TIME})
 			_event({"t": "text", "pos": u.pos + Vector2(0.0, 0.6), "text": "TRANCHÉE ! Brûle la plaie !", "color": "FFB04A"})
@@ -3356,6 +3458,10 @@ func portal_value_at(x: float) -> float:
 		if p.mirage:
 			# Un mirage ressemble à un vrai portail : l'IA s'y laisse prendre à moitié.
 			v = before + (v - before) * 0.5
+	for f in fires:
+		# Incendies : l'IA évite d'envoyer ses invocations dans le feu.
+		if absf(x - float(f["x"])) <= float(f["w"]) * 0.5 + 0.2 and float(f.get("cool", 0.0)) <= 0.0:
+			v -= 2.0 * clampf((float(f["top"]) - float(f["front"])) / 5.0, 0.3, 1.6)
 	return v
 
 
@@ -3779,3 +3885,187 @@ func _log(text: String) -> void:
 	log_lines.append(text)
 	if log_lines.size() > 40:
 		log_lines.remove_at(0)
+
+
+# ---------------------------------------------------------------- zone 6 · Forêt Cendrée
+
+## Incendie : un couloir de feu part de la lisière ennemie et descend vers la Barrière.
+func _update_wildfire() -> void:
+	if wildfire_cfg.is_empty():
+		return
+	wildfire_t -= TICK
+	if wildfire_t > 0.0:
+		return
+	var ev: Array = wildfire_cfg.get("every", [18, 24])
+	wildfire_t = rng.randf_range(float(ev[0]), float(ev[1]))
+	var n := 0
+	for f in fires:
+		if not bool(f["patch"]):
+			n += 1
+	if n < int(wildfire_cfg.get("max", 1)):
+		start_wildfire(_fire_lane())
+
+
+func start_wildfire(x: float) -> void:
+	var c := wildfire_cfg
+	_add_fire(x, float(c.get("width", 1.4)), FIRE_TOP - 0.4, FIRE_TOP, float(c.get("speed", 0.5)), float(c.get("life", 22.0)), false, "incendie")
+	fires.back()["stop"] = float(c.get("stop", 3.2))
+	_event({"t": "text", "pos": Vector2(x, 12.4), "text": "LA FORÊT S'EMBRASE !", "color": "FFB04A"})
+	_log("Un incendie dévale la forêt : éteins-le au Givre !")
+
+
+## Colonne de l'incendie : loin des autres couloirs, plutôt là où passent les invocations.
+func _fire_lane() -> float:
+	var best := rng.randf_range(1.2, W - 1.2)
+	var best_s := -1e9
+	var x := 1.2
+	while x <= W - 1.2:
+		var ok := true
+		for f in fires:
+			if not bool(f["patch"]) and absf(float(f["x"]) - x) < 2.2:
+				ok = false
+		if ok:
+			var s := rng.randf() * 2.0
+			for a in allies:
+				if a.alive and absf(a.pos.x - x) < 0.8:
+					s += 0.15
+			if s > best_s:
+				best_s = s
+				best = x
+		x += 0.5
+	return best
+
+
+func _add_fire(x: float, w: float, front: float, top: float, speed: float, life: float, patch: bool, src: String = "") -> Dictionary:
+	_fire_seq += 1
+	var f := {"id": _fire_seq, "x": x, "w": w, "front": front, "top": top, "stop": front, "speed": speed,
+		"t": life if life > 0.0 else 1e9, "stall": 0.0, "patch": patch, "lava": life <= 0.0, "cool": 0.0, "src": src}
+	fires.append(f)
+	while fires.size() > MAX_FIRES:
+		var dropped := false
+		for o in fires:
+			if bool(o["patch"]) and not bool(o["lava"]):
+				fires.erase(o)
+				dropped = true
+				break
+		if not dropped:
+			break
+	return f
+
+
+## Foyer posé (passage de dragon, boule de feu, flaque d'un golem) ; life <= 0 : coulée de magma permanente.
+func add_fire_patch(pos: Vector2, r: float, life: float, src: String = "") -> void:
+	_add_fire(pos.x, r * 2.0, pos.y - r, pos.y + r, 0.0, life, true, src)
+
+
+func fire_rect(f: Dictionary) -> Rect2:
+	var w := float(f["w"])
+	return Rect2(float(f["x"]) - w * 0.5, float(f["front"]), w, maxf(0.0, float(f["top"]) - float(f["front"])))
+
+
+## Le feu avance et brûle : les invocations (l'escorte un peu), et les ennemis qui ne sont pas de Feu.
+func _update_fires() -> void:
+	var i := 0
+	while i < fires.size():
+		var f: Dictionary = fires[i]
+		f["t"] = float(f["t"]) - TICK
+		if float(f["t"]) <= 0.0:
+			fires.remove_at(i)
+			continue
+		if float(f["cool"]) > 0.0:
+			f["cool"] = float(f["cool"]) - TICK
+			i += 1
+			continue
+		if float(f["stall"]) > 0.0:
+			f["stall"] = float(f["stall"]) - TICK
+		elif float(f["speed"]) > 0.0:
+			f["front"] = maxf(float(f["stop"]), float(f["front"]) - float(f["speed"]) * TICK)
+		var r := fire_rect(f)
+		var dps := fire_dps * float(f.get("k", 1.0))
+		for a in allies:
+			if a.alive and r.grow(a.radius * 0.5).has_point(a.pos):
+				fire_burned += minf(a.hp, dps * TICK)
+				fire_by[str(f["src"])] = float(fire_by.get(str(f["src"]), 0.0)) + minf(a.hp, dps * TICK)
+				_damage(a, dps * TICK * (0.4 if a.role == "escort" else 1.0), "feu")
+		for e in enemies:
+			if e.alive and e.element != "feu" and e.role not in ["boss", "rune", "tete", "banniere", "oeuf"] and r.has_point(e.pos):
+				_damage(e, dps * 0.5 * TICK, "feu")
+		i += 1
+
+
+## Le Givre éteint le feu : un foyer disparaît, un couloir recule au-dessus de l'impact et marque une pause,
+## une coulée de magma refroidit un moment. Retourne vrai si un foyer a été touché.
+func extinguish(at: Vector2, r: float, rect: Rect2 = Rect2()) -> bool:
+	if fires.is_empty():
+		return false
+	var area := rect if rect.size != Vector2.ZERO else Rect2(at - Vector2(r, r), Vector2(r, r) * 2.0)
+	var hit := false
+	var i := 0
+	while i < fires.size():
+		var f: Dictionary = fires[i]
+		var fr := fire_rect(f)
+		if not fr.intersects(area):
+			i += 1
+			continue
+		hit = true
+		_event({"t": "steam", "pos": fr.get_center(), "r": minf(1.6, maxf(fr.size.x, fr.size.y) * 0.5)})
+		if bool(f["lava"]):
+			f["cool"] = LAVA_COOL
+		elif bool(f["patch"]) or area.end.y >= float(f["top"]) - 0.3:
+			fires.remove_at(i)
+			fires_out += 1
+			continue
+		else:
+			f["front"] = maxf(float(f["front"]), area.end.y)
+			f["stall"] = FIRE_STALL
+		i += 1
+	if hit:
+		_event({"t": "text", "pos": at + Vector2(0.0, 0.6), "text": "ÉTEINT !", "color": "BFE4FF"})
+	return hit
+
+
+## Point à éteindre en priorité : le front de l'incendie le plus bas, ou un foyer où passent les invocations.
+func fire_target() -> Vector2:
+	var best := Vector2(-1.0, -1.0)
+	var best_s := 0.0
+	for f in fires:
+		if bool(f["lava"]):
+			continue
+		var fr := fire_rect(f)
+		var s := 0.0
+		if not bool(f["patch"]):
+			s = 3.0 + (FIRE_TOP - float(f["front"])) * 0.4
+		for a in allies:
+			if a.alive and fr.grow(0.6).has_point(a.pos):
+				s += 0.3
+		if s > best_s:
+			best_s = s
+			best = Vector2(float(f["x"]), float(f["front"]) + 0.6) if not bool(f["patch"]) else fr.get_center()
+	return best if best_s >= 2.0 else Vector2(-1.0, -1.0)
+
+
+func wildfires_active() -> int:
+	var n := 0
+	for f in fires:
+		if not bool(f["patch"]):
+			n += 1
+	return n
+
+
+## Dragons : une ombre ailée annonce un passage sur une rangée ; il blesse les invocations et laisse des foyers.
+func _update_dragons() -> void:
+	if dragon_cfg.is_empty():
+		return
+	dragon_t -= TICK
+	if dragon_t > 0.0:
+		return
+	var ev: Array = dragon_cfg.get("every", [18, 24])
+	dragon_t = rng.randf_range(float(ev[0]), float(ev[1]))
+	var none: Array[float] = []
+	var y := _target_row(none)
+	var hw := float(dragon_cfg.get("band", 1.4)) * 0.5
+	var warn := float(dragon_cfg.get("warn", 1.7))
+	telegraphs.append({"rect": Rect2(0.0, y - hw, W, hw * 2.0), "t": warn, "dur": warn, "dmg": float(dragon_cfg.get("dmg", 44.0)) * enemy_mult * diff,
+		"barrier": 0.0, "dragon": true, "patches": int(dragon_cfg.get("patches", 2))})
+	_event({"t": "text", "pos": Vector2(W * 0.5, y + 0.7), "text": "UN DRAGON !", "color": "FF9B4A"})
+	_log("Une ombre ailée passe sur la forêt : un dragon !")

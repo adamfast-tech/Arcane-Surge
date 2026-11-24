@@ -11,8 +11,8 @@ func _init() -> void:
 			land = true
 	var size := RoomArt.size_for(Vector2(1920, 1080) if land else Vector2(720, 1280))
 	var kinds: Array = RoomArt.KINDS.duplicate()
-	for z in range(1, 6):
-		kinds.append("zone%d" % z)
+	for z in RoomArt.ZONE_PLATES.keys():
+		kinds.append("zone%d" % int(z))
 	var cols := 5 if not land else 3
 	var rows := int(ceil(float(kinds.size()) / float(cols)))
 	var sheet := Image.create_empty(cols * (size.x + 4), rows * (size.y + 4), false, Image.FORMAT_RGBA8)

@@ -19,7 +19,7 @@ const ZONE_BLURB := {
 
 
 ## Ambiance de chaque zone sur la carte (option « Enrichie »).
-const ZONE_MOOD := {1: "mist", 2: "steppe", 3: "swamp", 4: "snow", 5: "desert"}
+const ZONE_MOOD := {1: "mist", 2: "steppe", 3: "swamp", 4: "snow", 5: "desert", 6: "cinder"}
 static var _fog: Shader
 
 
@@ -54,9 +54,11 @@ func _build() -> void:
 		stars += int(Profile.level_record(str(id))["stars"])
 	head.add_child(UiTheme.icon_rect("star", 26, UiTheme.GOLD))
 	head.add_child(UiTheme.label("%d / %d" % [stars, ids.size() * 3], 24, UiTheme.GOLD))
-	# Onglets des zones.
-	var tabs := HBoxContainer.new()
-	tabs.add_theme_constant_override("separation", 8)
+	# Onglets des zones (sur deux rangées de 3 au-delà de 4 zones, pour rester lisibles sur téléphone).
+	var tabs := GridContainer.new()
+	tabs.columns = 3 if (index.get("zones", []) as Array).size() > 4 else 4
+	tabs.add_theme_constant_override("h_separation", 8)
+	tabs.add_theme_constant_override("v_separation", 8)
 	col.add_child(tabs)
 	for z in index.get("zones", []):
 		var zid := int(z["id"])

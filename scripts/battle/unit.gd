@@ -69,6 +69,8 @@ var bleed_t := 0.0 ## saignement (grimoire de l'Épéiste) : dégâts physiques 
 var weak_t := 0.0 ## affaibli (grimoire du Nécromancien) : l'ennemi frappe 30 % moins fort
 var bleed_dps := 0.0
 var reflect := 0.0 ## miroirs (zone 5) : part des coups à distance renvoyée au tireur
+var airborne_t := 0.0 ## en vol (Drake ancien, Wyrm de cendre) : seuls les tirs et les sorts l'atteignent
+var reborn := false ## Phénix mineur : a déjà renaît de ses cendres
 
 # Rendu
 var flash_t := 0.0

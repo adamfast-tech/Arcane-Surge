@@ -57,6 +57,10 @@ var day := false ## Zone 2 : Collines d'Ambre en plein jour.
 var swamp := false ## Zone 3 : Marais Murmurants au crépuscule.
 var frost := false ## Zone 4 : Pics Gelés, nuit d'aurore boréale.
 var desert := false ## Zone 5 : Désert de Verre ; la lumière suit le cycle soleil/lune de la simulation.
+var cinder := false ## Zone 6 : Forêt Cendrée, ciel de fumée rougeoyant, incendies et dragons.
+var _fire_nodes: Dictionary = {} ## id du foyer -> {root, ground, mat, flames}
+var _dragons: Array[Dictionary] = [] ## passages de dragons en cours : {spr, shadow, y, age, dur, dir}
+var _boss_lift := 0.0 ## hauteur du boss en vol (Drake ancien, Wyrm de cendre)
 var _sun: DirectionalLight3D
 var _day_k := 1.0 ## 1 = plein jour, 0 = nuit (transition douce)
 var _fog_nodes: Array[Dictionary] = []
@@ -76,6 +80,7 @@ func setup(s: BattleSim, f: Font, forest_healed: bool = false) -> void:
 	swamp = WorldArt.zone == 3
 	frost = WorldArt.zone == 4
 	desert = WorldArt.zone == 5
+	cinder = WorldArt.zone == 6
 	_billboard = load("res://shaders/billboard_atlas.gdshader")
 	_stone_mat = _triplanar(WorldArt.stone_texture(), 0.55)
 	_build_environment()
@@ -176,6 +181,9 @@ func _build_environment() -> void:
 	elif desert:
 		_env.ambient_light_color = Color("e8c890")
 		_env.ambient_light_energy = 1.0
+	elif cinder:
+		_env.ambient_light_color = Color("c8806a")
+		_env.ambient_light_energy = 0.95
 	_env.fog_enabled = true
 	_env.fog_mode = Environment.FOG_MODE_DEPTH
 	_env.fog_light_color = Color("26405a") if healed else Color("2d2c5e")
@@ -187,6 +195,8 @@ func _build_environment() -> void:
 		_env.fog_light_color = Color("4a6a8e")
 	elif desert:
 		_env.fog_light_color = Color("c89a5a")
+	elif cinder:
+		_env.fog_light_color = Color("5a2a1e")
 	_env.fog_depth_begin = 40.0
 	_env.fog_depth_end = 80.0
 	_env.glow_enabled = true
@@ -198,6 +208,8 @@ func _build_environment() -> void:
 	add_child(we)
 	var moon := DirectionalLight3D.new()
 	moon.light_color = Color("fff0d0") if day else (Color("d0c8e8") if swamp else (Color("c8f0ff") if frost else Color("b4c0ff")))
+	if cinder:
+		moon.light_color = Color("ffb890")
 	moon.light_energy = 1.1
 	moon.rotation_degrees = Vector3(-55.0, -35.0, 0.0)
 	add_child(moon)
@@ -279,6 +291,8 @@ func _build_terrain() -> void:
 		layers = [[-1.2, Color("c9d1c4"), 0.6, Vector2(0.01, 0.004)], [-2.6, Color("6e7f6a"), 0.7, Vector2(-0.008, 0.005)]]
 	elif frost:
 		layers = [[-1.3, Color("eaf4fb"), 0.45, Vector2(0.018, 0.004)], [-2.8, Color("7fb7e0"), 0.55, Vector2(-0.012, 0.006)]]
+	elif cinder:
+		layers = [[-1.3, Color("6a3a30"), 0.5, Vector2(0.01, 0.006)], [-2.8, Color("3a2020"), 0.6, Vector2(-0.008, 0.008)]]
 	for l in layers:
 		var mi := MeshInstance3D.new()
 		var mp := PlaneMesh.new()
@@ -424,6 +438,19 @@ func _build_props() -> void:
 		ff.amount = 90
 		ff.initial_velocity_max = 0.9
 		ff.gravity = Vector3(0.35, 0.02, 0.0)
+	if cinder:
+		# Braises qui montent de la forêt en feu.
+		ramp = Gradient.new()
+		ramp.set_color(0, Color(1.0, 0.6, 0.2, 0.0))
+		ramp.set_color(1, Color(1.0, 0.3, 0.1, 0.0))
+		ramp.add_point(0.2, Color(1.0, 0.85, 0.4, 1.0))
+		ramp.add_point(0.7, Color(1.0, 0.45, 0.15, 0.9))
+		ff.amount = 110
+		ff.direction = Vector3(0.1, 1.0, 0.0)
+		ff.spread = 25.0
+		ff.initial_velocity_min = 0.3
+		ff.initial_velocity_max = 0.9
+		ff.gravity = Vector3(0.08, 0.25, 0.0)
 	if day:
 		# Pollen et poussière dorée dans la lumière de midi.
 		ramp = Gradient.new()
@@ -885,6 +912,8 @@ func consume_events(events: Array[Dictionary]) -> void:
 				flash = 0.35
 			"text":
 				_spawn_label(e)
+			"dragon":
+				_spawn_dragon(float(e["y"]), float(e.get("dur", 1.1)))
 			"prop_hit", "prop_fall", "prop_crash", "wall", "wall_break":
 				if _terrain_view != null:
 					_terrain_view.handle(e)
@@ -930,6 +959,12 @@ func _process(delta: float) -> void:
 			_apply_daylight()
 	if not sim.fog.is_empty():
 		_update_fog_banks()
+	if not sim.fires.is_empty() or not _fire_nodes.is_empty():
+		_update_fires(delta)
+	if not _dragons.is_empty():
+		_update_dragons(delta)
+	if sim.boss != null:
+		_boss_lift = move_toward(_boss_lift, 1.8 if (sim.boss.alive and sim.boss.airborne_t > 0.0) else 0.0, delta * 2.4)
 	_update_towers()
 	_update_nexus()
 	_update_barrier()
@@ -1082,6 +1117,8 @@ func _put_unit(u: Unit, n: int, cam_right: Vector3, cam_back: Vector3) -> int:
 	var h := SpriteAtlas.height_m(u.sprite)
 	var w := h * float(fr["w"]) / float(fr["h"])
 	var bob := absf(sin(u.anim * 9.0)) * 0.035 if moving else 0.0
+	if u == sim.boss and _boss_lift > 0.0:
+		bob += _boss_lift + sin(t * 2.2) * 0.12
 	var pos := w3(lp, bob)
 	_units_mm.set_instance_transform(n, Transform3D(Basis.from_scale(Vector3(w, h, 1.0)), pos))
 	_units_mm.set_instance_color(n, _tint(u))
@@ -1223,6 +1260,8 @@ func _draw_fx(delta: float) -> void:
 		var k2 := 1.0 - float(tg["t"]) / maxf(0.01, float(tg["dur"]))
 		var pulse := 0.5 + 0.5 * sin(t * (10.0 + 14.0 * k2))
 		var tcol := Color(0.85, 0.95, 1.0) if bool(tg.get("avalanche", false)) else (Color(1.0, 0.82, 0.35) if bool(tg.get("sun", false)) else Color(1.0, 0.25, 0.3))
+		if bool(tg.get("dragon", false)) or bool(tg.get("fire", false)):
+			tcol = Color(1.0, 0.55, 0.15)
 		_rect(lines, tg["rect"], Color(tcol, 0.45 + 0.5 * pulse), true)
 	# Plaies de l'Hydre : cercle orange qui se resserre (brûle-les avant 5 s).
 	for st in sim.stumps:
@@ -1285,3 +1324,111 @@ func _ring(lines: Array, center: Vector2, r: float, col: Color, h: float) -> voi
 		var a0 := TAU * float(s) / float(seg)
 		var a1 := TAU * float(s + 1) / float(seg)
 		lines.append([w3(center + Vector2(cos(a0), sin(a0)) * r, h), w3(center + Vector2(cos(a1), sin(a1)) * r, h), col])
+
+
+# ---------------------------------------------------------------- zone 6 · Forêt Cendrée
+
+## Incendies et foyers : un sol rougeoyant et des flammes en billboard, qui suivent le front du couloir.
+func _update_fires(delta: float) -> void:
+	var seen := {}
+	for f in sim.fires:
+		var id := int(f["id"])
+		seen[id] = true
+		if not _fire_nodes.has(id):
+			_fire_nodes[id] = _make_fire_node(f)
+		var fn: Dictionary = _fire_nodes[id]
+		var r := sim.fire_rect(f)
+		var root: Node3D = fn["root"]
+		root.position = w3(r.get_center(), 0.0)
+		var gm: MeshInstance3D = fn["ground"]
+		(gm.mesh as PlaneMesh).size = Vector2(maxf(0.05, r.size.x), maxf(0.05, r.size.y))
+		var cool := float(f.get("cool", 0.0)) > 0.0
+		var lava := bool(f.get("lava", false))
+		var mat: StandardMaterial3D = fn["mat"]
+		var flick := 0.75 + 0.25 * sin(t * 9.0 + float(id))
+		mat.albedo_color = Color(0.35, 0.3, 0.3, 0.5) if cool else (Color(1.0, 0.42, 0.12, 0.55 * flick) if not lava else Color(1.0, 0.35, 0.08, 0.7 * flick))
+		var flames: Array = fn["flames"]
+		var n := flames.size()
+		for k in range(n):
+			var fl: Array = flames[k]
+			var spr: Sprite3D = fl[0]
+			var u := float(fl[1])
+			var ox := float(fl[2])
+			var on := not cool and (r.size.y > 0.4 or k < 2)
+			spr.visible = on
+			if not on:
+				continue
+			var p := Vector2(r.get_center().x + ox * r.size.x * 0.45, r.position.y + u * r.size.y)
+			var s := 0.55 + 0.25 * sin(t * 7.0 + float(k) * 1.7)
+			spr.position = w3(p, 0.32 * s) - root.position
+			spr.pixel_size = 0.11 * s
+			spr.modulate = Color(1.3, 0.9, 0.6, 0.9)
+	for id in _fire_nodes.keys():
+		if not seen.has(id):
+			(_fire_nodes[id]["root"] as Node3D).queue_free()
+			_fire_nodes.erase(id)
+
+
+func _make_fire_node(f: Dictionary) -> Dictionary:
+	var root := Node3D.new()
+	add_child(root)
+	var gm := MeshInstance3D.new()
+	var pm := PlaneMesh.new()
+	pm.size = Vector2(1.0, 1.0)
+	gm.mesh = pm
+	gm.position = Vector3(0.0, 0.03, 0.0)
+	var mat := _unshaded(Color(1.0, 0.42, 0.12, 0.5), true)
+	mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	gm.material_override = mat
+	root.add_child(gm)
+	var flames: Array = []
+	var count := 3 if bool(f["patch"]) else 9
+	for k in range(count):
+		var spr := Sprite3D.new()
+		spr.texture = WorldArt.flame_texture()
+		spr.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		spr.shaded = false
+		spr.transparent = true
+		spr.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		root.add_child(spr)
+		flames.append([spr, (float(k) + 0.5) / float(count), randf_range(-1.0, 1.0)])
+	return {"root": root, "ground": gm, "mat": mat, "flames": flames}
+
+
+## Passage d'un dragon : sa silhouette traverse la rangée mitraillée, son ombre glisse au sol.
+func _spawn_dragon(y: float, dur: float) -> void:
+	var spr := Sprite3D.new()
+	spr.texture = SpriteAtlas.single("ash_wyrm", 0)
+	spr.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	spr.shaded = false
+	spr.transparent = true
+	spr.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	spr.pixel_size = 2.6 / 18.0
+	spr.modulate = Color(0.25, 0.12, 0.1, 0.95)
+	add_child(spr)
+	var sh := MeshInstance3D.new()
+	var pm := PlaneMesh.new()
+	pm.size = Vector2(3.2, 1.4)
+	sh.mesh = pm
+	sh.material_override = _unshaded(Color(0.0, 0.0, 0.0, 0.35), true)
+	add_child(sh)
+	var dir := 1.0 if randf() < 0.5 else -1.0
+	_dragons.append({"spr": spr, "shadow": sh, "y": y, "age": 0.0, "dur": dur * 1.6, "dir": dir})
+	shake = maxf(shake, 0.3)
+
+
+func _update_dragons(delta: float) -> void:
+	var i := 0
+	while i < _dragons.size():
+		var d: Dictionary = _dragons[i]
+		d["age"] = float(d["age"]) + delta
+		var k := float(d["age"]) / float(d["dur"])
+		if k >= 1.0:
+			(d["spr"] as Node3D).queue_free()
+			(d["shadow"] as Node3D).queue_free()
+			_dragons.remove_at(i)
+			continue
+		var x := lerpf(-3.0, BattleSim.W + 3.0, k) if float(d["dir"]) > 0.0 else lerpf(BattleSim.W + 3.0, -3.0, k)
+		(d["spr"] as Sprite3D).position = w3(Vector2(x, float(d["y"])), 3.2 + sin(k * PI) * 0.6)
+		(d["shadow"] as MeshInstance3D).position = w3(Vector2(x, float(d["y"])), 0.04)
+		i += 1

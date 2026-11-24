@@ -2827,6 +2827,534 @@
         "c": "violet",
         "g": "8fd16a"
       }
+    },
+    "baton_braise": {
+      "name": "Bâton de braise",
+      "slot": "weapon",
+      "stats": {
+        "pou": 5,
+        "esp": 3
+      },
+      "element": "feu",
+      "art": {
+        "t": "baton",
+        "m": "darkwood",
+        "c": "red",
+        "g": "ff6a2a"
+      },
+      "zone": 6
+    },
+    "epee_ecailles": {
+      "name": "Épée en écailles de drake",
+      "slot": "weapon",
+      "stats": {
+        "pou": 6,
+        "vig": 2
+      },
+      "element": "feu",
+      "art": {
+        "t": "epee",
+        "m": "scale",
+        "c": "red",
+        "g": "ff9b4a"
+      },
+      "zone": 6
+    },
+    "arc_wyverne": {
+      "name": "Arc d'os de wyverne",
+      "slot": "weapon",
+      "stats": {
+        "pou": 5,
+        "cel": 3
+      },
+      "element": "feu",
+      "art": {
+        "t": "arc",
+        "m": "bone",
+        "c": "red",
+        "g": "ff6a2a"
+      },
+      "zone": 6
+    },
+    "sceptre_wyrm": {
+      "name": "Sceptre du Wyrm",
+      "slot": "weapon",
+      "stats": {
+        "pou": 5,
+        "esp": 3
+      },
+      "element": "ombre",
+      "art": {
+        "t": "sceptre",
+        "m": "obsidian",
+        "c": "red",
+        "g": "ff4a1a"
+      },
+      "zone": 6
+    },
+    "hache_cendres": {
+      "name": "Hache de cendres",
+      "slot": "weapon",
+      "stats": {
+        "pou": 6,
+        "des": 2
+      },
+      "element": "feu",
+      "art": {
+        "t": "hache",
+        "m": "ember",
+        "c": "black",
+        "g": "ffd070"
+      },
+      "zone": 6
+    },
+    "lance_drakonide": {
+      "name": "Lance drakonide",
+      "slot": "weapon",
+      "stats": {
+        "pou": 5,
+        "vig": 3
+      },
+      "art": {
+        "t": "lance",
+        "m": "steel",
+        "c": "red",
+        "g": "ff6a2a"
+      },
+      "zone": 6
+    },
+    "faux_phenix": {
+      "name": "Faux du phénix",
+      "slot": "weapon",
+      "stats": {
+        "pou": 5,
+        "esp": 3
+      },
+      "element": "feu",
+      "art": {
+        "t": "faux",
+        "m": "gold",
+        "c": "red",
+        "g": "ffb050"
+      },
+      "zone": 6
+    },
+    "marteau_magma": {
+      "name": "Marteau de magma",
+      "slot": "weapon",
+      "stats": {
+        "pou": 6,
+        "vig": 2
+      },
+      "element": "feu",
+      "art": {
+        "t": "marteau",
+        "m": "ember",
+        "c": "black",
+        "g": "ff7a2a"
+      },
+      "zone": 6
+    },
+    "bouclier_ecailles": {
+      "name": "Bouclier d'écailles",
+      "slot": "offhand",
+      "stats": {
+        "vig": 5,
+        "pou": 2
+      },
+      "art": {
+        "t": "bouclier",
+        "m": "scale",
+        "c": "red",
+        "g": "ffb050"
+      },
+      "zone": 6
+    },
+    "orbe_braise": {
+      "name": "Orbe de braise",
+      "slot": "offhand",
+      "stats": {
+        "esp": 5,
+        "pou": 2
+      },
+      "art": {
+        "t": "orbe",
+        "m": "ember",
+        "g": "ffd070"
+      },
+      "zone": 6
+    },
+    "crane_drake": {
+      "name": "Crâne de drake",
+      "slot": "offhand",
+      "stats": {
+        "esp": 4,
+        "des": 3
+      },
+      "art": {
+        "t": "crane",
+        "m": "bone",
+        "g": "ff6a2a"
+      },
+      "zone": 6
+    },
+    "cor_dragonnier": {
+      "name": "Cor du dragonnier",
+      "slot": "offhand",
+      "stats": {
+        "vig": 4,
+        "cel": 3
+      },
+      "art": {
+        "t": "cor",
+        "m": "bone",
+        "c": "red",
+        "g": "ff9b4a"
+      },
+      "zone": 6
+    },
+    "heaume_drake": {
+      "name": "Heaume à cornes de drake",
+      "slot": "head",
+      "stats": {
+        "vig": 4,
+        "pou": 3
+      },
+      "art": {
+        "t": "heaume",
+        "m": "scale",
+        "c": "red",
+        "g": "ff6a2a"
+      },
+      "zone": 6
+    },
+    "couronne_cendres": {
+      "name": "Couronne de cendres",
+      "slot": "head",
+      "stats": {
+        "esp": 4,
+        "des": 3
+      },
+      "art": {
+        "t": "couronne",
+        "m": "obsidian",
+        "g": "ff7a2a"
+      },
+      "zone": 6
+    },
+    "capuche_cultiste": {
+      "name": "Capuche de cultiste",
+      "slot": "head",
+      "stats": {
+        "esp": 4,
+        "cel": 3
+      },
+      "art": {
+        "t": "capuche",
+        "m": "leather",
+        "c": "red",
+        "g": "ff4a1a"
+      },
+      "zone": 6
+    },
+    "masque_braise": {
+      "name": "Masque de braise",
+      "slot": "head",
+      "stats": {
+        "pou": 4,
+        "vig": 3
+      },
+      "art": {
+        "t": "masque",
+        "m": "ember",
+        "g": "ffd070"
+      },
+      "zone": 6
+    },
+    "cuirasse_ecailles": {
+      "name": "Cuirasse en écailles",
+      "slot": "armor",
+      "stats": {
+        "vig": 6,
+        "pou": 2
+      },
+      "art": {
+        "t": "cuirasse",
+        "m": "scale",
+        "c": "red",
+        "g": "ff9b4a"
+      },
+      "zone": 6
+    },
+    "robe_cendres": {
+      "name": "Robe des cendres",
+      "slot": "armor",
+      "stats": {
+        "esp": 6,
+        "vig": 2
+      },
+      "art": {
+        "t": "robe",
+        "m": "leather",
+        "c": "ash",
+        "g": "ff6a2a"
+      },
+      "zone": 6
+    },
+    "manteau_phenix": {
+      "name": "Manteau du phénix",
+      "slot": "armor",
+      "stats": {
+        "cel": 4,
+        "esp": 4
+      },
+      "art": {
+        "t": "manteau",
+        "m": "leather",
+        "c": "red",
+        "g": "ffb050"
+      },
+      "zone": 6
+    },
+    "brigandine_drakonide": {
+      "name": "Brigandine drakonide",
+      "slot": "armor",
+      "stats": {
+        "vig": 5,
+        "des": 3
+      },
+      "art": {
+        "t": "brigandine",
+        "m": "steel",
+        "c": "red",
+        "g": "ff6a2a"
+      },
+      "zone": 6
+    },
+    "gantelets_magma": {
+      "name": "Gantelets de magma",
+      "slot": "hands",
+      "stats": {
+        "pou": 4,
+        "vig": 3
+      },
+      "art": {
+        "t": "gantelets",
+        "m": "ember",
+        "g": "ff7a2a"
+      },
+      "zone": 6
+    },
+    "gants_dragonnier": {
+      "name": "Gants de dragonnier",
+      "slot": "hands",
+      "stats": {
+        "cel": 4,
+        "des": 3
+      },
+      "art": {
+        "t": "gants",
+        "m": "leather",
+        "c": "red"
+      },
+      "zone": 6
+    },
+    "brassards_ecailles": {
+      "name": "Brassards d'écailles",
+      "slot": "hands",
+      "stats": {
+        "vig": 4,
+        "pou": 3
+      },
+      "art": {
+        "t": "brassards",
+        "m": "scale",
+        "g": "ff9b4a"
+      },
+      "zone": 6
+    },
+    "bandes_cendres": {
+      "name": "Bandes de cendres",
+      "slot": "hands",
+      "stats": {
+        "esp": 4,
+        "cel": 3
+      },
+      "art": {
+        "t": "bandes",
+        "m": "leather",
+        "c": "ash"
+      },
+      "zone": 6
+    },
+    "bottes_braise": {
+      "name": "Bottes de braise",
+      "slot": "feet",
+      "stats": {
+        "cel": 4,
+        "pou": 3
+      },
+      "art": {
+        "t": "bottes",
+        "m": "ember",
+        "c": "black"
+      },
+      "zone": 6
+    },
+    "greves_drakonides": {
+      "name": "Grèves drakonides",
+      "slot": "feet",
+      "stats": {
+        "vig": 4,
+        "des": 3
+      },
+      "art": {
+        "t": "greves",
+        "m": "scale",
+        "g": "ff9b4a"
+      },
+      "zone": 6
+    },
+    "sandales_cendres": {
+      "name": "Sandales de cendre",
+      "slot": "feet",
+      "stats": {
+        "cel": 4,
+        "esp": 3
+      },
+      "art": {
+        "t": "sandales",
+        "m": "leather",
+        "c": "ash"
+      },
+      "zone": 6
+    },
+    "bottes_salamandre": {
+      "name": "Bottes en peau de salamandre",
+      "slot": "feet",
+      "stats": {
+        "cel": 5,
+        "des": 2
+      },
+      "art": {
+        "t": "bottes",
+        "m": "leather",
+        "c": "red"
+      },
+      "zone": 6
+    },
+    "pendentif_oeuf": {
+      "name": "Pendentif d'éclat d'œuf",
+      "slot": "amulet",
+      "stats": {
+        "esp": 4,
+        "des": 3
+      },
+      "art": {
+        "t": "pendentif",
+        "m": "gold",
+        "g": "ffb050"
+      },
+      "zone": 6
+    },
+    "talisman_phenix": {
+      "name": "Talisman du phénix",
+      "slot": "amulet",
+      "stats": {
+        "vig": 3,
+        "esp": 4
+      },
+      "art": {
+        "t": "talisman",
+        "m": "gold",
+        "g": "ff6a2a"
+      },
+      "zone": 6
+    },
+    "anneau_braise": {
+      "name": "Anneau de braise",
+      "slot": "ring",
+      "stats": {
+        "pou": 4,
+        "esp": 3
+      },
+      "art": {
+        "t": "anneau",
+        "m": "ember",
+        "g": "ffd070"
+      },
+      "zone": 6
+    },
+    "chevaliere_wyrm": {
+      "name": "Chevalière du Wyrm",
+      "slot": "ring",
+      "stats": {
+        "esp": 4,
+        "des": 3
+      },
+      "art": {
+        "t": "chevaliere",
+        "m": "obsidian",
+        "g": "ff4a1a"
+      },
+      "zone": 6
+    },
+    "anneau_ecaille": {
+      "name": "Anneau d'écaille",
+      "slot": "ring",
+      "stats": {
+        "vig": 4,
+        "cel": 3
+      },
+      "art": {
+        "t": "anneau",
+        "m": "scale",
+        "g": "ff9b4a"
+      },
+      "zone": 6
+    },
+    "bague_cendres": {
+      "name": "Bague des cendres",
+      "slot": "ring",
+      "stats": {
+        "cel": 4,
+        "des": 3
+      },
+      "art": {
+        "t": "anneau",
+        "m": "silver",
+        "g": "ff7a2a"
+      },
+      "zone": 6
+    },
+    "plume_phenix": {
+      "name": "Plume de phénix",
+      "slot": "charm",
+      "stats": {
+        "esp": 4,
+        "cel": 3
+      },
+      "art": {
+        "t": "plume",
+        "m": "gold",
+        "c": "red",
+        "g": "ffd070"
+      },
+      "zone": 6
+    },
+    "croc_wyverne": {
+      "name": "Croc de wyverne",
+      "slot": "charm",
+      "stats": {
+        "pou": 4,
+        "des": 3
+      },
+      "art": {
+        "t": "croc",
+        "m": "bone",
+        "g": "ff6a2a"
+      },
+      "zone": 6
     }
   },
   "loot_pool": {
@@ -3019,6 +3547,44 @@
       "chevaliere_college",
       "anneau_scarabee",
       "oeil_sphinx"
+    ],
+    "6": [
+      "baton_braise",
+      "epee_ecailles",
+      "arc_wyverne",
+      "sceptre_wyrm",
+      "hache_cendres",
+      "lance_drakonide",
+      "faux_phenix",
+      "marteau_magma",
+      "bouclier_ecailles",
+      "orbe_braise",
+      "crane_drake",
+      "cor_dragonnier",
+      "heaume_drake",
+      "couronne_cendres",
+      "capuche_cultiste",
+      "masque_braise",
+      "cuirasse_ecailles",
+      "robe_cendres",
+      "manteau_phenix",
+      "brigandine_drakonide",
+      "gantelets_magma",
+      "gants_dragonnier",
+      "brassards_ecailles",
+      "bandes_cendres",
+      "bottes_braise",
+      "greves_drakonides",
+      "sandales_cendres",
+      "bottes_salamandre",
+      "pendentif_oeuf",
+      "talisman_phenix",
+      "anneau_braise",
+      "chevaliere_wyrm",
+      "anneau_ecaille",
+      "bague_cendres",
+      "plume_phenix",
+      "croc_wyverne"
     ]
   },
   "materials": {
@@ -3051,6 +3617,12 @@
     },
     "sable_or": {
       "name": "Sable d'or"
+    },
+    "ecaille_cendre": {
+      "name": "Écaille de cendre"
+    },
+    "braise_vive": {
+      "name": "Braise vive"
     }
   },
   "starter": [

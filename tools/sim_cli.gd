@@ -90,6 +90,11 @@ func _init() -> void:
 		print("  #%02d %-8s %5.1fs  barrière %3d%%  étoiles %d  kills %4d  invocations %5d  soins +%d  reste %d%%  %s" % [
 			i + 1, s.state, s.time, int(100.0 * s.barrier_hp / s.barrier_max), s.stars, s.kills, s.summoned,
 			int(s.healed_total), int(100.0 * s.objective_ratio()), s.objective_info()])
+		if s.fire_burned > 0.0 or s.fires_out > 0:
+			var by: Array[String] = []
+			for src in s.fire_by.keys():
+				by.append("%s %d" % [src, int(s.fire_by[src])])
+			print("      feu : %d PV d'invocations brûlés · %d foyers éteints · %s" % [int(s.fire_burned), s.fires_out, ", ".join(by)])
 	print("Lancers du héros : %s" % JSON.stringify(casts))
 	print("Résumé : victoires %d/%d · durée moy. %.1fs (réf. %ss) · barrière moy. %d%% · étoiles moy. %.2f · pic d'alliés %d · %.3f ms/pas" % [
 		wins, runs, total_time / runs, str(lv.get("par_time", "?")), int(100.0 * total_barrier / runs),

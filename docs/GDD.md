@@ -192,4 +192,6 @@ iOS (iPhone 16 Pro Max, iPad), Android, PC (16:9, 16:10).
 15. Acte 5 :
     - 15.1 ✅ zone 5 jouable, Désert de Verre : 10 niveaux (41 à 50), cycle soleil/lune (Feu ou Givre +25 %), mirages, miroirs qui renvoient les tirs, Scarabée-soleil et Sphinx de verre (énigmes du lore, Couronne de l'Énigme) — [`design/33-zone5.md`](design/33-zone5.md)
     - 15.2 ✅ narration de l'acte 5 : 20 dialogues, Thalren et le Sphinx de verre, le Journal de « M. », Liriel, le reflet qui sourit ; choix 5-7 (les élèves), 5-9 (lire ou brûler le Journal : Fragment de Morvaen ou bouclier de Thalren) et ✦ 5-10 (révéler son Sceau ou mentir) — [`design/34-narration-zone5.md`](design/34-narration-zone5.md)
-16. Saison 2 : zones 11–15, niveau max 150, L'Ourdisseur (fils semés en saison 1)
+16. Acte 6 :
+    - 16.1 ✅ zone 6 jouable, Forêt Cendrée : 10 niveaux (51 à 60), dragons et démons de feu, incendies en couloirs que le Givre éteint, passages de dragons annoncés, Phénix qui renaissent, Drake ancien et Wyrm de cendre (vol, œufs) ; panoplie de 36 objets — [`design/37-zone6.md`](design/37-zone6.md)
+17. Saison 2 : zones 11–15, niveau max 150, L'Ourdisseur (fils semés en saison 1)

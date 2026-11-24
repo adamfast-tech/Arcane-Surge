@@ -34,6 +34,8 @@ static func plate(kind: String, size: Vector2i) -> ImageTexture:
 			_forge(img, rng)
 		"dunes", "oasis", "miroirs", "college", "desert_nuit", "sphinx":
 			_desert(img, rng, kind)
+		"cendres":
+			_cendres(img, rng, kind)
 		_:
 			_forest(img, rng, kind)
 	var tex := ImageTexture.create_from_image(img)
@@ -1027,6 +1029,76 @@ static func _sphinx_hall(img: Image, rng: RandomNumberGenerator) -> void:
 # ---------------------------------------------------------------- icônes (glyphes absents des polices)
 
 ## « sparkle » : étoile à 4 branches (✦) ; « next » : triangle vers le bas (▼).
+# ---------------------------------------------------------------- acte 6 · Forêt Cendrée
+
+## Arbre calciné : tronc noir, branches tordues, flammes aux extrémités si l'arbre brûle encore.
+static func _burnt_tree(img: Image, rng: RandomNumberGenerator, x: int, base: int, hgt: int, burning: bool) -> void:
+	var trunk := Color("120808")
+	img.fill_rect(Rect2i(x - 1, base - hgt, 3, hgt), trunk)
+	_px(img, x + 1, base - hgt, Color("3a1a12"))
+	for b in range(rng.randi_range(3, 5)):
+		var by := base - hgt + rng.randi_range(2, maxi(3, hgt * 2 / 3))
+		var dir := -1 if b % 2 == 0 else 1
+		var ln := rng.randi_range(hgt / 6 + 2, hgt / 3 + 3)
+		var ex := x
+		var ey := by
+		for d in range(ln):
+			ex = x + dir * d
+			ey = by - d / 2
+			_px(img, ex, ey, trunk)
+		if burning and rng.randf() < 0.7:
+			_glow_px(img, ex, ey - 2, 5, Color("ff7a2a"), 0.35)
+			for f in range(6):
+				_px(img, ex + rng.randi_range(-1, 1), ey - rng.randi_range(1, 4), Color("ffd070") if f % 2 == 0 else Color("ff6a2a"))
+	if burning:
+		_glow_px(img, x, base - hgt - 2, 6, Color("ff8a3a"), 0.4)
+		for f in range(10):
+			_px(img, x + rng.randi_range(-2, 2), base - hgt - rng.randi_range(0, 6), Color("ffe08a") if f % 3 == 0 else Color("ff7a2a"))
+
+
+## Forêt Cendrée : ciel de fumée rougeoyant, arbres calcinés en flammes, braises, dragon dans les fumées.
+static func _cendres(img: Image, rng: RandomNumberGenerator, kind: String) -> void:
+	var w := img.get_width()
+	var h := img.get_height()
+	_sky(img, rng, [[0.0, Color("120a10")], [0.35, Color("3a141a")], [0.55, Color("8a2a1a")], [0.66, Color("d8602a")], [0.72, Color("4a1e16")], [1.0, Color("1a100e")]], 0.15)
+	# Lune rougie derrière la fumée.
+	var mx := int(w * 0.72)
+	var my := int(h * 0.16)
+	var mr := maxi(5, int(minf(w, h) * 0.05))
+	_glow_px(img, mx, my, mr * 3, Color("ff8a5a"), 0.25)
+	_disc(img, mx, my, mr, Color("f0a080"))
+	# Volutes de fumée.
+	for i in range(int(w * h / 420.0)):
+		var y := rng.randi_range(int(h * 0.05), int(h * 0.5))
+		var x := rng.randi_range(-40, w)
+		for dx in range(rng.randi_range(20, 70)):
+			_px(img, x + dx, y + int(sin(float(dx) * 0.12) * 2.0), Color(0.08, 0.04, 0.05, 0.2))
+	# Dragon dans les fumées.
+	var dx0 := int(w * 0.3)
+	var dy0 := int(h * 0.22)
+	var span := maxi(8, int(w * 0.07))
+	for k in range(-span, span + 1):
+		_px(img, dx0 + k, dy0 - absi(k) / 3 + (1 if absi(k) > span * 2 / 3 else 0), Color("1a0a0a"))
+		_px(img, dx0 + k, dy0 - absi(k) / 3 + 1, Color("1a0a0a"))
+	img.fill_rect(Rect2i(dx0 - 1, dy0 - 1, 3, 5), Color("1a0a0a"))
+	# Collines lointaines en braises, puis forêt calcinée.
+	_ridge(img, rng, int(h * 0.58), int(h * 0.03), Color("2a1412"), Color("8a3a1a"))
+	var x := -rng.randi_range(0, 8)
+	while x < w + 8:
+		_burnt_tree(img, rng, x, int(h * 0.68) + rng.randi_range(-3, 3), rng.randi_range(int(h * 0.12), int(h * 0.26)), rng.randf() < 0.45)
+		x += rng.randi_range(int(w * 0.06), int(w * 0.11))
+	for y in range(int(h * 0.68), h):
+		var k := float(y - int(h * 0.68)) / float(maxi(1, h - int(h * 0.68)))
+		img.fill_rect(Rect2i(0, y, w, 1), Color("2a1814").lerp(Color("120a08"), k))
+	# Coulées de braises au sol et étincelles.
+	for i in range(maxi(3, w / 60)):
+		var lx := rng.randi_range(0, w)
+		var ly := rng.randi_range(int(h * 0.72), h - 4)
+		for d in range(rng.randi_range(10, 30)):
+			_px(img, lx + d, ly + int(sin(float(d) * 0.3) * 1.5), Color("ff6a2a"))
+	_fireflies(img, rng, int(w * h / 900.0), int(h * 0.2), h - 2, Color("ffb050"))
+
+
 static func icon(kind: String, col: Color) -> ImageTexture:
 	var key := "icon|%s|%s" % [kind, col.to_html()]
 	if _cache.has(key):

@@ -1,0 +1,116 @@
+{
+  "id": "z06_l06",
+  "name": "Les Réfugiés de Braisemont",
+  "zone": 6,
+  "number": "6-6",
+  "global_level": 56,
+  "type": "Escorte",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "objective": "escort",
+  "desc": "Les villageois de Braisemont fuient l'incendie. Conduis leur convoi jusqu'au gué, de l'autre côté de la forêt. Les salamandres le guettent en embuscade, et le feu descend derrière lui.",
+  "par_time": 180,
+  "nexus": {
+    "hp": 32000
+  },
+  "escort": {
+    "kind": "refugee_convoy",
+    "x": 4.5,
+    "y": 1.6,
+    "goal_y": 12.4,
+    "speed": 0.13,
+    "hp": 18000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 380
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 380
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "givre"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 1.8,
+      "value": 2,
+      "motion": "slide",
+      "range": 1.2,
+      "speed": 0.5
+    },
+    {
+      "kind": "add",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 5
+    },
+    {
+      "kind": "mult",
+      "x": 2.4,
+      "y": 10.4,
+      "width": 2.0,
+      "value": 2
+    },
+    {
+      "kind": "mult",
+      "x": 6.6,
+      "y": 10.4,
+      "width": 2.0,
+      "value": 2
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 14,
+    "budget_per_level": 4,
+    "local_level": 6,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "ember_imp": 6,
+      "salamander": 3,
+      "wyvernling": 0.6,
+      "drakonid": 0.6
+    }
+  },
+  "wildfire": {
+    "first": 14,
+    "every": [
+      22,
+      28
+    ],
+    "max": 1,
+    "speed": 0.45,
+    "life": 20,
+    "dps": 8
+  },
+  "ambush": {
+    "every": 22,
+    "count": 2,
+    "kind": "salamander",
+    "ahead": 2.6
+  },
+  "initial_enemies": []
+}
