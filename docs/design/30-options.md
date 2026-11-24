@@ -79,3 +79,14 @@ Les PV des ennemis ne changent pas : la difficulté joue sur leur vitesse et leu
 ## Aperçus
 
 `?room=options` ouvre les Options ; `?room=hub` ouvre Havre-Aube sans passer par la connexion.
+
+## Version du jeu et mises à jour
+
+- La section « Version du jeu » affiche la version (`application/config/version`), l'empreinte du commit, la date de publication et le dernier changement (`data/build.json`, écrit par la CI avant l'export ; « dev » en local).
+- **Vérifier les mises à jour** lit `version.json`, publié par la CI à côté du jeu (requête sans cache), et compare son empreinte à celle du jeu chargé :
+  - même empreinte : « Tu as la dernière version » ;
+  - empreinte différente : « Nouvelle version disponible : <commit> — <titre> », avec le bouton **Mettre à jour**.
+- **Mettre à jour** ou **Recharger** sauvegarde la progression (locale et cloud). Le jeu retélécharge ensuite ses fichiers en contournant le cache du navigateur (`fetch(..., {cache: 'reload'})` sur index.html, .js, .wasm, .pck et version.json), puis recharge la page. On voit les changements sans fermer l'application.
+- Après chaque changement, la publication prend quelques minutes (CI, puis cache de GitHub Pages).
+- Hors version web, le bouton indique que la vérification n'est disponible que sur le web.
+

@@ -34,6 +34,16 @@ jobs:
           unzip -q -j tpl.tpz 'templates/web_nothreads_*' 'templates/version.txt' -d "$dest"
           rm tpl.tpz
 
+      - name: Empreinte de version (bouton « Vérifier les mises à jour » des Options)
+        run: |
+          python3 - <<'PY'
+          import datetime, json, os, subprocess
+          title = subprocess.run(["git", "log", "-1", "--pretty=%s"], capture_output=True, text=True).stdout.strip()
+          info = {"sha": os.environ["GITHUB_SHA"][:7], "time": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "title": title}
+          open("data/build.json", "w", encoding="utf-8").write(json.dumps(info, ensure_ascii=False))
+          print(info)
+          PY
+
       - name: Importer le projet
         run: $RUNNER_TEMP/godot --headless --import --path .
 
@@ -48,6 +58,7 @@ jobs:
           mkdir -p build/web && touch build/.gdignore
           $RUNNER_TEMP/godot --headless --path . --export-release "Web" build/web/index.html
           test -f build/web/index.wasm
+          cp data/build.json build/web/version.json
 
       - uses: actions/upload-pages-artifact@v3
         with:

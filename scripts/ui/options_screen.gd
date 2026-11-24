@@ -6,6 +6,9 @@ extends Control
 signal back
 
 var _msg := ""
+var _upd_state := "" ## vérification des mises à jour : "", « wait », « latest », « update », « error », « unsupported »
+var _upd_remote: Dictionary = {}
+var _updater: Updater
 
 
 func _ready() -> void:
@@ -77,6 +80,8 @@ func _rebuild() -> void:
 		note += "Les sorts déjà appris ne sont jamais perdus : ils reviennent si tu changes d'option ou de voie. Chaque voie connaît d'office trois techniques de départ."
 	col.add_child(UiTheme.wrap(note, 15, UiTheme.MUTED))
 
+	_version_section(col)
+
 	# Difficulté.
 	col.add_child(UiTheme.section("Difficulté"))
 	col.add_child(UiTheme.wrap("Elle s'applique aux prochains combats : vitesse et dégâts des ennemis, PV du Nexus (et du boss), XP gagnée et butin.", 15, UiTheme.MUTED))
@@ -86,6 +91,79 @@ func _rebuild() -> void:
 		col.add_child(_difficulty_card(d, did == cur, func() -> void:
 			Profile.set_difficulty(did)
 			_changed("Difficulté : %s." % str(d["name"]))))
+
+
+## Version du jeu : empreinte, dernier changement, vérification des mises à jour et rechargement.
+func _version_section(col: VBoxContainer) -> void:
+	col.add_child(UiTheme.section("Version du jeu"))
+	var lb := Updater.local_build()
+	var c: Array = UiTheme.card(UiTheme.BORDER, 14)
+	col.add_child(c[0])
+	var v: VBoxContainer = c[1]
+	var when := str(lb.get("time", ""))
+	if when.length() >= 16:
+		when = "%s/%s/%s à %s (UTC)" % [when.substr(8, 2), when.substr(5, 2), when.substr(0, 4), when.substr(11, 5)]
+	v.add_child(UiTheme.label("Version %s · %s%s" % [str(ProjectSettings.get_setting("application/config/version", "0.1")), str(lb.get("sha", "dev")), (" · " + when) if when != "" else ""], 19, UiTheme.TEXT))
+	if str(lb.get("title", "")) != "":
+		v.add_child(UiTheme.wrap("Dernier changement : %s" % str(lb["title"]), 16, UiTheme.MUTED))
+	var status := ""
+	var scol := UiTheme.MUTED
+	match _upd_state:
+		"wait":
+			status = "Recherche d'une nouvelle version…"
+		"latest":
+			status = "Tu as la dernière version."
+			scol = UiTheme.GOOD
+		"update":
+			status = "Nouvelle version disponible : %s — %s" % [str(_upd_remote.get("sha", "")), str(_upd_remote.get("title", ""))]
+			scol = UiTheme.GOLD
+		"error":
+			status = "Vérification impossible pour le moment (connexion ?). Réessaie dans un instant."
+			scol = UiTheme.FIRE
+		"unsupported":
+			status = "La vérification des mises à jour fonctionne dans la version web du jeu."
+	if status != "":
+		v.add_child(UiTheme.wrap(status, 17, scol))
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	v.add_child(row)
+	if _upd_state == "update":
+		var go := UiTheme.button("METTRE À JOUR", 19)
+		go.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		go.custom_minimum_size = Vector2(0, 56)
+		go.add_theme_color_override("font_color", UiTheme.GOLD)
+		go.add_theme_stylebox_override("normal", UiTheme.box(Color(UiTheme.WARM, 0.94), Color(UiTheme.GOLD, 0.85), 12, 2, 8))
+		go.pressed.connect(func() -> void:
+			_msg = "Mise à jour : ta progression est sauvegardée, le jeu redémarre…"
+			_rebuild.call_deferred()
+			Updater.apply_update())
+		row.add_child(go)
+	else:
+		var chk := UiTheme.button("VÉRIFIER LES MISES À JOUR", 18)
+		chk.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		chk.custom_minimum_size = Vector2(0, 56)
+		chk.disabled = _upd_state == "wait"
+		chk.pressed.connect(_check_updates)
+		row.add_child(chk)
+	if Updater.supported():
+		var rl := UiTheme.button("Recharger", 17)
+		rl.custom_minimum_size = Vector2(120, 56)
+		rl.pressed.connect(func() -> void: Updater.apply_update())
+		row.add_child(rl)
+	v.add_child(UiTheme.wrap("Une nouvelle version met quelques minutes à être publiée après chaque changement. Ta progression est sauvegardée avant le rechargement.", 14, Color(UiTheme.MUTED, 0.8)))
+
+
+func _check_updates() -> void:
+	if _updater == null:
+		_updater = Updater.new()
+		add_child(_updater)
+		_updater.checked.connect(func(state: String, remote: Dictionary) -> void:
+			_upd_state = state
+			_upd_remote = remote
+			_rebuild.call_deferred())
+	_upd_state = "wait"
+	_rebuild.call_deferred()
+	_updater.check()
 
 
 ## Ligne de choix exclusive (titre, explication, icône), surlignée quand elle est active.
