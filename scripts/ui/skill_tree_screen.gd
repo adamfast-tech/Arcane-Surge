@@ -121,7 +121,10 @@ func _rebuild() -> void:
 		var h := HBoxContainer.new()
 		(c[1] as VBoxContainer).add_child(h)
 		h.add_child(UiTheme.icon_rect("lock", 28, UiTheme.MUTED))
-		h.add_child(UiTheme.wrap(Profile.branch_locked(current), 19, UiTheme.MUTED))
+		# Le texte prend toute la largeur restante (sinon il se replie lettre par lettre).
+		var why := UiTheme.wrap(Profile.branch_locked(current), 19, UiTheme.MUTED)
+		why.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		h.add_child(why)
 		_show_detail(false)
 		return
 	var spent := Profile.branch_spent(current)
