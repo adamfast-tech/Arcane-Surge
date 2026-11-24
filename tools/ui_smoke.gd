@@ -304,13 +304,60 @@ func _classes_ok() -> bool:
 	if capped > 5.01 or not miracle or not colossus or not charged:
 		push_error("Clés de voûte de classe incorrectes")
 		return false
+	# Arbres (étape 13.10) : 64 compétences par classe, 7 paliers, liens valides, effets connus, prérequis.
+	var tree_errs: Array[String] = []
+	var known_mods := ["unit_atk", "unit_hp", "unit_def", "unit_range", "unit_speed", "unit_regen", "lifesteal", "crit", "cadence", "spell_cost", "cd_red",
+		"mana_regen", "barrier_max", "barrier_dr", "barrier_regen", "start_shield", "surge_gain", "kill_mana", "champ_atk", "champ_hp", "ult_dmg", "ult_radius",
+		"spell_dmg", "burn_dmg", "burn_dur", "poison_dmg", "frozen_dur", "frozen_vuln", "zone_slow", "dodge", "portal_plus", "free_clone", "heal_bonus",
+		"aura_heal", "spawn_shield", "riposte", "mark_vuln", "bot_atk", "skeleton_bonus", "skeleton_chance", "anti_heal", "low_barrier_atk", "venom",
+		"hunt_mark", "ghost_double", "frenzy_dur", "chain_bonus", "army_count", "portal_split"]
+	var n_total := 0
+	var sim_src := FileAccess.get_file_as_string("res://scripts/battle/sim.gd")
+	for cls in ["mage", "archer", "epeiste", "clerc", "necromancien", "chevalier", "berserker"]:
+		var td: Dictionary = GameData.load_json("res://data/skill_trees/%s.json" % cls)
+		var ids := {}
+		var n_cls := 0
+		for br in td["branches"]:
+			if (br["tiers"] as Array).size() != 7:
+				tree_errs.append("%s/%s : %d paliers" % [cls, br["id"], (br["tiers"] as Array).size()])
+			for t in br["tiers"]:
+				for nd in t["nodes"]:
+					ids[str(nd["id"])] = true
+		for br in td["branches"]:
+			var first := true
+			for t in br["tiers"]:
+				for nd in t["nodes"]:
+					n_cls += 1
+					if not nd.has("x") or str(nd.get("desc", "")) == "":
+						tree_errs.append("%s/%s : x ou description" % [cls, nd["id"]])
+					if not first and (nd.get("parents", []) as Array).is_empty():
+						tree_errs.append("%s/%s : sans parent" % [cls, nd["id"]])
+					for pid in nd.get("parents", []):
+						if not ids.has(str(pid)):
+							tree_errs.append("%s/%s : parent inconnu %s" % [cls, nd["id"], pid])
+					if str(nd.get("kind", "passive")) == "passive":
+						for mk in (nd.get("mods", {}) as Dictionary).keys():
+							var mks := str(mk)
+							if not (known_mods.has(mks) or sim_src.contains('_mod("%s")' % mks) or mks.begins_with("elem_dmg.") or mks.begins_with("unit_elem.") or mks.begins_with("resist.") or mks.begins_with("radius.") or mks.begins_with("dur.")):
+								tree_errs.append("%s/%s : effet inconnu %s" % [cls, nd["id"], mks])
+				first = false
+		n_total += n_cls
+		if n_cls < 64:
+			tree_errs.append("%s : %d compétences" % [cls, n_cls])
+	print("  arbres : %d compétences au total" % n_total)
+	if not tree_errs.is_empty():
+		push_error("arbres : %s" % [tree_errs])
+		return false
 	# Voies du Surge (13.3b) : 3e branche par classe, verrouillée sans la Vérité des Cendres.
 	var surge_ok := true
 	for cls in ["archer", "epeiste", "clerc", "necromancien", "chevalier", "berserker"]:
 		var tree: Dictionary = GameData.load_json("res://data/skill_trees/%s.json" % cls)
 		var brs: Array = tree["branches"]
 		var last: Dictionary = brs[brs.size() - 1]
-		var keys: Array = (last["tiers"] as Array)[4]["nodes"]
+		var keys: Array = []
+		for kn in ((last["tiers"] as Array).back() as Dictionary)["nodes"]:
+			if (kn as Dictionary).has("flag"):
+				keys.append(kn)
 		if brs.size() != 3 or str(last.get("unlock_flag", "")) != "s1.verite_cendres" or keys.size() != 2 \
 				or str(keys[0].get("flag", "")) != "s1.voie_aube" or str(keys[1].get("flag", "")) != "s1.voie_cendres":
 			surge_ok = false
@@ -854,6 +901,30 @@ func _run() -> void:
 	var pts0 := Profile.skill_points_free()
 	var invested := Profile.invest("combustion")
 	var blocked := Profile.invest_block("braises")
+	# Prérequis : Feu dévorant (palier 10) n'est relié qu'à Braises et Étincelle.
+	var prereq_txt := ""
+	var keep_ranks: Dictionary = Profile.skill_ranks().duplicate()
+	var keep_level := Profile.level()
+	Profile.data["player"]["level"] = maxi(40, Profile.level())
+	for k in range(5):
+		Profile.invest("ardeur")
+	for k in range(4):
+		Profile.invest("combustion")
+	Profile.invest("torche_vivante")
+	prereq_txt = Profile.invest_block("feu_devorant")
+	var sk: SkillTreeScreen = _screen()
+	sk._sel = "feu_devorant"
+	sk._rebuild()
+	await _frames(4)
+	print("  arbre : prérequis « %s » · médaillons %d" % [prereq_txt, sk.find_children("", "SkillTreeView", true, false).size()])
+	if not prereq_txt.begins_with("Prérequis") or sk.find_children("", "SkillTreeView", true, false).is_empty():
+		push_error("arbre : prérequis ou vue incorrects")
+		quit(1)
+		return
+	Profile.skill_ranks().clear()
+	for k in keep_ranks.keys():
+		Profile.skill_ranks()[k] = keep_ranks[k]
+	Profile.data["player"]["level"] = keep_level
 	main.call("_show_room", "library")
 	await _frames(5)
 	var t1 := Profile.toggle_deck("onde_arcanique")

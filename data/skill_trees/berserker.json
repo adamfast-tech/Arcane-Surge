@@ -1,427 +1,1006 @@
 {
- "class": "berserker",
- "keystone_limit": 2,
- "branches": [
-  {
-   "id": "carnage",
-   "name": "Carnage",
-   "theme": "ATQ, vol de vie",
-   "color": "E8703A",
-   "icon": "hache_tournoyante",
-   "tiers": [
+  "class": "berserker",
+  "keystone_limit": 2,
+  "branches": [
     {
-     "req": 0,
-     "nodes": [
-      {
-       "id": "soif_sang",
-       "name": "Soif de sang",
-       "max": 5,
-       "desc": "Invocations : +2 % de vol de vie par rang.",
-       "mods": {
-        "lifesteal": 0.02
-       }
-      },
-      {
-       "id": "brutalite",
-       "name": "Brutalité",
-       "max": 5,
-       "desc": "Invocations : +4 % d'attaque par rang.",
-       "mods": {
-        "unit_atk": 0.04
-       }
-      }
-     ]
+      "id": "carnage",
+      "name": "Carnage",
+      "theme": "ATQ, vol de vie",
+      "color": "E8703A",
+      "icon": "hache_tournoyante",
+      "tiers": [
+        {
+          "req": 0,
+          "nodes": [
+            {
+              "id": "soif_sang",
+              "name": "Soif de sang",
+              "max": 5,
+              "desc": "Invocations : +2 % de vol de vie par rang.",
+              "mods": {
+                "lifesteal": 0.02
+              },
+              "x": 0.0
+            },
+            {
+              "id": "brutalite",
+              "name": "Brutalité",
+              "max": 5,
+              "desc": "Invocations : +4 % d'attaque par rang.",
+              "mods": {
+                "unit_atk": 0.04
+              },
+              "x": 1.5
+            },
+            {
+              "id": "boucherie",
+              "name": "Boucherie",
+              "max": 5,
+              "desc": "Invocations de Physique : dégâts +3 % par rang.",
+              "mods": {
+                "unit_elem.physique": 0.03
+              },
+              "x": 3.0
+            }
+          ]
+        },
+        {
+          "req": 5,
+          "nodes": [
+            {
+              "id": "frenesie",
+              "name": "Frénésie",
+              "max": 5,
+              "desc": "Frénésie : +0,4 s par rang.",
+              "mods": {
+                "frenzy_dur": 0.4
+              },
+              "x": 0.0,
+              "parents": [
+                "soif_sang"
+              ]
+            },
+            {
+              "id": "peau_dure",
+              "name": "Peau dure",
+              "max": 5,
+              "desc": "Invocations : +4 % de PV par rang.",
+              "mods": {
+                "unit_hp": 0.04
+              },
+              "x": 1.0,
+              "parents": [
+                "soif_sang",
+                "brutalite"
+              ]
+            },
+            {
+              "id": "hache_tournoyante_t",
+              "name": "Tourbillon",
+              "max": 1,
+              "desc": "Nouveau sort : une hache tournoyante fauche une zone.",
+              "kind": "spell",
+              "unlock": "hache_tournoyante",
+              "x": 2.0,
+              "parents": [
+                "brutalite",
+                "boucherie"
+              ]
+            },
+            {
+              "id": "colere_b",
+              "name": "Colère",
+              "max": 5,
+              "desc": "Dégâts quand la Barrière vacille +3 % par rang.",
+              "mods": {
+                "low_barrier_atk": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "boucherie"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 10,
+          "nodes": [
+            {
+              "id": "carnage_n",
+              "name": "Carnage",
+              "max": 5,
+              "desc": "+1 % de chances de critique par rang.",
+              "mods": {
+                "crit": 0.01
+              },
+              "x": 0.0,
+              "parents": [
+                "frenesie",
+                "peau_dure"
+              ]
+            },
+            {
+              "id": "rage_n",
+              "name": "Rage",
+              "max": 5,
+              "desc": "Invocations : +3 % de cadence par rang.",
+              "mods": {
+                "cadence": 0.03
+              },
+              "x": 1.0,
+              "parents": [
+                "frenesie",
+                "peau_dure",
+                "hache_tournoyante_t"
+              ]
+            },
+            {
+              "id": "sang_chaud",
+              "name": "Sang chaud",
+              "max": 5,
+              "desc": "+4 % de régénération de mana par rang.",
+              "mods": {
+                "mana_regen": 0.04
+              },
+              "x": 2.0,
+              "parents": [
+                "peau_dure",
+                "hache_tournoyante_t",
+                "colere_b"
+              ]
+            },
+            {
+              "id": "cicatrices",
+              "name": "Cicatrices",
+              "max": 5,
+              "desc": "Défense des invocations +0,6 par rang.",
+              "mods": {
+                "unit_def": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "hache_tournoyante_t",
+                "colere_b"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 15,
+          "nodes": [
+            {
+              "id": "massacre",
+              "name": "Massacre",
+              "max": 5,
+              "desc": "Mana par ennemi abattu +0,1 par rang.",
+              "mods": {
+                "kill_mana": 0.1
+              },
+              "x": 0.0,
+              "parents": [
+                "carnage_n",
+                "rage_n"
+              ]
+            },
+            {
+              "id": "sauvagerie",
+              "name": "Sauvagerie",
+              "max": 5,
+              "desc": "Chance de critique +0,8 % par rang.",
+              "mods": {
+                "crit": 0.008
+              },
+              "x": 1.5,
+              "parents": [
+                "rage_n",
+                "sang_chaud"
+              ]
+            },
+            {
+              "id": "rage_aveugle",
+              "name": "Rage aveugle",
+              "max": 5,
+              "desc": "Recharge des sorts −2 % par rang.",
+              "mods": {
+                "cd_red": 0.02
+              },
+              "x": 3.0,
+              "parents": [
+                "sang_chaud",
+                "cicatrices"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 20,
+          "nodes": [
+            {
+              "id": "boucher",
+              "name": "Boucher",
+              "max": 3,
+              "desc": "Invocations : +5 % d'attaque par rang.",
+              "mods": {
+                "unit_atk": 0.05
+              },
+              "x": 0.0,
+              "parents": [
+                "massacre"
+              ]
+            },
+            {
+              "id": "dechainement_plus",
+              "name": "Déchaînement+",
+              "max": 1,
+              "desc": "Évolution : +3 s de frénésie, +25 % de dégâts.",
+              "kind": "evolution",
+              "mods": {
+                "ult_dur": 3,
+                "ult_dmg": 0.25
+              },
+              "x": 1.5,
+              "parents": [
+                "sauvagerie"
+              ]
+            },
+            {
+              "id": "tueur_ne",
+              "name": "Tueur-né",
+              "max": 3,
+              "desc": "Attaque des invocations +4 % par rang · Vol de vie des invocations +1 % par rang.",
+              "mods": {
+                "unit_atk": 0.04,
+                "lifesteal": 0.01
+              },
+              "x": 3.0,
+              "parents": [
+                "rage_aveugle"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 25,
+          "nodes": [
+            {
+              "id": "faucheur",
+              "name": "Faucheur",
+              "max": 3,
+              "desc": "Attaque des invocations +6 % par rang.",
+              "mods": {
+                "unit_atk": 0.06
+              },
+              "x": 0.5,
+              "parents": [
+                "boucher",
+                "dechainement_plus"
+              ]
+            },
+            {
+              "id": "berserk",
+              "name": "Berserk",
+              "max": 3,
+              "desc": "Durée de la frénésie +0,8 s par rang.",
+              "mods": {
+                "frenzy_dur": 0.8
+              },
+              "x": 2.5,
+              "parents": [
+                "dechainement_plus",
+                "tueur_ne"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 30,
+          "nodes": [
+            {
+              "id": "soif",
+              "name": "Soif",
+              "max": 1,
+              "desc": "Clé de voûte : le vol de vie des invocations soigne aussi la Barrière (1 % des dégâts, 2 PV/s au plus).",
+              "kind": "keystone",
+              "mods": {
+                "thirst": 1
+              },
+              "x": 0.5,
+              "parents": [
+                "faucheur"
+              ]
+            },
+            {
+              "id": "sans_armure",
+              "name": "Sans armure",
+              "max": 1,
+              "desc": "Clé de voûte à double tranchant : Attaque des invocations +35 % · Défense des invocations −6.",
+              "mods": {
+                "unit_atk": 0.35,
+                "unit_def": -0.3
+              },
+              "kind": "keystone",
+              "x": 2.5,
+              "parents": [
+                "berserk"
+              ]
+            }
+          ]
+        }
+      ]
     },
     {
-     "req": 5,
-     "nodes": [
-      {
-       "id": "frenesie",
-       "name": "Frénésie",
-       "max": 5,
-       "desc": "Frénésie : +0,4 s par rang.",
-       "mods": {
-        "frenzy_dur": 0.4
-       }
-      },
-      {
-       "id": "peau_dure",
-       "name": "Peau dure",
-       "max": 5,
-       "desc": "Invocations : +4 % de PV par rang.",
-       "mods": {
-        "unit_hp": 0.04
-       }
-      },
-      {
-       "id": "hache_tournoyante_t",
-       "name": "Tourbillon",
-       "max": 1,
-       "desc": "Nouveau sort : une hache tournoyante fauche une zone.",
-       "kind": "spell",
-       "unlock": "hache_tournoyante"
-      }
-     ]
+      "id": "totem",
+      "name": "Totem",
+      "theme": "Cris, renfort des alliés",
+      "color": "F2B040",
+      "icon": "hurlement",
+      "tiers": [
+        {
+          "req": 0,
+          "nodes": [
+            {
+              "id": "cri_guerre",
+              "name": "Cri de guerre",
+              "max": 5,
+              "desc": "Compagnons : +4 % d'attaque par rang.",
+              "mods": {
+                "bot_atk": 0.04
+              },
+              "x": 0.0
+            },
+            {
+              "id": "totem_rage",
+              "name": "Totem de rage",
+              "max": 5,
+              "desc": "Invocations : +3 % d'attaque par rang.",
+              "mods": {
+                "unit_atk": 0.03
+              },
+              "x": 1.5
+            },
+            {
+              "id": "esprit_ancetres",
+              "name": "Esprit des ancêtres",
+              "max": 5,
+              "desc": "Bouclier de Barrière au départ +3 par rang.",
+              "mods": {
+                "start_shield": 3
+              },
+              "x": 3.0
+            }
+          ]
+        },
+        {
+          "req": 5,
+          "nodes": [
+            {
+              "id": "tambours",
+              "name": "Tambours",
+              "max": 5,
+              "desc": "Jauge Surge : +4 % de gain par rang.",
+              "mods": {
+                "surge_gain": 0.04
+              },
+              "x": 0.0,
+              "parents": [
+                "cri_guerre"
+              ]
+            },
+            {
+              "id": "clameur",
+              "name": "Clameur",
+              "max": 5,
+              "desc": "Frénésie : +0,3 s par rang.",
+              "mods": {
+                "frenzy_dur": 0.3
+              },
+              "x": 1.0,
+              "parents": [
+                "cri_guerre",
+                "totem_rage"
+              ]
+            },
+            {
+              "id": "hurlement_t",
+              "name": "Hurlement",
+              "max": 1,
+              "desc": "Nouveau sort : toutes les invocations entrent en frénésie 4 s.",
+              "kind": "spell",
+              "unlock": "hurlement",
+              "x": 2.0,
+              "parents": [
+                "totem_rage",
+                "esprit_ancetres"
+              ]
+            },
+            {
+              "id": "danse_guerre",
+              "name": "Danse de guerre",
+              "max": 5,
+              "desc": "Cadence du Flux +2 % par rang.",
+              "mods": {
+                "cadence": 0.02
+              },
+              "x": 3.0,
+              "parents": [
+                "esprit_ancetres"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 10,
+          "nodes": [
+            {
+              "id": "meute",
+              "name": "Meute",
+              "max": 5,
+              "desc": "Invocations : +4 % de PV par rang.",
+              "mods": {
+                "unit_hp": 0.04
+              },
+              "x": 0.0,
+              "parents": [
+                "tambours",
+                "clameur"
+              ]
+            },
+            {
+              "id": "ancetres",
+              "name": "Ancêtres",
+              "max": 5,
+              "desc": "Barrière : +3 % de PV max par rang.",
+              "mods": {
+                "barrier_max": 0.03
+              },
+              "x": 1.0,
+              "parents": [
+                "tambours",
+                "clameur",
+                "hurlement_t"
+              ]
+            },
+            {
+              "id": "transe",
+              "name": "Transe",
+              "max": 5,
+              "desc": "Sorts : −2 % de coût en mana par rang.",
+              "mods": {
+                "spell_cost": 0.02
+              },
+              "x": 2.0,
+              "parents": [
+                "clameur",
+                "hurlement_t",
+                "danse_guerre"
+              ]
+            },
+            {
+              "id": "totem_loup",
+              "name": "Totem du loup",
+              "max": 5,
+              "desc": "Vitesse des invocations +3 % par rang.",
+              "mods": {
+                "unit_speed": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "hurlement_t",
+                "danse_guerre"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 15,
+          "nodes": [
+            {
+              "id": "totem_ours",
+              "name": "Totem de l'ours",
+              "max": 5,
+              "desc": "PV des invocations +3 % par rang.",
+              "mods": {
+                "unit_hp": 0.03
+              },
+              "x": 0.0,
+              "parents": [
+                "meute",
+                "ancetres"
+              ]
+            },
+            {
+              "id": "totem_aigle",
+              "name": "Totem de l'aigle",
+              "max": 5,
+              "desc": "Chance de critique +0,8 % par rang.",
+              "mods": {
+                "crit": 0.008
+              },
+              "x": 1.5,
+              "parents": [
+                "ancetres",
+                "transe"
+              ]
+            },
+            {
+              "id": "veillee_b",
+              "name": "Veillée",
+              "max": 5,
+              "desc": "Recharge des sorts −2 % par rang.",
+              "mods": {
+                "cd_red": 0.02
+              },
+              "x": 3.0,
+              "parents": [
+                "transe",
+                "totem_loup"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 20,
+          "nodes": [
+            {
+              "id": "chant_clans",
+              "name": "Chant des clans",
+              "max": 3,
+              "desc": "Compagnons : +5 % d'attaque par rang.",
+              "mods": {
+                "bot_atk": 0.05
+              },
+              "x": 0.0,
+              "parents": [
+                "totem_ours"
+              ]
+            },
+            {
+              "id": "seigneur_aguerri",
+              "name": "Seigneur aguerri",
+              "max": 1,
+              "desc": "Évolution : Champion +30 % de PV, +25 % d'attaque.",
+              "kind": "evolution",
+              "mods": {
+                "champ_hp": 0.3,
+                "champ_atk": 0.25
+              },
+              "x": 1.5,
+              "parents": [
+                "totem_aigle"
+              ]
+            },
+            {
+              "id": "grand_totem",
+              "name": "Grand totem",
+              "max": 3,
+              "desc": "Attaque des compagnons +4 % par rang · Auras de soin +5 % par rang.",
+              "mods": {
+                "bot_atk": 0.04,
+                "aura_heal": 0.05
+              },
+              "x": 3.0,
+              "parents": [
+                "veillee_b"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 25,
+          "nodes": [
+            {
+              "id": "voix_ancetres",
+              "name": "Voix des ancêtres",
+              "max": 3,
+              "desc": "Gain de Surge +6 % par rang.",
+              "mods": {
+                "surge_gain": 0.06
+              },
+              "x": 0.5,
+              "parents": [
+                "chant_clans",
+                "seigneur_aguerri"
+              ]
+            },
+            {
+              "id": "clan_uni",
+              "name": "Clan uni",
+              "max": 3,
+              "desc": "PV du Champion +8 % par rang · Attaque du Champion +6 % par rang.",
+              "mods": {
+                "champ_hp": 0.08,
+                "champ_atk": 0.06
+              },
+              "x": 2.5,
+              "parents": [
+                "seigneur_aguerri",
+                "grand_totem"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 30,
+          "nodes": [
+            {
+              "id": "chef_clan",
+              "name": "Chef de clan",
+              "max": 1,
+              "desc": "Clé de voûte : les compagnons gagnent +30 % d'attaque et de PV.",
+              "kind": "keystone",
+              "mods": {
+                "clan_chief": 1
+              },
+              "x": 0.5,
+              "parents": [
+                "voix_ancetres"
+              ]
+            },
+            {
+              "id": "tambour_guerre",
+              "name": "Tambour de guerre",
+              "max": 1,
+              "desc": "Clé de voûte à double tranchant : Attaque des compagnons +30 % · Régénération de mana −20 %.",
+              "mods": {
+                "bot_atk": 0.3,
+                "mana_regen": -0.2
+              },
+              "kind": "keystone",
+              "x": 2.5,
+              "parents": [
+                "clan_uni"
+              ]
+            }
+          ]
+        }
+      ]
     },
     {
-     "req": 10,
-     "nodes": [
-      {
-       "id": "carnage_n",
-       "name": "Carnage",
-       "max": 5,
-       "desc": "+1 % de chances de critique par rang.",
-       "mods": {
-        "crit": 0.01
-       }
-      },
-      {
-       "id": "rage_n",
-       "name": "Rage",
-       "max": 5,
-       "desc": "Invocations : +3 % de cadence par rang.",
-       "mods": {
-        "cadence": 0.03
-       }
-      },
-      {
-       "id": "sang_chaud",
-       "name": "Sang chaud",
-       "max": 5,
-       "desc": "+4 % de régénération de mana par rang.",
-       "mods": {
-        "mana_regen": 0.04
-       }
-      }
-     ]
-    },
-    {
-     "req": 20,
-     "nodes": [
-      {
-       "id": "boucher",
-       "name": "Boucher",
-       "max": 3,
-       "desc": "Invocations : +5 % d'attaque par rang.",
-       "mods": {
-        "unit_atk": 0.05
-       }
-      },
-      {
-       "id": "dechainement_plus",
-       "name": "Déchaînement+",
-       "max": 1,
-       "desc": "Évolution : +3 s de frénésie, +25 % de dégâts.",
-       "kind": "evolution",
-       "mods": {
-        "ult_dur": 3,
-        "ult_dmg": 0.25
-       }
-      }
-     ]
-    },
-    {
-     "req": 30,
-     "nodes": [
-      {
-       "id": "soif",
-       "name": "Soif",
-       "max": 1,
-       "desc": "Clé de voûte : le vol de vie des invocations soigne aussi la Barrière (1 % des dégâts, 2 PV/s au plus).",
-       "kind": "keystone",
-       "mods": {
-        "thirst": 1
-       }
-      }
-     ]
+      "id": "fureur",
+      "name": "Fureur primordiale",
+      "theme": "Voie du Surge : risque et récompense",
+      "color": "D9442A",
+      "icon": "rage_primordiale",
+      "unlock_flag": "s1.verite_cendres",
+      "locked": "Voie du Surge : s'ouvre à la fin de l'acte 3 (la Vérité des Cendres, 3-10).",
+      "tiers": [
+        {
+          "req": 0,
+          "nodes": [
+            {
+              "id": "bord_gouffre",
+              "name": "Au bord du gouffre",
+              "max": 5,
+              "desc": "Barrière sous 50 % : invocations +6 % de dégâts par rang.",
+              "mods": {
+                "low_barrier_atk": 0.06
+              },
+              "x": 0.0
+            },
+            {
+              "id": "sang_bouillant",
+              "name": "Sang bouillant",
+              "max": 5,
+              "desc": "Frénésie : +0,3 s par rang.",
+              "mods": {
+                "frenzy_dur": 0.3
+              },
+              "x": 1.5
+            },
+            {
+              "id": "veines_feu",
+              "name": "Veines de feu",
+              "max": 5,
+              "desc": "Invocations de Feu : dégâts +3 % par rang.",
+              "mods": {
+                "unit_elem.feu": 0.03
+              },
+              "x": 3.0
+            }
+          ]
+        },
+        {
+          "req": 5,
+          "nodes": [
+            {
+              "id": "peau_fer",
+              "name": "Peau de fer",
+              "max": 5,
+              "desc": "Invocations : +4 % de PV par rang.",
+              "mods": {
+                "unit_hp": 0.04
+              },
+              "x": 0.0,
+              "parents": [
+                "bord_gouffre"
+              ]
+            },
+            {
+              "id": "furie",
+              "name": "Furie",
+              "max": 5,
+              "desc": "Invocations : +3 % d'attaque par rang.",
+              "mods": {
+                "unit_atk": 0.03
+              },
+              "x": 1.0,
+              "parents": [
+                "bord_gouffre",
+                "sang_bouillant"
+              ]
+            },
+            {
+              "id": "rage_primordiale_t",
+              "name": "Rage primordiale",
+              "max": 1,
+              "desc": "Nouveau sort : la Barrière paie 8 PV, frénésie générale 6 s.",
+              "kind": "spell",
+              "unlock": "rage_primordiale",
+              "x": 2.0,
+              "parents": [
+                "sang_bouillant",
+                "veines_feu"
+              ]
+            },
+            {
+              "id": "rage_ancienne",
+              "name": "Rage ancienne",
+              "max": 5,
+              "desc": "Durée de la frénésie +0,3 s par rang.",
+              "mods": {
+                "frenzy_dur": 0.3
+              },
+              "x": 3.0,
+              "parents": [
+                "veines_feu"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 10,
+          "nodes": [
+            {
+              "id": "hurle_sang",
+              "name": "Hurle-sang",
+              "max": 5,
+              "desc": "Invocations : +2 % de vol de vie par rang.",
+              "mods": {
+                "lifesteal": 0.02
+              },
+              "x": 0.0,
+              "parents": [
+                "peau_fer",
+                "furie"
+              ]
+            },
+            {
+              "id": "ivresse",
+              "name": "Ivresse",
+              "max": 5,
+              "desc": "+1 % de chances de critique par rang.",
+              "mods": {
+                "crit": 0.01
+              },
+              "x": 1.0,
+              "parents": [
+                "peau_fer",
+                "furie",
+                "rage_primordiale_t"
+              ]
+            },
+            {
+              "id": "rage_froide",
+              "name": "Rage froide",
+              "max": 5,
+              "desc": "Sorts : −2 % de coût en mana par rang.",
+              "mods": {
+                "spell_cost": 0.02
+              },
+              "x": 2.0,
+              "parents": [
+                "furie",
+                "rage_primordiale_t",
+                "rage_ancienne"
+              ]
+            },
+            {
+              "id": "corps_brise",
+              "name": "Corps brisé",
+              "max": 5,
+              "desc": "Dégâts quand la Barrière vacille +3 % par rang.",
+              "mods": {
+                "low_barrier_atk": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "rage_primordiale_t",
+                "rage_ancienne"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 15,
+          "nodes": [
+            {
+              "id": "fureur_volcan",
+              "name": "Fureur du volcan",
+              "max": 5,
+              "desc": "Résistance des invocations au Feu +5 % par rang.",
+              "mods": {
+                "resist.feu": 0.05
+              },
+              "x": 0.0,
+              "parents": [
+                "hurle_sang",
+                "ivresse"
+              ]
+            },
+            {
+              "id": "sang_titans",
+              "name": "Sang des titans",
+              "max": 5,
+              "desc": "PV des invocations +3 % par rang.",
+              "mods": {
+                "unit_hp": 0.03
+              },
+              "x": 1.5,
+              "parents": [
+                "ivresse",
+                "rage_froide"
+              ]
+            },
+            {
+              "id": "cri_primal",
+              "name": "Cri primal",
+              "max": 5,
+              "desc": "Recharge des sorts −2 % par rang.",
+              "mods": {
+                "cd_red": 0.02
+              },
+              "x": 3.0,
+              "parents": [
+                "rage_froide",
+                "corps_brise"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 20,
+          "nodes": [
+            {
+              "id": "primordial",
+              "name": "Primordial",
+              "max": 3,
+              "desc": "Barrière sous 50 % : invocations +5 % de dégâts par rang.",
+              "mods": {
+                "low_barrier_atk": 0.05
+              },
+              "x": 0.0,
+              "parents": [
+                "fureur_volcan"
+              ]
+            },
+            {
+              "id": "dechainement_primordial",
+              "name": "Déchaînement primordial",
+              "max": 1,
+              "desc": "Évolution : +3 s de frénésie, +20 % de dégâts.",
+              "kind": "evolution",
+              "mods": {
+                "ult_dur": 3,
+                "ult_dmg": 0.2
+              },
+              "x": 1.5,
+              "parents": [
+                "sang_titans"
+              ]
+            },
+            {
+              "id": "colosse_rage",
+              "name": "Colosse de rage",
+              "max": 3,
+              "desc": "Attaque du Champion +8 % par rang · Dégâts quand la Barrière vacille +3 % par rang.",
+              "mods": {
+                "champ_atk": 0.08,
+                "low_barrier_atk": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "cri_primal"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 25,
+          "nodes": [
+            {
+              "id": "avatar_fureur",
+              "name": "Avatar de la fureur",
+              "max": 3,
+              "desc": "Attaque des invocations +6 % par rang.",
+              "mods": {
+                "unit_atk": 0.06
+              },
+              "x": 0.5,
+              "parents": [
+                "primordial",
+                "dechainement_primordial"
+              ]
+            },
+            {
+              "id": "indomptable",
+              "name": "Indomptable",
+              "max": 3,
+              "desc": "Barrière +0,1 PV/s par rang.",
+              "mods": {
+                "barrier_regen": 0.06
+              },
+              "x": 2.5,
+              "parents": [
+                "dechainement_primordial",
+                "colosse_rage"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 30,
+          "nodes": [
+            {
+              "id": "rage_aube",
+              "name": "Dernier rempart",
+              "max": 1,
+              "desc": "Clé de voûte (Aube) : sous 25 % de Barrière, toutes les invocations restent en frénésie.",
+              "kind": "keystone",
+              "mods": {
+                "rage_low": 1
+              },
+              "flag": "s1.voie_aube",
+              "flag_text": "Voie de l'Aube (choix de 3-10)",
+              "x": 0.0,
+              "parents": [
+                "avatar_fureur"
+              ]
+            },
+            {
+              "id": "rage_cendres",
+              "name": "Rage de sang",
+              "max": 1,
+              "desc": "Clé de voûte (Cendres) : la frénésie passe à +120 % de dégâts, mais la Barrière perd 1,5 PV/s tant qu'elle dure.",
+              "kind": "keystone",
+              "mods": {
+                "blood_rage": 1
+              },
+              "flag": "s1.voie_cendres",
+              "flag_text": "Voie des Cendres (choix de 3-10)",
+              "x": 1.5,
+              "parents": [
+                "avatar_fureur",
+                "indomptable"
+              ]
+            },
+            {
+              "id": "folie",
+              "name": "Folie",
+              "max": 1,
+              "desc": "Clé de voûte à double tranchant : Dégâts quand la Barrière vacille +40 % · PV de Barrière −20 %.",
+              "mods": {
+                "low_barrier_atk": 0.4,
+                "barrier_max": -0.2
+              },
+              "kind": "keystone",
+              "x": 3.0,
+              "parents": [
+                "indomptable"
+              ]
+            }
+          ]
+        }
+      ]
     }
-   ]
-  },
-  {
-   "id": "totem",
-   "name": "Totem",
-   "theme": "Cris, renfort des alliés",
-   "color": "F2B040",
-   "icon": "hurlement",
-   "tiers": [
-    {
-     "req": 0,
-     "nodes": [
-      {
-       "id": "cri_guerre",
-       "name": "Cri de guerre",
-       "max": 5,
-       "desc": "Compagnons : +4 % d'attaque par rang.",
-       "mods": {
-        "bot_atk": 0.04
-       }
-      },
-      {
-       "id": "totem_rage",
-       "name": "Totem de rage",
-       "max": 5,
-       "desc": "Invocations : +3 % d'attaque par rang.",
-       "mods": {
-        "unit_atk": 0.03
-       }
-      }
-     ]
-    },
-    {
-     "req": 5,
-     "nodes": [
-      {
-       "id": "tambours",
-       "name": "Tambours",
-       "max": 5,
-       "desc": "Jauge Surge : +4 % de gain par rang.",
-       "mods": {
-        "surge_gain": 0.04
-       }
-      },
-      {
-       "id": "clameur",
-       "name": "Clameur",
-       "max": 5,
-       "desc": "Frénésie : +0,3 s par rang.",
-       "mods": {
-        "frenzy_dur": 0.3
-       }
-      },
-      {
-       "id": "hurlement_t",
-       "name": "Hurlement",
-       "max": 1,
-       "desc": "Nouveau sort : toutes les invocations entrent en frénésie 4 s.",
-       "kind": "spell",
-       "unlock": "hurlement"
-      }
-     ]
-    },
-    {
-     "req": 10,
-     "nodes": [
-      {
-       "id": "meute",
-       "name": "Meute",
-       "max": 5,
-       "desc": "Invocations : +4 % de PV par rang.",
-       "mods": {
-        "unit_hp": 0.04
-       }
-      },
-      {
-       "id": "ancetres",
-       "name": "Ancêtres",
-       "max": 5,
-       "desc": "Barrière : +3 % de PV max par rang.",
-       "mods": {
-        "barrier_max": 0.03
-       }
-      },
-      {
-       "id": "transe",
-       "name": "Transe",
-       "max": 5,
-       "desc": "Sorts : −2 % de coût en mana par rang.",
-       "mods": {
-        "spell_cost": 0.02
-       }
-      }
-     ]
-    },
-    {
-     "req": 20,
-     "nodes": [
-      {
-       "id": "chant_clans",
-       "name": "Chant des clans",
-       "max": 3,
-       "desc": "Compagnons : +5 % d'attaque par rang.",
-       "mods": {
-        "bot_atk": 0.05
-       }
-      },
-      {
-       "id": "seigneur_aguerri",
-       "name": "Seigneur aguerri",
-       "max": 1,
-       "desc": "Évolution : Champion +30 % de PV, +25 % d'attaque.",
-       "kind": "evolution",
-       "mods": {
-        "champ_hp": 0.3,
-        "champ_atk": 0.25
-       }
-      }
-     ]
-    },
-    {
-     "req": 30,
-     "nodes": [
-      {
-       "id": "chef_clan",
-       "name": "Chef de clan",
-       "max": 1,
-       "desc": "Clé de voûte : les compagnons gagnent +30 % d'attaque et de PV.",
-       "kind": "keystone",
-       "mods": {
-        "clan_chief": 1
-       }
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "id": "fureur",
-   "name": "Fureur primordiale",
-   "theme": "Voie du Surge : risque et récompense",
-   "color": "D9442A",
-   "icon": "rage_primordiale",
-   "unlock_flag": "s1.verite_cendres",
-   "locked": "Voie du Surge : s'ouvre à la fin de l'acte 3 (la Vérité des Cendres, 3-10).",
-   "tiers": [
-    {
-     "req": 0,
-     "nodes": [
-      {
-       "id": "bord_gouffre",
-       "name": "Au bord du gouffre",
-       "max": 5,
-       "desc": "Barrière sous 50 % : invocations +6 % de dégâts par rang.",
-       "mods": {
-        "low_barrier_atk": 0.06
-       }
-      },
-      {
-       "id": "sang_bouillant",
-       "name": "Sang bouillant",
-       "max": 5,
-       "desc": "Frénésie : +0,3 s par rang.",
-       "mods": {
-        "frenzy_dur": 0.3
-       }
-      }
-     ]
-    },
-    {
-     "req": 5,
-     "nodes": [
-      {
-       "id": "peau_fer",
-       "name": "Peau de fer",
-       "max": 5,
-       "desc": "Invocations : +4 % de PV par rang.",
-       "mods": {
-        "unit_hp": 0.04
-       }
-      },
-      {
-       "id": "furie",
-       "name": "Furie",
-       "max": 5,
-       "desc": "Invocations : +3 % d'attaque par rang.",
-       "mods": {
-        "unit_atk": 0.03
-       }
-      },
-      {
-       "id": "rage_primordiale_t",
-       "name": "Rage primordiale",
-       "max": 1,
-       "desc": "Nouveau sort : la Barrière paie 8 PV, frénésie générale 6 s.",
-       "kind": "spell",
-       "unlock": "rage_primordiale"
-      }
-     ]
-    },
-    {
-     "req": 10,
-     "nodes": [
-      {
-       "id": "hurle_sang",
-       "name": "Hurle-sang",
-       "max": 5,
-       "desc": "Invocations : +2 % de vol de vie par rang.",
-       "mods": {
-        "lifesteal": 0.02
-       }
-      },
-      {
-       "id": "ivresse",
-       "name": "Ivresse",
-       "max": 5,
-       "desc": "+1 % de chances de critique par rang.",
-       "mods": {
-        "crit": 0.01
-       }
-      },
-      {
-       "id": "rage_froide",
-       "name": "Rage froide",
-       "max": 5,
-       "desc": "Sorts : −2 % de coût en mana par rang.",
-       "mods": {
-        "spell_cost": 0.02
-       }
-      }
-     ]
-    },
-    {
-     "req": 20,
-     "nodes": [
-      {
-       "id": "primordial",
-       "name": "Primordial",
-       "max": 3,
-       "desc": "Barrière sous 50 % : invocations +5 % de dégâts par rang.",
-       "mods": {
-        "low_barrier_atk": 0.05
-       }
-      },
-      {
-       "id": "dechainement_primordial",
-       "name": "Déchaînement primordial",
-       "max": 1,
-       "desc": "Évolution : +3 s de frénésie, +20 % de dégâts.",
-       "kind": "evolution",
-       "mods": {
-        "ult_dur": 3,
-        "ult_dmg": 0.2
-       }
-      }
-     ]
-    },
-    {
-     "req": 30,
-     "nodes": [
-      {
-       "id": "rage_aube",
-       "name": "Dernier rempart",
-       "max": 1,
-       "desc": "Clé de voûte (Aube) : sous 25 % de Barrière, toutes les invocations restent en frénésie.",
-       "kind": "keystone",
-       "mods": {
-        "rage_low": 1
-       },
-       "flag": "s1.voie_aube",
-       "flag_text": "Voie de l'Aube (choix de 3-10)"
-      },
-      {
-       "id": "rage_cendres",
-       "name": "Rage de sang",
-       "max": 1,
-       "desc": "Clé de voûte (Cendres) : la frénésie passe à +120 % de dégâts, mais la Barrière perd 1,5 PV/s tant qu'elle dure.",
-       "kind": "keystone",
-       "mods": {
-        "blood_rage": 1
-       },
-       "flag": "s1.voie_cendres",
-       "flag_text": "Voie des Cendres (choix de 3-10)"
-      }
-     ]
-    }
-   ]
-  }
- ]
+  ]
 }

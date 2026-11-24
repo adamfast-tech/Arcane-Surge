@@ -2,75 +2,1008 @@
   "class": "mage",
   "keystone_limit": 2,
   "branches": [
-    {"id": "pyro", "name": "Pyromancie", "theme": "Feu, brûlure", "color": "FF9B4A", "icon": "boule_de_feu", "tiers": [
-      {"req": 0, "nodes": [
-        {"id": "combustion", "name": "Combustion", "max": 5, "desc": "Brûlure : +8 % de dégâts par rang.", "mods": {"burn_dmg": 0.08}},
-        {"id": "ardeur", "name": "Ardeur", "max": 5, "desc": "Sorts de Feu : +4 % de dégâts par rang.", "mods": {"elem_dmg.feu": 0.04}}
-      ]},
-      {"req": 5, "nodes": [
-        {"id": "braises", "name": "Braises", "max": 5, "desc": "Brûlure : +0,4 s par rang.", "mods": {"burn_dur": 0.4}},
-        {"id": "etincelle", "name": "Étincelle", "max": 5, "desc": "Boule de feu : +6 % de rayon par rang.", "mods": {"radius.boule_de_feu": 0.06}},
-        {"id": "brasier", "name": "Brasier", "max": 1, "kind": "spell", "desc": "Nouveau sort : un brasier embrase une zone pendant 4 s.", "unlock": "brasier"}
-      ]},
-      {"req": 10, "nodes": [
-        {"id": "fournaise", "name": "Fournaise", "max": 5, "desc": "+1 % de chances de critique par rang.", "mods": {"crit": 0.01}},
-        {"id": "feu_devorant", "name": "Feu dévorant", "max": 5, "desc": "Les ennemis qui brûlent subissent +4 % de dégâts par rang.", "mods": {"burning_vuln": 0.04}},
-        {"id": "flamme_sobre", "name": "Flamme sobre", "max": 5, "desc": "Sorts : −2 % de coût en mana par rang.", "mods": {"spell_cost": 0.02}}
-      ]},
-      {"req": 20, "nodes": [
-        {"id": "coeur_ardent", "name": "Cœur ardent", "max": 3, "desc": "Sorts de Feu : +5 % de dégâts par rang.", "mods": {"elem_dmg.feu": 0.05}},
-        {"id": "meteore_plus", "name": "Météore+", "max": 1, "kind": "evolution", "desc": "Évolution de l'Ultime : Météore arcanique +30 % de rayon, +25 % de dégâts.", "mods": {"ult_radius": 0.3, "ult_dmg": 0.25}}
-      ]},
-      {"req": 30, "nodes": [
-        {"id": "embrasement", "name": "Embrasement", "max": 1, "kind": "keystone", "desc": "Clé de voûte : la brûlure se propage aux ennemis proches à la mort de la cible.", "mods": {"embrasement": 1}}
-      ]}
-    ]},
-    {"id": "cryo", "name": "Cryomancie", "theme": "Givre, contrôle", "color": "9FE3FF", "icon": "pluie_de_givre", "tiers": [
-      {"req": 0, "nodes": [
-        {"id": "morsure", "name": "Morsure du froid", "max": 5, "desc": "Sorts de Givre : +6 % de dégâts par rang.", "mods": {"elem_dmg.givre": 0.06}},
-        {"id": "gel_profond", "name": "Gel profond", "max": 5, "desc": "Gel : +0,2 s par rang.", "mods": {"frozen_dur": 0.2}}
-      ]},
-      {"req": 5, "nodes": [
-        {"id": "eclats", "name": "Éclats", "max": 5, "desc": "Les ennemis gelés subissent +5 % de dégâts par rang.", "mods": {"frozen_vuln": 0.05}},
-        {"id": "givre_persistant", "name": "Givre persistant", "max": 5, "desc": "Pluie de givre : +0,3 s par rang.", "mods": {"dur.pluie_de_givre": 0.3}},
-        {"id": "prison_glace", "name": "Prison de glace", "max": 1, "kind": "spell", "desc": "Nouveau sort : gèle tous les ennemis d'une petite zone pendant 2 s.", "unlock": "prison_glace"}
-      ]},
-      {"req": 10, "nodes": [
-        {"id": "hiver", "name": "Hiver", "max": 5, "desc": "Zones de sorts : +4 % de ralentissement par rang.", "mods": {"zone_slow": 0.04}},
-        {"id": "blizzard", "name": "Blizzard", "max": 5, "desc": "Pluie de givre : +6 % de rayon par rang.", "mods": {"radius.pluie_de_givre": 0.06}},
-        {"id": "cristal", "name": "Cristal de mana", "max": 5, "desc": "+4 % de régénération de mana par rang.", "mods": {"mana_regen": 0.04}}
-      ]},
-      {"req": 20, "nodes": [
-        {"id": "coeur_glace", "name": "Cœur de glace", "max": 3, "desc": "Sorts de Givre : +5 % de dégâts par rang.", "mods": {"elem_dmg.givre": 0.05}},
-        {"id": "golem_givre", "name": "Golem de givre", "max": 1, "kind": "evolution", "desc": "Évolution du Champion : il devient de Givre et gagne +30 % de PV.", "mods": {"champ_hp": 0.3, "champ_givre": 1}}
-      ]},
-      {"req": 30, "nodes": [
-        {"id": "zero_absolu", "name": "Zéro absolu", "max": 1, "kind": "keystone", "desc": "Clé de voûte : le gel survient dès 2 cumuls de givre au lieu de 3.", "mods": {"zero_absolu": 1}}
-      ]}
-    ]},
-    {"id": "arcano", "name": "Arcanomancie", "theme": "Voie du Surge : portails, mana, jauge Surge", "color": "B07CFF", "icon": "rune", "unlock_flag": "s1.verite_cendres", "locked": "Voie du Surge : s'ouvre à la fin de l'acte 3 (la Vérité des Cendres, 3-10).", "tiers": [
-      {"req": 0, "nodes": [
-        {"id": "resonance", "name": "Résonance", "max": 5, "desc": "Sorts d'Arcane : +6 % de dégâts par rang.", "mods": {"elem_dmg.arcane": 0.06}},
-        {"id": "flux_vital", "name": "Flux vital", "max": 3, "desc": "Mana : +4 % de régénération par rang.", "mods": {"mana_regen": 0.04}}
-      ]},
-      {"req": 5, "nodes": [
-        {"id": "eclat_surge", "name": "Éclat du Surge", "max": 5, "desc": "Jauge Surge : +6 % de gain par rang.", "mods": {"surge_gain": 0.06}},
-        {"id": "portail_instable", "name": "Portail instable", "max": 3, "desc": "Onde arcanique : +8 % de rayon par rang.", "mods": {"radius.onde_arcanique": 0.08}},
-        {"id": "distorsion_t", "name": "Distorsion", "max": 1, "kind": "spell", "desc": "Nouveau sort : le temps ralentit dans une zone pendant 5 s.", "unlock": "distorsion"}
-      ]},
-      {"req": 10, "nodes": [
-        {"id": "concentration", "name": "Concentration", "max": 5, "desc": "Sorts : −2 % de coût en mana par rang.", "mods": {"spell_cost": 0.02}},
-        {"id": "esprit_vif", "name": "Esprit vif", "max": 5, "desc": "Coups critiques : +1 % de chance par rang.", "mods": {"crit": 0.01}},
-        {"id": "faille_ouverte", "name": "Faille ouverte", "max": 3, "desc": "Distorsion : +0,3 s de durée par rang.", "mods": {"dur.distorsion": 0.3}}
-      ]},
-      {"req": 20, "nodes": [
-        {"id": "coeur_arcane", "name": "Cœur arcanique", "max": 3, "desc": "Sorts d'Arcane : +5 % de dégâts par rang.", "mods": {"elem_dmg.arcane": 0.05}},
-        {"id": "meteore_surge", "name": "Météore du Surge", "max": 1, "kind": "evolution", "desc": "Évolution de l'Ultime : +20 % de dégâts, +20 % de rayon, jauge Surge +10 %.", "mods": {"ult_dmg": 0.2, "ult_radius": 0.2, "surge_gain": 0.1}}
-      ]},
-      {"req": 30, "nodes": [
-        {"id": "aube_eternelle", "name": "Aube éternelle", "max": 1, "kind": "keystone", "flag": "s1.voie_aube", "flag_text": "Voie de l'Aube (choix de 3-10)", "desc": "Clé de voûte (Aube) : la Barrière se répare de 0,4 PV par seconde.", "mods": {"barrier_regen": 0.4}},
-        {"id": "cendres_vives", "name": "Cendres vives", "max": 1, "kind": "keystone", "flag": "s1.voie_cendres", "flag_text": "Voie des Cendres (choix de 3-10)", "desc": "Clé de voûte (Cendres) : chaque ennemi abattu rend 1 point de mana.", "mods": {"kill_mana": 1.0}}
-      ]}
-    ]}
+    {
+      "id": "pyro",
+      "name": "Pyromancie",
+      "theme": "Feu, brûlure",
+      "color": "FF9B4A",
+      "icon": "boule_de_feu",
+      "tiers": [
+        {
+          "req": 0,
+          "nodes": [
+            {
+              "id": "combustion",
+              "name": "Combustion",
+              "max": 5,
+              "desc": "Brûlure : +8 % de dégâts par rang.",
+              "mods": {
+                "burn_dmg": 0.08
+              },
+              "x": 0.0
+            },
+            {
+              "id": "ardeur",
+              "name": "Ardeur",
+              "max": 5,
+              "desc": "Sorts de Feu : +4 % de dégâts par rang.",
+              "mods": {
+                "elem_dmg.feu": 0.04
+              },
+              "x": 1.5
+            },
+            {
+              "id": "etincelles_vives",
+              "name": "Étincelles vives",
+              "max": 5,
+              "desc": "Invocations de Feu : dégâts +3 % par rang.",
+              "mods": {
+                "unit_elem.feu": 0.03
+              },
+              "x": 3.0
+            }
+          ]
+        },
+        {
+          "req": 5,
+          "nodes": [
+            {
+              "id": "braises",
+              "name": "Braises",
+              "max": 5,
+              "desc": "Brûlure : +0,4 s par rang.",
+              "mods": {
+                "burn_dur": 0.4
+              },
+              "x": 0.0,
+              "parents": [
+                "combustion"
+              ]
+            },
+            {
+              "id": "etincelle",
+              "name": "Étincelle",
+              "max": 5,
+              "desc": "Boule de feu : +6 % de rayon par rang.",
+              "mods": {
+                "radius.boule_de_feu": 0.06
+              },
+              "x": 1.0,
+              "parents": [
+                "combustion",
+                "ardeur"
+              ]
+            },
+            {
+              "id": "brasier",
+              "name": "Brasier",
+              "max": 1,
+              "kind": "spell",
+              "desc": "Nouveau sort : un brasier embrase une zone pendant 4 s.",
+              "unlock": "brasier",
+              "x": 2.0,
+              "parents": [
+                "ardeur",
+                "etincelles_vives"
+              ]
+            },
+            {
+              "id": "torche_vivante",
+              "name": "Torche vivante",
+              "max": 5,
+              "desc": "Résistance des invocations au Feu +4 % par rang.",
+              "mods": {
+                "resist.feu": 0.04
+              },
+              "x": 3.0,
+              "parents": [
+                "etincelles_vives"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 10,
+          "nodes": [
+            {
+              "id": "fournaise",
+              "name": "Fournaise",
+              "max": 5,
+              "desc": "+1 % de chances de critique par rang.",
+              "mods": {
+                "crit": 0.01
+              },
+              "x": 0.0,
+              "parents": [
+                "braises",
+                "etincelle"
+              ]
+            },
+            {
+              "id": "feu_devorant",
+              "name": "Feu dévorant",
+              "max": 5,
+              "desc": "Les ennemis qui brûlent subissent +4 % de dégâts par rang.",
+              "mods": {
+                "burning_vuln": 0.04
+              },
+              "x": 1.0,
+              "parents": [
+                "braises",
+                "etincelle",
+                "brasier"
+              ]
+            },
+            {
+              "id": "flamme_sobre",
+              "name": "Flamme sobre",
+              "max": 5,
+              "desc": "Sorts : −2 % de coût en mana par rang.",
+              "mods": {
+                "spell_cost": 0.02
+              },
+              "x": 2.0,
+              "parents": [
+                "etincelle",
+                "brasier",
+                "torche_vivante"
+              ]
+            },
+            {
+              "id": "cendres_nourricieres",
+              "name": "Cendres nourricières",
+              "max": 5,
+              "desc": "Mana par ennemi abattu +0,1 par rang.",
+              "mods": {
+                "kill_mana": 0.1
+              },
+              "x": 3.0,
+              "parents": [
+                "brasier",
+                "torche_vivante"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 15,
+          "nodes": [
+            {
+              "id": "pyrolatrie",
+              "name": "Pyrolâtrie",
+              "max": 5,
+              "desc": "Dégâts des sorts +2 % par rang.",
+              "mods": {
+                "spell_dmg": 0.02
+              },
+              "x": 0.0,
+              "parents": [
+                "fournaise",
+                "feu_devorant"
+              ]
+            },
+            {
+              "id": "flammes_jumelles",
+              "name": "Flammes jumelles",
+              "max": 3,
+              "desc": "Invocation en double (chance) +2 % par rang.",
+              "mods": {
+                "free_clone": 0.02
+              },
+              "x": 1.5,
+              "parents": [
+                "feu_devorant",
+                "flamme_sobre"
+              ]
+            },
+            {
+              "id": "souffle_ardent",
+              "name": "Souffle ardent",
+              "max": 5,
+              "desc": "Recharge des sorts −2 % par rang.",
+              "mods": {
+                "cd_red": 0.02
+              },
+              "x": 3.0,
+              "parents": [
+                "flamme_sobre",
+                "cendres_nourricieres"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 20,
+          "nodes": [
+            {
+              "id": "coeur_ardent",
+              "name": "Cœur ardent",
+              "max": 3,
+              "desc": "Sorts de Feu : +5 % de dégâts par rang.",
+              "mods": {
+                "elem_dmg.feu": 0.05
+              },
+              "x": 0.0,
+              "parents": [
+                "pyrolatrie"
+              ]
+            },
+            {
+              "id": "meteore_plus",
+              "name": "Météore+",
+              "max": 1,
+              "kind": "evolution",
+              "desc": "Évolution de l'Ultime : Météore arcanique +30 % de rayon, +25 % de dégâts.",
+              "mods": {
+                "ult_radius": 0.3,
+                "ult_dmg": 0.25
+              },
+              "x": 1.5,
+              "parents": [
+                "flammes_jumelles"
+              ]
+            },
+            {
+              "id": "ame_phenix",
+              "name": "Âme du phénix",
+              "max": 3,
+              "desc": "PV des invocations +4 % par rang · Invocations de Feu : dégâts +3 % par rang.",
+              "mods": {
+                "unit_hp": 0.04,
+                "unit_elem.feu": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "souffle_ardent"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 25,
+          "nodes": [
+            {
+              "id": "nova",
+              "name": "Nova",
+              "max": 3,
+              "desc": "Sorts de Feu +6 % par rang.",
+              "mods": {
+                "elem_dmg.feu": 0.06
+              },
+              "x": 0.5,
+              "parents": [
+                "coeur_ardent",
+                "meteore_plus"
+              ]
+            },
+            {
+              "id": "brulure_eternelle",
+              "name": "Brûlure éternelle",
+              "max": 3,
+              "desc": "Dégâts de brûlure +10 % par rang · Durée de brûlure +0,3 s par rang.",
+              "mods": {
+                "burn_dmg": 0.1,
+                "burn_dur": 0.3
+              },
+              "x": 2.5,
+              "parents": [
+                "meteore_plus",
+                "ame_phenix"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 30,
+          "nodes": [
+            {
+              "id": "embrasement",
+              "name": "Embrasement",
+              "max": 1,
+              "kind": "keystone",
+              "desc": "Clé de voûte : la brûlure se propage aux ennemis proches à la mort de la cible.",
+              "mods": {
+                "embrasement": 1
+              },
+              "x": 0.5,
+              "parents": [
+                "nova"
+              ]
+            },
+            {
+              "id": "pyromanie",
+              "name": "Pyromanie",
+              "max": 1,
+              "desc": "Clé de voûte à double tranchant : Sorts de Feu +30 % · Coût des sorts +15 %.",
+              "mods": {
+                "elem_dmg.feu": 0.3,
+                "spell_cost": -0.15
+              },
+              "kind": "keystone",
+              "x": 2.5,
+              "parents": [
+                "brulure_eternelle"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cryo",
+      "name": "Cryomancie",
+      "theme": "Givre, contrôle",
+      "color": "9FE3FF",
+      "icon": "pluie_de_givre",
+      "tiers": [
+        {
+          "req": 0,
+          "nodes": [
+            {
+              "id": "morsure",
+              "name": "Morsure du froid",
+              "max": 5,
+              "desc": "Sorts de Givre : +6 % de dégâts par rang.",
+              "mods": {
+                "elem_dmg.givre": 0.06
+              },
+              "x": 0.0
+            },
+            {
+              "id": "gel_profond",
+              "name": "Gel profond",
+              "max": 5,
+              "desc": "Gel : +0,2 s par rang.",
+              "mods": {
+                "frozen_dur": 0.2
+              },
+              "x": 1.5
+            },
+            {
+              "id": "souffle_glacial",
+              "name": "Souffle glacial",
+              "max": 5,
+              "desc": "Invocations de Givre : dégâts +3 % par rang.",
+              "mods": {
+                "unit_elem.givre": 0.03
+              },
+              "x": 3.0
+            }
+          ]
+        },
+        {
+          "req": 5,
+          "nodes": [
+            {
+              "id": "eclats",
+              "name": "Éclats",
+              "max": 5,
+              "desc": "Les ennemis gelés subissent +5 % de dégâts par rang.",
+              "mods": {
+                "frozen_vuln": 0.05
+              },
+              "x": 0.0,
+              "parents": [
+                "morsure"
+              ]
+            },
+            {
+              "id": "givre_persistant",
+              "name": "Givre persistant",
+              "max": 5,
+              "desc": "Pluie de givre : +0,3 s par rang.",
+              "mods": {
+                "dur.pluie_de_givre": 0.3
+              },
+              "x": 1.0,
+              "parents": [
+                "morsure",
+                "gel_profond"
+              ]
+            },
+            {
+              "id": "prison_glace",
+              "name": "Prison de glace",
+              "max": 1,
+              "kind": "spell",
+              "desc": "Nouveau sort : gèle tous les ennemis d'une petite zone pendant 2 s.",
+              "unlock": "prison_glace",
+              "x": 2.0,
+              "parents": [
+                "gel_profond",
+                "souffle_glacial"
+              ]
+            },
+            {
+              "id": "peau_givre",
+              "name": "Peau de givre",
+              "max": 5,
+              "desc": "Résistance des invocations au Feu +4 % par rang.",
+              "mods": {
+                "resist.feu": 0.04
+              },
+              "x": 3.0,
+              "parents": [
+                "souffle_glacial"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 10,
+          "nodes": [
+            {
+              "id": "hiver",
+              "name": "Hiver",
+              "max": 5,
+              "desc": "Zones de sorts : +4 % de ralentissement par rang.",
+              "mods": {
+                "zone_slow": 0.04
+              },
+              "x": 0.0,
+              "parents": [
+                "eclats",
+                "givre_persistant"
+              ]
+            },
+            {
+              "id": "blizzard",
+              "name": "Blizzard",
+              "max": 5,
+              "desc": "Pluie de givre : +6 % de rayon par rang.",
+              "mods": {
+                "radius.pluie_de_givre": 0.06
+              },
+              "x": 1.0,
+              "parents": [
+                "eclats",
+                "givre_persistant",
+                "prison_glace"
+              ]
+            },
+            {
+              "id": "cristal",
+              "name": "Cristal de mana",
+              "max": 5,
+              "desc": "+4 % de régénération de mana par rang.",
+              "mods": {
+                "mana_regen": 0.04
+              },
+              "x": 2.0,
+              "parents": [
+                "givre_persistant",
+                "prison_glace",
+                "peau_givre"
+              ]
+            },
+            {
+              "id": "carapace_glace",
+              "name": "Carapace de glace",
+              "max": 5,
+              "desc": "Défense des invocations +0,8 par rang.",
+              "mods": {
+                "unit_def": 0.04
+              },
+              "x": 3.0,
+              "parents": [
+                "prison_glace",
+                "peau_givre"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 15,
+          "nodes": [
+            {
+              "id": "stalactites",
+              "name": "Stalactites",
+              "max": 5,
+              "desc": "Dégâts des sorts +2 % par rang.",
+              "mods": {
+                "spell_dmg": 0.02
+              },
+              "x": 0.0,
+              "parents": [
+                "hiver",
+                "blizzard"
+              ]
+            },
+            {
+              "id": "neiges_eternelles",
+              "name": "Neiges éternelles",
+              "max": 5,
+              "desc": "Durée du gel +0,1 s par rang.",
+              "mods": {
+                "frozen_dur": 0.1
+              },
+              "x": 1.5,
+              "parents": [
+                "blizzard",
+                "cristal"
+              ]
+            },
+            {
+              "id": "calme_polaire",
+              "name": "Calme polaire",
+              "max": 5,
+              "desc": "Recharge des sorts −2 % par rang.",
+              "mods": {
+                "cd_red": 0.02
+              },
+              "x": 3.0,
+              "parents": [
+                "cristal",
+                "carapace_glace"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 20,
+          "nodes": [
+            {
+              "id": "coeur_glace",
+              "name": "Cœur de glace",
+              "max": 3,
+              "desc": "Sorts de Givre : +5 % de dégâts par rang.",
+              "mods": {
+                "elem_dmg.givre": 0.05
+              },
+              "x": 0.0,
+              "parents": [
+                "stalactites"
+              ]
+            },
+            {
+              "id": "golem_givre",
+              "name": "Golem de givre",
+              "max": 1,
+              "kind": "evolution",
+              "desc": "Évolution du Champion : il devient de Givre et gagne +30 % de PV.",
+              "mods": {
+                "champ_hp": 0.3,
+                "champ_givre": 1
+              },
+              "x": 1.5,
+              "parents": [
+                "neiges_eternelles"
+              ]
+            },
+            {
+              "id": "permafrost",
+              "name": "Permafrost",
+              "max": 3,
+              "desc": "Dégâts contre les ennemis gelés +5 % par rang · Dégâts subis par la Barrière −2 % par rang.",
+              "mods": {
+                "frozen_vuln": 0.05,
+                "barrier_dr": 0.02
+              },
+              "x": 3.0,
+              "parents": [
+                "calme_polaire"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 25,
+          "nodes": [
+            {
+              "id": "hiver_eternel",
+              "name": "Hiver éternel",
+              "max": 3,
+              "desc": "Sorts de Givre +6 % par rang.",
+              "mods": {
+                "elem_dmg.givre": 0.06
+              },
+              "x": 0.5,
+              "parents": [
+                "coeur_glace",
+                "golem_givre"
+              ]
+            },
+            {
+              "id": "esprit_glacier",
+              "name": "Esprit du glacier",
+              "max": 3,
+              "desc": "PV de Barrière +4 % par rang · Régénération de mana +4 % par rang.",
+              "mods": {
+                "barrier_max": 0.04,
+                "mana_regen": 0.04
+              },
+              "x": 2.5,
+              "parents": [
+                "golem_givre",
+                "permafrost"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 30,
+          "nodes": [
+            {
+              "id": "zero_absolu",
+              "name": "Zéro absolu",
+              "max": 1,
+              "kind": "keystone",
+              "desc": "Clé de voûte : le gel survient dès 2 cumuls de givre au lieu de 3.",
+              "mods": {
+                "zero_absolu": 1
+              },
+              "x": 0.5,
+              "parents": [
+                "hiver_eternel"
+              ]
+            },
+            {
+              "id": "coeur_banquise",
+              "name": "Cœur de banquise",
+              "max": 1,
+              "desc": "Clé de voûte à double tranchant : Durée du gel +1 s · Cadence du Flux −15 %.",
+              "mods": {
+                "frozen_dur": 1.0,
+                "cadence": -0.15
+              },
+              "kind": "keystone",
+              "x": 2.5,
+              "parents": [
+                "esprit_glacier"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "arcano",
+      "name": "Arcanomancie",
+      "theme": "Voie du Surge : portails, mana, jauge Surge",
+      "color": "B07CFF",
+      "icon": "rune",
+      "unlock_flag": "s1.verite_cendres",
+      "locked": "Voie du Surge : s'ouvre à la fin de l'acte 3 (la Vérité des Cendres, 3-10).",
+      "tiers": [
+        {
+          "req": 0,
+          "nodes": [
+            {
+              "id": "resonance",
+              "name": "Résonance",
+              "max": 5,
+              "desc": "Sorts d'Arcane : +6 % de dégâts par rang.",
+              "mods": {
+                "elem_dmg.arcane": 0.06
+              },
+              "x": 0.0
+            },
+            {
+              "id": "flux_vital",
+              "name": "Flux vital",
+              "max": 3,
+              "desc": "Mana : +4 % de régénération par rang.",
+              "mods": {
+                "mana_regen": 0.04
+              },
+              "x": 1.5
+            },
+            {
+              "id": "portail_resonnant",
+              "name": "Portail résonnant",
+              "max": 5,
+              "desc": "Portails Nombre +1 (chance) +2 % par rang.",
+              "mods": {
+                "portal_plus": 0.02
+              },
+              "x": 3.0
+            }
+          ]
+        },
+        {
+          "req": 5,
+          "nodes": [
+            {
+              "id": "eclat_surge",
+              "name": "Éclat du Surge",
+              "max": 5,
+              "desc": "Jauge Surge : +6 % de gain par rang.",
+              "mods": {
+                "surge_gain": 0.06
+              },
+              "x": 0.0,
+              "parents": [
+                "resonance"
+              ]
+            },
+            {
+              "id": "portail_instable",
+              "name": "Portail instable",
+              "max": 3,
+              "desc": "Onde arcanique : +8 % de rayon par rang.",
+              "mods": {
+                "radius.onde_arcanique": 0.08
+              },
+              "x": 1.0,
+              "parents": [
+                "resonance",
+                "flux_vital"
+              ]
+            },
+            {
+              "id": "distorsion_t",
+              "name": "Distorsion",
+              "max": 1,
+              "kind": "spell",
+              "desc": "Nouveau sort : le temps ralentit dans une zone pendant 5 s.",
+              "unlock": "distorsion",
+              "x": 2.0,
+              "parents": [
+                "flux_vital",
+                "portail_resonnant"
+              ]
+            },
+            {
+              "id": "cristallisation",
+              "name": "Cristallisation",
+              "max": 5,
+              "desc": "Dégâts des sorts +2 % par rang.",
+              "mods": {
+                "spell_dmg": 0.02
+              },
+              "x": 3.0,
+              "parents": [
+                "portail_resonnant"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 10,
+          "nodes": [
+            {
+              "id": "concentration",
+              "name": "Concentration",
+              "max": 5,
+              "desc": "Sorts : −2 % de coût en mana par rang.",
+              "mods": {
+                "spell_cost": 0.02
+              },
+              "x": 0.0,
+              "parents": [
+                "eclat_surge",
+                "portail_instable"
+              ]
+            },
+            {
+              "id": "esprit_vif",
+              "name": "Esprit vif",
+              "max": 5,
+              "desc": "Coups critiques : +1 % de chance par rang.",
+              "mods": {
+                "crit": 0.01
+              },
+              "x": 1.0,
+              "parents": [
+                "eclat_surge",
+                "portail_instable",
+                "distorsion_t"
+              ]
+            },
+            {
+              "id": "faille_ouverte",
+              "name": "Faille ouverte",
+              "max": 3,
+              "desc": "Distorsion : +0,3 s de durée par rang.",
+              "mods": {
+                "dur.distorsion": 0.3
+              },
+              "x": 2.0,
+              "parents": [
+                "portail_instable",
+                "distorsion_t",
+                "cristallisation"
+              ]
+            },
+            {
+              "id": "echo_mana",
+              "name": "Écho de mana",
+              "max": 5,
+              "desc": "Mana par ennemi abattu +0,1 par rang.",
+              "mods": {
+                "kill_mana": 0.1
+              },
+              "x": 3.0,
+              "parents": [
+                "distorsion_t",
+                "cristallisation"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 15,
+          "nodes": [
+            {
+              "id": "pli_espace",
+              "name": "Pli de l'espace",
+              "max": 5,
+              "desc": "Recharge des sorts −2 % par rang.",
+              "mods": {
+                "cd_red": 0.02
+              },
+              "x": 0.0,
+              "parents": [
+                "concentration",
+                "esprit_vif"
+              ]
+            },
+            {
+              "id": "nexus_interieur",
+              "name": "Nexus intérieur",
+              "max": 3,
+              "desc": "Rayon de l'Ultime +6 % par rang.",
+              "mods": {
+                "ult_radius": 0.06
+              },
+              "x": 1.5,
+              "parents": [
+                "esprit_vif",
+                "faille_ouverte"
+              ]
+            },
+            {
+              "id": "trame",
+              "name": "Trame",
+              "max": 5,
+              "desc": "Bouclier de Barrière au départ +3 par rang.",
+              "mods": {
+                "start_shield": 3
+              },
+              "x": 3.0,
+              "parents": [
+                "faille_ouverte",
+                "echo_mana"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 20,
+          "nodes": [
+            {
+              "id": "coeur_arcane",
+              "name": "Cœur arcanique",
+              "max": 3,
+              "desc": "Sorts d'Arcane : +5 % de dégâts par rang.",
+              "mods": {
+                "elem_dmg.arcane": 0.05
+              },
+              "x": 0.0,
+              "parents": [
+                "pli_espace"
+              ]
+            },
+            {
+              "id": "meteore_surge",
+              "name": "Météore du Surge",
+              "max": 1,
+              "kind": "evolution",
+              "desc": "Évolution de l'Ultime : +20 % de dégâts, +20 % de rayon, jauge Surge +10 %.",
+              "mods": {
+                "ult_dmg": 0.2,
+                "ult_radius": 0.2,
+                "surge_gain": 0.1
+              },
+              "x": 1.5,
+              "parents": [
+                "nexus_interieur"
+              ]
+            },
+            {
+              "id": "surge_vivant",
+              "name": "Surge vivant",
+              "max": 3,
+              "desc": "Gain de Surge +6 % par rang · Dégâts de l'Ultime +5 % par rang.",
+              "mods": {
+                "surge_gain": 0.06,
+                "ult_dmg": 0.05
+              },
+              "x": 3.0,
+              "parents": [
+                "trame"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 25,
+          "nodes": [
+            {
+              "id": "archimage",
+              "name": "Archimage",
+              "max": 3,
+              "desc": "Dégâts des sorts +5 % par rang.",
+              "mods": {
+                "spell_dmg": 0.05
+              },
+              "x": 0.5,
+              "parents": [
+                "coeur_arcane",
+                "meteore_surge"
+              ]
+            },
+            {
+              "id": "singularite",
+              "name": "Singularité",
+              "max": 3,
+              "desc": "Invocation en double (chance) +2 % par rang · Portails Nombre +1 (chance) +2 % par rang.",
+              "mods": {
+                "free_clone": 0.02,
+                "portal_plus": 0.02
+              },
+              "x": 2.5,
+              "parents": [
+                "meteore_surge",
+                "surge_vivant"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 30,
+          "nodes": [
+            {
+              "id": "aube_eternelle",
+              "name": "Aube éternelle",
+              "max": 1,
+              "kind": "keystone",
+              "flag": "s1.voie_aube",
+              "flag_text": "Voie de l'Aube (choix de 3-10)",
+              "desc": "Clé de voûte (Aube) : la Barrière se répare de 0,4 PV par seconde.",
+              "mods": {
+                "barrier_regen": 0.4
+              },
+              "x": 0.0,
+              "parents": [
+                "archimage"
+              ]
+            },
+            {
+              "id": "cendres_vives",
+              "name": "Cendres vives",
+              "max": 1,
+              "kind": "keystone",
+              "flag": "s1.voie_cendres",
+              "flag_text": "Voie des Cendres (choix de 3-10)",
+              "desc": "Clé de voûte (Cendres) : chaque ennemi abattu rend 1 point de mana.",
+              "mods": {
+                "kill_mana": 1.0
+              },
+              "x": 1.5,
+              "parents": [
+                "archimage",
+                "singularite"
+              ]
+            },
+            {
+              "id": "surcharge_arcane",
+              "name": "Surcharge arcanique",
+              "max": 1,
+              "desc": "Clé de voûte à double tranchant : Dégâts des sorts +25 % · PV de Barrière −15 %.",
+              "mods": {
+                "spell_dmg": 0.25,
+                "barrier_max": -0.15
+              },
+              "kind": "keystone",
+              "x": 3.0,
+              "parents": [
+                "singularite"
+              ]
+            }
+          ]
+        }
+      ]
+    }
   ]
 }

@@ -1,427 +1,1008 @@
 {
- "class": "archer",
- "keystone_limit": 2,
- "branches": [
-  {
-   "id": "tireur",
-   "name": "Tireur d'élite",
-   "theme": "Critique, perforation",
-   "color": "C8F5A0",
-   "icon": "tir_precision",
-   "tiers": [
+  "class": "archer",
+  "keystone_limit": 2,
+  "branches": [
     {
-     "req": 0,
-     "nodes": [
-      {
-       "id": "point_faible",
-       "name": "Point faible",
-       "max": 5,
-       "desc": "+1,5 % de chances de critique par rang.",
-       "mods": {
-        "crit": 0.015
-       }
-      },
-      {
-       "id": "perforation",
-       "name": "Perforation",
-       "max": 5,
-       "desc": "Archers : +5 % de portée par rang.",
-       "mods": {
-        "unit_range": 0.05
-       }
-      }
-     ]
+      "id": "tireur",
+      "name": "Tireur d'élite",
+      "theme": "Critique, perforation",
+      "color": "C8F5A0",
+      "icon": "tir_precision",
+      "tiers": [
+        {
+          "req": 0,
+          "nodes": [
+            {
+              "id": "point_faible",
+              "name": "Point faible",
+              "max": 5,
+              "desc": "+1,5 % de chances de critique par rang.",
+              "mods": {
+                "crit": 0.015
+              },
+              "x": 0.0
+            },
+            {
+              "id": "perforation",
+              "name": "Perforation",
+              "max": 5,
+              "desc": "Archers : +5 % de portée par rang.",
+              "mods": {
+                "unit_range": 0.05
+              },
+              "x": 1.5
+            },
+            {
+              "id": "regard_percant",
+              "name": "Regard perçant",
+              "max": 5,
+              "desc": "Dégâts contre les cibles marquées +2 % par rang.",
+              "mods": {
+                "mark_vuln": 0.02
+              },
+              "x": 3.0
+            }
+          ]
+        },
+        {
+          "req": 5,
+          "nodes": [
+            {
+              "id": "tir_appuye",
+              "name": "Tir appuyé",
+              "max": 5,
+              "desc": "Invocations : +4 % d'attaque par rang.",
+              "mods": {
+                "unit_atk": 0.04
+              },
+              "x": 0.0,
+              "parents": [
+                "point_faible"
+              ]
+            },
+            {
+              "id": "cadence_arc",
+              "name": "Cadence",
+              "max": 5,
+              "desc": "Invocations : +3 % de cadence par rang.",
+              "mods": {
+                "cadence": 0.03
+              },
+              "x": 1.0,
+              "parents": [
+                "point_faible",
+                "perforation"
+              ]
+            },
+            {
+              "id": "tir_precision_t",
+              "name": "Tir de précision",
+              "max": 1,
+              "desc": "Nouveau sort : une flèche perce toute une colonne.",
+              "kind": "spell",
+              "unlock": "tir_precision",
+              "x": 2.0,
+              "parents": [
+                "perforation",
+                "regard_percant"
+              ]
+            },
+            {
+              "id": "fleches_acier",
+              "name": "Flèches d'acier",
+              "max": 5,
+              "desc": "Invocations de Physique : dégâts +3 % par rang.",
+              "mods": {
+                "unit_elem.physique": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "regard_percant"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 10,
+          "nodes": [
+            {
+              "id": "fleches_lestees",
+              "name": "Flèches lestées",
+              "max": 5,
+              "desc": "Champion : +6 % d'attaque par rang.",
+              "mods": {
+                "champ_atk": 0.06
+              },
+              "x": 0.0,
+              "parents": [
+                "tir_appuye",
+                "cadence_arc"
+              ]
+            },
+            {
+              "id": "concentration_a",
+              "name": "Concentration",
+              "max": 5,
+              "desc": "Sorts : −2 % de coût en mana par rang.",
+              "mods": {
+                "spell_cost": 0.02
+              },
+              "x": 1.0,
+              "parents": [
+                "tir_appuye",
+                "cadence_arc",
+                "tir_precision_t"
+              ]
+            },
+            {
+              "id": "souffle_calme",
+              "name": "Souffle calme",
+              "max": 5,
+              "desc": "+4 % de régénération de mana par rang.",
+              "mods": {
+                "mana_regen": 0.04
+              },
+              "x": 2.0,
+              "parents": [
+                "cadence_arc",
+                "tir_precision_t",
+                "fleches_acier"
+              ]
+            },
+            {
+              "id": "carquois_plein",
+              "name": "Carquois plein",
+              "max": 5,
+              "desc": "Invocation en double (chance) +1 % par rang.",
+              "mods": {
+                "free_clone": 0.01
+              },
+              "x": 3.0,
+              "parents": [
+                "tir_precision_t",
+                "fleches_acier"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 15,
+          "nodes": [
+            {
+              "id": "tir_double",
+              "name": "Tir double",
+              "max": 3,
+              "desc": "Portails Nombre +1 (chance) +3 % par rang.",
+              "mods": {
+                "portal_plus": 0.03
+              },
+              "x": 0.0,
+              "parents": [
+                "fleches_lestees",
+                "concentration_a"
+              ]
+            },
+            {
+              "id": "visee",
+              "name": "Visée",
+              "max": 5,
+              "desc": "Chance de critique +0,8 % par rang.",
+              "mods": {
+                "crit": 0.008
+              },
+              "x": 1.5,
+              "parents": [
+                "concentration_a",
+                "souffle_calme"
+              ]
+            },
+            {
+              "id": "longue_vue",
+              "name": "Longue-vue",
+              "max": 5,
+              "desc": "Portée des tireurs +4 % par rang.",
+              "mods": {
+                "unit_range": 0.04
+              },
+              "x": 3.0,
+              "parents": [
+                "souffle_calme",
+                "carquois_plein"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 20,
+          "nodes": [
+            {
+              "id": "maitre_archer",
+              "name": "Maître archer",
+              "max": 3,
+              "desc": "Invocations : +5 % d'attaque par rang.",
+              "mods": {
+                "unit_atk": 0.05
+              },
+              "x": 0.0,
+              "parents": [
+                "tir_double"
+              ]
+            },
+            {
+              "id": "etoiles_plus",
+              "name": "Pluie d'étoiles+",
+              "max": 1,
+              "desc": "Évolution : l'Ultime tombe en 6 étoiles de plus, +20 % de dégâts.",
+              "kind": "evolution",
+              "mods": {
+                "ult_count": 6,
+                "ult_dmg": 0.2
+              },
+              "x": 1.5,
+              "parents": [
+                "visee"
+              ]
+            },
+            {
+              "id": "sang_froid",
+              "name": "Sang-froid",
+              "max": 3,
+              "desc": "Recharge des sorts −3 % par rang · Coût des sorts −2 % par rang.",
+              "mods": {
+                "cd_red": 0.03,
+                "spell_cost": 0.02
+              },
+              "x": 3.0,
+              "parents": [
+                "longue_vue"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 25,
+          "nodes": [
+            {
+              "id": "legende_arc",
+              "name": "Légende de l'arc",
+              "max": 3,
+              "desc": "Attaque des invocations +6 % par rang.",
+              "mods": {
+                "unit_atk": 0.06
+              },
+              "x": 0.5,
+              "parents": [
+                "maitre_archer",
+                "etoiles_plus"
+              ]
+            },
+            {
+              "id": "tir_parfait",
+              "name": "Tir parfait",
+              "max": 3,
+              "desc": "Chance de critique +1,5 % par rang · Attaque du Champion +5 % par rang.",
+              "mods": {
+                "crit": 0.015,
+                "champ_atk": 0.05
+              },
+              "x": 2.5,
+              "parents": [
+                "etoiles_plus",
+                "sang_froid"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 30,
+          "nodes": [
+            {
+              "id": "oeil_faucon",
+              "name": "Œil du faucon",
+              "max": 1,
+              "desc": "Clé de voûte : le Champion gagne +25 % de critique, des critiques ×2,5 et +20 % de portée.",
+              "kind": "keystone",
+              "mods": {
+                "hawk_eye": 1
+              },
+              "x": 0.5,
+              "parents": [
+                "legende_arc"
+              ]
+            },
+            {
+              "id": "tireur_isole",
+              "name": "Tireur isolé",
+              "max": 1,
+              "desc": "Clé de voûte à double tranchant : Attaque des invocations +30 % · PV des invocations −20 %.",
+              "mods": {
+                "unit_atk": 0.3,
+                "unit_hp": -0.2
+              },
+              "kind": "keystone",
+              "x": 2.5,
+              "parents": [
+                "tir_parfait"
+              ]
+            }
+          ]
+        }
+      ]
     },
     {
-     "req": 5,
-     "nodes": [
-      {
-       "id": "tir_appuye",
-       "name": "Tir appuyé",
-       "max": 5,
-       "desc": "Invocations : +4 % d'attaque par rang.",
-       "mods": {
-        "unit_atk": 0.04
-       }
-      },
-      {
-       "id": "cadence_arc",
-       "name": "Cadence",
-       "max": 5,
-       "desc": "Invocations : +3 % de cadence par rang.",
-       "mods": {
-        "cadence": 0.03
-       }
-      },
-      {
-       "id": "tir_precision_t",
-       "name": "Tir de précision",
-       "max": 1,
-       "desc": "Nouveau sort : une flèche perce toute une colonne.",
-       "kind": "spell",
-       "unlock": "tir_precision"
-      }
-     ]
+      "id": "pisteur",
+      "name": "Pisteur",
+      "theme": "Pièges, Nature",
+      "color": "8FD16A",
+      "icon": "volee_fleches",
+      "tiers": [
+        {
+          "req": 0,
+          "nodes": [
+            {
+              "id": "marque",
+              "name": "Marque du chasseur",
+              "max": 5,
+              "desc": "4 % de chances par rang qu'un coup marque la cible 4 s (+15 % de dégâts subis).",
+              "mods": {
+                "hunt_mark": 0.04
+              },
+              "x": 0.0
+            },
+            {
+              "id": "pointes",
+              "name": "Pointes empoisonnées",
+              "max": 5,
+              "desc": "3 % de chances par rang d'empoisonner.",
+              "mods": {
+                "venom": 0.03
+              },
+              "x": 1.5
+            },
+            {
+              "id": "camouflage",
+              "name": "Camouflage",
+              "max": 5,
+              "desc": "Esquive des invocations +2 % par rang.",
+              "mods": {
+                "dodge": 0.02
+              },
+              "x": 3.0
+            }
+          ]
+        },
+        {
+          "req": 5,
+          "nodes": [
+            {
+              "id": "proie",
+              "name": "Proie affaiblie",
+              "max": 5,
+              "desc": "Ennemis marqués : +3 % de dégâts subis par rang.",
+              "mods": {
+                "mark_vuln": 0.03
+              },
+              "x": 0.0,
+              "parents": [
+                "marque"
+              ]
+            },
+            {
+              "id": "ronces",
+              "name": "Pièges à ronces",
+              "max": 5,
+              "desc": "Zones de sorts : +4 % de ralentissement par rang.",
+              "mods": {
+                "zone_slow": 0.04
+              },
+              "x": 1.0,
+              "parents": [
+                "marque",
+                "pointes"
+              ]
+            },
+            {
+              "id": "volee_fleches_t",
+              "name": "Volée de flèches",
+              "max": 1,
+              "desc": "Nouveau sort : une volée s'abat sur une zone.",
+              "kind": "spell",
+              "unlock": "volee_fleches",
+              "x": 2.0,
+              "parents": [
+                "pointes",
+                "camouflage"
+              ]
+            },
+            {
+              "id": "lecture_pistes",
+              "name": "Lecture des pistes",
+              "max": 5,
+              "desc": "Vitesse des invocations +3 % par rang.",
+              "mods": {
+                "unit_speed": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "camouflage"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 10,
+          "nodes": [
+            {
+              "id": "venin",
+              "name": "Venin concentré",
+              "max": 5,
+              "desc": "Poison : +8 % de dégâts par rang.",
+              "mods": {
+                "poison_dmg": 0.08
+              },
+              "x": 0.0,
+              "parents": [
+                "proie",
+                "ronces"
+              ]
+            },
+            {
+              "id": "pas_de_loup",
+              "name": "Pas de loup",
+              "max": 5,
+              "desc": "Invocations : +4 % de PV par rang.",
+              "mods": {
+                "unit_hp": 0.04
+              },
+              "x": 1.0,
+              "parents": [
+                "proie",
+                "ronces",
+                "volee_fleches_t"
+              ]
+            },
+            {
+              "id": "affut",
+              "name": "Affût",
+              "max": 5,
+              "desc": "+4 % de régénération de mana par rang.",
+              "mods": {
+                "mana_regen": 0.04
+              },
+              "x": 2.0,
+              "parents": [
+                "ronces",
+                "volee_fleches_t",
+                "lecture_pistes"
+              ]
+            },
+            {
+              "id": "collets",
+              "name": "Collets",
+              "max": 5,
+              "desc": "Ralentissement des zones +3 % par rang.",
+              "mods": {
+                "zone_slow": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "volee_fleches_t",
+                "lecture_pistes"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 15,
+          "nodes": [
+            {
+              "id": "loup_solitaire",
+              "name": "Loup solitaire",
+              "max": 5,
+              "desc": "Invocations de Nature : dégâts +3 % par rang.",
+              "mods": {
+                "unit_elem.nature": 0.03
+              },
+              "x": 0.0,
+              "parents": [
+                "venin",
+                "pas_de_loup"
+              ]
+            },
+            {
+              "id": "herboristerie",
+              "name": "Herboristerie",
+              "max": 5,
+              "desc": "Soins +4 % par rang.",
+              "mods": {
+                "heal_bonus": 0.04
+              },
+              "x": 1.5,
+              "parents": [
+                "pas_de_loup",
+                "affut"
+              ]
+            },
+            {
+              "id": "longue_attente",
+              "name": "Longue attente",
+              "max": 5,
+              "desc": "Régénération de mana +3 % par rang.",
+              "mods": {
+                "mana_regen": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "affut",
+                "collets"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 20,
+          "nodes": [
+            {
+              "id": "traque",
+              "name": "Traque",
+              "max": 3,
+              "desc": "Ennemis marqués : +5 % de dégâts subis par rang.",
+              "mods": {
+                "mark_vuln": 0.05
+              },
+              "x": 0.0,
+              "parents": [
+                "loup_solitaire"
+              ]
+            },
+            {
+              "id": "rodeur_aguerri",
+              "name": "Rôdeur aguerri",
+              "max": 1,
+              "desc": "Évolution : Champion +30 % de PV, +20 % d'attaque.",
+              "kind": "evolution",
+              "mods": {
+                "champ_hp": 0.3,
+                "champ_atk": 0.2
+              },
+              "x": 1.5,
+              "parents": [
+                "herboristerie"
+              ]
+            },
+            {
+              "id": "predateur",
+              "name": "Prédateur",
+              "max": 3,
+              "desc": "Marque du chasseur (chance) +3 % par rang · Dégâts contre les cibles marquées +3 % par rang.",
+              "mods": {
+                "hunt_mark": 0.03,
+                "mark_vuln": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "longue_attente"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 25,
+          "nodes": [
+            {
+              "id": "roi_foret",
+              "name": "Roi de la forêt",
+              "max": 3,
+              "desc": "Dégâts de poison +10 % par rang · Venin des invocations (chance) +2 % par rang.",
+              "mods": {
+                "poison_dmg": 0.1,
+                "venom": 0.02
+              },
+              "x": 0.5,
+              "parents": [
+                "traque",
+                "rodeur_aguerri"
+              ]
+            },
+            {
+              "id": "meute_fidele",
+              "name": "Meute fidèle",
+              "max": 3,
+              "desc": "PV du Champion +8 % par rang · Attaque du Champion +6 % par rang.",
+              "mods": {
+                "champ_hp": 0.08,
+                "champ_atk": 0.06
+              },
+              "x": 2.5,
+              "parents": [
+                "rodeur_aguerri",
+                "predateur"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 30,
+          "nodes": [
+            {
+              "id": "maitre_traque",
+              "name": "Maître de la traque",
+              "max": 1,
+              "desc": "Clé de voûte : un ennemi marqué explose en épines à sa mort et marque ses voisins.",
+              "kind": "keystone",
+              "mods": {
+                "thorn_burst": 1
+              },
+              "x": 0.5,
+              "parents": [
+                "roi_foret"
+              ]
+            },
+            {
+              "id": "chasse_sauvage",
+              "name": "Chasse sauvage",
+              "max": 1,
+              "desc": "Clé de voûte à double tranchant : Vitesse des invocations +30 % · Défense des invocations −4.",
+              "mods": {
+                "unit_speed": 0.3,
+                "unit_def": -0.2
+              },
+              "kind": "keystone",
+              "x": 2.5,
+              "parents": [
+                "meute_fidele"
+              ]
+            }
+          ]
+        }
+      ]
     },
     {
-     "req": 10,
-     "nodes": [
-      {
-       "id": "fleches_lestees",
-       "name": "Flèches lestées",
-       "max": 5,
-       "desc": "Champion : +6 % d'attaque par rang.",
-       "mods": {
-        "champ_atk": 0.06
-       }
-      },
-      {
-       "id": "concentration_a",
-       "name": "Concentration",
-       "max": 5,
-       "desc": "Sorts : −2 % de coût en mana par rang.",
-       "mods": {
-        "spell_cost": 0.02
-       }
-      },
-      {
-       "id": "souffle_calme",
-       "name": "Souffle calme",
-       "max": 5,
-       "desc": "+4 % de régénération de mana par rang.",
-       "mods": {
-        "mana_regen": 0.04
-       }
-      }
-     ]
-    },
-    {
-     "req": 20,
-     "nodes": [
-      {
-       "id": "maitre_archer",
-       "name": "Maître archer",
-       "max": 3,
-       "desc": "Invocations : +5 % d'attaque par rang.",
-       "mods": {
-        "unit_atk": 0.05
-       }
-      },
-      {
-       "id": "etoiles_plus",
-       "name": "Pluie d'étoiles+",
-       "max": 1,
-       "desc": "Évolution : l'Ultime tombe en 6 étoiles de plus, +20 % de dégâts.",
-       "kind": "evolution",
-       "mods": {
-        "ult_count": 6,
-        "ult_dmg": 0.2
-       }
-      }
-     ]
-    },
-    {
-     "req": 30,
-     "nodes": [
-      {
-       "id": "oeil_faucon",
-       "name": "Œil du faucon",
-       "max": 1,
-       "desc": "Clé de voûte : le Champion gagne +25 % de critique, des critiques ×2,5 et +20 % de portée.",
-       "kind": "keystone",
-       "mods": {
-        "hawk_eye": 1
-       }
-      }
-     ]
+      "id": "astrales",
+      "name": "Flèches astrales",
+      "theme": "Voie du Surge : Lumière, division",
+      "color": "FFF6C8",
+      "icon": "constellation",
+      "unlock_flag": "s1.verite_cendres",
+      "locked": "Voie du Surge : s'ouvre à la fin de l'acte 3 (la Vérité des Cendres, 3-10).",
+      "tiers": [
+        {
+          "req": 0,
+          "nodes": [
+            {
+              "id": "lumiere_astrale",
+              "name": "Lumière astrale",
+              "max": 5,
+              "desc": "Sorts de Lumière : +6 % de dégâts par rang.",
+              "mods": {
+                "elem_dmg.lumiere": 0.06
+              },
+              "x": 0.0
+            },
+            {
+              "id": "eclat_stellaire",
+              "name": "Éclat stellaire",
+              "max": 5,
+              "desc": "Jauge Surge : +4 % de gain par rang.",
+              "mods": {
+                "surge_gain": 0.04
+              },
+              "x": 1.5
+            },
+            {
+              "id": "poussiere_etoiles",
+              "name": "Poussière d'étoiles",
+              "max": 5,
+              "desc": "Invocations de Lumière : dégâts +3 % par rang.",
+              "mods": {
+                "unit_elem.lumiere": 0.03
+              },
+              "x": 3.0
+            }
+          ]
+        },
+        {
+          "req": 5,
+          "nodes": [
+            {
+              "id": "fleches_divisees",
+              "name": "Flèches divisées",
+              "max": 5,
+              "desc": "5 % de chances par rang qu'un tireur se divise en passant un portail positif.",
+              "mods": {
+                "portal_split": 0.05
+              },
+              "x": 0.0,
+              "parents": [
+                "lumiere_astrale"
+              ]
+            },
+            {
+              "id": "ciel_clair",
+              "name": "Ciel clair",
+              "max": 5,
+              "desc": "+4 % de régénération de mana par rang.",
+              "mods": {
+                "mana_regen": 0.04
+              },
+              "x": 1.0,
+              "parents": [
+                "lumiere_astrale",
+                "eclat_stellaire"
+              ]
+            },
+            {
+              "id": "constellation_t",
+              "name": "Constellation",
+              "max": 1,
+              "desc": "Nouveau sort : sept étoiles en grappe.",
+              "kind": "spell",
+              "unlock": "constellation",
+              "x": 2.0,
+              "parents": [
+                "eclat_stellaire",
+                "poussiere_etoiles"
+              ]
+            },
+            {
+              "id": "zenith",
+              "name": "Zénith",
+              "max": 5,
+              "desc": "Chance de critique +0,8 % par rang.",
+              "mods": {
+                "crit": 0.008
+              },
+              "x": 3.0,
+              "parents": [
+                "poussiere_etoiles"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 10,
+          "nodes": [
+            {
+              "id": "astrolabe",
+              "name": "Astrolabe",
+              "max": 5,
+              "desc": "Invocations à distance : +4 % de portée par rang.",
+              "mods": {
+                "unit_range": 0.04
+              },
+              "x": 0.0,
+              "parents": [
+                "fleches_divisees",
+                "ciel_clair"
+              ]
+            },
+            {
+              "id": "comete_a",
+              "name": "Comète",
+              "max": 5,
+              "desc": "+1 % de chances de critique par rang.",
+              "mods": {
+                "crit": 0.01
+              },
+              "x": 1.0,
+              "parents": [
+                "fleches_divisees",
+                "ciel_clair",
+                "constellation_t"
+              ]
+            },
+            {
+              "id": "voute",
+              "name": "Voûte",
+              "max": 5,
+              "desc": "Sorts : −2 % de coût en mana par rang.",
+              "mods": {
+                "spell_cost": 0.02
+              },
+              "x": 2.0,
+              "parents": [
+                "ciel_clair",
+                "constellation_t",
+                "zenith"
+              ]
+            },
+            {
+              "id": "aurore_boreale",
+              "name": "Aurore boréale",
+              "max": 5,
+              "desc": "Soins +4 % par rang.",
+              "mods": {
+                "heal_bonus": 0.04
+              },
+              "x": 3.0,
+              "parents": [
+                "constellation_t",
+                "zenith"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 15,
+          "nodes": [
+            {
+              "id": "orbite",
+              "name": "Orbite",
+              "max": 5,
+              "desc": "Recharge des sorts −2 % par rang.",
+              "mods": {
+                "cd_red": 0.02
+              },
+              "x": 0.0,
+              "parents": [
+                "astrolabe",
+                "comete_a"
+              ]
+            },
+            {
+              "id": "nebuleuse",
+              "name": "Nébuleuse",
+              "max": 3,
+              "desc": "Rayon de l'Ultime +6 % par rang.",
+              "mods": {
+                "ult_radius": 0.06
+              },
+              "x": 1.5,
+              "parents": [
+                "comete_a",
+                "voute"
+              ]
+            },
+            {
+              "id": "etoile_filante",
+              "name": "Étoile filante",
+              "max": 5,
+              "desc": "Cadence du Flux +2 % par rang.",
+              "mods": {
+                "cadence": 0.02
+              },
+              "x": 3.0,
+              "parents": [
+                "voute",
+                "aurore_boreale"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 20,
+          "nodes": [
+            {
+              "id": "firmament",
+              "name": "Firmament",
+              "max": 3,
+              "desc": "Sorts de Lumière : +5 % de dégâts par rang.",
+              "mods": {
+                "elem_dmg.lumiere": 0.05
+              },
+              "x": 0.0,
+              "parents": [
+                "orbite"
+              ]
+            },
+            {
+              "id": "pluie_astrale",
+              "name": "Pluie astrale",
+              "max": 1,
+              "desc": "Évolution : 4 étoiles de plus, +20 % de rayon.",
+              "kind": "evolution",
+              "mods": {
+                "ult_count": 4,
+                "ult_radius": 0.2
+              },
+              "x": 1.5,
+              "parents": [
+                "nebuleuse"
+              ]
+            },
+            {
+              "id": "carte_ciel",
+              "name": "Carte du ciel",
+              "max": 3,
+              "desc": "Dégâts des sorts +3 % par rang · Gain de Surge +3 % par rang.",
+              "mods": {
+                "spell_dmg": 0.03,
+                "surge_gain": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "etoile_filante"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 25,
+          "nodes": [
+            {
+              "id": "supernova",
+              "name": "Supernova",
+              "max": 3,
+              "desc": "Dégâts de l'Ultime +8 % par rang.",
+              "mods": {
+                "ult_dmg": 0.08
+              },
+              "x": 0.5,
+              "parents": [
+                "firmament",
+                "pluie_astrale"
+              ]
+            },
+            {
+              "id": "etoile_polaire",
+              "name": "Étoile polaire",
+              "max": 3,
+              "desc": "Flèches divisées (chance) +4 % par rang.",
+              "mods": {
+                "portal_split": 0.04
+              },
+              "x": 2.5,
+              "parents": [
+                "pluie_astrale",
+                "carte_ciel"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 30,
+          "nodes": [
+            {
+              "id": "etoiles_aube",
+              "name": "Étoiles de l'Aube",
+              "max": 1,
+              "desc": "Clé de voûte (Aube) : chaque étoile de l'Ultime soigne la Barrière de 2 PV.",
+              "kind": "keystone",
+              "mods": {
+                "ult_heal": 1
+              },
+              "flag": "s1.voie_aube",
+              "flag_text": "Voie de l'Aube (choix de 3-10)",
+              "x": 0.0,
+              "parents": [
+                "supernova"
+              ]
+            },
+            {
+              "id": "etoiles_cendres",
+              "name": "Étoiles des Cendres",
+              "max": 1,
+              "desc": "Clé de voûte (Cendres) : l'Ultime flétrit et empoisonne tout ce qu'elle touche.",
+              "kind": "keystone",
+              "mods": {
+                "ult_wither": 1
+              },
+              "flag": "s1.voie_cendres",
+              "flag_text": "Voie des Cendres (choix de 3-10)",
+              "x": 1.5,
+              "parents": [
+                "supernova",
+                "etoile_polaire"
+              ]
+            },
+            {
+              "id": "eclipse_totale",
+              "name": "Éclipse totale",
+              "max": 1,
+              "desc": "Clé de voûte à double tranchant : Sorts de Lumière +30 % · Régénération de mana −20 %.",
+              "mods": {
+                "elem_dmg.lumiere": 0.3,
+                "mana_regen": -0.2
+              },
+              "kind": "keystone",
+              "x": 3.0,
+              "parents": [
+                "etoile_polaire"
+              ]
+            }
+          ]
+        }
+      ]
     }
-   ]
-  },
-  {
-   "id": "pisteur",
-   "name": "Pisteur",
-   "theme": "Pièges, Nature",
-   "color": "8FD16A",
-   "icon": "volee_fleches",
-   "tiers": [
-    {
-     "req": 0,
-     "nodes": [
-      {
-       "id": "marque",
-       "name": "Marque du chasseur",
-       "max": 5,
-       "desc": "4 % de chances par rang qu'un coup marque la cible 4 s (+15 % de dégâts subis).",
-       "mods": {
-        "hunt_mark": 0.04
-       }
-      },
-      {
-       "id": "pointes",
-       "name": "Pointes empoisonnées",
-       "max": 5,
-       "desc": "3 % de chances par rang d'empoisonner.",
-       "mods": {
-        "venom": 0.03
-       }
-      }
-     ]
-    },
-    {
-     "req": 5,
-     "nodes": [
-      {
-       "id": "proie",
-       "name": "Proie affaiblie",
-       "max": 5,
-       "desc": "Ennemis marqués : +3 % de dégâts subis par rang.",
-       "mods": {
-        "mark_vuln": 0.03
-       }
-      },
-      {
-       "id": "ronces",
-       "name": "Pièges à ronces",
-       "max": 5,
-       "desc": "Zones de sorts : +4 % de ralentissement par rang.",
-       "mods": {
-        "zone_slow": 0.04
-       }
-      },
-      {
-       "id": "volee_fleches_t",
-       "name": "Volée de flèches",
-       "max": 1,
-       "desc": "Nouveau sort : une volée s'abat sur une zone.",
-       "kind": "spell",
-       "unlock": "volee_fleches"
-      }
-     ]
-    },
-    {
-     "req": 10,
-     "nodes": [
-      {
-       "id": "venin",
-       "name": "Venin concentré",
-       "max": 5,
-       "desc": "Poison : +8 % de dégâts par rang.",
-       "mods": {
-        "poison_dmg": 0.08
-       }
-      },
-      {
-       "id": "pas_de_loup",
-       "name": "Pas de loup",
-       "max": 5,
-       "desc": "Invocations : +4 % de PV par rang.",
-       "mods": {
-        "unit_hp": 0.04
-       }
-      },
-      {
-       "id": "affut",
-       "name": "Affût",
-       "max": 5,
-       "desc": "+4 % de régénération de mana par rang.",
-       "mods": {
-        "mana_regen": 0.04
-       }
-      }
-     ]
-    },
-    {
-     "req": 20,
-     "nodes": [
-      {
-       "id": "traque",
-       "name": "Traque",
-       "max": 3,
-       "desc": "Ennemis marqués : +5 % de dégâts subis par rang.",
-       "mods": {
-        "mark_vuln": 0.05
-       }
-      },
-      {
-       "id": "rodeur_aguerri",
-       "name": "Rôdeur aguerri",
-       "max": 1,
-       "desc": "Évolution : Champion +30 % de PV, +20 % d'attaque.",
-       "kind": "evolution",
-       "mods": {
-        "champ_hp": 0.3,
-        "champ_atk": 0.2
-       }
-      }
-     ]
-    },
-    {
-     "req": 30,
-     "nodes": [
-      {
-       "id": "maitre_traque",
-       "name": "Maître de la traque",
-       "max": 1,
-       "desc": "Clé de voûte : un ennemi marqué explose en épines à sa mort et marque ses voisins.",
-       "kind": "keystone",
-       "mods": {
-        "thorn_burst": 1
-       }
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "id": "astrales",
-   "name": "Flèches astrales",
-   "theme": "Voie du Surge : Lumière, division",
-   "color": "FFF6C8",
-   "icon": "constellation",
-   "unlock_flag": "s1.verite_cendres",
-   "locked": "Voie du Surge : s'ouvre à la fin de l'acte 3 (la Vérité des Cendres, 3-10).",
-   "tiers": [
-    {
-     "req": 0,
-     "nodes": [
-      {
-       "id": "lumiere_astrale",
-       "name": "Lumière astrale",
-       "max": 5,
-       "desc": "Sorts de Lumière : +6 % de dégâts par rang.",
-       "mods": {
-        "elem_dmg.lumiere": 0.06
-       }
-      },
-      {
-       "id": "eclat_stellaire",
-       "name": "Éclat stellaire",
-       "max": 5,
-       "desc": "Jauge Surge : +4 % de gain par rang.",
-       "mods": {
-        "surge_gain": 0.04
-       }
-      }
-     ]
-    },
-    {
-     "req": 5,
-     "nodes": [
-      {
-       "id": "fleches_divisees",
-       "name": "Flèches divisées",
-       "max": 5,
-       "desc": "5 % de chances par rang qu'un tireur se divise en passant un portail positif.",
-       "mods": {
-        "portal_split": 0.05
-       }
-      },
-      {
-       "id": "ciel_clair",
-       "name": "Ciel clair",
-       "max": 5,
-       "desc": "+4 % de régénération de mana par rang.",
-       "mods": {
-        "mana_regen": 0.04
-       }
-      },
-      {
-       "id": "constellation_t",
-       "name": "Constellation",
-       "max": 1,
-       "desc": "Nouveau sort : sept étoiles en grappe.",
-       "kind": "spell",
-       "unlock": "constellation"
-      }
-     ]
-    },
-    {
-     "req": 10,
-     "nodes": [
-      {
-       "id": "astrolabe",
-       "name": "Astrolabe",
-       "max": 5,
-       "desc": "Invocations à distance : +4 % de portée par rang.",
-       "mods": {
-        "unit_range": 0.04
-       }
-      },
-      {
-       "id": "comete_a",
-       "name": "Comète",
-       "max": 5,
-       "desc": "+1 % de chances de critique par rang.",
-       "mods": {
-        "crit": 0.01
-       }
-      },
-      {
-       "id": "voute",
-       "name": "Voûte",
-       "max": 5,
-       "desc": "Sorts : −2 % de coût en mana par rang.",
-       "mods": {
-        "spell_cost": 0.02
-       }
-      }
-     ]
-    },
-    {
-     "req": 20,
-     "nodes": [
-      {
-       "id": "firmament",
-       "name": "Firmament",
-       "max": 3,
-       "desc": "Sorts de Lumière : +5 % de dégâts par rang.",
-       "mods": {
-        "elem_dmg.lumiere": 0.05
-       }
-      },
-      {
-       "id": "pluie_astrale",
-       "name": "Pluie astrale",
-       "max": 1,
-       "desc": "Évolution : 4 étoiles de plus, +20 % de rayon.",
-       "kind": "evolution",
-       "mods": {
-        "ult_count": 4,
-        "ult_radius": 0.2
-       }
-      }
-     ]
-    },
-    {
-     "req": 30,
-     "nodes": [
-      {
-       "id": "etoiles_aube",
-       "name": "Étoiles de l'Aube",
-       "max": 1,
-       "desc": "Clé de voûte (Aube) : chaque étoile de l'Ultime soigne la Barrière de 2 PV.",
-       "kind": "keystone",
-       "mods": {
-        "ult_heal": 1
-       },
-       "flag": "s1.voie_aube",
-       "flag_text": "Voie de l'Aube (choix de 3-10)"
-      },
-      {
-       "id": "etoiles_cendres",
-       "name": "Étoiles des Cendres",
-       "max": 1,
-       "desc": "Clé de voûte (Cendres) : l'Ultime flétrit et empoisonne tout ce qu'elle touche.",
-       "kind": "keystone",
-       "mods": {
-        "ult_wither": 1
-       },
-       "flag": "s1.voie_cendres",
-       "flag_text": "Voie des Cendres (choix de 3-10)"
-      }
-     ]
-    }
-   ]
-  }
- ]
+  ]
 }

@@ -1,427 +1,1006 @@
 {
- "class": "necromancien",
- "keystone_limit": 2,
- "branches": [
-  {
-   "id": "ossuaire",
-   "name": "Ossuaire",
-   "theme": "Squelettes, nombre",
-   "color": "B8B0C8",
-   "icon": "horde",
-   "tiers": [
+  "class": "necromancien",
+  "keystone_limit": 2,
+  "branches": [
     {
-     "req": 0,
-     "nodes": [
-      {
-       "id": "os_renforces",
-       "name": "Os renforcés",
-       "max": 5,
-       "desc": "Squelettes : +6 % d'attaque et de PV par rang.",
-       "mods": {
-        "skeleton_bonus": 0.06
-       }
-      },
-      {
-       "id": "reveil_rapide",
-       "name": "Réveil rapide",
-       "max": 5,
-       "desc": "Ennemis tués par l'Ombre : +1 % de chances par rang de se relever en squelette.",
-       "mods": {
-        "skeleton_chance": 0.01
-       }
-      }
-     ]
+      "id": "ossuaire",
+      "name": "Ossuaire",
+      "theme": "Squelettes, nombre",
+      "color": "B8B0C8",
+      "icon": "horde",
+      "tiers": [
+        {
+          "req": 0,
+          "nodes": [
+            {
+              "id": "os_renforces",
+              "name": "Os renforcés",
+              "max": 5,
+              "desc": "Squelettes : +6 % d'attaque et de PV par rang.",
+              "mods": {
+                "skeleton_bonus": 0.06
+              },
+              "x": 0.0
+            },
+            {
+              "id": "reveil_rapide",
+              "name": "Réveil rapide",
+              "max": 5,
+              "desc": "Ennemis tués par l'Ombre : +1 % de chances par rang de se relever en squelette.",
+              "mods": {
+                "skeleton_chance": 0.01
+              },
+              "x": 1.5
+            },
+            {
+              "id": "craquement",
+              "name": "Craquement",
+              "max": 5,
+              "desc": "Défense des invocations +0,6 par rang.",
+              "mods": {
+                "unit_def": 0.03
+              },
+              "x": 3.0
+            }
+          ]
+        },
+        {
+          "req": 5,
+          "nodes": [
+            {
+              "id": "moelle_noire",
+              "name": "Moelle noire",
+              "max": 5,
+              "desc": "Invocations : +4 % de PV par rang.",
+              "mods": {
+                "unit_hp": 0.04
+              },
+              "x": 0.0,
+              "parents": [
+                "os_renforces"
+              ]
+            },
+            {
+              "id": "ossature",
+              "name": "Ossature",
+              "max": 5,
+              "desc": "Invocations : +1 de défense par rang.",
+              "mods": {
+                "unit_def": 0.05
+              },
+              "x": 1.0,
+              "parents": [
+                "os_renforces",
+                "reveil_rapide"
+              ]
+            },
+            {
+              "id": "horde_t",
+              "name": "Horde",
+              "max": 1,
+              "desc": "Nouveau sort : sept squelettes surgissent au point visé.",
+              "kind": "spell",
+              "unlock": "horde",
+              "x": 2.0,
+              "parents": [
+                "reveil_rapide",
+                "craquement"
+              ]
+            },
+            {
+              "id": "fosse_commune",
+              "name": "Fosse commune",
+              "max": 5,
+              "desc": "Chance de relever un squelette +0,8 % par rang.",
+              "mods": {
+                "skeleton_chance": 0.008
+              },
+              "x": 3.0,
+              "parents": [
+                "craquement"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 10,
+          "nodes": [
+            {
+              "id": "nuee_os",
+              "name": "Nuée d'os",
+              "max": 5,
+              "desc": "Horde et Armée des morts : +1 squelette par rang.",
+              "mods": {
+                "army_count": 1
+              },
+              "x": 0.0,
+              "parents": [
+                "moelle_noire",
+                "ossature"
+              ]
+            },
+            {
+              "id": "rituel",
+              "name": "Rituel",
+              "max": 5,
+              "desc": "+4 % de régénération de mana par rang.",
+              "mods": {
+                "mana_regen": 0.04
+              },
+              "x": 1.0,
+              "parents": [
+                "moelle_noire",
+                "ossature",
+                "horde_t"
+              ]
+            },
+            {
+              "id": "os_tailles",
+              "name": "Os taillés",
+              "max": 5,
+              "desc": "Invocations : +3 % d'attaque par rang.",
+              "mods": {
+                "unit_atk": 0.03
+              },
+              "x": 2.0,
+              "parents": [
+                "ossature",
+                "horde_t",
+                "fosse_commune"
+              ]
+            },
+            {
+              "id": "os_creux",
+              "name": "Os creux",
+              "max": 5,
+              "desc": "Vitesse des invocations +3 % par rang.",
+              "mods": {
+                "unit_speed": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "horde_t",
+                "fosse_commune"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 15,
+          "nodes": [
+            {
+              "id": "ossuaire_vivant",
+              "name": "Ossuaire vivant",
+              "max": 5,
+              "desc": "PV des invocations +3 % par rang.",
+              "mods": {
+                "unit_hp": 0.03
+              },
+              "x": 0.0,
+              "parents": [
+                "nuee_os",
+                "rituel"
+              ]
+            },
+            {
+              "id": "phalanges",
+              "name": "Phalanges",
+              "max": 5,
+              "desc": "Attaque des invocations +3 % par rang.",
+              "mods": {
+                "unit_atk": 0.03
+              },
+              "x": 1.5,
+              "parents": [
+                "rituel",
+                "os_tailles"
+              ]
+            },
+            {
+              "id": "rituel_rapide",
+              "name": "Rituel rapide",
+              "max": 5,
+              "desc": "Recharge des sorts −2 % par rang.",
+              "mods": {
+                "cd_red": 0.02
+              },
+              "x": 3.0,
+              "parents": [
+                "os_tailles",
+                "os_creux"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 20,
+          "nodes": [
+            {
+              "id": "maitre_os",
+              "name": "Maître des os",
+              "max": 3,
+              "desc": "Squelettes : +6 % d'attaque et de PV par rang.",
+              "mods": {
+                "skeleton_bonus": 0.06
+              },
+              "x": 0.0,
+              "parents": [
+                "ossuaire_vivant"
+              ]
+            },
+            {
+              "id": "armee_plus",
+              "name": "Armée des morts+",
+              "max": 1,
+              "desc": "Évolution : 8 squelettes de plus, +20 % de dégâts.",
+              "kind": "evolution",
+              "mods": {
+                "ult_count": 8,
+                "ult_dmg": 0.2
+              },
+              "x": 1.5,
+              "parents": [
+                "phalanges"
+              ]
+            },
+            {
+              "id": "general_os",
+              "name": "Général d'os",
+              "max": 3,
+              "desc": "Squelettes de l'Armée +1 par rang · Squelettes : attaque et PV +3 % par rang.",
+              "mods": {
+                "army_count": 1,
+                "skeleton_bonus": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "rituel_rapide"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 25,
+          "nodes": [
+            {
+              "id": "roi_ossements",
+              "name": "Roi des ossements",
+              "max": 3,
+              "desc": "Squelettes : attaque et PV +8 % par rang.",
+              "mods": {
+                "skeleton_bonus": 0.08
+              },
+              "x": 0.5,
+              "parents": [
+                "maitre_os",
+                "armee_plus"
+              ]
+            },
+            {
+              "id": "marche_morts",
+              "name": "Marche des morts",
+              "max": 3,
+              "desc": "Invocation en double (chance) +2 % par rang.",
+              "mods": {
+                "free_clone": 0.02
+              },
+              "x": 2.5,
+              "parents": [
+                "armee_plus",
+                "general_os"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 30,
+          "nodes": [
+            {
+              "id": "legion",
+              "name": "Légion",
+              "max": 1,
+              "desc": "Clé de voûte : tous les 20 squelettes invoqués, un Colosse d'os se lève.",
+              "kind": "keystone",
+              "mods": {
+                "legion": 1
+              },
+              "x": 0.5,
+              "parents": [
+                "roi_ossements"
+              ]
+            },
+            {
+              "id": "horde_sans_fin",
+              "name": "Horde sans fin",
+              "max": 1,
+              "desc": "Clé de voûte à double tranchant : Chance de relever un squelette +10 % · PV des invocations −20 %.",
+              "mods": {
+                "skeleton_chance": 0.1,
+                "unit_hp": -0.2
+              },
+              "kind": "keystone",
+              "x": 2.5,
+              "parents": [
+                "marche_morts"
+              ]
+            }
+          ]
+        }
+      ]
     },
     {
-     "req": 5,
-     "nodes": [
-      {
-       "id": "moelle_noire",
-       "name": "Moelle noire",
-       "max": 5,
-       "desc": "Invocations : +4 % de PV par rang.",
-       "mods": {
-        "unit_hp": 0.04
-       }
-      },
-      {
-       "id": "ossature",
-       "name": "Ossature",
-       "max": 5,
-       "desc": "Invocations : +1 de défense par rang.",
-       "mods": {
-        "unit_def": 0.05
-       }
-      },
-      {
-       "id": "horde_t",
-       "name": "Horde",
-       "max": 1,
-       "desc": "Nouveau sort : sept squelettes surgissent au point visé.",
-       "kind": "spell",
-       "unlock": "horde"
-      }
-     ]
+      "id": "maledictions",
+      "name": "Malédictions",
+      "theme": "Flétrissure, poison",
+      "color": "8E62E0",
+      "icon": "malediction_masse",
+      "tiers": [
+        {
+          "req": 0,
+          "nodes": [
+            {
+              "id": "fleau",
+              "name": "Fléau",
+              "max": 5,
+              "desc": "Sorts d'Ombre : +6 % de dégâts par rang.",
+              "mods": {
+                "elem_dmg.ombre": 0.06
+              },
+              "x": 0.0
+            },
+            {
+              "id": "peste",
+              "name": "Peste",
+              "max": 5,
+              "desc": "Poison : +8 % de dégâts par rang.",
+              "mods": {
+                "poison_dmg": 0.08
+              },
+              "x": 1.5
+            },
+            {
+              "id": "mauvais_oeil",
+              "name": "Mauvais œil",
+              "max": 5,
+              "desc": "Dégâts contre les cibles marquées +2 % par rang.",
+              "mods": {
+                "mark_vuln": 0.02
+              },
+              "x": 3.0
+            }
+          ]
+        },
+        {
+          "req": 5,
+          "nodes": [
+            {
+              "id": "contagion",
+              "name": "Contagion",
+              "max": 5,
+              "desc": "3 % de chances par rang d'empoisonner.",
+              "mods": {
+                "venom": 0.03
+              },
+              "x": 0.0,
+              "parents": [
+                "fleau"
+              ]
+            },
+            {
+              "id": "siphon",
+              "name": "Siphon",
+              "max": 5,
+              "desc": "Chaque ennemi abattu rend 0,2 mana par rang.",
+              "mods": {
+                "kill_mana": 0.2
+              },
+              "x": 1.0,
+              "parents": [
+                "fleau",
+                "peste"
+              ]
+            },
+            {
+              "id": "malediction_masse_t",
+              "name": "Malédiction de masse",
+              "max": 1,
+              "desc": "Nouveau sort : flétrit tous les ennemis d'une large zone.",
+              "kind": "spell",
+              "unlock": "malediction_masse",
+              "x": 2.0,
+              "parents": [
+                "peste",
+                "mauvais_oeil"
+              ]
+            },
+            {
+              "id": "ronces_noires",
+              "name": "Ronces noires",
+              "max": 5,
+              "desc": "Ralentissement des zones +3 % par rang.",
+              "mods": {
+                "zone_slow": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "mauvais_oeil"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 10,
+          "nodes": [
+            {
+              "id": "ombre_rampante",
+              "name": "Ombre rampante",
+              "max": 5,
+              "desc": "Sorts d'Ombre : +4 % de dégâts par rang.",
+              "mods": {
+                "elem_dmg.ombre": 0.04
+              },
+              "x": 0.0,
+              "parents": [
+                "contagion",
+                "siphon"
+              ]
+            },
+            {
+              "id": "necrose",
+              "name": "Nécrose",
+              "max": 5,
+              "desc": "Poison : +6 % de dégâts par rang.",
+              "mods": {
+                "poison_dmg": 0.06
+              },
+              "x": 1.0,
+              "parents": [
+                "contagion",
+                "siphon",
+                "malediction_masse_t"
+              ]
+            },
+            {
+              "id": "economie",
+              "name": "Économie",
+              "max": 5,
+              "desc": "Sorts : −2 % de coût en mana par rang.",
+              "mods": {
+                "spell_cost": 0.02
+              },
+              "x": 2.0,
+              "parents": [
+                "siphon",
+                "malediction_masse_t",
+                "ronces_noires"
+              ]
+            },
+            {
+              "id": "fletrissure_n",
+              "name": "Flétrissure",
+              "max": 5,
+              "desc": "Invocations de Ombre : dégâts +3 % par rang.",
+              "mods": {
+                "unit_elem.ombre": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "malediction_masse_t",
+                "ronces_noires"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 15,
+          "nodes": [
+            {
+              "id": "langueur",
+              "name": "Langueur",
+              "max": 5,
+              "desc": "Soins ennemis −3 % par rang.",
+              "mods": {
+                "anti_heal": 0.03
+              },
+              "x": 0.0,
+              "parents": [
+                "ombre_rampante",
+                "necrose"
+              ]
+            },
+            {
+              "id": "miasmes",
+              "name": "Miasmes",
+              "max": 5,
+              "desc": "Venin des invocations (chance) +2 % par rang.",
+              "mods": {
+                "venom": 0.02
+              },
+              "x": 1.5,
+              "parents": [
+                "necrose",
+                "economie"
+              ]
+            },
+            {
+              "id": "chuchotements",
+              "name": "Chuchotements",
+              "max": 5,
+              "desc": "Recharge des sorts −2 % par rang.",
+              "mods": {
+                "cd_red": 0.02
+              },
+              "x": 3.0,
+              "parents": [
+                "economie",
+                "fletrissure_n"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 20,
+          "nodes": [
+            {
+              "id": "coeur_noir",
+              "name": "Cœur noir",
+              "max": 3,
+              "desc": "Sorts d'Ombre : +5 % de dégâts par rang.",
+              "mods": {
+                "elem_dmg.ombre": 0.05
+              },
+              "x": 0.0,
+              "parents": [
+                "langueur"
+              ]
+            },
+            {
+              "id": "colosse_maudit",
+              "name": "Colosse maudit",
+              "max": 1,
+              "desc": "Évolution : Champion +30 % de PV, +20 % d'attaque.",
+              "kind": "evolution",
+              "mods": {
+                "champ_hp": 0.3,
+                "champ_atk": 0.2
+              },
+              "x": 1.5,
+              "parents": [
+                "miasmes"
+              ]
+            },
+            {
+              "id": "peste_noire",
+              "name": "Peste noire",
+              "max": 3,
+              "desc": "Dégâts de poison +8 % par rang · Sorts de Ombre +3 % par rang.",
+              "mods": {
+                "poison_dmg": 0.08,
+                "elem_dmg.ombre": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "chuchotements"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 25,
+          "nodes": [
+            {
+              "id": "grand_maudit",
+              "name": "Grand maudit",
+              "max": 3,
+              "desc": "Sorts de Ombre +6 % par rang.",
+              "mods": {
+                "elem_dmg.ombre": 0.06
+              },
+              "x": 0.5,
+              "parents": [
+                "coeur_noir",
+                "colosse_maudit"
+              ]
+            },
+            {
+              "id": "epidemie",
+              "name": "Épidémie",
+              "max": 3,
+              "desc": "Venin des invocations (chance) +3 % par rang.",
+              "mods": {
+                "venom": 0.03
+              },
+              "x": 2.5,
+              "parents": [
+                "colosse_maudit",
+                "peste_noire"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 30,
+          "nodes": [
+            {
+              "id": "pandemie",
+              "name": "Pandémie",
+              "max": 1,
+              "desc": "Clé de voûte : un ennemi flétri qui meurt propage la Flétrissure et le poison à ses voisins.",
+              "kind": "keystone",
+              "mods": {
+                "pandemic": 1
+              },
+              "x": 0.5,
+              "parents": [
+                "grand_maudit"
+              ]
+            },
+            {
+              "id": "pacte_noir",
+              "name": "Pacte noir",
+              "max": 1,
+              "desc": "Clé de voûte à double tranchant : Sorts de Ombre +30 % · PV de Barrière −15 %.",
+              "mods": {
+                "elem_dmg.ombre": 0.3,
+                "barrier_max": -0.15
+              },
+              "kind": "keystone",
+              "x": 2.5,
+              "parents": [
+                "epidemie"
+              ]
+            }
+          ]
+        }
+      ]
     },
     {
-     "req": 10,
-     "nodes": [
-      {
-       "id": "nuee_os",
-       "name": "Nuée d'os",
-       "max": 5,
-       "desc": "Horde et Armée des morts : +1 squelette par rang.",
-       "mods": {
-        "army_count": 1
-       }
-      },
-      {
-       "id": "rituel",
-       "name": "Rituel",
-       "max": 5,
-       "desc": "+4 % de régénération de mana par rang.",
-       "mods": {
-        "mana_regen": 0.04
-       }
-      },
-      {
-       "id": "os_tailles",
-       "name": "Os taillés",
-       "max": 5,
-       "desc": "Invocations : +3 % d'attaque par rang.",
-       "mods": {
-        "unit_atk": 0.03
-       }
-      }
-     ]
-    },
-    {
-     "req": 20,
-     "nodes": [
-      {
-       "id": "maitre_os",
-       "name": "Maître des os",
-       "max": 3,
-       "desc": "Squelettes : +6 % d'attaque et de PV par rang.",
-       "mods": {
-        "skeleton_bonus": 0.06
-       }
-      },
-      {
-       "id": "armee_plus",
-       "name": "Armée des morts+",
-       "max": 1,
-       "desc": "Évolution : 8 squelettes de plus, +20 % de dégâts.",
-       "kind": "evolution",
-       "mods": {
-        "ult_count": 8,
-        "ult_dmg": 0.2
-       }
-      }
-     ]
-    },
-    {
-     "req": 30,
-     "nodes": [
-      {
-       "id": "legion",
-       "name": "Légion",
-       "max": 1,
-       "desc": "Clé de voûte : tous les 20 squelettes invoqués, un Colosse d'os se lève.",
-       "kind": "keystone",
-       "mods": {
-        "legion": 1
-       }
-      }
-     ]
+      "id": "liche",
+      "name": "Liche",
+      "theme": "Voie du Surge : sacrifice, drain",
+      "color": "8E62E0",
+      "icon": "sacrifice_ames",
+      "unlock_flag": "s1.verite_cendres",
+      "locked": "Voie du Surge : s'ouvre à la fin de l'acte 3 (la Vérité des Cendres, 3-10).",
+      "tiers": [
+        {
+          "req": 0,
+          "nodes": [
+            {
+              "id": "phylactere",
+              "name": "Phylactère",
+              "max": 5,
+              "desc": "Barrière : +3 % de PV max par rang.",
+              "mods": {
+                "barrier_max": 0.03
+              },
+              "x": 0.0
+            },
+            {
+              "id": "siphon_l",
+              "name": "Siphon",
+              "max": 5,
+              "desc": "Chaque ennemi abattu rend 0,2 mana par rang.",
+              "mods": {
+                "kill_mana": 0.2
+              },
+              "x": 1.5
+            },
+            {
+              "id": "froid_eternel",
+              "name": "Froid éternel",
+              "max": 5,
+              "desc": "Résistance des invocations au Givre +5 % par rang.",
+              "mods": {
+                "resist.givre": 0.05
+              },
+              "x": 3.0
+            }
+          ]
+        },
+        {
+          "req": 5,
+          "nodes": [
+            {
+              "id": "moelle_ame",
+              "name": "Moelle d'âme",
+              "max": 5,
+              "desc": "Squelettes : +5 % d'attaque et de PV par rang.",
+              "mods": {
+                "skeleton_bonus": 0.05
+              },
+              "x": 0.0,
+              "parents": [
+                "phylactere"
+              ]
+            },
+            {
+              "id": "pacte",
+              "name": "Pacte",
+              "max": 5,
+              "desc": "+4 % de régénération de mana par rang.",
+              "mods": {
+                "mana_regen": 0.04
+              },
+              "x": 1.0,
+              "parents": [
+                "phylactere",
+                "siphon_l"
+              ]
+            },
+            {
+              "id": "sacrifice_ames_t",
+              "name": "Sacrifice d'âmes",
+              "max": 1,
+              "desc": "Nouveau sort : sacrifie 20 invocations qui explosent en Ombre.",
+              "kind": "spell",
+              "unlock": "sacrifice_ames",
+              "x": 2.0,
+              "parents": [
+                "siphon_l",
+                "froid_eternel"
+              ]
+            },
+            {
+              "id": "ame_liee",
+              "name": "Âme liée",
+              "max": 5,
+              "desc": "Régénération des invocations +0,3 % des PV par seconde par rang.",
+              "mods": {
+                "unit_regen": 0.003
+              },
+              "x": 3.0,
+              "parents": [
+                "froid_eternel"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 10,
+          "nodes": [
+            {
+              "id": "drain_l",
+              "name": "Drain",
+              "max": 5,
+              "desc": "Invocations : +2 % de vol de vie par rang.",
+              "mods": {
+                "lifesteal": 0.02
+              },
+              "x": 0.0,
+              "parents": [
+                "moelle_ame",
+                "pacte"
+              ]
+            },
+            {
+              "id": "charnier",
+              "name": "Charnier",
+              "max": 5,
+              "desc": "Ennemis tués par l'Ombre : +1 % de chances par rang de se relever.",
+              "mods": {
+                "skeleton_chance": 0.01
+              },
+              "x": 1.0,
+              "parents": [
+                "moelle_ame",
+                "pacte",
+                "sacrifice_ames_t"
+              ]
+            },
+            {
+              "id": "rite",
+              "name": "Rite",
+              "max": 5,
+              "desc": "Sorts : −2 % de coût en mana par rang.",
+              "mods": {
+                "spell_cost": 0.02
+              },
+              "x": 2.0,
+              "parents": [
+                "pacte",
+                "sacrifice_ames_t",
+                "ame_liee"
+              ]
+            },
+            {
+              "id": "phylactere_cache",
+              "name": "Phylactère caché",
+              "max": 5,
+              "desc": "Bouclier de Barrière au départ +3 par rang.",
+              "mods": {
+                "start_shield": 3
+              },
+              "x": 3.0,
+              "parents": [
+                "sacrifice_ames_t",
+                "ame_liee"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 15,
+          "nodes": [
+            {
+              "id": "vampirisme",
+              "name": "Vampirisme",
+              "max": 5,
+              "desc": "Vol de vie des invocations +1 % par rang.",
+              "mods": {
+                "lifesteal": 0.01
+              },
+              "x": 0.0,
+              "parents": [
+                "drain_l",
+                "charnier"
+              ]
+            },
+            {
+              "id": "nuit_eternelle",
+              "name": "Nuit éternelle",
+              "max": 5,
+              "desc": "Dégâts des sorts +2 % par rang.",
+              "mods": {
+                "spell_dmg": 0.02
+              },
+              "x": 1.5,
+              "parents": [
+                "charnier",
+                "rite"
+              ]
+            },
+            {
+              "id": "rites_anciens",
+              "name": "Rites anciens",
+              "max": 5,
+              "desc": "Recharge des sorts −2 % par rang.",
+              "mods": {
+                "cd_red": 0.02
+              },
+              "x": 3.0,
+              "parents": [
+                "rite",
+                "phylactere_cache"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 20,
+          "nodes": [
+            {
+              "id": "liche_n",
+              "name": "Cœur de liche",
+              "max": 3,
+              "desc": "Sorts d'Ombre : +5 % de dégâts par rang.",
+              "mods": {
+                "elem_dmg.ombre": 0.05
+              },
+              "x": 0.0,
+              "parents": [
+                "vampirisme"
+              ]
+            },
+            {
+              "id": "seigneur_liche",
+              "name": "Seigneur liche",
+              "max": 1,
+              "desc": "Évolution : Ultime : +25 % de dégâts, +20 % de rayon.",
+              "kind": "evolution",
+              "mods": {
+                "ult_dmg": 0.25,
+                "ult_radius": 0.2
+              },
+              "x": 1.5,
+              "parents": [
+                "nuit_eternelle"
+              ]
+            },
+            {
+              "id": "conscience_liche",
+              "name": "Conscience de liche",
+              "max": 3,
+              "desc": "Régénération de mana +5 % par rang · Mana par ennemi abattu +0,1 par rang.",
+              "mods": {
+                "mana_regen": 0.05,
+                "kill_mana": 0.1
+              },
+              "x": 3.0,
+              "parents": [
+                "rites_anciens"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 25,
+          "nodes": [
+            {
+              "id": "immortel",
+              "name": "Immortel",
+              "max": 3,
+              "desc": "Barrière +0,1 PV/s par rang.",
+              "mods": {
+                "barrier_regen": 0.08
+              },
+              "x": 0.5,
+              "parents": [
+                "liche_n",
+                "seigneur_liche"
+              ]
+            },
+            {
+              "id": "seigneur_morts",
+              "name": "Seigneur des morts",
+              "max": 3,
+              "desc": "Attaque du Champion +8 % par rang · PV du Champion +8 % par rang.",
+              "mods": {
+                "champ_atk": 0.08,
+                "champ_hp": 0.08
+              },
+              "x": 2.5,
+              "parents": [
+                "seigneur_liche",
+                "conscience_liche"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 30,
+          "nodes": [
+            {
+              "id": "liche_aube",
+              "name": "Offrande",
+              "max": 1,
+              "desc": "Clé de voûte (Aube) : 20 invocations sacrifiées rendent 10 PV à la Barrière.",
+              "kind": "keystone",
+              "mods": {
+                "harvest_barrier": 1
+              },
+              "flag": "s1.voie_aube",
+              "flag_text": "Voie de l'Aube (choix de 3-10)",
+              "x": 0.0,
+              "parents": [
+                "immortel"
+              ]
+            },
+            {
+              "id": "liche_cendres",
+              "name": "Festin d'âmes",
+              "max": 1,
+              "desc": "Clé de voûte (Cendres) : 20 invocations sacrifiées donnent +15 de Surge.",
+              "kind": "keystone",
+              "mods": {
+                "harvest_surge": 1
+              },
+              "flag": "s1.voie_cendres",
+              "flag_text": "Voie des Cendres (choix de 3-10)",
+              "x": 1.5,
+              "parents": [
+                "immortel",
+                "seigneur_morts"
+              ]
+            },
+            {
+              "id": "non_mort",
+              "name": "Non-mort",
+              "max": 1,
+              "desc": "Clé de voûte à double tranchant : Barrière +1 PV/s · Soins −50 %.",
+              "mods": {
+                "barrier_regen": 1.0,
+                "heal_bonus": -0.5
+              },
+              "kind": "keystone",
+              "x": 3.0,
+              "parents": [
+                "seigneur_morts"
+              ]
+            }
+          ]
+        }
+      ]
     }
-   ]
-  },
-  {
-   "id": "maledictions",
-   "name": "Malédictions",
-   "theme": "Flétrissure, poison",
-   "color": "8E62E0",
-   "icon": "malediction_masse",
-   "tiers": [
-    {
-     "req": 0,
-     "nodes": [
-      {
-       "id": "fleau",
-       "name": "Fléau",
-       "max": 5,
-       "desc": "Sorts d'Ombre : +6 % de dégâts par rang.",
-       "mods": {
-        "elem_dmg.ombre": 0.06
-       }
-      },
-      {
-       "id": "peste",
-       "name": "Peste",
-       "max": 5,
-       "desc": "Poison : +8 % de dégâts par rang.",
-       "mods": {
-        "poison_dmg": 0.08
-       }
-      }
-     ]
-    },
-    {
-     "req": 5,
-     "nodes": [
-      {
-       "id": "contagion",
-       "name": "Contagion",
-       "max": 5,
-       "desc": "3 % de chances par rang d'empoisonner.",
-       "mods": {
-        "venom": 0.03
-       }
-      },
-      {
-       "id": "siphon",
-       "name": "Siphon",
-       "max": 5,
-       "desc": "Chaque ennemi abattu rend 0,2 mana par rang.",
-       "mods": {
-        "kill_mana": 0.2
-       }
-      },
-      {
-       "id": "malediction_masse_t",
-       "name": "Malédiction de masse",
-       "max": 1,
-       "desc": "Nouveau sort : flétrit tous les ennemis d'une large zone.",
-       "kind": "spell",
-       "unlock": "malediction_masse"
-      }
-     ]
-    },
-    {
-     "req": 10,
-     "nodes": [
-      {
-       "id": "ombre_rampante",
-       "name": "Ombre rampante",
-       "max": 5,
-       "desc": "Sorts d'Ombre : +4 % de dégâts par rang.",
-       "mods": {
-        "elem_dmg.ombre": 0.04
-       }
-      },
-      {
-       "id": "necrose",
-       "name": "Nécrose",
-       "max": 5,
-       "desc": "Poison : +6 % de dégâts par rang.",
-       "mods": {
-        "poison_dmg": 0.06
-       }
-      },
-      {
-       "id": "economie",
-       "name": "Économie",
-       "max": 5,
-       "desc": "Sorts : −2 % de coût en mana par rang.",
-       "mods": {
-        "spell_cost": 0.02
-       }
-      }
-     ]
-    },
-    {
-     "req": 20,
-     "nodes": [
-      {
-       "id": "coeur_noir",
-       "name": "Cœur noir",
-       "max": 3,
-       "desc": "Sorts d'Ombre : +5 % de dégâts par rang.",
-       "mods": {
-        "elem_dmg.ombre": 0.05
-       }
-      },
-      {
-       "id": "colosse_maudit",
-       "name": "Colosse maudit",
-       "max": 1,
-       "desc": "Évolution : Champion +30 % de PV, +20 % d'attaque.",
-       "kind": "evolution",
-       "mods": {
-        "champ_hp": 0.3,
-        "champ_atk": 0.2
-       }
-      }
-     ]
-    },
-    {
-     "req": 30,
-     "nodes": [
-      {
-       "id": "pandemie",
-       "name": "Pandémie",
-       "max": 1,
-       "desc": "Clé de voûte : un ennemi flétri qui meurt propage la Flétrissure et le poison à ses voisins.",
-       "kind": "keystone",
-       "mods": {
-        "pandemic": 1
-       }
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "id": "liche",
-   "name": "Liche",
-   "theme": "Voie du Surge : sacrifice, drain",
-   "color": "8E62E0",
-   "icon": "sacrifice_ames",
-   "unlock_flag": "s1.verite_cendres",
-   "locked": "Voie du Surge : s'ouvre à la fin de l'acte 3 (la Vérité des Cendres, 3-10).",
-   "tiers": [
-    {
-     "req": 0,
-     "nodes": [
-      {
-       "id": "phylactere",
-       "name": "Phylactère",
-       "max": 5,
-       "desc": "Barrière : +3 % de PV max par rang.",
-       "mods": {
-        "barrier_max": 0.03
-       }
-      },
-      {
-       "id": "siphon_l",
-       "name": "Siphon",
-       "max": 5,
-       "desc": "Chaque ennemi abattu rend 0,2 mana par rang.",
-       "mods": {
-        "kill_mana": 0.2
-       }
-      }
-     ]
-    },
-    {
-     "req": 5,
-     "nodes": [
-      {
-       "id": "moelle_ame",
-       "name": "Moelle d'âme",
-       "max": 5,
-       "desc": "Squelettes : +5 % d'attaque et de PV par rang.",
-       "mods": {
-        "skeleton_bonus": 0.05
-       }
-      },
-      {
-       "id": "pacte",
-       "name": "Pacte",
-       "max": 5,
-       "desc": "+4 % de régénération de mana par rang.",
-       "mods": {
-        "mana_regen": 0.04
-       }
-      },
-      {
-       "id": "sacrifice_ames_t",
-       "name": "Sacrifice d'âmes",
-       "max": 1,
-       "desc": "Nouveau sort : sacrifie 20 invocations qui explosent en Ombre.",
-       "kind": "spell",
-       "unlock": "sacrifice_ames"
-      }
-     ]
-    },
-    {
-     "req": 10,
-     "nodes": [
-      {
-       "id": "drain_l",
-       "name": "Drain",
-       "max": 5,
-       "desc": "Invocations : +2 % de vol de vie par rang.",
-       "mods": {
-        "lifesteal": 0.02
-       }
-      },
-      {
-       "id": "charnier",
-       "name": "Charnier",
-       "max": 5,
-       "desc": "Ennemis tués par l'Ombre : +1 % de chances par rang de se relever.",
-       "mods": {
-        "skeleton_chance": 0.01
-       }
-      },
-      {
-       "id": "rite",
-       "name": "Rite",
-       "max": 5,
-       "desc": "Sorts : −2 % de coût en mana par rang.",
-       "mods": {
-        "spell_cost": 0.02
-       }
-      }
-     ]
-    },
-    {
-     "req": 20,
-     "nodes": [
-      {
-       "id": "liche_n",
-       "name": "Cœur de liche",
-       "max": 3,
-       "desc": "Sorts d'Ombre : +5 % de dégâts par rang.",
-       "mods": {
-        "elem_dmg.ombre": 0.05
-       }
-      },
-      {
-       "id": "seigneur_liche",
-       "name": "Seigneur liche",
-       "max": 1,
-       "desc": "Évolution : Ultime : +25 % de dégâts, +20 % de rayon.",
-       "kind": "evolution",
-       "mods": {
-        "ult_dmg": 0.25,
-        "ult_radius": 0.2
-       }
-      }
-     ]
-    },
-    {
-     "req": 30,
-     "nodes": [
-      {
-       "id": "liche_aube",
-       "name": "Offrande",
-       "max": 1,
-       "desc": "Clé de voûte (Aube) : 20 invocations sacrifiées rendent 10 PV à la Barrière.",
-       "kind": "keystone",
-       "mods": {
-        "harvest_barrier": 1
-       },
-       "flag": "s1.voie_aube",
-       "flag_text": "Voie de l'Aube (choix de 3-10)"
-      },
-      {
-       "id": "liche_cendres",
-       "name": "Festin d'âmes",
-       "max": 1,
-       "desc": "Clé de voûte (Cendres) : 20 invocations sacrifiées donnent +15 de Surge.",
-       "kind": "keystone",
-       "mods": {
-        "harvest_surge": 1
-       },
-       "flag": "s1.voie_cendres",
-       "flag_text": "Voie des Cendres (choix de 3-10)"
-      }
-     ]
-    }
-   ]
-  }
- ]
+  ]
 }

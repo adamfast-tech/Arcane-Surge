@@ -1,426 +1,1005 @@
 {
- "class": "chevalier",
- "keystone_limit": 2,
- "branches": [
-  {
-   "id": "rempart",
-   "name": "Rempart",
-   "theme": "DÉF, Barrière",
-   "color": "4FE3D2",
-   "icon": "bouclier_leve",
-   "tiers": [
+  "class": "chevalier",
+  "keystone_limit": 2,
+  "branches": [
     {
-     "req": 0,
-     "nodes": [
-      {
-       "id": "armure_lourde",
-       "name": "Armure lourde",
-       "max": 5,
-       "desc": "Invocations : +1,2 de défense par rang.",
-       "mods": {
-        "unit_def": 0.06
-       }
-      },
-      {
-       "id": "garde",
-       "name": "Garde",
-       "max": 5,
-       "desc": "Barrière : −2 % de dégâts subis par rang.",
-       "mods": {
-        "barrier_dr": 0.02
-       }
-      }
-     ]
+      "id": "rempart",
+      "name": "Rempart",
+      "theme": "DÉF, Barrière",
+      "color": "4FE3D2",
+      "icon": "bouclier_leve",
+      "tiers": [
+        {
+          "req": 0,
+          "nodes": [
+            {
+              "id": "armure_lourde",
+              "name": "Armure lourde",
+              "max": 5,
+              "desc": "Invocations : +1,2 de défense par rang.",
+              "mods": {
+                "unit_def": 0.06
+              },
+              "x": 0.0
+            },
+            {
+              "id": "garde",
+              "name": "Garde",
+              "max": 5,
+              "desc": "Barrière : −2 % de dégâts subis par rang.",
+              "mods": {
+                "barrier_dr": 0.02
+              },
+              "x": 1.5
+            },
+            {
+              "id": "cotte_epaisse",
+              "name": "Cotte épaisse",
+              "max": 5,
+              "desc": "Résistance des invocations au Physique +3 % par rang.",
+              "mods": {
+                "resist.physique": 0.03
+              },
+              "x": 3.0
+            }
+          ]
+        },
+        {
+          "req": 5,
+          "nodes": [
+            {
+              "id": "bastion",
+              "name": "Bastion",
+              "max": 5,
+              "desc": "Barrière : +3 % de PV max par rang.",
+              "mods": {
+                "barrier_max": 0.03
+              },
+              "x": 0.0,
+              "parents": [
+                "armure_lourde"
+              ]
+            },
+            {
+              "id": "endurance",
+              "name": "Endurance",
+              "max": 5,
+              "desc": "Invocations : +4 % de PV par rang.",
+              "mods": {
+                "unit_hp": 0.04
+              },
+              "x": 1.0,
+              "parents": [
+                "armure_lourde",
+                "garde"
+              ]
+            },
+            {
+              "id": "bouclier_leve_t",
+              "name": "Bouclier levé",
+              "max": 1,
+              "desc": "Nouveau sort : un bouclier absorbe 15 dégâts subis par la Barrière.",
+              "kind": "spell",
+              "unlock": "bouclier_leve",
+              "x": 2.0,
+              "parents": [
+                "garde",
+                "cotte_epaisse"
+              ]
+            },
+            {
+              "id": "pavois",
+              "name": "Pavois",
+              "max": 5,
+              "desc": "Bouclier des invocations (part des PV) +2 % par rang.",
+              "mods": {
+                "spawn_shield": 0.02
+              },
+              "x": 3.0,
+              "parents": [
+                "cotte_epaisse"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 10,
+          "nodes": [
+            {
+              "id": "muraille",
+              "name": "Muraille",
+              "max": 5,
+              "desc": "Barrière : −2 % de dégâts subis par rang.",
+              "mods": {
+                "barrier_dr": 0.02
+              },
+              "x": 0.0,
+              "parents": [
+                "bastion",
+                "endurance"
+              ]
+            },
+            {
+              "id": "tenacite",
+              "name": "Ténacité",
+              "max": 5,
+              "desc": "La Barrière se répare de 0,03 PV/s par rang.",
+              "mods": {
+                "barrier_regen": 0.03
+              },
+              "x": 1.0,
+              "parents": [
+                "bastion",
+                "endurance",
+                "bouclier_leve_t"
+              ]
+            },
+            {
+              "id": "discipline",
+              "name": "Discipline",
+              "max": 5,
+              "desc": "Sorts : −2 % de coût en mana par rang.",
+              "mods": {
+                "spell_cost": 0.02
+              },
+              "x": 2.0,
+              "parents": [
+                "endurance",
+                "bouclier_leve_t",
+                "pavois"
+              ]
+            },
+            {
+              "id": "sentinelle_c",
+              "name": "Sentinelle",
+              "max": 5,
+              "desc": "Bouclier de Barrière au départ +3 par rang.",
+              "mods": {
+                "start_shield": 3
+              },
+              "x": 3.0,
+              "parents": [
+                "bouclier_leve_t",
+                "pavois"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 15,
+          "nodes": [
+            {
+              "id": "mur_vivant",
+              "name": "Mur vivant",
+              "max": 5,
+              "desc": "PV des invocations +3 % par rang.",
+              "mods": {
+                "unit_hp": 0.03
+              },
+              "x": 0.0,
+              "parents": [
+                "muraille",
+                "tenacite"
+              ]
+            },
+            {
+              "id": "rempart_fer",
+              "name": "Rempart de fer",
+              "max": 5,
+              "desc": "Défense des invocations +0,6 par rang.",
+              "mods": {
+                "unit_def": 0.03
+              },
+              "x": 1.5,
+              "parents": [
+                "tenacite",
+                "discipline"
+              ]
+            },
+            {
+              "id": "vigilance_c",
+              "name": "Vigilance",
+              "max": 5,
+              "desc": "Recharge des sorts −2 % par rang.",
+              "mods": {
+                "cd_red": 0.02
+              },
+              "x": 3.0,
+              "parents": [
+                "discipline",
+                "sentinelle_c"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 20,
+          "nodes": [
+            {
+              "id": "forteresse",
+              "name": "Forteresse",
+              "max": 3,
+              "desc": "Barrière : +4 % de PV max par rang.",
+              "mods": {
+                "barrier_max": 0.04
+              },
+              "x": 0.0,
+              "parents": [
+                "mur_vivant"
+              ]
+            },
+            {
+              "id": "paladin_aguerri",
+              "name": "Paladin aguerri",
+              "max": 1,
+              "desc": "Évolution : Champion +40 % de PV.",
+              "kind": "evolution",
+              "mods": {
+                "champ_hp": 0.4
+              },
+              "x": 1.5,
+              "parents": [
+                "rempart_fer"
+              ]
+            },
+            {
+              "id": "citadelle",
+              "name": "Citadelle",
+              "max": 3,
+              "desc": "PV de Barrière +3 % par rang · Dégâts subis par la Barrière −1,5 % par rang.",
+              "mods": {
+                "barrier_max": 0.03,
+                "barrier_dr": 0.015
+              },
+              "x": 3.0,
+              "parents": [
+                "vigilance_c"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 25,
+          "nodes": [
+            {
+              "id": "gardien_royaume",
+              "name": "Gardien du royaume",
+              "max": 3,
+              "desc": "Barrière +0,1 PV/s par rang.",
+              "mods": {
+                "barrier_regen": 0.06
+              },
+              "x": 0.5,
+              "parents": [
+                "forteresse",
+                "paladin_aguerri"
+              ]
+            },
+            {
+              "id": "bouclier_vivant",
+              "name": "Bouclier vivant",
+              "max": 3,
+              "desc": "Bouclier des invocations (part des PV) +4 % par rang.",
+              "mods": {
+                "spawn_shield": 0.04
+              },
+              "x": 2.5,
+              "parents": [
+                "paladin_aguerri",
+                "citadelle"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 30,
+          "nodes": [
+            {
+              "id": "inebranlable",
+              "name": "Inébranlable",
+              "max": 1,
+              "desc": "Clé de voûte : la Barrière perd au maximum 5 PV par coup.",
+              "kind": "keystone",
+              "mods": {
+                "barrier_cap": 5
+              },
+              "x": 0.5,
+              "parents": [
+                "gardien_royaume"
+              ]
+            },
+            {
+              "id": "immobile",
+              "name": "Immobile",
+              "max": 1,
+              "desc": "Clé de voûte à double tranchant : Dégâts subis par la Barrière −30 % · Cadence du Flux −15 %.",
+              "mods": {
+                "barrier_dr": 0.3,
+                "cadence": -0.15
+              },
+              "kind": "keystone",
+              "x": 2.5,
+              "parents": [
+                "bouclier_vivant"
+              ]
+            }
+          ]
+        }
+      ]
     },
     {
-     "req": 5,
-     "nodes": [
-      {
-       "id": "bastion",
-       "name": "Bastion",
-       "max": 5,
-       "desc": "Barrière : +3 % de PV max par rang.",
-       "mods": {
-        "barrier_max": 0.03
-       }
-      },
-      {
-       "id": "endurance",
-       "name": "Endurance",
-       "max": 5,
-       "desc": "Invocations : +4 % de PV par rang.",
-       "mods": {
-        "unit_hp": 0.04
-       }
-      },
-      {
-       "id": "bouclier_leve_t",
-       "name": "Bouclier levé",
-       "max": 1,
-       "desc": "Nouveau sort : un bouclier absorbe 15 dégâts subis par la Barrière.",
-       "kind": "spell",
-       "unlock": "bouclier_leve"
-      }
-     ]
+      "id": "croise",
+      "name": "Croisé",
+      "theme": "Lumière, charge",
+      "color": "F2D48B",
+      "icon": "charge_bastion",
+      "tiers": [
+        {
+          "req": 0,
+          "nodes": [
+            {
+              "id": "ferveur_k",
+              "name": "Ferveur",
+              "max": 5,
+              "desc": "Invocations : +4 % d'attaque par rang.",
+              "mods": {
+                "unit_atk": 0.04
+              },
+              "x": 0.0
+            },
+            {
+              "id": "elan_sacre",
+              "name": "Élan sacré",
+              "max": 5,
+              "desc": "Sorts de Lumière : +6 % de dégâts par rang.",
+              "mods": {
+                "elem_dmg.lumiere": 0.06
+              },
+              "x": 1.5
+            },
+            {
+              "id": "serment_c",
+              "name": "Serment",
+              "max": 5,
+              "desc": "Invocations de Lumière : dégâts +3 % par rang.",
+              "mods": {
+                "unit_elem.lumiere": 0.03
+              },
+              "x": 3.0
+            }
+          ]
+        },
+        {
+          "req": 5,
+          "nodes": [
+            {
+              "id": "foi",
+              "name": "Foi",
+              "max": 5,
+              "desc": "+4 % de régénération de mana par rang.",
+              "mods": {
+                "mana_regen": 0.04
+              },
+              "x": 0.0,
+              "parents": [
+                "ferveur_k"
+              ]
+            },
+            {
+              "id": "etendard",
+              "name": "Étendard",
+              "max": 5,
+              "desc": "Invocations : +3 % de cadence par rang.",
+              "mods": {
+                "cadence": 0.03
+              },
+              "x": 1.0,
+              "parents": [
+                "ferveur_k",
+                "elan_sacre"
+              ]
+            },
+            {
+              "id": "charge_bastion_t",
+              "name": "Charge",
+              "max": 1,
+              "desc": "Nouveau sort : une charge renverse tout sur une colonne.",
+              "kind": "spell",
+              "unlock": "charge_bastion",
+              "x": 2.0,
+              "parents": [
+                "elan_sacre",
+                "serment_c"
+              ]
+            },
+            {
+              "id": "galop",
+              "name": "Galop",
+              "max": 5,
+              "desc": "Vitesse des invocations +3 % par rang.",
+              "mods": {
+                "unit_speed": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "serment_c"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 10,
+          "nodes": [
+            {
+              "id": "croisade",
+              "name": "Croisade",
+              "max": 5,
+              "desc": "Champion : +6 % d'attaque par rang.",
+              "mods": {
+                "champ_atk": 0.06
+              },
+              "x": 0.0,
+              "parents": [
+                "foi",
+                "etendard"
+              ]
+            },
+            {
+              "id": "zele_k",
+              "name": "Zèle",
+              "max": 5,
+              "desc": "+1 % de chances de critique par rang.",
+              "mods": {
+                "crit": 0.01
+              },
+              "x": 1.0,
+              "parents": [
+                "foi",
+                "etendard",
+                "charge_bastion_t"
+              ]
+            },
+            {
+              "id": "voeu",
+              "name": "Vœu",
+              "max": 5,
+              "desc": "Jauge Surge : +4 % de gain par rang.",
+              "mods": {
+                "surge_gain": 0.04
+              },
+              "x": 2.0,
+              "parents": [
+                "etendard",
+                "charge_bastion_t",
+                "galop"
+              ]
+            },
+            {
+              "id": "banniere_c",
+              "name": "Bannière",
+              "max": 5,
+              "desc": "Attaque des compagnons +3 % par rang.",
+              "mods": {
+                "bot_atk": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "charge_bastion_t",
+                "galop"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 15,
+          "nodes": [
+            {
+              "id": "lance_sacree",
+              "name": "Lance sacrée",
+              "max": 5,
+              "desc": "Attaque des invocations +3 % par rang.",
+              "mods": {
+                "unit_atk": 0.03
+              },
+              "x": 0.0,
+              "parents": [
+                "croisade",
+                "zele_k"
+              ]
+            },
+            {
+              "id": "ordre_c",
+              "name": "Ordre",
+              "max": 5,
+              "desc": "Chance de critique +0,8 % par rang.",
+              "mods": {
+                "crit": 0.008
+              },
+              "x": 1.5,
+              "parents": [
+                "zele_k",
+                "voeu"
+              ]
+            },
+            {
+              "id": "priere_combat",
+              "name": "Prière de combat",
+              "max": 5,
+              "desc": "Recharge des sorts −2 % par rang.",
+              "mods": {
+                "cd_red": 0.02
+              },
+              "x": 3.0,
+              "parents": [
+                "voeu",
+                "banniere_c"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 20,
+          "nodes": [
+            {
+              "id": "champion_aube",
+              "name": "Champion de l'Aube",
+              "max": 3,
+              "desc": "Invocations : +4 % d'attaque par rang.",
+              "mods": {
+                "unit_atk": 0.04
+              },
+              "x": 0.0,
+              "parents": [
+                "lance_sacree"
+              ]
+            },
+            {
+              "id": "rempart_plus",
+              "name": "Rempart sacré+",
+              "max": 1,
+              "desc": "Évolution : +25 % de rayon, +25 % de dégâts.",
+              "kind": "evolution",
+              "mods": {
+                "ult_radius": 0.25,
+                "ult_dmg": 0.25
+              },
+              "x": 1.5,
+              "parents": [
+                "ordre_c"
+              ]
+            },
+            {
+              "id": "chevalerie",
+              "name": "Chevalerie",
+              "max": 3,
+              "desc": "Attaque du Champion +6 % par rang · PV du Champion +6 % par rang.",
+              "mods": {
+                "champ_atk": 0.06,
+                "champ_hp": 0.06
+              },
+              "x": 3.0,
+              "parents": [
+                "priere_combat"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 25,
+          "nodes": [
+            {
+              "id": "grand_maitre",
+              "name": "Grand maître",
+              "max": 3,
+              "desc": "Attaque des invocations +6 % par rang.",
+              "mods": {
+                "unit_atk": 0.06
+              },
+              "x": 0.5,
+              "parents": [
+                "champion_aube",
+                "rempart_plus"
+              ]
+            },
+            {
+              "id": "aube_triomphante",
+              "name": "Aube triomphante",
+              "max": 3,
+              "desc": "Sorts de Lumière +6 % par rang.",
+              "mods": {
+                "elem_dmg.lumiere": 0.06
+              },
+              "x": 2.5,
+              "parents": [
+                "rempart_plus",
+                "chevalerie"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 30,
+          "nodes": [
+            {
+              "id": "avant_garde",
+              "name": "Avant-garde",
+              "max": 1,
+              "desc": "Clé de voûte : le Champion charge en ligne droite à son apparition et renverse tout sur son passage.",
+              "kind": "keystone",
+              "mods": {
+                "vanguard": 1
+              },
+              "x": 0.5,
+              "parents": [
+                "grand_maitre"
+              ]
+            },
+            {
+              "id": "charge_heroique",
+              "name": "Charge héroïque",
+              "max": 1,
+              "desc": "Clé de voûte à double tranchant : Attaque des invocations +25 % · Défense des invocations −5.",
+              "mods": {
+                "unit_atk": 0.25,
+                "unit_def": -0.25
+              },
+              "kind": "keystone",
+              "x": 2.5,
+              "parents": [
+                "aube_triomphante"
+              ]
+            }
+          ]
+        }
+      ]
     },
     {
-     "req": 10,
-     "nodes": [
-      {
-       "id": "muraille",
-       "name": "Muraille",
-       "max": 5,
-       "desc": "Barrière : −2 % de dégâts subis par rang.",
-       "mods": {
-        "barrier_dr": 0.02
-       }
-      },
-      {
-       "id": "tenacite",
-       "name": "Ténacité",
-       "max": 5,
-       "desc": "La Barrière se répare de 0,03 PV/s par rang.",
-       "mods": {
-        "barrier_regen": 0.03
-       }
-      },
-      {
-       "id": "discipline",
-       "name": "Discipline",
-       "max": 5,
-       "desc": "Sorts : −2 % de coût en mana par rang.",
-       "mods": {
-        "spell_cost": 0.02
-       }
-      }
-     ]
-    },
-    {
-     "req": 20,
-     "nodes": [
-      {
-       "id": "forteresse",
-       "name": "Forteresse",
-       "max": 3,
-       "desc": "Barrière : +4 % de PV max par rang.",
-       "mods": {
-        "barrier_max": 0.04
-       }
-      },
-      {
-       "id": "paladin_aguerri",
-       "name": "Paladin aguerri",
-       "max": 1,
-       "desc": "Évolution : Champion +40 % de PV.",
-       "kind": "evolution",
-       "mods": {
-        "champ_hp": 0.4
-       }
-      }
-     ]
-    },
-    {
-     "req": 30,
-     "nodes": [
-      {
-       "id": "inebranlable",
-       "name": "Inébranlable",
-       "max": 1,
-       "desc": "Clé de voûte : la Barrière perd au maximum 5 PV par coup.",
-       "kind": "keystone",
-       "mods": {
-        "barrier_cap": 5
-       }
-      }
-     ]
+      "id": "garde_runique",
+      "name": "Garde runique",
+      "theme": "Voie du Surge : runes sur les unités",
+      "color": "4FE3D2",
+      "icon": "cercle_runique",
+      "unlock_flag": "s1.verite_cendres",
+      "locked": "Voie du Surge : s'ouvre à la fin de l'acte 3 (la Vérité des Cendres, 3-10).",
+      "tiers": [
+        {
+          "req": 0,
+          "nodes": [
+            {
+              "id": "rune_protection",
+              "name": "Rune de protection",
+              "max": 5,
+              "desc": "Invocations : bouclier de 4 % de leurs PV par rang à l'apparition.",
+              "mods": {
+                "spawn_shield": 0.04
+              },
+              "x": 0.0
+            },
+            {
+              "id": "rune_epines",
+              "name": "Rune d'épines",
+              "max": 5,
+              "desc": "Invocations : renvoient 4 % des coups reçus par rang.",
+              "mods": {
+                "riposte": 0.04
+              },
+              "x": 1.5
+            },
+            {
+              "id": "rune_vigueur",
+              "name": "Rune de vigueur",
+              "max": 5,
+              "desc": "PV des invocations +3 % par rang.",
+              "mods": {
+                "unit_hp": 0.03
+              },
+              "x": 3.0
+            }
+          ]
+        },
+        {
+          "req": 5,
+          "nodes": [
+            {
+              "id": "gravure",
+              "name": "Gravure",
+              "max": 5,
+              "desc": "Invocations : +1 de défense par rang.",
+              "mods": {
+                "unit_def": 0.05
+              },
+              "x": 0.0,
+              "parents": [
+                "rune_protection"
+              ]
+            },
+            {
+              "id": "runes_vives",
+              "name": "Runes vives",
+              "max": 5,
+              "desc": "La Barrière se répare de 0,03 PV/s par rang.",
+              "mods": {
+                "barrier_regen": 0.03
+              },
+              "x": 1.0,
+              "parents": [
+                "rune_protection",
+                "rune_epines"
+              ]
+            },
+            {
+              "id": "cercle_runique_t",
+              "name": "Cercle runique",
+              "max": 1,
+              "desc": "Nouveau sort : un cercle blesse et protège pendant 7 s.",
+              "kind": "spell",
+              "unlock": "cercle_runique",
+              "x": 2.0,
+              "parents": [
+                "rune_epines",
+                "rune_vigueur"
+              ]
+            },
+            {
+              "id": "rune_celerite",
+              "name": "Rune de célérité",
+              "max": 5,
+              "desc": "Vitesse des invocations +3 % par rang.",
+              "mods": {
+                "unit_speed": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "rune_vigueur"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 10,
+          "nodes": [
+            {
+              "id": "pierre_runique",
+              "name": "Pierre runique",
+              "max": 5,
+              "desc": "Invocations : +4 % de PV par rang.",
+              "mods": {
+                "unit_hp": 0.04
+              },
+              "x": 0.0,
+              "parents": [
+                "gravure",
+                "runes_vives"
+              ]
+            },
+            {
+              "id": "sceau_k",
+              "name": "Sceau",
+              "max": 5,
+              "desc": "Barrière : −2 % de dégâts subis par rang.",
+              "mods": {
+                "barrier_dr": 0.02
+              },
+              "x": 1.0,
+              "parents": [
+                "gravure",
+                "runes_vives",
+                "cercle_runique_t"
+              ]
+            },
+            {
+              "id": "meditation_k",
+              "name": "Méditation",
+              "max": 5,
+              "desc": "+4 % de régénération de mana par rang.",
+              "mods": {
+                "mana_regen": 0.04
+              },
+              "x": 2.0,
+              "parents": [
+                "runes_vives",
+                "cercle_runique_t",
+                "rune_celerite"
+              ]
+            },
+            {
+              "id": "rune_fureur",
+              "name": "Rune de fureur",
+              "max": 5,
+              "desc": "Attaque des invocations +3 % par rang.",
+              "mods": {
+                "unit_atk": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "cercle_runique_t",
+                "rune_celerite"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 15,
+          "nodes": [
+            {
+              "id": "rune_garde",
+              "name": "Rune de garde",
+              "max": 5,
+              "desc": "Dégâts subis par la Barrière −1,5 % par rang.",
+              "mods": {
+                "barrier_dr": 0.015
+              },
+              "x": 0.0,
+              "parents": [
+                "pierre_runique",
+                "sceau_k"
+              ]
+            },
+            {
+              "id": "rune_echo",
+              "name": "Rune d'écho",
+              "max": 5,
+              "desc": "Invocation en double (chance) +1 % par rang.",
+              "mods": {
+                "free_clone": 0.01
+              },
+              "x": 1.5,
+              "parents": [
+                "sceau_k",
+                "meditation_k"
+              ]
+            },
+            {
+              "id": "rune_flux",
+              "name": "Rune de flux",
+              "max": 5,
+              "desc": "Recharge des sorts −2 % par rang.",
+              "mods": {
+                "cd_red": 0.02
+              },
+              "x": 3.0,
+              "parents": [
+                "meditation_k",
+                "rune_fureur"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 20,
+          "nodes": [
+            {
+              "id": "grand_graveur",
+              "name": "Grand graveur",
+              "max": 3,
+              "desc": "Invocations : bouclier de 5 % de PV par rang à l'apparition.",
+              "mods": {
+                "spawn_shield": 0.05
+              },
+              "x": 0.0,
+              "parents": [
+                "rune_garde"
+              ]
+            },
+            {
+              "id": "paladin_runique",
+              "name": "Paladin runique",
+              "max": 1,
+              "desc": "Évolution : Champion +30 % de PV, +20 % d'attaque.",
+              "kind": "evolution",
+              "mods": {
+                "champ_hp": 0.3,
+                "champ_atk": 0.2
+              },
+              "x": 1.5,
+              "parents": [
+                "rune_echo"
+              ]
+            },
+            {
+              "id": "maitre_runes",
+              "name": "Maître des runes",
+              "max": 3,
+              "desc": "Riposte des invocations +5 % par rang · Bouclier des invocations (part des PV) +3 % par rang.",
+              "mods": {
+                "riposte": 0.05,
+                "spawn_shield": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "rune_flux"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 25,
+          "nodes": [
+            {
+              "id": "mot_runique",
+              "name": "Mot runique",
+              "max": 3,
+              "desc": "Défense des invocations +1 par rang · PV des invocations +4 % par rang.",
+              "mods": {
+                "unit_def": 0.05,
+                "unit_hp": 0.04
+              },
+              "x": 0.5,
+              "parents": [
+                "grand_graveur",
+                "paladin_runique"
+              ]
+            },
+            {
+              "id": "rune_ancestrale",
+              "name": "Rune ancestrale",
+              "max": 3,
+              "desc": "PV de Barrière +5 % par rang.",
+              "mods": {
+                "barrier_max": 0.05
+              },
+              "x": 2.5,
+              "parents": [
+                "paladin_runique",
+                "maitre_runes"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 30,
+          "nodes": [
+            {
+              "id": "runes_aube",
+              "name": "Runes miroirs",
+              "max": 1,
+              "desc": "Clé de voûte (Aube) : les invocations renvoient 30 % des dégâts reçus.",
+              "kind": "keystone",
+              "mods": {
+                "riposte": 0.3
+              },
+              "flag": "s1.voie_aube",
+              "flag_text": "Voie de l'Aube (choix de 3-10)",
+              "x": 0.0,
+              "parents": [
+                "mot_runique"
+              ]
+            },
+            {
+              "id": "runes_cendres",
+              "name": "Runes explosives",
+              "max": 1,
+              "desc": "Clé de voûte (Cendres) : chaque invocation qui tombe explose en runes.",
+              "kind": "keystone",
+              "mods": {
+                "rune_burst": 1
+              },
+              "flag": "s1.voie_cendres",
+              "flag_text": "Voie des Cendres (choix de 3-10)",
+              "x": 1.5,
+              "parents": [
+                "mot_runique",
+                "rune_ancestrale"
+              ]
+            },
+            {
+              "id": "runes_vivantes",
+              "name": "Runes vivantes",
+              "max": 1,
+              "desc": "Clé de voûte à double tranchant : Bouclier des invocations (part des PV) +30 % · Attaque des invocations −15 %.",
+              "mods": {
+                "spawn_shield": 0.3,
+                "unit_atk": -0.15
+              },
+              "kind": "keystone",
+              "x": 3.0,
+              "parents": [
+                "rune_ancestrale"
+              ]
+            }
+          ]
+        }
+      ]
     }
-   ]
-  },
-  {
-   "id": "croise",
-   "name": "Croisé",
-   "theme": "Lumière, charge",
-   "color": "F2D48B",
-   "icon": "charge_bastion",
-   "tiers": [
-    {
-     "req": 0,
-     "nodes": [
-      {
-       "id": "ferveur_k",
-       "name": "Ferveur",
-       "max": 5,
-       "desc": "Invocations : +4 % d'attaque par rang.",
-       "mods": {
-        "unit_atk": 0.04
-       }
-      },
-      {
-       "id": "elan_sacre",
-       "name": "Élan sacré",
-       "max": 5,
-       "desc": "Sorts de Lumière : +6 % de dégâts par rang.",
-       "mods": {
-        "elem_dmg.lumiere": 0.06
-       }
-      }
-     ]
-    },
-    {
-     "req": 5,
-     "nodes": [
-      {
-       "id": "foi",
-       "name": "Foi",
-       "max": 5,
-       "desc": "+4 % de régénération de mana par rang.",
-       "mods": {
-        "mana_regen": 0.04
-       }
-      },
-      {
-       "id": "etendard",
-       "name": "Étendard",
-       "max": 5,
-       "desc": "Invocations : +3 % de cadence par rang.",
-       "mods": {
-        "cadence": 0.03
-       }
-      },
-      {
-       "id": "charge_bastion_t",
-       "name": "Charge",
-       "max": 1,
-       "desc": "Nouveau sort : une charge renverse tout sur une colonne.",
-       "kind": "spell",
-       "unlock": "charge_bastion"
-      }
-     ]
-    },
-    {
-     "req": 10,
-     "nodes": [
-      {
-       "id": "croisade",
-       "name": "Croisade",
-       "max": 5,
-       "desc": "Champion : +6 % d'attaque par rang.",
-       "mods": {
-        "champ_atk": 0.06
-       }
-      },
-      {
-       "id": "zele_k",
-       "name": "Zèle",
-       "max": 5,
-       "desc": "+1 % de chances de critique par rang.",
-       "mods": {
-        "crit": 0.01
-       }
-      },
-      {
-       "id": "voeu",
-       "name": "Vœu",
-       "max": 5,
-       "desc": "Jauge Surge : +4 % de gain par rang.",
-       "mods": {
-        "surge_gain": 0.04
-       }
-      }
-     ]
-    },
-    {
-     "req": 20,
-     "nodes": [
-      {
-       "id": "champion_aube",
-       "name": "Champion de l'Aube",
-       "max": 3,
-       "desc": "Invocations : +4 % d'attaque par rang.",
-       "mods": {
-        "unit_atk": 0.04
-       }
-      },
-      {
-       "id": "rempart_plus",
-       "name": "Rempart sacré+",
-       "max": 1,
-       "desc": "Évolution : +25 % de rayon, +25 % de dégâts.",
-       "kind": "evolution",
-       "mods": {
-        "ult_radius": 0.25,
-        "ult_dmg": 0.25
-       }
-      }
-     ]
-    },
-    {
-     "req": 30,
-     "nodes": [
-      {
-       "id": "avant_garde",
-       "name": "Avant-garde",
-       "max": 1,
-       "desc": "Clé de voûte : le Champion charge en ligne droite à son apparition et renverse tout sur son passage.",
-       "kind": "keystone",
-       "mods": {
-        "vanguard": 1
-       }
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "id": "garde_runique",
-   "name": "Garde runique",
-   "theme": "Voie du Surge : runes sur les unités",
-   "color": "4FE3D2",
-   "icon": "cercle_runique",
-   "unlock_flag": "s1.verite_cendres",
-   "locked": "Voie du Surge : s'ouvre à la fin de l'acte 3 (la Vérité des Cendres, 3-10).",
-   "tiers": [
-    {
-     "req": 0,
-     "nodes": [
-      {
-       "id": "rune_protection",
-       "name": "Rune de protection",
-       "max": 5,
-       "desc": "Invocations : bouclier de 4 % de leurs PV par rang à l'apparition.",
-       "mods": {
-        "spawn_shield": 0.04
-       }
-      },
-      {
-       "id": "rune_epines",
-       "name": "Rune d'épines",
-       "max": 5,
-       "desc": "Invocations : renvoient 4 % des coups reçus par rang.",
-       "mods": {
-        "riposte": 0.04
-       }
-      }
-     ]
-    },
-    {
-     "req": 5,
-     "nodes": [
-      {
-       "id": "gravure",
-       "name": "Gravure",
-       "max": 5,
-       "desc": "Invocations : +1 de défense par rang.",
-       "mods": {
-        "unit_def": 0.05
-       }
-      },
-      {
-       "id": "runes_vives",
-       "name": "Runes vives",
-       "max": 5,
-       "desc": "La Barrière se répare de 0,03 PV/s par rang.",
-       "mods": {
-        "barrier_regen": 0.03
-       }
-      },
-      {
-       "id": "cercle_runique_t",
-       "name": "Cercle runique",
-       "max": 1,
-       "desc": "Nouveau sort : un cercle blesse et protège pendant 7 s.",
-       "kind": "spell",
-       "unlock": "cercle_runique"
-      }
-     ]
-    },
-    {
-     "req": 10,
-     "nodes": [
-      {
-       "id": "pierre_runique",
-       "name": "Pierre runique",
-       "max": 5,
-       "desc": "Invocations : +4 % de PV par rang.",
-       "mods": {
-        "unit_hp": 0.04
-       }
-      },
-      {
-       "id": "sceau_k",
-       "name": "Sceau",
-       "max": 5,
-       "desc": "Barrière : −2 % de dégâts subis par rang.",
-       "mods": {
-        "barrier_dr": 0.02
-       }
-      },
-      {
-       "id": "meditation_k",
-       "name": "Méditation",
-       "max": 5,
-       "desc": "+4 % de régénération de mana par rang.",
-       "mods": {
-        "mana_regen": 0.04
-       }
-      }
-     ]
-    },
-    {
-     "req": 20,
-     "nodes": [
-      {
-       "id": "grand_graveur",
-       "name": "Grand graveur",
-       "max": 3,
-       "desc": "Invocations : bouclier de 5 % de PV par rang à l'apparition.",
-       "mods": {
-        "spawn_shield": 0.05
-       }
-      },
-      {
-       "id": "paladin_runique",
-       "name": "Paladin runique",
-       "max": 1,
-       "desc": "Évolution : Champion +30 % de PV, +20 % d'attaque.",
-       "kind": "evolution",
-       "mods": {
-        "champ_hp": 0.3,
-        "champ_atk": 0.2
-       }
-      }
-     ]
-    },
-    {
-     "req": 30,
-     "nodes": [
-      {
-       "id": "runes_aube",
-       "name": "Runes miroirs",
-       "max": 1,
-       "desc": "Clé de voûte (Aube) : les invocations renvoient 30 % des dégâts reçus.",
-       "kind": "keystone",
-       "mods": {
-        "riposte": 0.3
-       },
-       "flag": "s1.voie_aube",
-       "flag_text": "Voie de l'Aube (choix de 3-10)"
-      },
-      {
-       "id": "runes_cendres",
-       "name": "Runes explosives",
-       "max": 1,
-       "desc": "Clé de voûte (Cendres) : chaque invocation qui tombe explose en runes.",
-       "kind": "keystone",
-       "mods": {
-        "rune_burst": 1
-       },
-       "flag": "s1.voie_cendres",
-       "flag_text": "Voie des Cendres (choix de 3-10)"
-      }
-     ]
-    }
-   ]
-  }
- ]
+  ]
 }

@@ -31,6 +31,13 @@ func _ready() -> void:
 	if _url_flag("gear"):
 		# Aperçu : un assortiment d'objets et de runes (« &gear=1 »), pour la Forge et l'Équipement.
 		_preview_gear()
+	if str(_query().get("lvl", "")) != "":
+		# Aperçu : héros à un niveau donné (« &lvl=40 »), et quelques points investis dans l'arbre (« &build=1 »).
+		Profile.data["player"]["level"] = int(str(_query().get("lvl", "1")))
+		if str(_query().get("class", "")) != "":
+			Profile.data["player"]["class"] = str(_query().get("class", ""))
+		if _url_flag("build"):
+			_preview_build()
 	if room in ["meditation", "circle", "skills", "library", "options"]:
 		# Aperçu d'une salle (« ?room=meditation », « ?room=library&tab=classes&class=archer »), sans écran de chargement.
 		if str(_query().get("class", "")) != "":
@@ -327,6 +334,16 @@ func _show_equipment(who: String = "player", from_circle: bool = false) -> void:
 		e.back.connect(_show_hub)
 	e.open_forge.connect(func(uid: String) -> void: _show_forge(uid, "equipment", who))
 	_set_screen(e)
+
+
+func _preview_build() -> void:
+	var br: Dictionary = (Profile.tree_db().get("branches", []) as Array)[0]
+	for pass_i in range(6):
+		for tier in br.get("tiers", []):
+			for node in tier["nodes"]:
+				var id := str(node["id"])
+				if Profile.skill_points_spent() < 26 and Profile.invest_block(id) == "" and (Profile.skill_rank(id) < 2 or str(node.get("kind", "")) != "passive"):
+					Profile.invest(id)
 
 
 func _preview_gear() -> void:

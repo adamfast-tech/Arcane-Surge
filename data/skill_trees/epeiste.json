@@ -1,427 +1,1007 @@
 {
- "class": "epeiste",
- "keystone_limit": 2,
- "branches": [
-  {
-   "id": "duelliste",
-   "name": "Duelliste",
-   "theme": "Critique, vitesse",
-   "color": "E8EEF8",
-   "icon": "fente",
-   "tiers": [
+  "class": "epeiste",
+  "keystone_limit": 2,
+  "branches": [
     {
-     "req": 0,
-     "nodes": [
-      {
-       "id": "estoc",
-       "name": "Estoc",
-       "max": 5,
-       "desc": "+1 % de chances de critique par rang.",
-       "mods": {
-        "crit": 0.01
-       }
-      },
-      {
-       "id": "elan",
-       "name": "Élan",
-       "max": 5,
-       "desc": "Invocations : +3 % de cadence par rang.",
-       "mods": {
-        "cadence": 0.03
-       }
-      }
-     ]
+      "id": "duelliste",
+      "name": "Duelliste",
+      "theme": "Critique, vitesse",
+      "color": "E8EEF8",
+      "icon": "fente",
+      "tiers": [
+        {
+          "req": 0,
+          "nodes": [
+            {
+              "id": "estoc",
+              "name": "Estoc",
+              "max": 5,
+              "desc": "+1 % de chances de critique par rang.",
+              "mods": {
+                "crit": 0.01
+              },
+              "x": 0.0
+            },
+            {
+              "id": "elan",
+              "name": "Élan",
+              "max": 5,
+              "desc": "Invocations : +3 % de cadence par rang.",
+              "mods": {
+                "cadence": 0.03
+              },
+              "x": 1.5
+            },
+            {
+              "id": "salut_duel",
+              "name": "Salut du duelliste",
+              "max": 5,
+              "desc": "Esquive des invocations +2 % par rang.",
+              "mods": {
+                "dodge": 0.02
+              },
+              "x": 3.0
+            }
+          ]
+        },
+        {
+          "req": 5,
+          "nodes": [
+            {
+              "id": "riposte",
+              "name": "Riposte",
+              "max": 5,
+              "desc": "Invocations : renvoient 6 % des coups reçus par rang.",
+              "mods": {
+                "riposte": 0.06
+              },
+              "x": 0.0,
+              "parents": [
+                "estoc"
+              ]
+            },
+            {
+              "id": "lame_affutee",
+              "name": "Lame affûtée",
+              "max": 5,
+              "desc": "Invocations : +4 % d'attaque par rang.",
+              "mods": {
+                "unit_atk": 0.04
+              },
+              "x": 1.0,
+              "parents": [
+                "estoc",
+                "elan"
+              ]
+            },
+            {
+              "id": "fente_t",
+              "name": "Fente",
+              "max": 1,
+              "desc": "Nouveau sort : une estocade traverse toute une colonne.",
+              "kind": "spell",
+              "unlock": "fente",
+              "x": 2.0,
+              "parents": [
+                "elan",
+                "salut_duel"
+              ]
+            },
+            {
+              "id": "parade",
+              "name": "Parade",
+              "max": 5,
+              "desc": "Dégâts subis par la Barrière −1,5 % par rang.",
+              "mods": {
+                "barrier_dr": 0.015
+              },
+              "x": 3.0,
+              "parents": [
+                "salut_duel"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 10,
+          "nodes": [
+            {
+              "id": "garde_haute",
+              "name": "Garde haute",
+              "max": 5,
+              "desc": "Invocations : +1 de défense par rang.",
+              "mods": {
+                "unit_def": 0.05
+              },
+              "x": 0.0,
+              "parents": [
+                "riposte",
+                "lame_affutee"
+              ]
+            },
+            {
+              "id": "pas_chasse",
+              "name": "Pas chassé",
+              "max": 5,
+              "desc": "Invocations : +4 % de PV par rang.",
+              "mods": {
+                "unit_hp": 0.04
+              },
+              "x": 1.0,
+              "parents": [
+                "riposte",
+                "lame_affutee",
+                "fente_t"
+              ]
+            },
+            {
+              "id": "souffle_e",
+              "name": "Souffle",
+              "max": 5,
+              "desc": "Sorts : −2 % de coût en mana par rang.",
+              "mods": {
+                "spell_cost": 0.02
+              },
+              "x": 2.0,
+              "parents": [
+                "lame_affutee",
+                "fente_t",
+                "parade"
+              ]
+            },
+            {
+              "id": "jeu_jambes",
+              "name": "Jeu de jambes",
+              "max": 5,
+              "desc": "Vitesse des invocations +3 % par rang.",
+              "mods": {
+                "unit_speed": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "fente_t",
+                "parade"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 15,
+          "nodes": [
+            {
+              "id": "botte_secrete",
+              "name": "Botte secrète",
+              "max": 3,
+              "desc": "Chance de critique +1,5 % par rang.",
+              "mods": {
+                "crit": 0.015
+              },
+              "x": 0.0,
+              "parents": [
+                "garde_haute",
+                "pas_chasse"
+              ]
+            },
+            {
+              "id": "lame_fine",
+              "name": "Lame fine",
+              "max": 5,
+              "desc": "Invocations de Physique : dégâts +3 % par rang.",
+              "mods": {
+                "unit_elem.physique": 0.03
+              },
+              "x": 1.5,
+              "parents": [
+                "pas_chasse",
+                "souffle_e"
+              ]
+            },
+            {
+              "id": "esquive_e",
+              "name": "Esquive",
+              "max": 5,
+              "desc": "Esquive des invocations +1,5 % par rang.",
+              "mods": {
+                "dodge": 0.015
+              },
+              "x": 3.0,
+              "parents": [
+                "souffle_e",
+                "jeu_jambes"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 20,
+          "nodes": [
+            {
+              "id": "maitrise",
+              "name": "Maîtrise",
+              "max": 3,
+              "desc": "+1 % de chances de critique par rang.",
+              "mods": {
+                "crit": 0.01
+              },
+              "x": 0.0,
+              "parents": [
+                "botte_secrete"
+              ]
+            },
+            {
+              "id": "maitre_lame",
+              "name": "Maître-lame aguerri",
+              "max": 1,
+              "desc": "Évolution : Champion +30 % de PV, +25 % d'attaque.",
+              "kind": "evolution",
+              "mods": {
+                "champ_hp": 0.3,
+                "champ_atk": 0.25
+              },
+              "x": 1.5,
+              "parents": [
+                "lame_fine"
+              ]
+            },
+            {
+              "id": "contre_attaque",
+              "name": "Contre-attaque",
+              "max": 3,
+              "desc": "Riposte des invocations +6 % par rang · Défense des invocations +0,6 par rang.",
+              "mods": {
+                "riposte": 0.06,
+                "unit_def": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "esquive_e"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 25,
+          "nodes": [
+            {
+              "id": "maitre_armes",
+              "name": "Maître d'armes",
+              "max": 3,
+              "desc": "Attaque des invocations +6 % par rang.",
+              "mods": {
+                "unit_atk": 0.06
+              },
+              "x": 0.5,
+              "parents": [
+                "maitrise",
+                "maitre_lame"
+              ]
+            },
+            {
+              "id": "elegance",
+              "name": "Élégance",
+              "max": 3,
+              "desc": "Cadence du Flux +4 % par rang · Chance de critique +0,5 % par rang.",
+              "mods": {
+                "cadence": 0.04,
+                "crit": 0.005
+              },
+              "x": 2.5,
+              "parents": [
+                "maitre_lame",
+                "contre_attaque"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 30,
+          "nodes": [
+            {
+              "id": "danse_parfaite",
+              "name": "Danse parfaite",
+              "max": 1,
+              "desc": "Clé de voûte : chaque critique d'une invocation réduit les recharges des sorts de 0,2 s (1 s par seconde au plus).",
+              "kind": "keystone",
+              "mods": {
+                "perfect_dance": 1
+              },
+              "x": 0.5,
+              "parents": [
+                "maitre_armes"
+              ]
+            },
+            {
+              "id": "duel_mort",
+              "name": "Duel à mort",
+              "max": 1,
+              "desc": "Clé de voûte à double tranchant : Chance de critique +15 % · PV des invocations −20 %.",
+              "mods": {
+                "crit": 0.15,
+                "unit_hp": -0.2
+              },
+              "kind": "keystone",
+              "x": 2.5,
+              "parents": [
+                "elegance"
+              ]
+            }
+          ]
+        }
+      ]
     },
     {
-     "req": 5,
-     "nodes": [
-      {
-       "id": "riposte",
-       "name": "Riposte",
-       "max": 5,
-       "desc": "Invocations : renvoient 6 % des coups reçus par rang.",
-       "mods": {
-        "riposte": 0.06
-       }
-      },
-      {
-       "id": "lame_affutee",
-       "name": "Lame affûtée",
-       "max": 5,
-       "desc": "Invocations : +4 % d'attaque par rang.",
-       "mods": {
-        "unit_atk": 0.04
-       }
-      },
-      {
-       "id": "fente_t",
-       "name": "Fente",
-       "max": 1,
-       "desc": "Nouveau sort : une estocade traverse toute une colonne.",
-       "kind": "spell",
-       "unlock": "fente"
-      }
-     ]
+      "id": "lame_tempete",
+      "name": "Lame-tempête",
+      "theme": "Foudre, chaînes",
+      "color": "FFE45C",
+      "icon": "tranche_orage",
+      "tiers": [
+        {
+          "req": 0,
+          "nodes": [
+            {
+              "id": "acier_charge",
+              "name": "Acier chargé",
+              "max": 5,
+              "desc": "Sorts de Foudre : +6 % de dégâts par rang.",
+              "mods": {
+                "elem_dmg.foudre": 0.06
+              },
+              "x": 0.0
+            },
+            {
+              "id": "influx",
+              "name": "Influx",
+              "max": 5,
+              "desc": "+4 % de régénération de mana par rang.",
+              "mods": {
+                "mana_regen": 0.04
+              },
+              "x": 1.5
+            },
+            {
+              "id": "etincelle_lame",
+              "name": "Étincelle de lame",
+              "max": 5,
+              "desc": "Invocations de Foudre : dégâts +3 % par rang.",
+              "mods": {
+                "unit_elem.foudre": 0.03
+              },
+              "x": 3.0
+            }
+          ]
+        },
+        {
+          "req": 5,
+          "nodes": [
+            {
+              "id": "rebond",
+              "name": "Rebond",
+              "max": 2,
+              "desc": "Chaînes d'éclairs : +1 rebond par rang.",
+              "mods": {
+                "chain_bonus": 1
+              },
+              "x": 0.0,
+              "parents": [
+                "acier_charge"
+              ]
+            },
+            {
+              "id": "tension",
+              "name": "Tension",
+              "max": 5,
+              "desc": "Jauge Surge : +4 % de gain par rang.",
+              "mods": {
+                "surge_gain": 0.04
+              },
+              "x": 1.0,
+              "parents": [
+                "acier_charge",
+                "influx"
+              ]
+            },
+            {
+              "id": "tranche_orage_t",
+              "name": "Tranche-orage",
+              "max": 1,
+              "desc": "Nouveau sort : une lame de foudre bondit d'ennemi en ennemi.",
+              "kind": "spell",
+              "unlock": "tranche_orage",
+              "x": 2.0,
+              "parents": [
+                "influx",
+                "etincelle_lame"
+              ]
+            },
+            {
+              "id": "paratonnerre",
+              "name": "Paratonnerre",
+              "max": 5,
+              "desc": "Résistance des invocations à la Foudre +5 % par rang.",
+              "mods": {
+                "resist.foudre": 0.05
+              },
+              "x": 3.0,
+              "parents": [
+                "etincelle_lame"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 10,
+          "nodes": [
+            {
+              "id": "orage_interieur",
+              "name": "Orage intérieur",
+              "max": 5,
+              "desc": "Sorts de Foudre : +4 % de dégâts par rang.",
+              "mods": {
+                "elem_dmg.foudre": 0.04
+              },
+              "x": 0.0,
+              "parents": [
+                "rebond",
+                "tension"
+              ]
+            },
+            {
+              "id": "vivacite",
+              "name": "Vivacité",
+              "max": 5,
+              "desc": "Invocations : +3 % de cadence par rang.",
+              "mods": {
+                "cadence": 0.03
+              },
+              "x": 1.0,
+              "parents": [
+                "rebond",
+                "tension",
+                "tranche_orage_t"
+              ]
+            },
+            {
+              "id": "sobriete",
+              "name": "Sobriété",
+              "max": 5,
+              "desc": "Sorts : −2 % de coût en mana par rang.",
+              "mods": {
+                "spell_cost": 0.02
+              },
+              "x": 2.0,
+              "parents": [
+                "tension",
+                "tranche_orage_t",
+                "paratonnerre"
+              ]
+            },
+            {
+              "id": "grondement",
+              "name": "Grondement",
+              "max": 5,
+              "desc": "Gain de Surge +3 % par rang.",
+              "mods": {
+                "surge_gain": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "tranche_orage_t",
+                "paratonnerre"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 15,
+          "nodes": [
+            {
+              "id": "eclair_double",
+              "name": "Éclair double",
+              "max": 2,
+              "desc": "Rebonds des chaînes +1 par rang.",
+              "mods": {
+                "chain_bonus": 1
+              },
+              "x": 0.0,
+              "parents": [
+                "orage_interieur",
+                "vivacite"
+              ]
+            },
+            {
+              "id": "nuee_lames",
+              "name": "Nuée de lames",
+              "max": 5,
+              "desc": "Invocation en double (chance) +1 % par rang.",
+              "mods": {
+                "free_clone": 0.01
+              },
+              "x": 1.5,
+              "parents": [
+                "vivacite",
+                "sobriete"
+              ]
+            },
+            {
+              "id": "ciel_lourd",
+              "name": "Ciel lourd",
+              "max": 5,
+              "desc": "Recharge des sorts −2 % par rang.",
+              "mods": {
+                "cd_red": 0.02
+              },
+              "x": 3.0,
+              "parents": [
+                "sobriete",
+                "grondement"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 20,
+          "nodes": [
+            {
+              "id": "coeur_orage",
+              "name": "Cœur d'orage",
+              "max": 3,
+              "desc": "Sorts de Foudre : +5 % de dégâts par rang.",
+              "mods": {
+                "elem_dmg.foudre": 0.05
+              },
+              "x": 0.0,
+              "parents": [
+                "eclair_double"
+              ]
+            },
+            {
+              "id": "mille_lames_plus",
+              "name": "Mille lames+",
+              "max": 1,
+              "desc": "Évolution : 4 lames de plus, +20 % de dégâts.",
+              "kind": "evolution",
+              "mods": {
+                "ult_count": 4,
+                "ult_dmg": 0.2
+              },
+              "x": 1.5,
+              "parents": [
+                "nuee_lames"
+              ]
+            },
+            {
+              "id": "tempete_acier",
+              "name": "Tempête d'acier",
+              "max": 3,
+              "desc": "Sorts de Foudre +4 % par rang · Cadence du Flux +2 % par rang.",
+              "mods": {
+                "elem_dmg.foudre": 0.04,
+                "cadence": 0.02
+              },
+              "x": 3.0,
+              "parents": [
+                "ciel_lourd"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 25,
+          "nodes": [
+            {
+              "id": "foudre_vivante",
+              "name": "Foudre vivante",
+              "max": 3,
+              "desc": "Invocations de Foudre : dégâts +6 % par rang.",
+              "mods": {
+                "unit_elem.foudre": 0.06
+              },
+              "x": 0.5,
+              "parents": [
+                "coeur_orage",
+                "mille_lames_plus"
+              ]
+            },
+            {
+              "id": "oeil_cyclone",
+              "name": "Œil du cyclone",
+              "max": 3,
+              "desc": "Dégâts de l'Ultime +8 % par rang.",
+              "mods": {
+                "ult_dmg": 0.08
+              },
+              "x": 2.5,
+              "parents": [
+                "mille_lames_plus",
+                "tempete_acier"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 30,
+          "nodes": [
+            {
+              "id": "orage_acier",
+              "name": "Orage d'acier",
+              "max": 1,
+              "desc": "Clé de voûte : chaque lame de l'Ultime lance une chaîne de foudre.",
+              "kind": "keystone",
+              "mods": {
+                "ult_chain": 1
+              },
+              "x": 0.5,
+              "parents": [
+                "foudre_vivante"
+              ]
+            },
+            {
+              "id": "surtension",
+              "name": "Surtension",
+              "max": 1,
+              "desc": "Clé de voûte à double tranchant : Sorts de Foudre +30 % · PV de Barrière −15 %.",
+              "mods": {
+                "elem_dmg.foudre": 0.3,
+                "barrier_max": -0.15
+              },
+              "kind": "keystone",
+              "x": 2.5,
+              "parents": [
+                "oeil_cyclone"
+              ]
+            }
+          ]
+        }
+      ]
     },
     {
-     "req": 10,
-     "nodes": [
-      {
-       "id": "garde_haute",
-       "name": "Garde haute",
-       "max": 5,
-       "desc": "Invocations : +1 de défense par rang.",
-       "mods": {
-        "unit_def": 0.05
-       }
-      },
-      {
-       "id": "pas_chasse",
-       "name": "Pas chassé",
-       "max": 5,
-       "desc": "Invocations : +4 % de PV par rang.",
-       "mods": {
-        "unit_hp": 0.04
-       }
-      },
-      {
-       "id": "souffle_e",
-       "name": "Souffle",
-       "max": 5,
-       "desc": "Sorts : −2 % de coût en mana par rang.",
-       "mods": {
-        "spell_cost": 0.02
-       }
-      }
-     ]
-    },
-    {
-     "req": 20,
-     "nodes": [
-      {
-       "id": "maitrise",
-       "name": "Maîtrise",
-       "max": 3,
-       "desc": "+1 % de chances de critique par rang.",
-       "mods": {
-        "crit": 0.01
-       }
-      },
-      {
-       "id": "maitre_lame",
-       "name": "Maître-lame aguerri",
-       "max": 1,
-       "desc": "Évolution : Champion +30 % de PV, +25 % d'attaque.",
-       "kind": "evolution",
-       "mods": {
-        "champ_hp": 0.3,
-        "champ_atk": 0.25
-       }
-      }
-     ]
-    },
-    {
-     "req": 30,
-     "nodes": [
-      {
-       "id": "danse_parfaite",
-       "name": "Danse parfaite",
-       "max": 1,
-       "desc": "Clé de voûte : chaque critique d'une invocation réduit les recharges des sorts de 0,2 s (1 s par seconde au plus).",
-       "kind": "keystone",
-       "mods": {
-        "perfect_dance": 1
-       }
-      }
-     ]
+      "id": "spectrale",
+      "name": "Lame spectrale",
+      "theme": "Voie du Surge : clones",
+      "color": "B8C8FF",
+      "icon": "lames_miroirs",
+      "unlock_flag": "s1.verite_cendres",
+      "locked": "Voie du Surge : s'ouvre à la fin de l'acte 3 (la Vérité des Cendres, 3-10).",
+      "tiers": [
+        {
+          "req": 0,
+          "nodes": [
+            {
+              "id": "double_fantome",
+              "name": "Double fantôme",
+              "max": 5,
+              "desc": "3 % de chances par rang qu'une invocation surgisse avec son double.",
+              "mods": {
+                "ghost_double": 0.03
+              },
+              "x": 0.0
+            },
+            {
+              "id": "lame_ombre",
+              "name": "Lame d'ombre",
+              "max": 5,
+              "desc": "Invocations : +4 % d'attaque par rang.",
+              "mods": {
+                "unit_atk": 0.04
+              },
+              "x": 1.5
+            },
+            {
+              "id": "voile_spectral",
+              "name": "Voile spectral",
+              "max": 5,
+              "desc": "Esquive des invocations +2 % par rang.",
+              "mods": {
+                "dodge": 0.02
+              },
+              "x": 3.0
+            }
+          ]
+        },
+        {
+          "req": 5,
+          "nodes": [
+            {
+              "id": "echo_lame",
+              "name": "Écho de lame",
+              "max": 5,
+              "desc": "Invocations : renvoient 4 % des coups reçus par rang.",
+              "mods": {
+                "riposte": 0.04
+              },
+              "x": 0.0,
+              "parents": [
+                "double_fantome"
+              ]
+            },
+            {
+              "id": "spectre",
+              "name": "Spectre",
+              "max": 5,
+              "desc": "Invocations : +4 % de PV par rang.",
+              "mods": {
+                "unit_hp": 0.04
+              },
+              "x": 1.0,
+              "parents": [
+                "double_fantome",
+                "lame_ombre"
+              ]
+            },
+            {
+              "id": "lames_miroirs_t",
+              "name": "Lames miroirs",
+              "max": 1,
+              "desc": "Nouveau sort : 10 invocations proches se dédoublent.",
+              "kind": "spell",
+              "unlock": "lames_miroirs",
+              "x": 2.0,
+              "parents": [
+                "lame_ombre",
+                "voile_spectral"
+              ]
+            },
+            {
+              "id": "froid_tombe",
+              "name": "Froid de la tombe",
+              "max": 5,
+              "desc": "Invocations de Ombre : dégâts +3 % par rang.",
+              "mods": {
+                "unit_elem.ombre": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "voile_spectral"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 10,
+          "nodes": [
+            {
+              "id": "fil_spectral",
+              "name": "Fil spectral",
+              "max": 5,
+              "desc": "Invocations : +3 % de cadence par rang.",
+              "mods": {
+                "cadence": 0.03
+              },
+              "x": 0.0,
+              "parents": [
+                "echo_lame",
+                "spectre"
+              ]
+            },
+            {
+              "id": "esprit_vif_e",
+              "name": "Esprit vif",
+              "max": 5,
+              "desc": "+1 % de chances de critique par rang.",
+              "mods": {
+                "crit": 0.01
+              },
+              "x": 1.0,
+              "parents": [
+                "echo_lame",
+                "spectre",
+                "lames_miroirs_t"
+              ]
+            },
+            {
+              "id": "voile",
+              "name": "Voile",
+              "max": 5,
+              "desc": "Sorts : −2 % de coût en mana par rang.",
+              "mods": {
+                "spell_cost": 0.02
+              },
+              "x": 2.0,
+              "parents": [
+                "spectre",
+                "lames_miroirs_t",
+                "froid_tombe"
+              ]
+            },
+            {
+              "id": "reflet_lame",
+              "name": "Reflet",
+              "max": 5,
+              "desc": "Double fantôme (chance) +1 % par rang.",
+              "mods": {
+                "ghost_double": 0.01
+              },
+              "x": 3.0,
+              "parents": [
+                "lames_miroirs_t",
+                "froid_tombe"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 15,
+          "nodes": [
+            {
+              "id": "pas_ombre",
+              "name": "Pas de l'ombre",
+              "max": 5,
+              "desc": "Vitesse des invocations +3 % par rang.",
+              "mods": {
+                "unit_speed": 0.03
+              },
+              "x": 0.0,
+              "parents": [
+                "fil_spectral",
+                "esprit_vif_e"
+              ]
+            },
+            {
+              "id": "lame_ame",
+              "name": "Lame d'âme",
+              "max": 5,
+              "desc": "Vol de vie des invocations +1 % par rang.",
+              "mods": {
+                "lifesteal": 0.01
+              },
+              "x": 1.5,
+              "parents": [
+                "esprit_vif_e",
+                "voile"
+              ]
+            },
+            {
+              "id": "brume_spectrale",
+              "name": "Brume spectrale",
+              "max": 5,
+              "desc": "Recharge des sorts −2 % par rang.",
+              "mods": {
+                "cd_red": 0.02
+              },
+              "x": 3.0,
+              "parents": [
+                "voile",
+                "reflet_lame"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 20,
+          "nodes": [
+            {
+              "id": "danse_ombres",
+              "name": "Danse des ombres",
+              "max": 3,
+              "desc": "Invocations : +4 % d'attaque par rang.",
+              "mods": {
+                "unit_atk": 0.04
+              },
+              "x": 0.0,
+              "parents": [
+                "pas_ombre"
+              ]
+            },
+            {
+              "id": "maitre_spectral",
+              "name": "Maître-lame spectral",
+              "max": 1,
+              "desc": "Évolution : Champion +25 % de PV et d'attaque.",
+              "kind": "evolution",
+              "mods": {
+                "champ_atk": 0.25,
+                "champ_hp": 0.25
+              },
+              "x": 1.5,
+              "parents": [
+                "lame_ame"
+              ]
+            },
+            {
+              "id": "legion_spectrale",
+              "name": "Légion spectrale",
+              "max": 3,
+              "desc": "Double fantôme (chance) +2 % par rang · PV des invocations +3 % par rang.",
+              "mods": {
+                "ghost_double": 0.02,
+                "unit_hp": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "brume_spectrale"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 25,
+          "nodes": [
+            {
+              "id": "au_dela",
+              "name": "Au-delà",
+              "max": 3,
+              "desc": "Attaque des invocations +6 % par rang.",
+              "mods": {
+                "unit_atk": 0.06
+              },
+              "x": 0.5,
+              "parents": [
+                "danse_ombres",
+                "maitre_spectral"
+              ]
+            },
+            {
+              "id": "spectre_majeur",
+              "name": "Spectre majeur",
+              "max": 3,
+              "desc": "Attaque du Champion +8 % par rang · PV du Champion +6 % par rang.",
+              "mods": {
+                "champ_atk": 0.08,
+                "champ_hp": 0.06
+              },
+              "x": 2.5,
+              "parents": [
+                "maitre_spectral",
+                "legion_spectrale"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 30,
+          "nodes": [
+            {
+              "id": "double_aube",
+              "name": "Double protecteur",
+              "max": 1,
+              "desc": "Clé de voûte (Aube) : le Champion laisse un double à 60 % (bouclier de 50 %) ; Barrière +20 de bouclier.",
+              "kind": "keystone",
+              "mods": {
+                "double_guard": 1
+              },
+              "flag": "s1.voie_aube",
+              "flag_text": "Voie de l'Aube (choix de 3-10)",
+              "x": 0.0,
+              "parents": [
+                "au_dela"
+              ]
+            },
+            {
+              "id": "double_cendres",
+              "name": "Double vampire",
+              "max": 1,
+              "desc": "Clé de voûte (Cendres) : le Champion laisse un double à 60 % qui vole 30 % de ses dégâts en vie.",
+              "kind": "keystone",
+              "mods": {
+                "double_drain": 1
+              },
+              "flag": "s1.voie_cendres",
+              "flag_text": "Voie des Cendres (choix de 3-10)",
+              "x": 1.5,
+              "parents": [
+                "au_dela",
+                "spectre_majeur"
+              ]
+            },
+            {
+              "id": "miroir_brise",
+              "name": "Miroir brisé",
+              "max": 1,
+              "desc": "Clé de voûte à double tranchant : Double fantôme (chance) +20 % · Attaque des invocations −15 %.",
+              "mods": {
+                "ghost_double": 0.2,
+                "unit_atk": -0.15
+              },
+              "kind": "keystone",
+              "x": 3.0,
+              "parents": [
+                "spectre_majeur"
+              ]
+            }
+          ]
+        }
+      ]
     }
-   ]
-  },
-  {
-   "id": "lame_tempete",
-   "name": "Lame-tempête",
-   "theme": "Foudre, chaînes",
-   "color": "FFE45C",
-   "icon": "tranche_orage",
-   "tiers": [
-    {
-     "req": 0,
-     "nodes": [
-      {
-       "id": "acier_charge",
-       "name": "Acier chargé",
-       "max": 5,
-       "desc": "Sorts de Foudre : +6 % de dégâts par rang.",
-       "mods": {
-        "elem_dmg.foudre": 0.06
-       }
-      },
-      {
-       "id": "influx",
-       "name": "Influx",
-       "max": 5,
-       "desc": "+4 % de régénération de mana par rang.",
-       "mods": {
-        "mana_regen": 0.04
-       }
-      }
-     ]
-    },
-    {
-     "req": 5,
-     "nodes": [
-      {
-       "id": "rebond",
-       "name": "Rebond",
-       "max": 2,
-       "desc": "Chaînes d'éclairs : +1 rebond par rang.",
-       "mods": {
-        "chain_bonus": 1
-       }
-      },
-      {
-       "id": "tension",
-       "name": "Tension",
-       "max": 5,
-       "desc": "Jauge Surge : +4 % de gain par rang.",
-       "mods": {
-        "surge_gain": 0.04
-       }
-      },
-      {
-       "id": "tranche_orage_t",
-       "name": "Tranche-orage",
-       "max": 1,
-       "desc": "Nouveau sort : une lame de foudre bondit d'ennemi en ennemi.",
-       "kind": "spell",
-       "unlock": "tranche_orage"
-      }
-     ]
-    },
-    {
-     "req": 10,
-     "nodes": [
-      {
-       "id": "orage_interieur",
-       "name": "Orage intérieur",
-       "max": 5,
-       "desc": "Sorts de Foudre : +4 % de dégâts par rang.",
-       "mods": {
-        "elem_dmg.foudre": 0.04
-       }
-      },
-      {
-       "id": "vivacite",
-       "name": "Vivacité",
-       "max": 5,
-       "desc": "Invocations : +3 % de cadence par rang.",
-       "mods": {
-        "cadence": 0.03
-       }
-      },
-      {
-       "id": "sobriete",
-       "name": "Sobriété",
-       "max": 5,
-       "desc": "Sorts : −2 % de coût en mana par rang.",
-       "mods": {
-        "spell_cost": 0.02
-       }
-      }
-     ]
-    },
-    {
-     "req": 20,
-     "nodes": [
-      {
-       "id": "coeur_orage",
-       "name": "Cœur d'orage",
-       "max": 3,
-       "desc": "Sorts de Foudre : +5 % de dégâts par rang.",
-       "mods": {
-        "elem_dmg.foudre": 0.05
-       }
-      },
-      {
-       "id": "mille_lames_plus",
-       "name": "Mille lames+",
-       "max": 1,
-       "desc": "Évolution : 4 lames de plus, +20 % de dégâts.",
-       "kind": "evolution",
-       "mods": {
-        "ult_count": 4,
-        "ult_dmg": 0.2
-       }
-      }
-     ]
-    },
-    {
-     "req": 30,
-     "nodes": [
-      {
-       "id": "orage_acier",
-       "name": "Orage d'acier",
-       "max": 1,
-       "desc": "Clé de voûte : chaque lame de l'Ultime lance une chaîne de foudre.",
-       "kind": "keystone",
-       "mods": {
-        "ult_chain": 1
-       }
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "id": "spectrale",
-   "name": "Lame spectrale",
-   "theme": "Voie du Surge : clones",
-   "color": "B8C8FF",
-   "icon": "lames_miroirs",
-   "unlock_flag": "s1.verite_cendres",
-   "locked": "Voie du Surge : s'ouvre à la fin de l'acte 3 (la Vérité des Cendres, 3-10).",
-   "tiers": [
-    {
-     "req": 0,
-     "nodes": [
-      {
-       "id": "double_fantome",
-       "name": "Double fantôme",
-       "max": 5,
-       "desc": "3 % de chances par rang qu'une invocation surgisse avec son double.",
-       "mods": {
-        "ghost_double": 0.03
-       }
-      },
-      {
-       "id": "lame_ombre",
-       "name": "Lame d'ombre",
-       "max": 5,
-       "desc": "Invocations : +4 % d'attaque par rang.",
-       "mods": {
-        "unit_atk": 0.04
-       }
-      }
-     ]
-    },
-    {
-     "req": 5,
-     "nodes": [
-      {
-       "id": "echo_lame",
-       "name": "Écho de lame",
-       "max": 5,
-       "desc": "Invocations : renvoient 4 % des coups reçus par rang.",
-       "mods": {
-        "riposte": 0.04
-       }
-      },
-      {
-       "id": "spectre",
-       "name": "Spectre",
-       "max": 5,
-       "desc": "Invocations : +4 % de PV par rang.",
-       "mods": {
-        "unit_hp": 0.04
-       }
-      },
-      {
-       "id": "lames_miroirs_t",
-       "name": "Lames miroirs",
-       "max": 1,
-       "desc": "Nouveau sort : 10 invocations proches se dédoublent.",
-       "kind": "spell",
-       "unlock": "lames_miroirs"
-      }
-     ]
-    },
-    {
-     "req": 10,
-     "nodes": [
-      {
-       "id": "fil_spectral",
-       "name": "Fil spectral",
-       "max": 5,
-       "desc": "Invocations : +3 % de cadence par rang.",
-       "mods": {
-        "cadence": 0.03
-       }
-      },
-      {
-       "id": "esprit_vif_e",
-       "name": "Esprit vif",
-       "max": 5,
-       "desc": "+1 % de chances de critique par rang.",
-       "mods": {
-        "crit": 0.01
-       }
-      },
-      {
-       "id": "voile",
-       "name": "Voile",
-       "max": 5,
-       "desc": "Sorts : −2 % de coût en mana par rang.",
-       "mods": {
-        "spell_cost": 0.02
-       }
-      }
-     ]
-    },
-    {
-     "req": 20,
-     "nodes": [
-      {
-       "id": "danse_ombres",
-       "name": "Danse des ombres",
-       "max": 3,
-       "desc": "Invocations : +4 % d'attaque par rang.",
-       "mods": {
-        "unit_atk": 0.04
-       }
-      },
-      {
-       "id": "maitre_spectral",
-       "name": "Maître-lame spectral",
-       "max": 1,
-       "desc": "Évolution : Champion +25 % de PV et d'attaque.",
-       "kind": "evolution",
-       "mods": {
-        "champ_atk": 0.25,
-        "champ_hp": 0.25
-       }
-      }
-     ]
-    },
-    {
-     "req": 30,
-     "nodes": [
-      {
-       "id": "double_aube",
-       "name": "Double protecteur",
-       "max": 1,
-       "desc": "Clé de voûte (Aube) : le Champion laisse un double à 60 % (bouclier de 50 %) ; Barrière +20 de bouclier.",
-       "kind": "keystone",
-       "mods": {
-        "double_guard": 1
-       },
-       "flag": "s1.voie_aube",
-       "flag_text": "Voie de l'Aube (choix de 3-10)"
-      },
-      {
-       "id": "double_cendres",
-       "name": "Double vampire",
-       "max": 1,
-       "desc": "Clé de voûte (Cendres) : le Champion laisse un double à 60 % qui vole 30 % de ses dégâts en vie.",
-       "kind": "keystone",
-       "mods": {
-        "double_drain": 1
-       },
-       "flag": "s1.voie_cendres",
-       "flag_text": "Voie des Cendres (choix de 3-10)"
-      }
-     ]
-    }
-   ]
-  }
- ]
+  ]
 }

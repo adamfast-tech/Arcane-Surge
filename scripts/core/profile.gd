@@ -1002,6 +1002,18 @@ static func invest_block(id: String) -> String:
 		return "Rang maximum"
 	if branch_spent(br) < int(tier.get("req", 0)):
 		return "Palier verrouillé : %d points dans la branche" % int(tier["req"])
+	var parents: Array = node.get("parents", [])
+	if not parents.is_empty():
+		# Arbre : il faut au moins un rang dans une compétence reliée au palier précédent.
+		var linked := false
+		var names: Array[String] = []
+		for pid in parents:
+			linked = linked or skill_rank(str(pid)) > 0
+			var pf := find_node(str(pid))
+			if not pf.is_empty():
+				names.append(str((pf[2] as Dictionary).get("name", pid)))
+		if not linked:
+			return "Prérequis : %s" % " ou ".join(names)
 	if str(node.get("kind", "")) == "keystone" and keystones_taken() >= int(tree_db().get("keystone_limit", 2)):
 		return "2 Clés de voûte au maximum"
 	if skill_points_free() <= 0:

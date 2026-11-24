@@ -1,427 +1,1005 @@
 {
- "class": "clerc",
- "keystone_limit": 2,
- "branches": [
-  {
-   "id": "sanctification",
-   "name": "Sanctification",
-   "theme": "Soins",
-   "color": "F2E28B",
-   "icon": "priere",
-   "tiers": [
+  "class": "clerc",
+  "keystone_limit": 2,
+  "branches": [
     {
-     "req": 0,
-     "nodes": [
-      {
-       "id": "mains_benies",
-       "name": "Mains bénies",
-       "max": 5,
-       "desc": "Soins : +6 % par rang.",
-       "mods": {
-        "heal_bonus": 0.06
-       }
-      },
-      {
-       "id": "priere_continue",
-       "name": "Prière continue",
-       "max": 5,
-       "desc": "La Barrière se répare de 0,04 PV/s par rang.",
-       "mods": {
-        "barrier_regen": 0.04
-       }
-      }
-     ]
+      "id": "sanctification",
+      "name": "Sanctification",
+      "theme": "Soins",
+      "color": "F2E28B",
+      "icon": "priere",
+      "tiers": [
+        {
+          "req": 0,
+          "nodes": [
+            {
+              "id": "mains_benies",
+              "name": "Mains bénies",
+              "max": 5,
+              "desc": "Soins : +6 % par rang.",
+              "mods": {
+                "heal_bonus": 0.06
+              },
+              "x": 0.0
+            },
+            {
+              "id": "priere_continue",
+              "name": "Prière continue",
+              "max": 5,
+              "desc": "La Barrière se répare de 0,04 PV/s par rang.",
+              "mods": {
+                "barrier_regen": 0.04
+              },
+              "x": 1.5
+            },
+            {
+              "id": "onction",
+              "name": "Onction",
+              "max": 5,
+              "desc": "Bouclier des invocations (part des PV) +2 % par rang.",
+              "mods": {
+                "spawn_shield": 0.02
+              },
+              "x": 3.0
+            }
+          ]
+        },
+        {
+          "req": 5,
+          "nodes": [
+            {
+              "id": "aura_apaisante",
+              "name": "Aura apaisante",
+              "max": 5,
+              "desc": "Auras de soin : +8 % par rang.",
+              "mods": {
+                "aura_heal": 0.08
+              },
+              "x": 0.0,
+              "parents": [
+                "mains_benies"
+              ]
+            },
+            {
+              "id": "ferveur_c",
+              "name": "Ferveur",
+              "max": 5,
+              "desc": "+4 % de régénération de mana par rang.",
+              "mods": {
+                "mana_regen": 0.04
+              },
+              "x": 1.0,
+              "parents": [
+                "mains_benies",
+                "priere_continue"
+              ]
+            },
+            {
+              "id": "priere_t",
+              "name": "Prière",
+              "max": 1,
+              "desc": "Nouveau sort : rend 25 PV à la Barrière.",
+              "kind": "spell",
+              "unlock": "priere",
+              "x": 2.0,
+              "parents": [
+                "priere_continue",
+                "onction"
+              ]
+            },
+            {
+              "id": "hymne",
+              "name": "Hymne",
+              "max": 5,
+              "desc": "Auras de soin +5 % par rang.",
+              "mods": {
+                "aura_heal": 0.05
+              },
+              "x": 3.0,
+              "parents": [
+                "onction"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 10,
+          "nodes": [
+            {
+              "id": "benediction",
+              "name": "Bénédiction",
+              "max": 5,
+              "desc": "Invocations : +4 % de PV par rang.",
+              "mods": {
+                "unit_hp": 0.04
+              },
+              "x": 0.0,
+              "parents": [
+                "aura_apaisante",
+                "ferveur_c"
+              ]
+            },
+            {
+              "id": "sanctuaire",
+              "name": "Sanctuaire",
+              "max": 5,
+              "desc": "Barrière : +3 % de PV max par rang.",
+              "mods": {
+                "barrier_max": 0.03
+              },
+              "x": 1.0,
+              "parents": [
+                "aura_apaisante",
+                "ferveur_c",
+                "priere_t"
+              ]
+            },
+            {
+              "id": "grace",
+              "name": "Grâce",
+              "max": 5,
+              "desc": "Sorts : −2 % de coût en mana par rang.",
+              "mods": {
+                "spell_cost": 0.02
+              },
+              "x": 2.0,
+              "parents": [
+                "ferveur_c",
+                "priere_t",
+                "hymne"
+              ]
+            },
+            {
+              "id": "pelerin",
+              "name": "Pèlerin",
+              "max": 5,
+              "desc": "Régénération des invocations +0,3 % des PV par seconde par rang.",
+              "mods": {
+                "unit_regen": 0.003
+              },
+              "x": 3.0,
+              "parents": [
+                "priere_t",
+                "hymne"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 15,
+          "nodes": [
+            {
+              "id": "beatitude",
+              "name": "Béatitude",
+              "max": 5,
+              "desc": "Soins +4 % par rang.",
+              "mods": {
+                "heal_bonus": 0.04
+              },
+              "x": 0.0,
+              "parents": [
+                "benediction",
+                "sanctuaire"
+              ]
+            },
+            {
+              "id": "refuge_saint",
+              "name": "Refuge",
+              "max": 5,
+              "desc": "Dégâts subis par la Barrière −1,5 % par rang.",
+              "mods": {
+                "barrier_dr": 0.015
+              },
+              "x": 1.5,
+              "parents": [
+                "sanctuaire",
+                "grace"
+              ]
+            },
+            {
+              "id": "cantique",
+              "name": "Cantique",
+              "max": 5,
+              "desc": "Recharge des sorts −2 % par rang.",
+              "mods": {
+                "cd_red": 0.02
+              },
+              "x": 3.0,
+              "parents": [
+                "grace",
+                "pelerin"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 20,
+          "nodes": [
+            {
+              "id": "lumiere_bienveillante",
+              "name": "Lumière bienveillante",
+              "max": 3,
+              "desc": "Soins : +6 % par rang.",
+              "mods": {
+                "heal_bonus": 0.06
+              },
+              "x": 0.0,
+              "parents": [
+                "beatitude"
+              ]
+            },
+            {
+              "id": "gardien_eternel",
+              "name": "Gardien éternel",
+              "max": 1,
+              "desc": "Évolution : Champion +40 % de PV.",
+              "kind": "evolution",
+              "mods": {
+                "champ_hp": 0.4
+              },
+              "x": 1.5,
+              "parents": [
+                "refuge_saint"
+              ]
+            },
+            {
+              "id": "saint_patron",
+              "name": "Saint patron",
+              "max": 3,
+              "desc": "Barrière +0,1 PV/s par rang · PV de Barrière +2 % par rang.",
+              "mods": {
+                "barrier_regen": 0.05,
+                "barrier_max": 0.02
+              },
+              "x": 3.0,
+              "parents": [
+                "cantique"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 25,
+          "nodes": [
+            {
+              "id": "main_divine",
+              "name": "Main divine",
+              "max": 3,
+              "desc": "Soins +8 % par rang.",
+              "mods": {
+                "heal_bonus": 0.08
+              },
+              "x": 0.5,
+              "parents": [
+                "lumiere_bienveillante",
+                "gardien_eternel"
+              ]
+            },
+            {
+              "id": "grand_pretre",
+              "name": "Grand prêtre",
+              "max": 3,
+              "desc": "Bouclier de Barrière au départ +6 par rang.",
+              "mods": {
+                "start_shield": 6
+              },
+              "x": 2.5,
+              "parents": [
+                "gardien_eternel",
+                "saint_patron"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 30,
+          "nodes": [
+            {
+              "id": "miracle",
+              "name": "Miracle",
+              "max": 1,
+              "desc": "Clé de voûte : une fois par partie, une Barrière tombée à 0 remonte à 50 %.",
+              "kind": "keystone",
+              "mods": {
+                "miracle": 1
+              },
+              "x": 0.5,
+              "parents": [
+                "main_divine"
+              ]
+            },
+            {
+              "id": "martyr",
+              "name": "Martyr",
+              "max": 1,
+              "desc": "Clé de voûte à double tranchant : Soins +40 % · Attaque des invocations −15 %.",
+              "mods": {
+                "heal_bonus": 0.4,
+                "unit_atk": -0.15
+              },
+              "kind": "keystone",
+              "x": 2.5,
+              "parents": [
+                "grand_pretre"
+              ]
+            }
+          ]
+        }
+      ]
     },
     {
-     "req": 5,
-     "nodes": [
-      {
-       "id": "aura_apaisante",
-       "name": "Aura apaisante",
-       "max": 5,
-       "desc": "Auras de soin : +8 % par rang.",
-       "mods": {
-        "aura_heal": 0.08
-       }
-      },
-      {
-       "id": "ferveur_c",
-       "name": "Ferveur",
-       "max": 5,
-       "desc": "+4 % de régénération de mana par rang.",
-       "mods": {
-        "mana_regen": 0.04
-       }
-      },
-      {
-       "id": "priere_t",
-       "name": "Prière",
-       "max": 1,
-       "desc": "Nouveau sort : rend 25 PV à la Barrière.",
-       "kind": "spell",
-       "unlock": "priere"
-      }
-     ]
+      "id": "jugement",
+      "name": "Jugement",
+      "theme": "Lumière offensive",
+      "color": "FFF0A0",
+      "icon": "lance_solaire",
+      "tiers": [
+        {
+          "req": 0,
+          "nodes": [
+            {
+              "id": "chatiment",
+              "name": "Châtiment",
+              "max": 5,
+              "desc": "Sorts de Lumière : +6 % de dégâts par rang.",
+              "mods": {
+                "elem_dmg.lumiere": 0.06
+              },
+              "x": 0.0
+            },
+            {
+              "id": "zele_c",
+              "name": "Zèle",
+              "max": 5,
+              "desc": "Invocations : +3 % d'attaque par rang.",
+              "mods": {
+                "unit_atk": 0.03
+              },
+              "x": 1.5
+            },
+            {
+              "id": "regard_juste",
+              "name": "Regard juste",
+              "max": 5,
+              "desc": "Chance de critique +0,8 % par rang.",
+              "mods": {
+                "crit": 0.008
+              },
+              "x": 3.0
+            }
+          ]
+        },
+        {
+          "req": 5,
+          "nodes": [
+            {
+              "id": "aura_radieuse",
+              "name": "Aura radieuse",
+              "max": 5,
+              "desc": "+1 % de chances de critique par rang.",
+              "mods": {
+                "crit": 0.01
+              },
+              "x": 0.0,
+              "parents": [
+                "chatiment"
+              ]
+            },
+            {
+              "id": "eclat_c",
+              "name": "Éclat",
+              "max": 5,
+              "desc": "Jauge Surge : +4 % de gain par rang.",
+              "mods": {
+                "surge_gain": 0.04
+              },
+              "x": 1.0,
+              "parents": [
+                "chatiment",
+                "zele_c"
+              ]
+            },
+            {
+              "id": "lance_solaire_t",
+              "name": "Lance solaire",
+              "max": 1,
+              "desc": "Nouveau sort : une lance de lumière traverse une colonne.",
+              "kind": "spell",
+              "unlock": "lance_solaire",
+              "x": 2.0,
+              "parents": [
+                "zele_c",
+                "regard_juste"
+              ]
+            },
+            {
+              "id": "lumiere_vengeresse",
+              "name": "Lumière vengeresse",
+              "max": 5,
+              "desc": "Invocations de Lumière : dégâts +3 % par rang.",
+              "mods": {
+                "unit_elem.lumiere": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "regard_juste"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 10,
+          "nodes": [
+            {
+              "id": "rayonnement",
+              "name": "Rayonnement",
+              "max": 5,
+              "desc": "Sorts de Lumière : +4 % de dégâts par rang.",
+              "mods": {
+                "elem_dmg.lumiere": 0.04
+              },
+              "x": 0.0,
+              "parents": [
+                "aura_radieuse",
+                "eclat_c"
+              ]
+            },
+            {
+              "id": "vigilance",
+              "name": "Vigilance",
+              "max": 5,
+              "desc": "Invocations : +1 de défense par rang.",
+              "mods": {
+                "unit_def": 0.05
+              },
+              "x": 1.0,
+              "parents": [
+                "aura_radieuse",
+                "eclat_c",
+                "lance_solaire_t"
+              ]
+            },
+            {
+              "id": "inspiration",
+              "name": "Inspiration",
+              "max": 5,
+              "desc": "+4 % de régénération de mana par rang.",
+              "mods": {
+                "mana_regen": 0.04
+              },
+              "x": 2.0,
+              "parents": [
+                "eclat_c",
+                "lance_solaire_t",
+                "lumiere_vengeresse"
+              ]
+            },
+            {
+              "id": "verdict",
+              "name": "Verdict",
+              "max": 5,
+              "desc": "Dégâts contre les cibles marquées +2 % par rang.",
+              "mods": {
+                "mark_vuln": 0.02
+              },
+              "x": 3.0,
+              "parents": [
+                "lance_solaire_t",
+                "lumiere_vengeresse"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 15,
+          "nodes": [
+            {
+              "id": "sentence",
+              "name": "Sentence",
+              "max": 5,
+              "desc": "Dégâts des sorts +2 % par rang.",
+              "mods": {
+                "spell_dmg": 0.02
+              },
+              "x": 0.0,
+              "parents": [
+                "rayonnement",
+                "vigilance"
+              ]
+            },
+            {
+              "id": "glaive_foi",
+              "name": "Glaive de la foi",
+              "max": 5,
+              "desc": "Attaque des invocations +3 % par rang.",
+              "mods": {
+                "unit_atk": 0.03
+              },
+              "x": 1.5,
+              "parents": [
+                "vigilance",
+                "inspiration"
+              ]
+            },
+            {
+              "id": "aube_rouge",
+              "name": "Aube rouge",
+              "max": 5,
+              "desc": "Recharge des sorts −2 % par rang.",
+              "mods": {
+                "cd_red": 0.02
+              },
+              "x": 3.0,
+              "parents": [
+                "inspiration",
+                "verdict"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 20,
+          "nodes": [
+            {
+              "id": "soleil_interieur",
+              "name": "Soleil intérieur",
+              "max": 3,
+              "desc": "Sorts de Lumière : +5 % de dégâts par rang.",
+              "mods": {
+                "elem_dmg.lumiere": 0.05
+              },
+              "x": 0.0,
+              "parents": [
+                "sentence"
+              ]
+            },
+            {
+              "id": "jugement_plus",
+              "name": "Jugement solaire+",
+              "max": 1,
+              "desc": "Évolution : +25 % de rayon, +25 % de dégâts.",
+              "kind": "evolution",
+              "mods": {
+                "ult_radius": 0.25,
+                "ult_dmg": 0.25
+              },
+              "x": 1.5,
+              "parents": [
+                "glaive_foi"
+              ]
+            },
+            {
+              "id": "inquisition",
+              "name": "Inquisition",
+              "max": 3,
+              "desc": "Soins ennemis −4 % par rang · Sorts de Lumière +3 % par rang.",
+              "mods": {
+                "anti_heal": 0.04,
+                "elem_dmg.lumiere": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "aube_rouge"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 25,
+          "nodes": [
+            {
+              "id": "jour_colere",
+              "name": "Jour de colère",
+              "max": 3,
+              "desc": "Dégâts de l'Ultime +8 % par rang.",
+              "mods": {
+                "ult_dmg": 0.08
+              },
+              "x": 0.5,
+              "parents": [
+                "soleil_interieur",
+                "jugement_plus"
+              ]
+            },
+            {
+              "id": "arche_lumiere",
+              "name": "Arche de lumière",
+              "max": 3,
+              "desc": "Invocations de Lumière : dégâts +6 % par rang.",
+              "mods": {
+                "unit_elem.lumiere": 0.06
+              },
+              "x": 2.5,
+              "parents": [
+                "jugement_plus",
+                "inquisition"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 30,
+          "nodes": [
+            {
+              "id": "courroux",
+              "name": "Courroux céleste",
+              "max": 1,
+              "desc": "Clé de voûte : les soins en excès deviennent des dégâts de Lumière sur les ennemis proches de la Barrière.",
+              "kind": "keystone",
+              "mods": {
+                "wrath": 1
+              },
+              "x": 0.5,
+              "parents": [
+                "jour_colere"
+              ]
+            },
+            {
+              "id": "zelote",
+              "name": "Zélote",
+              "max": 1,
+              "desc": "Clé de voûte à double tranchant : Sorts de Lumière +30 % · Soins −30 %.",
+              "mods": {
+                "elem_dmg.lumiere": 0.3,
+                "heal_bonus": -0.3
+              },
+              "kind": "keystone",
+              "x": 2.5,
+              "parents": [
+                "arche_lumiere"
+              ]
+            }
+          ]
+        }
+      ]
     },
     {
-     "req": 10,
-     "nodes": [
-      {
-       "id": "benediction",
-       "name": "Bénédiction",
-       "max": 5,
-       "desc": "Invocations : +4 % de PV par rang.",
-       "mods": {
-        "unit_hp": 0.04
-       }
-      },
-      {
-       "id": "sanctuaire",
-       "name": "Sanctuaire",
-       "max": 5,
-       "desc": "Barrière : +3 % de PV max par rang.",
-       "mods": {
-        "barrier_max": 0.03
-       }
-      },
-      {
-       "id": "grace",
-       "name": "Grâce",
-       "max": 5,
-       "desc": "Sorts : −2 % de coût en mana par rang.",
-       "mods": {
-        "spell_cost": 0.02
-       }
-      }
-     ]
-    },
-    {
-     "req": 20,
-     "nodes": [
-      {
-       "id": "lumiere_bienveillante",
-       "name": "Lumière bienveillante",
-       "max": 3,
-       "desc": "Soins : +6 % par rang.",
-       "mods": {
-        "heal_bonus": 0.06
-       }
-      },
-      {
-       "id": "gardien_eternel",
-       "name": "Gardien éternel",
-       "max": 1,
-       "desc": "Évolution : Champion +40 % de PV.",
-       "kind": "evolution",
-       "mods": {
-        "champ_hp": 0.4
-       }
-      }
-     ]
-    },
-    {
-     "req": 30,
-     "nodes": [
-      {
-       "id": "miracle",
-       "name": "Miracle",
-       "max": 1,
-       "desc": "Clé de voûte : une fois par partie, une Barrière tombée à 0 remonte à 50 %.",
-       "kind": "keystone",
-       "mods": {
-        "miracle": 1
-       }
-      }
-     ]
+      "id": "purification",
+      "name": "Purification",
+      "theme": "Voie du Surge : anti-corruption, anti-soin ennemi",
+      "color": "FFF6C8",
+      "icon": "exorcisme",
+      "unlock_flag": "s1.verite_cendres",
+      "locked": "Voie du Surge : s'ouvre à la fin de l'acte 3 (la Vérité des Cendres, 3-10).",
+      "tiers": [
+        {
+          "req": 0,
+          "nodes": [
+            {
+              "id": "purge",
+              "name": "Purge",
+              "max": 5,
+              "desc": "Purifier et Exorcisme : +8 % de rayon par rang.",
+              "mods": {
+                "radius.purifier": 0.08,
+                "radius.exorcisme": 0.08
+              },
+              "x": 0.0
+            },
+            {
+              "id": "sceau_sacre",
+              "name": "Sceau sacré",
+              "max": 5,
+              "desc": "Soins ennemis : −6 % par rang.",
+              "mods": {
+                "anti_heal": 0.06
+              },
+              "x": 1.5
+            },
+            {
+              "id": "encens",
+              "name": "Encens",
+              "max": 5,
+              "desc": "Résistance des invocations à l'Ombre +5 % par rang.",
+              "mods": {
+                "resist.ombre": 0.05
+              },
+              "x": 3.0
+            }
+          ]
+        },
+        {
+          "req": 5,
+          "nodes": [
+            {
+              "id": "eau_benite",
+              "name": "Eau bénite",
+              "max": 5,
+              "desc": "Sorts de Lumière : +5 % de dégâts par rang.",
+              "mods": {
+                "elem_dmg.lumiere": 0.05
+              },
+              "x": 0.0,
+              "parents": [
+                "purge"
+              ]
+            },
+            {
+              "id": "veille",
+              "name": "Veille",
+              "max": 5,
+              "desc": "+4 % de régénération de mana par rang.",
+              "mods": {
+                "mana_regen": 0.04
+              },
+              "x": 1.0,
+              "parents": [
+                "purge",
+                "sceau_sacre"
+              ]
+            },
+            {
+              "id": "exorcisme_t",
+              "name": "Exorcisme",
+              "max": 1,
+              "desc": "Nouveau sort : purifie et frappe de Lumière.",
+              "kind": "spell",
+              "unlock": "exorcisme",
+              "x": 2.0,
+              "parents": [
+                "sceau_sacre",
+                "encens"
+              ]
+            },
+            {
+              "id": "aspersion",
+              "name": "Aspersion",
+              "max": 5,
+              "desc": "Résistance des invocations à la Nature +5 % par rang.",
+              "mods": {
+                "resist.nature": 0.05
+              },
+              "x": 3.0,
+              "parents": [
+                "encens"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 10,
+          "nodes": [
+            {
+              "id": "cilice",
+              "name": "Cilice",
+              "max": 5,
+              "desc": "Soins ennemis : −4 % par rang.",
+              "mods": {
+                "anti_heal": 0.04
+              },
+              "x": 0.0,
+              "parents": [
+                "eau_benite",
+                "veille"
+              ]
+            },
+            {
+              "id": "litanie",
+              "name": "Litanie",
+              "max": 5,
+              "desc": "Sorts : −2 % de coût en mana par rang.",
+              "mods": {
+                "spell_cost": 0.02
+              },
+              "x": 1.0,
+              "parents": [
+                "eau_benite",
+                "veille",
+                "exorcisme_t"
+              ]
+            },
+            {
+              "id": "ferveur_p",
+              "name": "Ferveur",
+              "max": 5,
+              "desc": "Jauge Surge : +4 % de gain par rang.",
+              "mods": {
+                "surge_gain": 0.04
+              },
+              "x": 2.0,
+              "parents": [
+                "veille",
+                "exorcisme_t",
+                "aspersion"
+              ]
+            },
+            {
+              "id": "veilleur_aube",
+              "name": "Veilleur de l'aube",
+              "max": 5,
+              "desc": "Barrière +0 PV/s par rang.",
+              "mods": {
+                "barrier_regen": 0.03
+              },
+              "x": 3.0,
+              "parents": [
+                "exorcisme_t",
+                "aspersion"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 15,
+          "nodes": [
+            {
+              "id": "absolution",
+              "name": "Absolution",
+              "max": 5,
+              "desc": "Dégâts des sorts +2 % par rang.",
+              "mods": {
+                "spell_dmg": 0.02
+              },
+              "x": 0.0,
+              "parents": [
+                "cilice",
+                "litanie"
+              ]
+            },
+            {
+              "id": "exorciste",
+              "name": "Exorciste",
+              "max": 5,
+              "desc": "Mana par ennemi abattu +0,1 par rang.",
+              "mods": {
+                "kill_mana": 0.1
+              },
+              "x": 1.5,
+              "parents": [
+                "litanie",
+                "ferveur_p"
+              ]
+            },
+            {
+              "id": "silence_sacre",
+              "name": "Silence sacré",
+              "max": 5,
+              "desc": "Recharge des sorts −2 % par rang.",
+              "mods": {
+                "cd_red": 0.02
+              },
+              "x": 3.0,
+              "parents": [
+                "ferveur_p",
+                "veilleur_aube"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 20,
+          "nodes": [
+            {
+              "id": "sanctuaire_p",
+              "name": "Lumière purificatrice",
+              "max": 3,
+              "desc": "Sorts de Lumière : +5 % de dégâts par rang.",
+              "mods": {
+                "elem_dmg.lumiere": 0.05
+              },
+              "x": 0.0,
+              "parents": [
+                "absolution"
+              ]
+            },
+            {
+              "id": "jugement_pur",
+              "name": "Jugement purificateur",
+              "max": 1,
+              "desc": "Évolution : Ultime : +20 % de rayon et de dégâts.",
+              "kind": "evolution",
+              "mods": {
+                "ult_radius": 0.2,
+                "ult_dmg": 0.2
+              },
+              "x": 1.5,
+              "parents": [
+                "exorciste"
+              ]
+            },
+            {
+              "id": "lumiere_pure",
+              "name": "Lumière pure",
+              "max": 3,
+              "desc": "Soins ennemis −4 % par rang · Soins +4 % par rang.",
+              "mods": {
+                "anti_heal": 0.04,
+                "heal_bonus": 0.04
+              },
+              "x": 3.0,
+              "parents": [
+                "silence_sacre"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 25,
+          "nodes": [
+            {
+              "id": "saint_des_saints",
+              "name": "Saint des saints",
+              "max": 3,
+              "desc": "PV de Barrière +5 % par rang.",
+              "mods": {
+                "barrier_max": 0.05
+              },
+              "x": 0.5,
+              "parents": [
+                "sanctuaire_p",
+                "jugement_pur"
+              ]
+            },
+            {
+              "id": "sceau_eternel",
+              "name": "Sceau éternel",
+              "max": 3,
+              "desc": "Rayon de l'Ultime +8 % par rang.",
+              "mods": {
+                "ult_radius": 0.08
+              },
+              "x": 2.5,
+              "parents": [
+                "jugement_pur",
+                "lumiere_pure"
+              ]
+            }
+          ]
+        },
+        {
+          "req": 30,
+          "nodes": [
+            {
+              "id": "purif_aube",
+              "name": "Portail béni",
+              "max": 1,
+              "desc": "Clé de voûte (Aube) : un portail purifié devient ×2.",
+              "kind": "keystone",
+              "mods": {
+                "purify_double": 1
+              },
+              "flag": "s1.voie_aube",
+              "flag_text": "Voie de l'Aube (choix de 3-10)",
+              "x": 0.0,
+              "parents": [
+                "saint_des_saints"
+              ]
+            },
+            {
+              "id": "purif_cendres",
+              "name": "Vol des soins",
+              "max": 1,
+              "desc": "Clé de voûte (Cendres) : les soins ennemis perdent 20 %, et une part revient à la Barrière.",
+              "kind": "keystone",
+              "mods": {
+                "heal_steal": 1
+              },
+              "flag": "s1.voie_cendres",
+              "flag_text": "Voie des Cendres (choix de 3-10)",
+              "x": 1.5,
+              "parents": [
+                "saint_des_saints",
+                "sceau_eternel"
+              ]
+            },
+            {
+              "id": "ascete",
+              "name": "Ascète",
+              "max": 1,
+              "desc": "Clé de voûte à double tranchant : Coût des sorts −25 % · PV des invocations −15 %.",
+              "mods": {
+                "spell_cost": 0.25,
+                "unit_hp": -0.15
+              },
+              "kind": "keystone",
+              "x": 3.0,
+              "parents": [
+                "sceau_eternel"
+              ]
+            }
+          ]
+        }
+      ]
     }
-   ]
-  },
-  {
-   "id": "jugement",
-   "name": "Jugement",
-   "theme": "Lumière offensive",
-   "color": "FFF0A0",
-   "icon": "lance_solaire",
-   "tiers": [
-    {
-     "req": 0,
-     "nodes": [
-      {
-       "id": "chatiment",
-       "name": "Châtiment",
-       "max": 5,
-       "desc": "Sorts de Lumière : +6 % de dégâts par rang.",
-       "mods": {
-        "elem_dmg.lumiere": 0.06
-       }
-      },
-      {
-       "id": "zele_c",
-       "name": "Zèle",
-       "max": 5,
-       "desc": "Invocations : +3 % d'attaque par rang.",
-       "mods": {
-        "unit_atk": 0.03
-       }
-      }
-     ]
-    },
-    {
-     "req": 5,
-     "nodes": [
-      {
-       "id": "aura_radieuse",
-       "name": "Aura radieuse",
-       "max": 5,
-       "desc": "+1 % de chances de critique par rang.",
-       "mods": {
-        "crit": 0.01
-       }
-      },
-      {
-       "id": "eclat_c",
-       "name": "Éclat",
-       "max": 5,
-       "desc": "Jauge Surge : +4 % de gain par rang.",
-       "mods": {
-        "surge_gain": 0.04
-       }
-      },
-      {
-       "id": "lance_solaire_t",
-       "name": "Lance solaire",
-       "max": 1,
-       "desc": "Nouveau sort : une lance de lumière traverse une colonne.",
-       "kind": "spell",
-       "unlock": "lance_solaire"
-      }
-     ]
-    },
-    {
-     "req": 10,
-     "nodes": [
-      {
-       "id": "rayonnement",
-       "name": "Rayonnement",
-       "max": 5,
-       "desc": "Sorts de Lumière : +4 % de dégâts par rang.",
-       "mods": {
-        "elem_dmg.lumiere": 0.04
-       }
-      },
-      {
-       "id": "vigilance",
-       "name": "Vigilance",
-       "max": 5,
-       "desc": "Invocations : +1 de défense par rang.",
-       "mods": {
-        "unit_def": 0.05
-       }
-      },
-      {
-       "id": "inspiration",
-       "name": "Inspiration",
-       "max": 5,
-       "desc": "+4 % de régénération de mana par rang.",
-       "mods": {
-        "mana_regen": 0.04
-       }
-      }
-     ]
-    },
-    {
-     "req": 20,
-     "nodes": [
-      {
-       "id": "soleil_interieur",
-       "name": "Soleil intérieur",
-       "max": 3,
-       "desc": "Sorts de Lumière : +5 % de dégâts par rang.",
-       "mods": {
-        "elem_dmg.lumiere": 0.05
-       }
-      },
-      {
-       "id": "jugement_plus",
-       "name": "Jugement solaire+",
-       "max": 1,
-       "desc": "Évolution : +25 % de rayon, +25 % de dégâts.",
-       "kind": "evolution",
-       "mods": {
-        "ult_radius": 0.25,
-        "ult_dmg": 0.25
-       }
-      }
-     ]
-    },
-    {
-     "req": 30,
-     "nodes": [
-      {
-       "id": "courroux",
-       "name": "Courroux céleste",
-       "max": 1,
-       "desc": "Clé de voûte : les soins en excès deviennent des dégâts de Lumière sur les ennemis proches de la Barrière.",
-       "kind": "keystone",
-       "mods": {
-        "wrath": 1
-       }
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "id": "purification",
-   "name": "Purification",
-   "theme": "Voie du Surge : anti-corruption, anti-soin ennemi",
-   "color": "FFF6C8",
-   "icon": "exorcisme",
-   "unlock_flag": "s1.verite_cendres",
-   "locked": "Voie du Surge : s'ouvre à la fin de l'acte 3 (la Vérité des Cendres, 3-10).",
-   "tiers": [
-    {
-     "req": 0,
-     "nodes": [
-      {
-       "id": "purge",
-       "name": "Purge",
-       "max": 5,
-       "desc": "Purifier et Exorcisme : +8 % de rayon par rang.",
-       "mods": {
-        "radius.purifier": 0.08,
-        "radius.exorcisme": 0.08
-       }
-      },
-      {
-       "id": "sceau_sacre",
-       "name": "Sceau sacré",
-       "max": 5,
-       "desc": "Soins ennemis : −6 % par rang.",
-       "mods": {
-        "anti_heal": 0.06
-       }
-      }
-     ]
-    },
-    {
-     "req": 5,
-     "nodes": [
-      {
-       "id": "eau_benite",
-       "name": "Eau bénite",
-       "max": 5,
-       "desc": "Sorts de Lumière : +5 % de dégâts par rang.",
-       "mods": {
-        "elem_dmg.lumiere": 0.05
-       }
-      },
-      {
-       "id": "veille",
-       "name": "Veille",
-       "max": 5,
-       "desc": "+4 % de régénération de mana par rang.",
-       "mods": {
-        "mana_regen": 0.04
-       }
-      },
-      {
-       "id": "exorcisme_t",
-       "name": "Exorcisme",
-       "max": 1,
-       "desc": "Nouveau sort : purifie et frappe de Lumière.",
-       "kind": "spell",
-       "unlock": "exorcisme"
-      }
-     ]
-    },
-    {
-     "req": 10,
-     "nodes": [
-      {
-       "id": "cilice",
-       "name": "Cilice",
-       "max": 5,
-       "desc": "Soins ennemis : −4 % par rang.",
-       "mods": {
-        "anti_heal": 0.04
-       }
-      },
-      {
-       "id": "litanie",
-       "name": "Litanie",
-       "max": 5,
-       "desc": "Sorts : −2 % de coût en mana par rang.",
-       "mods": {
-        "spell_cost": 0.02
-       }
-      },
-      {
-       "id": "ferveur_p",
-       "name": "Ferveur",
-       "max": 5,
-       "desc": "Jauge Surge : +4 % de gain par rang.",
-       "mods": {
-        "surge_gain": 0.04
-       }
-      }
-     ]
-    },
-    {
-     "req": 20,
-     "nodes": [
-      {
-       "id": "sanctuaire_p",
-       "name": "Lumière purificatrice",
-       "max": 3,
-       "desc": "Sorts de Lumière : +5 % de dégâts par rang.",
-       "mods": {
-        "elem_dmg.lumiere": 0.05
-       }
-      },
-      {
-       "id": "jugement_pur",
-       "name": "Jugement purificateur",
-       "max": 1,
-       "desc": "Évolution : Ultime : +20 % de rayon et de dégâts.",
-       "kind": "evolution",
-       "mods": {
-        "ult_radius": 0.2,
-        "ult_dmg": 0.2
-       }
-      }
-     ]
-    },
-    {
-     "req": 30,
-     "nodes": [
-      {
-       "id": "purif_aube",
-       "name": "Portail béni",
-       "max": 1,
-       "desc": "Clé de voûte (Aube) : un portail purifié devient ×2.",
-       "kind": "keystone",
-       "mods": {
-        "purify_double": 1
-       },
-       "flag": "s1.voie_aube",
-       "flag_text": "Voie de l'Aube (choix de 3-10)"
-      },
-      {
-       "id": "purif_cendres",
-       "name": "Vol des soins",
-       "max": 1,
-       "desc": "Clé de voûte (Cendres) : les soins ennemis perdent 20 %, et une part revient à la Barrière.",
-       "kind": "keystone",
-       "mods": {
-        "heal_steal": 1
-       },
-       "flag": "s1.voie_cendres",
-       "flag_text": "Voie des Cendres (choix de 3-10)"
-      }
-     ]
-    }
-   ]
-  }
- ]
+  ]
 }
