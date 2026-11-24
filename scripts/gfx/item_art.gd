@@ -616,6 +616,189 @@ static func draw(img: Image, t: String, m: Array, c: Array, g: Color) -> void:
 			_line(img, Vector2(2, 7), Vector2(18, 7), _c(m[3]))
 			_rect(img, 4, 19, 15, 3, _c(m[0]))
 			_ball(img, 11.0, 10.0, 2.4, [g.darkened(0.4).to_html(false), g.to_html(false), g.lightened(0.3).to_html(false), "ffffff"])
+		"rapiere":
+			_line(img, Vector2(10, 13), Vector2(21, 2), _c(m[1]))
+			_line(img, Vector2(10, 12), Vector2(20, 2), _c(m[3]))
+			_line(img, Vector2(11, 14), Vector2(21, 3), _c(m[0]))
+			# Garde en coquille et branche.
+			_ell(img, 9.0, 14.0, 3.2, 2.6, _c(m[1]))
+			_ell(img, 8.6, 13.6, 2.2, 1.6, _c(m[3]))
+			for i in range(7):
+				var a := PI * 0.2 + float(i) * PI / 7.0
+				_px(img, 8 + int(cos(a) * 4.5), 15 + int(sin(a) * 4.5), _c(m[2]))
+			_line(img, Vector2(4, 20), Vector2(8, 16), _c(c[1]), 2)
+			_line(img, Vector2(4, 19), Vector2(7, 16), _c(c[2]))
+			_gem(img, 2, 21, g)
+		"fleau":
+			_shaft(img, Vector2(3, 21), Vector2(10, 14), MAT["wood"] if c != DYE["teal"] else c)
+			_rect(img, 9, 13, 3, 3, _c(m[2]))
+			for i in range(5):
+				var p := Vector2(11, 12).lerp(Vector2(15, 7), float(i) / 4.0)
+				_px(img, int(p.x), int(p.y), _c(m[2]) if i % 2 == 0 else _c(m[0]))
+			_ball(img, 17.0, 6.0, 3.6, m)
+			for q in [Vector2i(17, 1), Vector2i(22, 6), Vector2i(17, 11), Vector2i(12, 5), Vector2i(20, 2), Vector2i(21, 10)]:
+				_px(img, q.x, q.y, _c(m[3]))
+			_gem(img, 16, 5, g)
+		"glaive":
+			_shaft(img, Vector2(2, 22), Vector2(14, 10), MAT["wood"])
+			_poly(img, PackedVector2Array([Vector2(13, 11), Vector2(16, 4), Vector2(21, 1), Vector2(22, 4), Vector2(19, 10), Vector2(15, 13)]), _c(m[1]))
+			_line(img, Vector2(16, 4), Vector2(21, 1), _c(m[3]))
+			_line(img, Vector2(22, 4), Vector2(19, 10), _c(m[2]))
+			_line(img, Vector2(15, 13), Vector2(13, 11), _c(m[0]))
+			_px(img, 20, 8, _c(m[0]))
+			_line(img, Vector2(11, 13), Vector2(9, 11), _c(c[2]), 2)
+			_gem(img, 15, 9, g)
+		"cimeterre":
+			for i in range(15):
+				var u := float(i) / 14.0
+				var x := 9.0 + 12.0 * u
+				var y := 14.0 - 12.0 * u + 4.0 * sin(u * PI)
+				_px(img, int(x), int(y), _c(m[1]))
+				_px(img, int(x), int(y) + 1, _c(m[0]))
+				_px(img, int(x) - 1, int(y) - 1, _c(m[3]) if i % 2 == 0 else _c(m[2]))
+				if u > 0.6:
+					_px(img, int(x) + 1, int(y) + 1, _c(m[1]))
+			_line(img, Vector2(7, 12), Vector2(11, 16), _c("c08a2a"), 2)
+			_line(img, Vector2(4, 19), Vector2(8, 15), _c(c[1]), 2)
+			_line(img, Vector2(4, 18), Vector2(7, 15), _c(c[2]))
+			_gem(img, 2, 20, g)
+		"cor":
+			for i in range(16):
+				var u := float(i) / 15.0
+				var x := 4.0 + 15.0 * u
+				var y := 16.0 - 9.0 * u * u
+				var r := 1.0 + 3.0 * u
+				_ell(img, x, y, 1.2, r, _c(m[1]))
+				_px(img, int(x), int(y - r + 1.0), _c(m[3]))
+			_ell(img, 19.5, 7.0, 2.0, 4.0, _c(m[0]))
+			_ell(img, 19.8, 7.0, 1.2, 3.0, _c("2a1a10"))
+			_rect(img, 8, 13, 2, 4, _c(c[1]))
+			_rect(img, 13, 10, 2, 5, _c(c[1]))
+			_line(img, Vector2(9, 17), Vector2(14, 15), _c(c[2]))
+			_px(img, 4, 16, g)
+		"crane":
+			_ell(img, 12.0, 10.0, 8.0, 7.5, _c(m[1]))
+			_ell(img, 10.5, 8.5, 5.5, 5.0, _c(m[2]))
+			_ell(img, 9.0, 6.5, 2.0, 1.5, _c(m[3]))
+			_rect(img, 7, 15, 10, 5, _c(m[1]))
+			_rect(img, 7, 15, 5, 5, _c(m[2]))
+			_ell(img, 8.5, 11.0, 2.4, 2.4, _c("120e1a"))
+			_ell(img, 15.5, 11.0, 2.4, 2.4, _c("120e1a"))
+			_px(img, 8, 11, g)
+			_px(img, 15, 11, g)
+			_poly(img, PackedVector2Array([Vector2(11, 15), Vector2(13, 15), Vector2(12, 13)]), _c("120e1a"))
+			for x in [8, 10, 12, 14, 16]:
+				_px(img, x, 19, _c("120e1a"))
+			_line(img, Vector2(7, 21), Vector2(17, 21), _c(m[0]))
+		"chapeau":
+			_ell(img, 12.0, 19.0, 11.0, 3.2, _c(c[0]))
+			_ell(img, 11.5, 18.5, 10.0, 2.4, _c(c[1]))
+			_poly(img, PackedVector2Array([Vector2(6, 18), Vector2(10, 9), Vector2(13, 4), Vector2(18, 1), Vector2(16, 6), Vector2(17, 18)]), _c(c[1]))
+			_poly(img, PackedVector2Array([Vector2(6, 18), Vector2(10, 9), Vector2(13, 4), Vector2(11, 18)]), _c(c[2]))
+			_rect(img, 7, 15, 10, 2, _c(m[1]))
+			_gem(img, 11, 15, g)
+			_px(img, 18, 1, g.lightened(0.4))
+		"bandeau":
+			_ell(img, 12.0, 11.0, 9.5, 6.5, _c(c[1]))
+			_ell(img, 11.0, 10.0, 7.0, 4.5, _c(c[2]))
+			_ell(img, 12.0, 11.5, 6.5, 3.6, Color(0, 0, 0, 0))
+			for y in range(24):
+				for x in range(24):
+					var nx := (float(x) + 0.5 - 12.0) / 6.5
+					var ny := (float(y) + 0.5 - 11.5) / 3.6
+					if nx * nx + ny * ny <= 1.0:
+						img.set_pixel(x, y, Color(0, 0, 0, 0))
+			_poly(img, PackedVector2Array([Vector2(18, 14), Vector2(22, 20), Vector2(19, 21), Vector2(17, 16)]), _c(c[1]))
+			_poly(img, PackedVector2Array([Vector2(19, 14), Vector2(23, 17), Vector2(21, 19), Vector2(18, 16)]), _c(c[2]))
+			_gem(img, 11, 5, g, true)
+		"brigandine":
+			_poly(img, PackedVector2Array([Vector2(7, 3), Vector2(17, 3), Vector2(22, 8), Vector2(19, 11), Vector2(17, 9), Vector2(18, 21), Vector2(6, 21), Vector2(7, 9), Vector2(5, 11), Vector2(2, 8)]), _c(c[1]))
+			_poly(img, PackedVector2Array([Vector2(7, 3), Vector2(12, 3), Vector2(12, 21), Vector2(6, 21), Vector2(7, 9), Vector2(5, 11), Vector2(2, 8)]), _c(c[2]))
+			_poly(img, PackedVector2Array([Vector2(10, 3), Vector2(14, 3), Vector2(12, 7)]), _c(c[0]))
+			for y in range(9, 20, 3):
+				for x in range(7, 18, 3):
+					_px(img, x, y, _c(m[3]))
+					_px(img, x + 1, y + 1, _c(m[0]))
+			_rect(img, 6, 15, 13, 2, _c(m[1]))
+			_gem(img, 11, 15, g)
+		"brassards":
+			# Deux brassards : tubes évasés vus de trois quarts, ouverture sombre, sangles.
+			for k in range(2):
+				var ox := 6.0 + float(k) * 10.0
+				var strap: Color = _c(c[1]) if c != DYE["brown"] else _c(m[0])
+				_poly(img, PackedVector2Array([Vector2(ox - 4.5, 5), Vector2(ox + 4.5, 5), Vector2(ox + 3.0, 21), Vector2(ox - 3.0, 21)]), _c(m[1]))
+				_poly(img, PackedVector2Array([Vector2(ox - 4.5, 5), Vector2(ox - 1.0, 5), Vector2(ox - 1.5, 21), Vector2(ox - 3.0, 21)]), _c(m[2]))
+				_ell(img, ox, 5.0, 4.5, 1.8, _c(m[3]))
+				_ell(img, ox, 5.2, 3.2, 1.0, _c("120e1a"))
+				_ell(img, ox, 21.0, 3.0, 1.2, _c(m[0]))
+				for y in [10, 16]:
+					_line(img, Vector2(ox - 4.0, y), Vector2(ox + 4.0, y), strap)
+				_gem(img, int(ox) - 1, 12, g)
+		"collier":
+			for i in range(13):
+				var a := PI * 0.05 + float(i) * PI * 0.9 / 12.0
+				var x := 12.0 + cos(a) * 9.0
+				var y := 6.0 + sin(a) * 9.0
+				_px(img, int(x), int(y), _c(c[1]))
+			for k in range(5):
+				var a := PI * 0.3 + float(k) * PI * 0.4 / 4.0
+				var bx := 12.0 + cos(a) * 9.0
+				var by := 6.0 + sin(a) * 9.0
+				_poly(img, PackedVector2Array([Vector2(bx - 1.5, by), Vector2(bx + 1.5, by), Vector2(bx, by + 5.0)]), _c(m[2]))
+				_px(img, int(bx) - 1, int(by), _c(m[3]))
+			_gem(img, 11, 15, g)
+		"talisman":
+			_line(img, Vector2(6, 1), Vector2(12, 6), _c(m[2]))
+			_line(img, Vector2(18, 1), Vector2(12, 6), _c(m[1]))
+			_ell(img, 12.0, 14.0, 8.0, 8.0, _c(m[0]))
+			_ell(img, 11.6, 13.6, 7.0, 7.0, _c(m[2]))
+			_ell(img, 12.0, 14.0, 5.0, 5.0, _c(m[1]))
+			for i in range(8):
+				var a := float(i) * TAU / 8.0
+				_px(img, 12 + int(round(cos(a) * 6.0)), 14 + int(round(sin(a) * 6.0)), _c(m[3]))
+			_poly(img, PackedVector2Array([Vector2(12, 10), Vector2(15, 14), Vector2(12, 18), Vector2(9, 14)]), g)
+			_px(img, 11, 12, g.lightened(0.5))
+		"totem":
+			_rect(img, 8, 3, 8, 18, _c(m[1]))
+			_rect(img, 8, 3, 3, 18, _c(m[2]))
+			_poly(img, PackedVector2Array([Vector2(4, 4), Vector2(8, 6), Vector2(8, 9), Vector2(3, 7)]), _c(c[1]))
+			_poly(img, PackedVector2Array([Vector2(20, 4), Vector2(16, 6), Vector2(16, 9), Vector2(21, 7)]), _c(c[1]))
+			_ell(img, 10.0, 7.0, 1.4, 1.4, g)
+			_ell(img, 14.0, 7.0, 1.4, 1.4, g)
+			_poly(img, PackedVector2Array([Vector2(11, 9), Vector2(13, 9), Vector2(12, 12)]), _c("c08a2a"))
+			_rect(img, 8, 14, 8, 1, _c(m[0]))
+			_rect(img, 10, 16, 4, 2, _c(c[2]))
+			_rect(img, 7, 20, 10, 2, _c(m[0]))
+		"de":
+			_poly(img, PackedVector2Array([Vector2(4, 8), Vector2(12, 4), Vector2(20, 8), Vector2(12, 12)]), _c(m[3]))
+			_poly(img, PackedVector2Array([Vector2(4, 8), Vector2(12, 12), Vector2(12, 21), Vector2(4, 17)]), _c(m[2]))
+			_poly(img, PackedVector2Array([Vector2(12, 12), Vector2(20, 8), Vector2(20, 17), Vector2(12, 21)]), _c(m[1]))
+			_px(img, 12, 8, _c(c[1]))
+			for q in [Vector2i(6, 11), Vector2i(9, 15), Vector2i(7, 17)]:
+				_px(img, q.x, q.y, _c(c[1]))
+			for q in [Vector2i(15, 12), Vector2i(17, 14), Vector2i(15, 16), Vector2i(17, 18)]:
+				_px(img, q.x, q.y, _c(c[0]))
+			_gem(img, 11, 7, g)
+		"cloche":
+			_rect(img, 11, 1, 2, 3, _c(m[0]))
+			_poly(img, PackedVector2Array([Vector2(8, 5), Vector2(16, 5), Vector2(18, 15), Vector2(21, 18), Vector2(3, 18), Vector2(6, 15)]), _c(m[1]))
+			_poly(img, PackedVector2Array([Vector2(8, 5), Vector2(12, 5), Vector2(11, 18), Vector2(3, 18), Vector2(6, 15)]), _c(m[2]))
+			_line(img, Vector2(9, 6), Vector2(8, 14), _c(m[3]))
+			_rect(img, 3, 17, 18, 2, _c(m[0]))
+			_ball(img, 12.0, 20.5, 2.0, [g.darkened(0.4).to_html(false), g.to_html(false), g.lightened(0.3).to_html(false), "ffffff"])
+			_line(img, Vector2(13, 2), Vector2(19, 1), _c(c[2]))
+		"oeil":
+			_ell(img, 12.0, 12.0, 10.0, 6.5, _c(m[1]))
+			_ell(img, 12.0, 12.0, 9.0, 5.5, _c("f0f0f8"))
+			_ell(img, 12.0, 12.0, 4.5, 4.5, g.darkened(0.3))
+			_ell(img, 12.0, 12.0, 3.2, 3.2, g)
+			_ell(img, 12.0, 12.0, 1.5, 2.6, _c("120e1a"))
+			_px(img, 10, 10, Color.WHITE)
+			_px(img, 11, 10, Color.WHITE)
+			for x in range(4, 21, 3):
+				_px(img, x, 5 + int(absf(float(x) - 12.0) / 3.0), _c(c[1]))
+			_line(img, Vector2(12, 18), Vector2(12, 22), _c(c[1]))
+			_px(img, 12, 22, g)
 		_:
 			_ball(img, 12.0, 12.0, 7.0, m)
 

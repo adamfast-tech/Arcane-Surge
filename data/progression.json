@@ -144,5 +144,12 @@
         3
       ]
     }
+  },
+  "boss_unique": {
+    "chance": 0.125,
+    "levels": {
+      "z02_l10": "hache_serment",
+      "z03_l10": "fiole_trois_venins"
+    }
   }
 }

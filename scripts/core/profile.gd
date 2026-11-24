@@ -538,6 +538,11 @@ static func apply_battle(level_id: String, victory: bool, stars: int, time: floa
 			if n > 0:
 				mats[m] = n
 				data["materials"][m] = int(data["materials"].get(m, 0)) + n
+		# Légendaire de boss (Hache du Serment Brisé, Fiole des Trois Venins) : une chance sur huit, une seule fois.
+		var bu: Dictionary = p.get("boss_unique", {})
+		var ubase := str((bu.get("levels", {}) as Dictionary).get(level_id, ""))
+		if unique == "" and ubase != "" and rng.randf() < float(bu.get("chance", 0.125)) * loot:
+			unique = ubase
 		if unique != "" and (items_db()["bases"] as Dictionary).has(unique):
 			var owned := false
 			for it in data["inventory"]:

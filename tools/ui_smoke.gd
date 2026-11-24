@@ -1328,7 +1328,7 @@ func _gear_ok() -> bool:
 		if ItemArt.item(str(id), 48) == null:
 			errs.append("icône %s" % id)
 	for z in range(1, 6):
-		if ((db["loot_pool"] as Dictionary).get(str(z), []) as Array).size() < 18:
+		if ((db["loot_pool"] as Dictionary).get(str(z), []) as Array).size() < 36:
 			errs.append("butin de zone %d" % z)
 	var fams: Dictionary = db["runes"]["families"]
 	for f in fams.keys():
@@ -1410,6 +1410,17 @@ func _gear_ok() -> bool:
 	if str(out.get("rarity", "")) != "rare" or str(out.get("base", "")) != "gants_cuir" or int(out.get("ilvl", 0)) != 7 or not bool(out.get("fused", false)) or again == "" \
 			or refuse_i == "" or str(myth.get("rarity", "")) != "mythique" or Profile.sockets_of(myth) != 4 or equipped_block == "":
 		errs.append("fusion d'objets : %s %s iLvl %s, refusion « %s », mélange « %s », mythique %s, équipé « %s »" % [out.get("base", ""), out.get("rarity", ""), out.get("ilvl", 0), again, refuse_i, myth.get("rarity", ""), equipped_block])
+	if bases.size() < 180:
+		errs.append("catalogue : %d objets" % bases.size())
+	# Légendaire de boss : la Fiole des Trois Venins finit par tomber, une seule fois.
+	var vials := 0
+	for k in range(60):
+		Profile.apply_battle("z03_l10", true, 3, 300.0)
+	for it in Profile.data["inventory"]:
+		if str(it["base"]) == "fiole_trois_venins":
+			vials += 1
+	if vials != 1:
+		errs.append("Fiole des Trois Venins ×%d en 60 victoires" % vials)
 	# Butin : un boss donne au moins une rune.
 	var n0 := Profile.rune_inventory().size()
 	var rew := Profile.apply_battle("z03_l10", true, 3, 300.0)
