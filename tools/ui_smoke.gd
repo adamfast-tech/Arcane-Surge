@@ -881,8 +881,22 @@ func _run() -> void:
 	b.sim.barrier_hp = 0.0
 	await _frames(10)
 	print("état : ", b.sim.state, " · fenêtre de fin : ", b._end_open)
-	b.exit_requested.emit("map")
+	# Fin de mission : le bouton « Équipement » mène directement à l'écran d'équipement.
+	var gear_btn: Button = null
+	for n in b.find_children("*", "Button", true, false):
+		if (n as Button).text == "Équipement":
+			gear_btn = n
+	if gear_btn == null:
+		push_error("fin de mission : bouton Équipement absent")
+		quit(1)
+		return
+	gear_btn.pressed.emit()
 	await _frames(10)
+	print("fin de mission → ", _screen().get_script().get_global_name())
+	if not (_screen() is EquipmentScreen):
+		push_error("fin de mission : le bouton Équipement n'ouvre pas l'équipement")
+		quit(1)
+		return
 	main.call("_start", "z01_l01", true)
 	await _frames(10)
 	b = _screen()

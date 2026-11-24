@@ -430,6 +430,8 @@ func _go(dest: String, level_id: String, solo: bool) -> void:
 			_start(level_id, solo)
 		"hub":
 			_show_hub()
+		"equipment":
+			_show_equipment()
 		_:
 			_show_map()
 

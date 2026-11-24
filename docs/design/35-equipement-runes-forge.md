@@ -141,7 +141,7 @@ On y accède par une nouvelle salle d'Havre-Aube, par le bouton « Forge » de l
   - sur une pièce équipée, le bouton « N mieux » filtre l'inventaire sur cet emplacement ; les emplacements vides affichent aussi leur nombre ;
   - la tuile Équipement d'Havre-Aube indique « N objets mieux en réserve » ;
   - quand les deux anneaux sont portés, équiper un anneau remplace le plus faible.
-- **Fin de combat** : les runes gagnées apparaissent dans le butin, sur leur faisceau de rareté.
+- **Fin de combat** : les runes gagnées apparaissent dans le butin, sur leur faisceau de rareté. Le bouton « Équipement » (à côté de Rejouer, Carte et Havre-Aube) ouvre directement l'équipement ; il passe au vert avec une flèche quand un objet de réserve fait mieux que l'équipé.
 - **Aperçus** : `?room=forge`, `&tab=fusion` ou `&tab=runes`, `&gear=1` (un assortiment d'objets et de runes).
 
 ## 6. Vérifications

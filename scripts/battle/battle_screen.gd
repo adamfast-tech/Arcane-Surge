@@ -1577,6 +1577,19 @@ func _open_end() -> void:
 	hub.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hub.pressed.connect(func() -> void: exit_requested.emit("hub"))
 	row.add_child(hub)
+	# Accès direct à l'Équipement (en vert, avec une flèche, si un objet de réserve fait mieux que l'équipé).
+	var n_up := Profile.better_items("player").size()
+	var gear := UiTheme.button("Équipement", 22)
+	gear.custom_minimum_size = Vector2(0, 64)
+	gear.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	gear.icon = Icons.tex("up" if n_up > 0 else "forge", 40)
+	gear.add_theme_constant_override("icon_max_width", 20)
+	gear.add_theme_color_override("font_color", UiTheme.GOOD if n_up > 0 else UiTheme.FIRE)
+	gear.add_theme_color_override("icon_normal_color", UiTheme.GOOD if n_up > 0 else UiTheme.FIRE)
+	if n_up > 0:
+		gear.tooltip_text = "%d objet%s meilleur%s que ton équipement" % [n_up, "s" if n_up > 1 else "", "s" if n_up > 1 else ""]
+	gear.pressed.connect(func() -> void: exit_requested.emit("equipment"))
+	row.add_child(gear)
 
 
 func _fmt_time(s: float) -> String:
