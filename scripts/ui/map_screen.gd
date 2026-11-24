@@ -14,11 +14,12 @@ const ZONE_BLURB := {
 	2: "Niveaux 11 à 20 · acte 2, les Alliances : pillards, clans orcs possédés et vent des steppes.",
 	3: "Niveaux 21 à 30 · acte 3, les Cendres : morts du marais, brume qui cache les ennemis, mares de poison.",
 	4: "Niveaux 31 à 40 · acte 4, les Runes : bêtes des montagnes et élémentaires de givre, glace qui fait glisser, avalanches, Portes naines « Forge ».",
+	5: "Niveaux 41 à 50 · acte 5, le Désert de Verre : cycle du soleil et de la lune, mirages, miroirs qui renvoient les tirs, et le Sphinx et ses énigmes.",
 }
 
 
 ## Ambiance de chaque zone sur la carte (option « Enrichie »).
-const ZONE_MOOD := {1: "mist", 2: "steppe", 3: "swamp", 4: "snow"}
+const ZONE_MOOD := {1: "mist", 2: "steppe", 3: "swamp", 4: "snow", 5: "desert"}
 static var _fog: Shader
 
 

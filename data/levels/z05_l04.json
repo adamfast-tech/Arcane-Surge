@@ -1,0 +1,101 @@
+{
+  "id": "z05_l04",
+  "name": "Les Miroirs",
+  "zone": 5,
+  "number": "5-4",
+  "global_level": 44,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "desc": "Deux grands miroirs de verre gardent le chemin. Ils renvoient la moitié des tirs à tes tireurs et, le jour, projettent un rayon de soleil le long de leur colonne. La nuit, ils s'éteignent : brise-les au corps à corps.",
+  "par_time": 160,
+  "nexus": {
+    "hp": 22000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 340
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 340
+    }
+  ],
+  "portals": [
+    {
+      "kind": "add",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 5
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 2,
+      "motion": "slide",
+      "range": 1.6,
+      "speed": 0.5
+    },
+    {
+      "kind": "elem",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "givre"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 9.6,
+      "width": 2.2,
+      "value": 2,
+      "motion": "slide",
+      "range": 2.2,
+      "speed": 0.45
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 27,
+    "budget_per_level": 8,
+    "local_level": 4,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "glass_scarab": 5,
+      "sand_jackal": 2,
+      "mummy_archer": 1.4,
+      "mirror_construct": 0.5
+    }
+  },
+  "daynight": {
+    "day": 30,
+    "night": 22,
+    "start": "jour"
+  },
+  "mirrors": [
+    {
+      "x": 2.2,
+      "y": 11.8
+    },
+    {
+      "x": 6.8,
+      "y": 11.8
+    }
+  ],
+  "initial_enemies": []
+}

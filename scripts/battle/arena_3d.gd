@@ -56,6 +56,9 @@ var _moss_cap: StandardMaterial3D
 var day := false ## Zone 2 : Collines d'Ambre en plein jour.
 var swamp := false ## Zone 3 : Marais Murmurants au crépuscule.
 var frost := false ## Zone 4 : Pics Gelés, nuit d'aurore boréale.
+var desert := false ## Zone 5 : Désert de Verre ; la lumière suit le cycle soleil/lune de la simulation.
+var _sun: DirectionalLight3D
+var _day_k := 1.0 ## 1 = plein jour, 0 = nuit (transition douce)
 var _fog_nodes: Array[Dictionary] = []
 ## Forêt guérie (la Sylvarche a été purifiée) : sol plus vert, veines dorées, lucioles.
 var healed := false
@@ -72,6 +75,7 @@ func setup(s: BattleSim, f: Font, forest_healed: bool = false) -> void:
 	day = WorldArt.zone == 2
 	swamp = WorldArt.zone == 3
 	frost = WorldArt.zone == 4
+	desert = WorldArt.zone == 5
 	_billboard = load("res://shaders/billboard_atlas.gdshader")
 	_stone_mat = _triplanar(WorldArt.stone_texture(), 0.55)
 	_build_environment()
@@ -169,6 +173,9 @@ func _build_environment() -> void:
 	elif frost:
 		_env.ambient_light_color = Color("9ab8e0")
 		_env.ambient_light_energy = 1.05
+	elif desert:
+		_env.ambient_light_color = Color("e8c890")
+		_env.ambient_light_energy = 1.0
 	_env.fog_enabled = true
 	_env.fog_mode = Environment.FOG_MODE_DEPTH
 	_env.fog_light_color = Color("26405a") if healed else Color("2d2c5e")
@@ -178,6 +185,8 @@ func _build_environment() -> void:
 		_env.fog_light_color = Color("6e7f6a")
 	elif frost:
 		_env.fog_light_color = Color("4a6a8e")
+	elif desert:
+		_env.fog_light_color = Color("c89a5a")
 	_env.fog_depth_begin = 40.0
 	_env.fog_depth_end = 80.0
 	_env.glow_enabled = true
@@ -192,6 +201,10 @@ func _build_environment() -> void:
 	moon.light_energy = 1.1
 	moon.rotation_degrees = Vector3(-55.0, -35.0, 0.0)
 	add_child(moon)
+	_sun = moon
+	if desert:
+		_day_k = 1.0 if sim.is_day else 0.0
+		_apply_daylight()
 
 
 func _triplanar(tex: Texture2D, scale: float) -> StandardMaterial3D:
@@ -327,7 +340,7 @@ func _trees_mm_instance() -> MultiMeshInstance3D:
 
 
 func _build_props() -> void:
-	var moss_cap := _unshaded(Color("a09048") if day else (Color("4a5a48") if swamp else (Color("dcecf8") if frost else Color("3f6a3a"))))
+	var moss_cap := _unshaded(Color("a09048") if day else (Color("4a5a48") if swamp else (Color("dcecf8") if frost else (Color("e8c890") if desert else Color("3f6a3a")))))
 	moss_cap.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
 	# Piliers en ruine le long de la chaussée : construits par TerrainView (ils peuvent s'effondrer).
 	_moss_cap = moss_cap
@@ -402,6 +415,15 @@ func _build_props() -> void:
 		ff.initial_velocity_min = 0.4
 		ff.initial_velocity_max = 0.8
 		ff.gravity = Vector3(0.05, -0.1, 0.0)
+	if desert:
+		# Voiles de sable doré qui filent avec le vent du désert.
+		ramp = Gradient.new()
+		ramp.set_color(0, Color(1.0, 0.85, 0.55, 0.0))
+		ramp.set_color(1, Color(1.0, 0.85, 0.55, 0.0))
+		ramp.add_point(0.5, Color(1.0, 0.9, 0.65, 0.7))
+		ff.amount = 90
+		ff.initial_velocity_max = 0.9
+		ff.gravity = Vector3(0.35, 0.02, 0.0)
 	if day:
 		# Pollen et poussière dorée dans la lumière de midi.
 		ramp = Gradient.new()
@@ -523,44 +545,77 @@ func _label(size: int, col: Color) -> Label3D:
 
 func _build_portals() -> void:
 	for p in sim.portals:
-		var root := Node3D.new()
-		root.position = w3(Vector2(p.x, p.y))
-		add_child(root)
-		var half := p.width * 0.5
-		var col := p.color()
-		_box(Vector3(0.26, 1.45, 0.26), Vector3(-half - 0.13, 0.725, 0.0), _stone_mat, root)
-		_box(Vector3(0.26, 1.45, 0.26), Vector3(half + 0.13, 0.725, 0.0), _stone_mat, root)
-		_box(Vector3(p.width + 0.6, 0.2, 0.32), Vector3(0.0, 1.5, 0.0), _stone_mat, root)
-		var panel := MeshInstance3D.new()
-		var qm := QuadMesh.new()
-		qm.size = Vector2(p.width, 1.3)
-		panel.mesh = qm
-		var pmat := _unshaded(Color(col, 0.35), true)
-		panel.material_override = pmat
-		panel.position = Vector3(0.0, 0.7, 0.0)
-		root.add_child(panel)
-		var strip := MeshInstance3D.new()
-		var sp := PlaneMesh.new()
-		sp.size = Vector2(p.width, 0.16)
-		strip.mesh = sp
-		var smat := _unshaded(col)
-		strip.material_override = smat
-		strip.position = Vector3(0.0, 0.03, 0.0)
-		root.add_child(strip)
-		var lab := _label(72, Color.WHITE)
-		lab.position = Vector3(0.0, 2.05, 0.0)
-		lab.text = p.label()
-		root.add_child(lab)
-		var seal := _label(44, Color("e070ff"))
-		seal.position = Vector3(0.0, 2.65, 0.0)
-		root.add_child(seal)
-		var light := OmniLight3D.new()
-		light.light_color = col
-		light.light_energy = 0.9
-		light.omni_range = 2.6
-		light.position = Vector3(0.0, 0.8, 0.4)
-		root.add_child(light)
-		_portal_nodes.append({"portal": p, "root": root, "panel": pmat, "strip": smat, "label": lab, "seal": seal, "light": light})
+		_build_portal(p)
+
+
+func _portals_changed() -> bool:
+	for i in range(_portal_nodes.size()):
+		if _portal_nodes[i]["portal"] != sim.portals[i]:
+			return true
+	return false
+
+
+func _sync_portal_nodes() -> void:
+	var keep: Array[Dictionary] = []
+	for pn in _portal_nodes:
+		if sim.portals.has(pn["portal"]):
+			keep.append(pn)
+		else:
+			(pn["root"] as Node3D).queue_free()
+	_portal_nodes = keep
+	for p in sim.portals:
+		var known := false
+		for pn in _portal_nodes:
+			known = known or pn["portal"] == p
+		if not known:
+			_build_portal(p)
+	var order: Array[Dictionary] = []
+	for p in sim.portals:
+		for pn in _portal_nodes:
+			if pn["portal"] == p:
+				order.append(pn)
+	_portal_nodes = order
+
+
+func _build_portal(p: Portal) -> void:
+	var root := Node3D.new()
+	root.position = w3(Vector2(p.x, p.y))
+	add_child(root)
+	var half := p.width * 0.5
+	var col := p.color()
+	_box(Vector3(0.26, 1.45, 0.26), Vector3(-half - 0.13, 0.725, 0.0), _stone_mat, root)
+	_box(Vector3(0.26, 1.45, 0.26), Vector3(half + 0.13, 0.725, 0.0), _stone_mat, root)
+	_box(Vector3(p.width + 0.6, 0.2, 0.32), Vector3(0.0, 1.5, 0.0), _stone_mat, root)
+	var panel := MeshInstance3D.new()
+	var qm := QuadMesh.new()
+	qm.size = Vector2(p.width, 1.3)
+	panel.mesh = qm
+	var pmat := _unshaded(Color(col, 0.35), true)
+	panel.material_override = pmat
+	panel.position = Vector3(0.0, 0.7, 0.0)
+	root.add_child(panel)
+	var strip := MeshInstance3D.new()
+	var sp := PlaneMesh.new()
+	sp.size = Vector2(p.width, 0.16)
+	strip.mesh = sp
+	var smat := _unshaded(col)
+	strip.material_override = smat
+	strip.position = Vector3(0.0, 0.03, 0.0)
+	root.add_child(strip)
+	var lab := _label(46 if p.kind == "answer" else 72, Color.WHITE)
+	lab.position = Vector3(0.0, 2.05, 0.0)
+	lab.text = p.label()
+	root.add_child(lab)
+	var seal := _label(44, Color("e070ff"))
+	seal.position = Vector3(0.0, 2.65, 0.0)
+	root.add_child(seal)
+	var light := OmniLight3D.new()
+	light.light_color = col
+	light.light_energy = 0.9
+	light.omni_range = 2.6
+	light.position = Vector3(0.0, 0.8, 0.4)
+	root.add_child(light)
+	_portal_nodes.append({"portal": p, "root": root, "panel": pmat, "strip": smat, "label": lab, "seal": seal, "light": light})
 
 
 func _build_towers() -> void:
@@ -868,6 +923,11 @@ func _process(delta: float) -> void:
 		cam.position += Vector3(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0), 0.0) * shake * 0.5
 	_update_portals()
 	_update_pylons()
+	if desert:
+		var want := 1.0 if sim.is_day else 0.0
+		if not is_equal_approx(_day_k, want):
+			_day_k = move_toward(_day_k, want, delta * 0.6)
+			_apply_daylight()
 	if not sim.fog.is_empty():
 		_update_fog_banks()
 	_update_towers()
@@ -883,11 +943,31 @@ func _process(delta: float) -> void:
 		l.light_energy = 1.25 + 0.25 * sin(t * 11.0 + l.position.x) + 0.1 * sin(t * 23.0)
 
 
+## Désert de Verre : soleil doré le jour, lune bleutée la nuit (lumière, ambiance, brouillard).
+func _apply_daylight() -> void:
+	if _sun == null or _env == null:
+		return
+	var k := _day_k
+	_sun.light_color = Color("8aa0e8").lerp(Color("fff0c8"), k)
+	_sun.light_energy = lerpf(0.75, 1.25, k)
+	_env.ambient_light_color = Color("6a70b0").lerp(Color("e8c890"), k)
+	_env.ambient_light_energy = lerpf(0.85, 1.0, k)
+	_env.fog_light_color = Color("2a2a5a").lerp(Color("c89a5a"), k)
+
+
 func _update_portals() -> void:
+	# Portails qui apparaissent (énigmes du Sphinx) ou disparaissent en cours de combat.
+	if _portal_nodes.size() != sim.portals.size() or _portals_changed():
+		_sync_portal_nodes()
 	for pn in _portal_nodes:
 		var p: Portal = pn["portal"]
 		var root: Node3D = pn["root"]
 		root.position.x = p.x
+		# Mirage : il ondule légèrement ; dissipé, il s'efface puis disparaît jusqu'à se reformer.
+		root.visible = p.hidden_t <= 0.0
+		if p.mirage:
+			root.position.y = 0.04 * sin(t * 3.0 + float(p.id))
+			root.scale = Vector3.ONE * (1.0 - 0.6 * clampf(1.0 - p.revealed_t / 1.2, 0.0, 1.0) if p.revealed_t > 0.0 else 1.0)
 		var col := p.color()
 		var dim := (p.kind == "add" and not p.ready) or (p.kind == "sub" and p.charges <= 0)
 		var a := 0.3 + 0.08 * sin(t * 4.0 + float(p.id))
@@ -1142,7 +1222,7 @@ func _draw_fx(delta: float) -> void:
 	for tg in sim.telegraphs:
 		var k2 := 1.0 - float(tg["t"]) / maxf(0.01, float(tg["dur"]))
 		var pulse := 0.5 + 0.5 * sin(t * (10.0 + 14.0 * k2))
-		var tcol := Color(0.85, 0.95, 1.0) if bool(tg.get("avalanche", false)) else Color(1.0, 0.25, 0.3)
+		var tcol := Color(0.85, 0.95, 1.0) if bool(tg.get("avalanche", false)) else (Color(1.0, 0.82, 0.35) if bool(tg.get("sun", false)) else Color(1.0, 0.25, 0.3))
 		_rect(lines, tg["rect"], Color(tcol, 0.45 + 0.5 * pulse), true)
 	# Plaies de l'Hydre : cercle orange qui se resserre (brûle-les avant 5 s).
 	for st in sim.stumps:

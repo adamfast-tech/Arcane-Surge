@@ -1,0 +1,122 @@
+{
+  "id": "z05_l08",
+  "name": "Les Sceaux du Collège",
+  "zone": 5,
+  "number": "5-8",
+  "global_level": 48,
+  "type": "Purification",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "desc": "Les portes du Collège oublié sont scellées par la corruption. Fais passer des invocations de Lumière par les deux sceaux (ou lance Purifier) pour exposer le Nexus. Un miroir garde l'entrée, des Prêtresses solaires soignent le Nexus.",
+  "par_time": 165,
+  "nexus": {
+    "hp": 15000
+  },
+  "towers": [
+    {
+      "x": 1.4,
+      "y": 14.1,
+      "hp": 400
+    },
+    {
+      "x": 7.6,
+      "y": 14.1,
+      "hp": 400
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "element": "givre",
+      "x": 1.7,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "elem",
+      "element": "lumiere",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "motion": "slide",
+      "range": 2.6,
+      "speed": 0.45
+    },
+    {
+      "kind": "mult",
+      "value": 2,
+      "x": 7.3,
+      "y": 5.0,
+      "width": 2.0
+    },
+    {
+      "kind": "corrupt",
+      "x": 2.0,
+      "y": 10.4,
+      "width": 2.2,
+      "seal": true,
+      "purity": 8
+    },
+    {
+      "kind": "add",
+      "x": 4.5,
+      "y": 10.4,
+      "width": 1.8,
+      "value": 5
+    },
+    {
+      "kind": "corrupt",
+      "x": 7.0,
+      "y": 10.4,
+      "width": 2.2,
+      "seal": true,
+      "purity": 8
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 17,
+    "budget_per_level": 4,
+    "local_level": 8,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "glass_scarab": 6,
+      "sand_jackal": 3,
+      "sandstone_golem": 0.8,
+      "mummy_archer": 0.8
+    }
+  },
+  "daynight": {
+    "day": 30,
+    "night": 22,
+    "start": "jour"
+  },
+  "mirrors": [
+    {
+      "x": 7.6,
+      "y": 12.4
+    }
+  ],
+  "initial_enemies": [
+    {
+      "kind": "solar_priestess",
+      "x": 2.6,
+      "y": 13.3
+    },
+    {
+      "kind": "solar_priestess",
+      "x": 6.4,
+      "y": 13.3
+    }
+  ],
+  "corrupt_spawn": "glass_scarab"
+}

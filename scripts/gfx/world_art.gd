@@ -65,7 +65,25 @@ static func _frost(img: Image, lift: float = 1.0) -> void:
 			img.set_pixel(x, y, out)
 
 
-## Recoloriage du décor selon la zone (2 : jour, 3 : marais, 4 : glace).
+## Zone 5 : Désert de Verre. Herbe -> sable doré, pierre -> grès ocre, éclats de verre turquoise.
+static func _desert(img: Image, lift: float = 1.0) -> void:
+	for y in range(img.get_height()):
+		for x in range(img.get_width()):
+			var c := img.get_pixel(x, y)
+			if c.a <= 0.0:
+				continue
+			var h := c.h
+			var out: Color
+			if c.s > 0.12 and h > 0.18 and h < 0.5:
+				out = Color.from_hsv(0.1 + (h - 0.18) * 0.04, clampf(c.s * 0.35 + 0.3, 0.0, 0.55), clampf(c.v * 0.95 * lift + 0.2, 0.0, 0.78), c.a)
+			elif h >= 0.5 and h < 0.9 or c.s <= 0.12:
+				out = Color.from_hsv(0.07 + 0.02 * c.v, clampf(c.s * 0.3 + 0.28, 0.0, 0.5), clampf(c.v * 1.05 * lift + 0.08, 0.0, 0.74), c.a)
+			else:
+				out = Color.from_hsv(0.48, clampf(c.s * 0.7, 0.0, 0.7), clampf(c.v * 1.1, 0.0, 1.0), c.a)
+			img.set_pixel(x, y, out)
+
+
+## Recoloriage du décor selon la zone (2 : jour, 3 : marais, 4 : glace, 5 : désert).
 static func _zone_tint(img: Image, warm_h: float = 0.115, lift: float = 1.0) -> void:
 	match zone:
 		2:
@@ -74,6 +92,8 @@ static func _zone_tint(img: Image, warm_h: float = 0.115, lift: float = 1.0) -> 
 			_swamp(img)
 		4:
 			_frost(img, lift)
+		5:
+			_desert(img, lift)
 
 
 static func _tex(img: Image, mipmaps: bool = false) -> ImageTexture:
@@ -463,6 +483,8 @@ static func backdrop(size: Vector2i) -> ImageTexture:
 		return _backdrop_swamp(size)
 	if zone == 4:
 		return _backdrop_frost(size)
+	if zone == 5:
+		return _backdrop_desert(size)
 	var w := maxi(8, size.x)
 	var h := maxi(8, size.y)
 	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
@@ -711,6 +733,60 @@ static func _backdrop_frost(size: Vector2i) -> ImageTexture:
 		var x := rng.randi_range(-40, w)
 		for dx in range(rng.randi_range(20, 80)):
 			_px(img, x + dx, y, Color(0.85, 0.92, 1.0, 0.1))
+	return _tex(img)
+
+
+## Zone 5 : désert de verre au crépuscule (le combat le teinte de jour ou de nuit) : étoiles, grand soleil
+## bas, dunes dorées, ruines du Collège et éclats de verre turquoise.
+static func _backdrop_desert(size: Vector2i) -> ImageTexture:
+	var w := maxi(8, size.x)
+	var h := maxi(8, size.y)
+	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 5505
+	var stops := [[0.0, Color("2a5a9a")], [0.3, Color("5a8ac0")], [0.46, Color("e8b880")], [0.56, Color("f2d090")], [1.0, Color("8a6a3a")]]
+	for y in range(h):
+		var k := float(y) / float(h - 1)
+		var c: Color = stops[0][1]
+		for i in range(stops.size() - 1):
+			var a: Array = stops[i]
+			var b: Array = stops[i + 1]
+			if k >= float(a[0]) and k <= float(b[0]):
+				c = (a[1] as Color).lerp(b[1], (k - float(a[0])) / (float(b[0]) - float(a[0])))
+		img.fill_rect(Rect2i(0, y, w, 1), c)
+	for i in range(w * h / 320):
+		_px(img, rng.randi_range(0, w - 1), rng.randi_range(0, int(h * 0.3)), Color(1.0, 0.98, 0.9, rng.randf_range(0.15, 0.45)))
+	# Grand soleil bas sur l'horizon.
+	var sx := int(w * 0.3)
+	var sy := int(h * 0.47)
+	var sr := maxi(6, int(minf(w, h) * 0.09))
+	for r in range(sr * 3, sr, -1):
+		_disc(img, sx, sy, r, Color(1.0, 0.75, 0.4, 0.03))
+	_disc(img, sx, sy, sr, Color("ffd890"))
+	_disc(img, sx - sr / 4, sy - sr / 4, int(sr * 0.6), Color("fff0c0"))
+	# Dunes lointaines, puis ruines du Collège.
+	_ridge(img, rng, int(h * 0.5), int(h * 0.03), Color("a8703a"), Color("f2c46b"))
+	var cx := int(w * 0.66)
+	var cb := int(h * 0.53)
+	for t in range(5):
+		var tx := cx + int(float(w) * 0.035 * float(t))
+		var th := int(h * (0.06 + 0.035 * float((t * 7) % 3)))
+		img.fill_rect(Rect2i(tx, cb - th, maxi(3, int(w * 0.018)), th), Color("5a3a2a"))
+	img.fill_rect(Rect2i(cx - int(w * 0.01), cb - int(h * 0.12), int(w * 0.2), maxi(2, int(h * 0.012))), Color("5a3a2a"))
+	_disc(img, cx + int(w * 0.09), cb - int(h * 0.13), maxi(3, int(w * 0.03)), Color("5a3a2a"))
+	_ridge(img, rng, int(h * 0.56), int(h * 0.025), Color("c8904a"), Color("ffe0a0"))
+	img.fill_rect(Rect2i(0, int(h * 0.6), w, h - int(h * 0.6)), Color("b88a4a"))
+	# Éclats de verre turquoise et voiles de sable.
+	for i in range(maxi(6, w / 30)):
+		var gx := rng.randi_range(0, w - 1)
+		var gy := rng.randi_range(int(h * 0.52), int(h * 0.62))
+		_px(img, gx, gy, Color("9ff0f0"))
+		_px(img, gx + 1, gy, Color(0.25, 0.76, 0.79, 0.6))
+	for i in range(int(w * h / 600.0)):
+		var y := rng.randi_range(int(h * 0.45), h - 1)
+		var x := rng.randi_range(-40, w)
+		for dx in range(rng.randi_range(20, 70)):
+			_px(img, x + dx, y, Color(1.0, 0.9, 0.7, 0.08))
 	return _tex(img)
 
 

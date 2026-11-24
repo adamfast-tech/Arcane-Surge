@@ -479,7 +479,9 @@ static func stars_total() -> int:
 
 
 ## Applique le résultat d'une partie et retourne le détail des récompenses.
-static func apply_battle(level_id: String, victory: bool, stars: int, time: float, present: Array = []) -> Dictionary:
+## « unique » : base d'un objet unique gagné en combat (ex. Couronne de l'Énigme : les deux énigmes du
+## Sphinx résolues), donné une seule fois, en légendaire.
+static func apply_battle(level_id: String, victory: bool, stars: int, time: float, present: Array = [], unique: String = "") -> Dictionary:
 	var lv := GameData.level(level_id)
 	var gl := int(lv.get("global_level", 1))
 	var zone := str(int(lv.get("zone", 1)))
@@ -518,6 +520,12 @@ static func apply_battle(level_id: String, victory: bool, stars: int, time: floa
 			if n > 0:
 				mats[m] = n
 				data["materials"][m] = int(data["materials"].get(m, 0)) + n
+		if unique != "" and (items_db()["bases"] as Dictionary).has(unique):
+			var owned := false
+			for it in data["inventory"]:
+				owned = owned or str(it.get("base", "")) == unique
+			if not owned:
+				items.append(make_item(unique, "legendaire", gl, rng))
 		for it in items:
 			(data["inventory"] as Array).append(it)
 		rec["stars"] = maxi(int(rec["stars"]), stars)

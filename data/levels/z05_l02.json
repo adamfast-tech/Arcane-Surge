@@ -1,0 +1,101 @@
+{
+  "id": "z05_l02",
+  "name": "Le Mirage",
+  "zone": 5,
+  "number": "5-2",
+  "global_level": 42,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "desc": "La chaleur fait trembler l'air. Un des portails est un MIRAGE : il ne fait rien, et se dissipe quand une invocation s'en approche, avant de se reformer ailleurs. Purifier le dissipe aussi.",
+  "par_time": 140,
+  "nexus": {
+    "hp": 30000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 340
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 340
+    }
+  ],
+  "portals": [
+    {
+      "kind": "mult",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 2
+    },
+    {
+      "kind": "elem",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "givre",
+      "motion": "slide",
+      "range": 1.4,
+      "speed": 0.5
+    },
+    {
+      "kind": "add",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 5
+    },
+    {
+      "kind": "mult",
+      "x": 2.2,
+      "y": 10.4,
+      "width": 2.0,
+      "value": 2
+    },
+    {
+      "kind": "mult",
+      "x": 6.8,
+      "y": 10.4,
+      "width": 2.0,
+      "value": 3,
+      "mirage": true,
+      "spots": [
+        2.2,
+        4.5,
+        6.8
+      ]
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 29,
+    "budget_per_level": 8,
+    "local_level": 2,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "glass_scarab": 5,
+      "sand_jackal": 3,
+      "sandstone_golem": 0.6
+    }
+  },
+  "daynight": {
+    "day": 30,
+    "night": 22,
+    "start": "jour"
+  },
+  "mirage_reform": 12,
+  "initial_enemies": []
+}

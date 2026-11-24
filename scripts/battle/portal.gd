@@ -34,6 +34,15 @@ var counter := 0
 var flash_t := 0.0
 ## Surcharge d'un pylône d'ambre (zone 2) : le portail double aussi les unités.
 var charged_t := 0.0
+## Mirage (zone 5) : un faux portail, sans effet ; révélé de près (ou par la Lumière), il se dissipe
+## puis se reforme ailleurs. « revealed_t » : fondu de la révélation ; « hidden_t » : absent.
+var mirage := false
+var revealed_t := 0.0
+var hidden_t := 0.0
+var spots: Array = []
+## Énigme du Sphinx (zone 5) : portail-réponse ; « counter » invocations passées sur « need ».
+var answer := ""
+var need := 0
 
 
 func is_negative() -> bool:
@@ -41,6 +50,10 @@ func is_negative() -> bool:
 
 
 func label() -> String:
+	if kind == "answer":
+		return "%s %d/%d" % [answer, mini(counter, need), need]
+	if mirage and (revealed_t > 0.0 or hidden_t > 0.0):
+		return "MIRAGE"
 	if charged_t > 0.0 and not is_negative():
 		return "FOUDRE ×2"
 	return base_label()
@@ -76,6 +89,10 @@ func base_label() -> String:
 
 
 func color() -> Color:
+	if kind == "answer":
+		return Color("f2c46b")
+	if mirage and (revealed_t > 0.0 or hidden_t > 0.0):
+		return Color("d8c8a8")
 	if charged_t > 0.0 and not is_negative():
 		return Color("f0d23c")
 	match kind:
@@ -88,6 +105,11 @@ func color() -> Color:
 		"forge":
 			return Color("ff9a4a")
 	return Color("d93cf2")
+
+
+## Actif : traversable (ni mirage dissipé, ni absent).
+func active() -> bool:
+	return hidden_t <= 0.0 and revealed_t <= 0.0
 
 
 ## Retourne true si le portail était négatif et vient d'être purifié.

@@ -185,4 +185,7 @@ iOS (iPhone 16 Pro Max, iPad), Android, PC (16:9, 16:10).
 14. Acte 4 :
     - 14.1 ✅ zone 4 jouable, Pics Gelés : 10 niveaux (31 à 40), bêtes des montagnes et élémentaires de givre, glace qui fait glisser, avalanches, Portes naines FORGE, Sentinelle runique et Colosse runique (runes corporelles) — [`design/28-zone4.md`](design/28-zone4.md)
     - 14.2 ✅ narration de l'acte 4 : 20 dialogues, Durgan, Ysolde et le spectre du Thane Orrin, la vérité sur le scellement de la forteresse Forgecœur ; feu de camp, choix 4-9 (Portes : [Nain] ou [Brann · loyauté 60], sinon option verrouillée) et ✦ 4-10 (reprogrammer le Colosse ou forger l'Enclume-Cœur) ; honneur du clan et titre de Brann ; effets en combat sur la zone 4 — [`design/32-narration-zone4.md`](design/32-narration-zone4.md)
-15. Saison 2 : zones 11–15, niveau max 150, L'Ourdisseur (fils semés en saison 1)
+15. Acte 5 :
+    - 15.1 ✅ zone 5 jouable, Désert de Verre : 10 niveaux (41 à 50), cycle soleil/lune (Feu ou Givre +25 %), mirages, miroirs qui renvoient les tirs, Scarabée-soleil et Sphinx de verre (énigmes du lore, Couronne de l'Énigme) — [`design/33-zone5.md`](design/33-zone5.md)
+    - 15.2 narration de l'acte 5 : le Collège oublié, les traces de Morvaen, choix 5-9 (le Journal)
+16. Saison 2 : zones 11–15, niveau max 150, L'Ourdisseur (fils semés en saison 1)

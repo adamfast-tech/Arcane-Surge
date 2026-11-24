@@ -1,0 +1,188 @@
+{
+  "id": "z05_l10",
+  "name": "Le Sphinx de verre",
+  "zone": 5,
+  "number": "5-10",
+  "global_level": 50,
+  "type": "Boss",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "objective": "boss",
+  "desc": "Le Sphinx de verre garde le cœur du Collège. Entre ses phases, il pose une énigme du lore : envoie tes invocations par le portail de la bonne réponse. Une bonne réponse l'expose, une mauvaise le renforce. Il est d'Ombre : la Lumière le blesse davantage.",
+  "par_time": 480,
+  "boss": {
+    "kind": "glass_sphinx",
+    "hp": 26000,
+    "x": 4.5,
+    "y": 14.3,
+    "on_phase": [
+      [],
+      [
+        {
+          "type": "riddle",
+          "need": 12,
+          "time": 40,
+          "y": 7.8,
+          "xs": [
+            1.7,
+            4.5,
+            7.3
+          ]
+        }
+      ],
+      [
+        {
+          "type": "riddle",
+          "need": 12,
+          "time": 40,
+          "y": 7.8,
+          "xs": [
+            1.7,
+            4.5,
+            7.3
+          ]
+        },
+        {
+          "type": "fast_cycle",
+          "speed": 3
+        }
+      ]
+    ],
+    "phases": [
+      [
+        {
+          "type": "lane_strike",
+          "cd": 9,
+          "delay": 1.3,
+          "dmg": 50,
+          "width": 1.4,
+          "barrier": 1.0,
+          "count": 1,
+          "sun": true,
+          "log": "%s renvoie des rayons de lumière !"
+        },
+        {
+          "type": "summon",
+          "cd": 14,
+          "kind": "glass_scarab",
+          "count": 3
+        }
+      ],
+      [
+        {
+          "type": "mirage_gates",
+          "cd": 24,
+          "count": 1,
+          "dur": 8
+        },
+        {
+          "type": "lane_strike",
+          "cd": 8,
+          "delay": 1.3,
+          "dmg": 50,
+          "width": 1.4,
+          "barrier": 1.0,
+          "count": 1,
+          "sun": true,
+          "log": "%s renvoie des rayons de lumière !"
+        },
+        {
+          "type": "summon",
+          "cd": 18,
+          "kind": "college_specter",
+          "count": 2
+        }
+      ],
+      [
+        {
+          "type": "lane_strike",
+          "cd": 8,
+          "delay": 1.2,
+          "dmg": 52,
+          "width": 1.4,
+          "barrier": 1.0,
+          "count": 1,
+          "sun": true,
+          "log": "%s renvoie des rayons de lumière !"
+        },
+        {
+          "type": "summon",
+          "cd": 14,
+          "kind": "mummy_archer",
+          "count": 3
+        },
+        {
+          "type": "mirage_gates",
+          "cd": 28,
+          "count": 1,
+          "dur": 8
+        }
+      ]
+    ]
+  },
+  "towers": [],
+  "portals": [
+    {
+      "kind": "elem",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "lumiere"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 1.8,
+      "value": 2,
+      "motion": "slide",
+      "range": 1.4,
+      "speed": 0.5
+    },
+    {
+      "kind": "elem",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "givre"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 10.6,
+      "width": 2.2,
+      "value": 2,
+      "motion": "slide",
+      "range": 2.4,
+      "speed": 0.4
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      9,
+      13
+    ],
+    "budget_base": 14,
+    "budget_per_level": 4,
+    "local_level": 10,
+    "growth": 0.03,
+    "spawn_y": 14.6,
+    "pool": {
+      "glass_scarab": 5,
+      "sand_jackal": 2,
+      "mummy_archer": 0.8
+    }
+  },
+  "daynight": {
+    "day": 24,
+    "night": 18,
+    "start": "jour"
+  },
+  "initial_enemies": [],
+  "riddle_reward": "couronne_enigme"
+}

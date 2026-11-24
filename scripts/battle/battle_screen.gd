@@ -67,6 +67,10 @@ var toast_label: Label
 const BARK_TIME := 3.6
 const BARK_GAP := 7.0
 var bark_panel: PanelContainer
+## Zone 5 : bandeau de l'énigme du Sphinx et teinte du décor selon le jour et la nuit.
+var riddle_panel: PanelContainer
+var riddle_text: Label
+var _day_k := 1.0
 var bark_portrait: TextureRect
 var bark_name: Label
 var bark_text: Label
@@ -1017,6 +1021,10 @@ func _update_hud() -> void:
 		_set_text(journal_label, "\n".join(lines))
 	if aiming != "":
 		_set_text(hint_label, "Touche l'arène pour lancer — Échap / clic droit : annuler")
+	elif not sim.riddle.is_empty():
+		_set_text(hint_label, "Énigme : %d s pour répondre" % int(ceil(float(sim.riddle["t"]))))
+	elif not sim.daynight_cfg.is_empty():
+		_set_text(hint_label, ("Jour : Feu +25 %% · la nuit tombe dans %d s" if sim.is_day else "Nuit : Givre +25 %% · l'aube dans %d s") % int(ceil(sim.daynight_t / maxf(0.1, sim.daynight_speed))))
 	elif sim.wind_state != "calm":
 		_set_text(hint_label, "%s vers la %s !" % ["Rafale imminente" if sim.wind_state == "warn" else "Le vent pousse les troupes", "droite" if sim.wind_dir > 0.0 else "gauche"])
 	elif not auto_fire and sim.time < 6.0 and not sim.player().firing:
@@ -1025,6 +1033,7 @@ func _update_hud() -> void:
 		_set_text(hint_label, "")
 	toast_label.modulate.a = clampf(_toast_t, 0.0, 1.0)
 	_place_bark()
+	_update_desert()
 
 
 func _set_text(n: Variant, s: String) -> void:
@@ -1065,6 +1074,27 @@ func _build_bark() -> void:
 	v.add_child(bark_name)
 	bark_text = UiTheme.wrap("", 22, UiTheme.TEXT)
 	v.add_child(bark_text)
+	# Énigme du Sphinx (zone 5) : la question reste affichée tant qu'on n'a pas répondu.
+	riddle_panel = PanelContainer.new()
+	riddle_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	riddle_panel.visible = false
+	riddle_panel.add_theme_stylebox_override("panel", UiTheme.box(Color(UiTheme.BG, 0.88), UiTheme.GOLD, 12, 2, 12))
+	hud.add_child(riddle_panel)
+	var rv := VBoxContainer.new()
+	rv.add_theme_constant_override("separation", 2)
+	rv.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	riddle_panel.add_child(rv)
+	var rt := UiTheme.title("ÉNIGME DU SPHINX", 20, UiTheme.GOLD)
+	rt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	rv.add_child(rt)
+	riddle_text = UiTheme.wrap("", 21, UiTheme.TEXT)
+	riddle_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	rv.add_child(riddle_text)
+	var rh := UiTheme.wrap("Envoie tes invocations par le portail de la bonne réponse.", 16, UiTheme.MUTED)
+	rh.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	rv.add_child(rh)
+	for c in rv.get_children():
+		(c as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
 ## Déclenche une réplique (une fois par partie et par déclencheur, espacées de BARK_GAP s).
@@ -1094,6 +1124,26 @@ func _bark(trigger: String, force: bool = false) -> void:
 	_bark_cd = BARK_GAP
 	bark_panel.visible = true
 	_place_bark()
+
+
+## Désert de Verre : décor teinté selon le jour et la nuit ; bandeau de l'énigme en haut de l'arène.
+func _update_desert() -> void:
+	if not sim.daynight_cfg.is_empty() and backdrop != null:
+		_day_k = move_toward(_day_k, 1.0 if sim.is_day else 0.0, get_process_delta_time() * 0.6)
+		backdrop.modulate = Color(0.28, 0.32, 0.72).lerp(Color.WHITE, _day_k)
+	if riddle_panel == null or not is_instance_valid(riddle_panel):
+		return
+	var q := sim.riddle_text()
+	riddle_panel.visible = q != ""
+	if q == "":
+		return
+	_set_text(riddle_text, "« %s »" % q)
+	var w := minf(arena_rect.size.x - 24.0, 560.0)
+	riddle_text.custom_minimum_size = Vector2(w - 28.0, 0)
+	riddle_panel.custom_minimum_size = Vector2(w, 0)
+	riddle_panel.size = Vector2(w, 0)
+	riddle_panel.reset_size()
+	riddle_panel.position = Vector2(arena_rect.position.x + (arena_rect.size.x - w) * 0.5, arena_rect.position.y + 12.0)
 
 
 func _place_bark() -> void:
@@ -1441,7 +1491,7 @@ func _open_end() -> void:
 	var win := sim.state == "victory"
 	if _rewards.is_empty():
 		Story.on_battle(_present)
-		_rewards = Profile.apply_battle(level_id, win, sim.stars, sim.time, _present)
+		_rewards = Profile.apply_battle(level_id, win, sim.stars, sim.time, _present, sim.bonus_unique)
 		if Cloud.instance != null:
 			Cloud.instance.push()
 	var v := _modal("VICTOIRE" if win else "DÉFAITE", sim.end_reason, UiTheme.GOLD if win else UiTheme.DANGER)

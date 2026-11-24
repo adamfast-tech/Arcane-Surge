@@ -1,0 +1,117 @@
+{
+  "id": "z05_l06",
+  "name": "La Caravane",
+  "zone": 5,
+  "number": "5-6",
+  "global_level": 46,
+  "type": "Escorte",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "objective": "escort",
+  "desc": "Une caravane de marchands doit traverser les dunes jusqu'aux ruines du Collège. Les chacals la guettent en embuscade, et les mirages trompent les guides.",
+  "par_time": 175,
+  "nexus": {
+    "hp": 32000
+  },
+  "escort": {
+    "kind": "desert_caravan",
+    "x": 4.5,
+    "y": 1.6,
+    "goal_y": 12.4,
+    "speed": 0.11,
+    "hp": 7000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 360
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 360
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "givre"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 1.8,
+      "value": 2,
+      "motion": "slide",
+      "range": 1.2,
+      "speed": 0.5
+    },
+    {
+      "kind": "add",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 5
+    },
+    {
+      "kind": "mult",
+      "x": 2.4,
+      "y": 10.4,
+      "width": 2.0,
+      "value": 2
+    },
+    {
+      "kind": "mult",
+      "x": 6.6,
+      "y": 10.4,
+      "width": 2.0,
+      "value": 3,
+      "mirage": true,
+      "spots": [
+        2.4,
+        4.5,
+        6.6
+      ]
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 22,
+    "budget_per_level": 6,
+    "local_level": 6,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "glass_scarab": 6,
+      "sand_jackal": 3,
+      "mummy_archer": 0.6,
+      "sandstone_golem": 0.8
+    }
+  },
+  "daynight": {
+    "day": 30,
+    "night": 22,
+    "start": "jour"
+  },
+  "mirage_reform": 12,
+  "ambush": {
+    "every": 20,
+    "count": 2,
+    "kind": "sand_jackal",
+    "ahead": 2.6
+  },
+  "initial_enemies": []
+}

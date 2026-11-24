@@ -22,6 +22,7 @@ const MOODS := {
 	"steppe": {"glow": "e8b060", "glow2": "ffd8a0", "rays": 0.55, "fog": 0.35, "kind": "dust", "motes": ["ffe8c0", "d8a060"], "amount": 40},
 	"swamp": {"glow": "8fd16a", "glow2": "c8f5a0", "rays": 0.25, "fog": 0.8, "kind": "fireflies", "motes": ["d8ff8a", "8fd16a"], "amount": 30, "tint": "d8e8d0"},
 	"snow": {"glow": "9fe3ff", "glow2": "e8f6ff", "rays": 0.45, "fog": 0.45, "kind": "snow", "motes": ["ffffff", "cfefff"], "amount": 60, "tint": "e0ecff"},
+	"desert": {"glow": "f2c46b", "glow2": "3fc1c9", "rays": 0.85, "fog": 0.3, "kind": "dust", "motes": ["fff1c4", "e6c15a"], "amount": 44, "tint": [1.12, 1.02, 0.86]},
 }
 
 ## Phases de la journée à Havre-Aube, selon l'heure de l'appareil (« &hour=22 » pour un aperçu).

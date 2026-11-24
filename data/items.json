@@ -179,6 +179,17 @@
       "unique": true,
       "lore": "Forgée dans le cœur du Colosse runique. Elle bat encore, tiède, au rythme de la forteresse Forgecœur."
     },
+    "couronne_enigme": {
+      "name": "Couronne de l'Énigme",
+      "slot": "head",
+      "stats": {
+        "esp": 8,
+        "des": 5
+      },
+      "element": "lumiere",
+      "unique": true,
+      "lore": "Tombée du front du Sphinx de verre, pour qui sut répondre à ses deux énigmes."
+    },
     "baton_seve": {
       "name": "Bâton de la Première Sève",
       "slot": "weapon",
@@ -243,6 +254,19 @@
       "amulette_mousse",
       "anneau_cuivre",
       "charme_luciole"
+    ],
+    "5": [
+      "baton_chene",
+      "baguette_saule",
+      "baton_lune",
+      "orbe_luciole",
+      "capuche_toile",
+      "robe_apprenti",
+      "gants_cuir",
+      "bottes_marche",
+      "amulette_mousse",
+      "anneau_cuivre",
+      "charme_luciole"
     ]
   },
   "materials": {
@@ -269,6 +293,12 @@
     },
     "rune_brisee": {
       "name": "Rune brisée"
+    },
+    "verre_soleil": {
+      "name": "Verre-soleil"
+    },
+    "sable_or": {
+      "name": "Sable d'or"
     }
   },
   "starter": [

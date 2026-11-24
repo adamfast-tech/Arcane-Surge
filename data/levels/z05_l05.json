@@ -1,0 +1,160 @@
+{
+  "id": "z05_l05",
+  "name": "Le Scarabée-soleil",
+  "zone": 5,
+  "number": "5-5",
+  "global_level": 45,
+  "type": "Mini-boss",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "objective": "boss",
+  "desc": "Un scarabée géant pousse un soleil de verre en fusion. Il le fait rouler dans des couloirs entiers, appelle le plein jour pour brûler plus fort, et seul le Givre traverse sa carapace quand elle s'embrase.",
+  "par_time": 230,
+  "boss": {
+    "kind": "sun_scarab",
+    "hp": 120000,
+    "x": 4.5,
+    "y": 13.6,
+    "phases": [
+      [
+        {
+          "type": "lane_strike",
+          "cd": 8,
+          "delay": 1.3,
+          "dmg": 58,
+          "width": 1.5,
+          "sun": true,
+          "log": "%s fait rouler son soleil !"
+        },
+        {
+          "type": "summon",
+          "cd": 13,
+          "kind": "glass_scarab",
+          "count": 6
+        }
+      ],
+      [
+        {
+          "type": "force_day",
+          "cd": 32,
+          "dur": 18
+        },
+        {
+          "type": "shield",
+          "cd": 18,
+          "dur": 5,
+          "element": "givre"
+        },
+        {
+          "type": "lane_strike",
+          "cd": 8,
+          "delay": 1.2,
+          "dmg": 60,
+          "width": 1.5,
+          "count": 2,
+          "sun": true,
+          "log": "%s fait rouler son soleil !"
+        },
+        {
+          "type": "summon",
+          "cd": 12,
+          "kind": "sand_jackal",
+          "count": 5
+        }
+      ],
+      [
+        {
+          "type": "row_sweep",
+          "cd": 13,
+          "delay": 1.6,
+          "dmg": 52,
+          "width": 1.2,
+          "sun": true,
+          "log": "%s embrase les dunes !"
+        },
+        {
+          "type": "shield",
+          "cd": 18,
+          "dur": 5,
+          "element": "givre"
+        },
+        {
+          "type": "lane_strike",
+          "cd": 7,
+          "delay": 1.2,
+          "dmg": 62,
+          "width": 1.5,
+          "count": 2,
+          "sun": true,
+          "log": "%s fait rouler son soleil !"
+        },
+        {
+          "type": "summon",
+          "cd": 11,
+          "kind": "sandstone_golem",
+          "count": 2
+        }
+      ]
+    ]
+  },
+  "towers": [],
+  "portals": [
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 2,
+      "motion": "slide",
+      "range": 2.2,
+      "speed": 0.5
+    },
+    {
+      "kind": "elem",
+      "x": 1.8,
+      "y": 10.2,
+      "width": 2.0,
+      "element": "givre"
+    },
+    {
+      "kind": "elem",
+      "x": 7.2,
+      "y": 10.2,
+      "width": 2.0,
+      "element": "givre"
+    },
+    {
+      "kind": "add",
+      "x": 4.5,
+      "y": 8.0,
+      "width": 1.8,
+      "value": 5
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      9,
+      12
+    ],
+    "budget_base": 18,
+    "budget_per_level": 6,
+    "local_level": 5,
+    "growth": 0.03,
+    "spawn_y": 14.6,
+    "pool": {
+      "glass_scarab": 5,
+      "sand_jackal": 2
+    }
+  },
+  "daynight": {
+    "day": 25,
+    "night": 20,
+    "start": "jour"
+  },
+  "initial_enemies": []
+}

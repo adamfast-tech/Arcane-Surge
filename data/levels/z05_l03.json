@@ -1,0 +1,102 @@
+{
+  "id": "z05_l03",
+  "name": "L'Oasis",
+  "zone": 5,
+  "number": "5-3",
+  "global_level": 43,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "desc": "Une oasis au milieu des dunes. Des Prêtresses solaires soignent le Nexus, plus fort le jour : abats-les en premier. Les Golems de grès bloquent de face.",
+  "par_time": 170,
+  "nexus": {
+    "hp": 26000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 340
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 340
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "givre"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 2,
+      "motion": "slide",
+      "range": 1.6,
+      "speed": 0.5
+    },
+    {
+      "kind": "add",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 5
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 10.4,
+      "width": 2.2,
+      "value": 2,
+      "motion": "slide",
+      "range": 2.4,
+      "speed": 0.4
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 28,
+    "budget_per_level": 8,
+    "local_level": 3,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "glass_scarab": 5,
+      "sand_jackal": 2,
+      "sandstone_golem": 1,
+      "mummy_archer": 1
+    }
+  },
+  "daynight": {
+    "day": 30,
+    "night": 22,
+    "start": "jour"
+  },
+  "initial_enemies": [
+    {
+      "kind": "solar_priestess",
+      "x": 2.6,
+      "y": 13.3
+    },
+    {
+      "kind": "solar_priestess",
+      "x": 6.4,
+      "y": 13.3
+    }
+  ]
+}

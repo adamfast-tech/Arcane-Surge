@@ -1,0 +1,229 @@
+{
+ "characters": {
+  "narrateur": {
+   "name": "",
+   "color": "A99FD0"
+  },
+  "porteur": {
+   "name": "{pseudo}",
+   "title": "Canalisateur",
+   "title_flag": {
+    "s1.sceau_echo": "Porteur d'Écho"
+   },
+   "color": "4FE3D2",
+   "portrait": "porteur"
+  },
+  "sylwen": {
+   "name": "Sylwen",
+   "title": "Vigiles Sylvestres",
+   "color": "8FD16A",
+   "portrait": "sylwen",
+   "loyalty": true
+  },
+  "brann": {
+   "name": "Brann",
+   "title": "Bastion d'Argent",
+   "color": "B8C6E8",
+   "portrait": "brann",
+   "loyalty": true,
+   "title_flag": {
+    "s1.honneur_forgecoeur": "Héritier de Forgecœur"
+   }
+  },
+  "krag": {
+   "name": "Krag",
+   "title": "Enfants de la Fureur",
+   "color": "E8703A",
+   "portrait": "krag",
+   "loyalty": true,
+   "loyalty_if": "s1.krag_allie"
+  },
+  "nyx": {
+   "name": "Nyx",
+   "title": "Cercle des Cendres",
+   "color": "C87CF0",
+   "portrait": "nyx",
+   "loyalty": true,
+   "loyalty_if": "s1.nyx_allie"
+  },
+  "ysolde": {
+   "name": "Ysolde",
+   "title": "Héritière des Runistes",
+   "color": "8FE3F2",
+   "portrait": "ysolde"
+  },
+  "voix": {
+   "name": "Voix inconnue",
+   "title": "???",
+   "color": "B07CFF",
+   "portrait": "voix"
+  }
+ },
+ "scenes": {},
+ "barks": {
+  "start": [
+   {
+    "who": "brann",
+    "text": "Du sable. Du sable partout. Même dans ma barbe."
+   },
+   {
+    "who": "sylwen",
+    "text": "Le jour, le Feu brûle plus fort. La nuit, c'est le Givre. Choisis tes sorts selon le ciel."
+   },
+   {
+    "who": "sylwen",
+    "text": "Méfie-toi des portails qui tremblent : certains ne sont que des mirages."
+   },
+   {
+    "who": "krag",
+    "text": "Il fait si chaud que ma hache fond. Presque.",
+    "if": "s1.krag_allie"
+   },
+   {
+    "who": "nyx",
+    "text": "Des momies. Enfin des gens qui me comprennent.",
+    "mood": "joie"
+   },
+   {
+    "who": "nyx",
+    "text": "Le Collège… Il y a des secrets enterrés ici. Je les sens."
+   }
+  ],
+  "barrier_low": [
+   {
+    "who": "brann",
+    "text": "La Barrière se fissure comme du verre ! Tiens bon !"
+   },
+   {
+    "who": "sylwen",
+    "text": "Ils passent ! Ralentis-les avant qu'ils l'atteignent !"
+   },
+   {
+    "who": "krag",
+    "text": "Ils viennent à nous ? Parfait !",
+    "if": "s1.krag_allie"
+   },
+   {
+    "who": "nyx",
+    "text": "La Barrière craque. Comme tout dans ce désert."
+   }
+  ],
+  "half": [
+   {
+    "who": "sylwen",
+    "text": "À moitié ! Le soleil tourne, nous aussi !"
+   },
+   {
+    "who": "brann",
+    "text": "La moitié du travail. Le sable, lui, ne finit jamais."
+   },
+   {
+    "who": "nyx",
+    "text": "À moitié en ruine. Comme le reste du Collège."
+   }
+  ],
+  "boss_phase": [
+   {
+    "who": "sylwen",
+    "text": "Il change de rythme ! Regarde le ciel !"
+   },
+   {
+    "who": "brann",
+    "text": "Il prépare quelque chose. Reste prêt."
+   },
+   {
+    "who": "krag",
+    "text": "Il se fâche ? Moi aussi !",
+    "if": "s1.krag_allie"
+   },
+   {
+    "who": "nyx",
+    "text": "Nouvelle phase. Nouvelle énigme, peut-être."
+   }
+  ],
+  "echo": [
+   {
+    "who": "sylwen",
+    "text": "Le Sceau répond… même sous ce soleil."
+   }
+  ],
+  "ultimate": [
+   {
+    "who": "brann",
+    "text": "Ça, c'est une tempête de sable qui a du caractère !",
+    "mood": "joie"
+   }
+  ],
+  "crowd": [
+   {
+    "who": "nyx",
+    "text": "Une armée qui marche sur le sable. Morvaen aurait été jaloux.",
+    "mood": "joie"
+   }
+  ],
+  "escort_low": [
+   {
+    "who": "brann",
+    "text": "La caravane ! Couvre la caravane !"
+   },
+   {
+    "who": "sylwen",
+    "text": "Les marchands sont touchés ! Protège-les !"
+   }
+  ]
+ },
+ "barks_level": {
+  "z05_l02": {
+   "start": [
+    {
+     "who": "sylwen",
+     "text": "Ce portail tremble trop… Un mirage. Approche une invocation, ou lance Purifier."
+    }
+   ]
+  },
+  "z05_l04": {
+   "start": [
+    {
+     "who": "brann",
+     "text": "Des miroirs ! Mes tireurs vont se tirer dessus. Brise-les au corps à corps, et de nuit si possible."
+    }
+   ]
+  },
+  "z05_l05": {
+   "start": [
+    {
+     "who": "sylwen",
+     "text": "Quand sa carapace s'embrase, seul le Givre la traverse !"
+    }
+   ]
+  },
+  "z05_l07": {
+   "start": [
+    {
+     "who": "nyx",
+     "text": "Des spectres d'élèves. Le Collège n'a jamais laissé partir les siens.",
+     "mood": "triste"
+    }
+   ]
+  },
+  "z05_l10": {
+   "start": [
+    {
+     "who": "sylwen",
+     "text": "Un Sphinx… Il pose des énigmes. Réfléchis avant d'envoyer tes troupes !",
+     "mood": "surpris"
+    }
+   ],
+   "boss_phase": [
+    {
+     "who": "sylwen",
+     "text": "Une énigme ! Envoie tes invocations par la bonne réponse !"
+    },
+    {
+     "who": "brann",
+     "text": "Le jour et la nuit s'affolent ! Garde un œil sur le ciel !"
+    }
+   ]
+  }
+ }
+}

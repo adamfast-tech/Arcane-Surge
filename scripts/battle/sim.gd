@@ -186,6 +186,29 @@ var runes: Array[Unit] = []
 var _gate_curses: Array[Dictionary] = [] ## {portal, t, kind, value, element}
 var _immune_txt_t := 0.0
 # Don racial (étape 13.2) : {id, name, cd, power} ; effets temporaires.
+## Zone 5 : Désert de Verre (docs/design/33-zone5.md).
+const DAY_BONUS := 1.25 ## le jour, le Feu +25 % ; la nuit, le Givre +25 %
+var daynight_cfg: Dictionary = {} ## {day, night, start}
+var is_day := true
+var daynight_t := 0.0
+var daynight_speed := 1.0 ## le Sphinx accélère le cycle (phase 3)
+var mirage_reform := 12.0 ## secondes avant qu'un mirage dissipé se reforme ailleurs
+var riddle: Dictionary = {} ## énigme du Sphinx en cours : {q, portals, right, t}
+var riddles_right := 0
+var riddles_wrong := 0
+var boss_exposed_t := 0.0 ## bonne réponse : le Sphinx subit +50 % de dégâts
+var _riddles_used: Array[int] = []
+var bonus_unique := "" ## objet unique gagné par un exploit en combat (les deux énigmes : Couronne de l'Énigme)
+var _portal_seq := 500
+## Énigmes du Sphinx de verre : la première réponse est la bonne (l'ordre des portails est tiré au sort).
+const RIDDLES := [
+	{"q": "Je coule sans eau et tombe sans bruit. Nul ne me remonte… sauf un Porteur.", "a": ["LE TEMPS", "LE SABLE", "LE SURGE"]},
+	{"q": "Nains et elfes m'ont gravée il y a mille ans. Je m'ouvre sur la magie des Veines.", "a": ["UNE PORTE", "UNE RUNE", "UNE FORGE"]},
+	{"q": "Il voulut défaire une seule mort, et il brisa le monde. Qui était-il ?", "a": ["UN PORTEUR", "UN ROI", "UN DIEU"]},
+	{"q": "Le jour je brûle, la nuit je gèle. Je garde le Collège depuis trois siècles.", "a": ["LE DÉSERT", "LE SOLEIL", "LA LUNE"]},
+	{"q": "Plus on me brise, plus je montre de visages.", "a": ["UN MIROIR", "UN CRÂNE", "UN SCEAU"]},
+]
+
 var don: Dictionary = {}
 var don_t := 0.0
 var rally_t := 0.0
@@ -331,6 +354,15 @@ func _setup_zone_mechanics() -> void:
 	avalanche_cfg = level.get("avalanche", {})
 	if not avalanche_cfg.is_empty():
 		avalanche_t = float(avalanche_cfg.get("first", 12.0))
+	daynight_cfg = level.get("daynight", {})
+	if not daynight_cfg.is_empty():
+		is_day = str(daynight_cfg.get("start", "jour")) == "jour"
+		daynight_t = float(daynight_cfg.get("day" if is_day else "night", 30.0))
+	mirage_reform = float(level.get("mirage_reform", 12.0))
+	for md in level.get("mirrors", []):
+		# Miroirs de verre : immobiles, ils renvoient les tirs et, le jour, projettent un rayon de soleil.
+		var mr := _spawn_enemy(str(md.get("kind", "glass_mirror")), Vector2(float(md["x"]), float(md["y"])))
+		mr.hold_y = mr.pos.y
 
 
 ## Vent des steppes : calme, puis rafale annoncée (l'herbe ploie), puis poussée latérale.
@@ -556,6 +588,8 @@ func _setup_portals() -> void:
 		p.is_seal = bool(pd.get("seal", false))
 		p.purity_needed = int(pd.get("purity", 10))
 		p.charges = p.value
+		p.mirage = bool(pd.get("mirage", false))
+		p.spots = pd.get("spots", [])
 		portals.append(p)
 		if p.is_seal:
 			seals_total += 1
@@ -749,6 +783,8 @@ func step() -> void:
 	_update_wind()
 	_update_pylons()
 	_update_avalanche()
+	_update_daynight()
+	_update_riddle()
 	_update_gate_curses()
 	_move_units()
 	_cross_portals()
@@ -798,6 +834,8 @@ func _update_casters() -> void:
 
 func _update_portals() -> void:
 	for p in portals:
+		if p.mirage:
+			_update_mirage(p)
 		if p.motion == "slide":
 			p.phase += TICK * p.motion_speed
 			p.x = clampf(p.base_x + sin(p.phase) * p.motion_range, p.width * 0.5, W - p.width * 0.5)
@@ -957,6 +995,8 @@ func _cross_portals() -> void:
 		if not u.alive or u.role == "escort":
 			continue
 		for p in portals:
+			if not p.active():
+				continue
 			if u.prev_pos.y < p.y and u.pos.y >= p.y and absf(u.pos.x - p.x) <= p.width * 0.5 and not u.crossed.has(p.id):
 				u.crossed[p.id] = true
 				_apply_portal(p, u)
@@ -966,6 +1006,19 @@ func _cross_portals() -> void:
 
 func _apply_portal(p: Portal, u: Unit) -> void:
 	p.flash_t = 0.2
+	if p.mirage:
+		# Mirage (zone 5) : l'invocation passe au travers, sans effet, et le mirage se dissipe.
+		_reveal_mirage(p)
+		return
+	if p.kind == "answer":
+		# Énigme du Sphinx : seules les invocations du héros répondent ; la première réponse qui en
+		# reçoit assez est retenue.
+		if u.owner_idx != 0:
+			return
+		p.counter += 1
+		if p.counter >= p.need and not riddle.is_empty():
+			_resolve_riddle(p.id == int(riddle["right"]))
+		return
 	if u.owner_idx == 0 and u.attack_range > 0.0 and _mod("portal_split") > 0.0 and not p.is_negative() and rng.randf() < _mod("portal_split"):
 		# Flèches astrales : un tireur du joueur se divise en passant un portail.
 		_add_ally(_clone(u, Vector2(rng.randf_range(-0.3, 0.3), -0.06)))
@@ -1102,6 +1155,7 @@ func _make_unit(kind: String, team: int, p: Vector2) -> Unit:
 	u.elite = u.role == "elite"
 	u.heal_aura = float(d.get("heal_aura", 0.0))
 	u.lifesteal = float(d.get("lifesteal", 0.0))
+	u.reflect = float(d.get("reflect", 0.0))
 	u.anim = rng.randf() * 10.0
 	return u
 
@@ -1450,6 +1504,8 @@ func _enemy_abilities() -> void:
 			e.cast_cd = e.cast_interval
 			if boss != null and boss.alive:
 				var amount_b := boss.max_hp * float(d["heal_boss"]) if d.has("heal_boss") else float(d.get("heal_nexus", 0.0)) * enemy_mult
+				if bool(d.get("solar", false)) and is_day and not daynight_cfg.is_empty():
+					amount_b *= 1.5
 				if boss.wither_t > 0.0:
 					amount_b *= 0.5
 				amount_b = _steal_heal(amount_b)
@@ -1470,6 +1526,9 @@ func _enemy_abilities() -> void:
 						worst = float(n["hp"]) / float(n["max"])
 						target = n
 				var amount := float(d.get("heal_nexus", 0.0)) * enemy_mult
+				if bool(d.get("solar", false)) and is_day and not daynight_cfg.is_empty():
+					# Prêtresse solaire : ses soins sont plus forts le jour.
+					amount *= 1.5
 				if not target.is_empty() and float(target["wither"]) > 0.0:
 					amount *= 0.5
 				if amount > 0.0 and not target.is_empty() and float(target["hp"]) < float(target["max"]):
@@ -1502,6 +1561,20 @@ func _enemy_abilities() -> void:
 					a.slow_stacks = maxi(a.slow_stacks, 3)
 					a.slow_t = maxf(a.slow_t, chill)
 			_event({"t": "ring", "pos": tgt.pos, "r": r, "color": "FFF2A8", "dur": 0.35})
+			if d.has("blink") and e.pos.y > 7.5 and e.hold_y <= 0.0 and not e.engaged:
+				# Spectre du Collège : il se dématérialise et réapparaît plus près de la Barrière.
+				_event({"t": "puff", "pos": e.pos, "color": "8A7CC8"})
+				e.pos.y -= float(d["blink"])
+				e.prev_pos = e.pos
+				_event({"t": "puff", "pos": e.pos, "color": "8A7CC8"})
+		elif e.role == "miroir":
+			e.cast_cd = e.cast_interval
+			if not daynight_cfg.is_empty() and not is_day:
+				continue
+			# Miroir de verre : le jour, il renvoie le soleil en un rayon le long de sa colonne.
+			var hw := float(d.get("beam_width", 1.2)) * 0.5
+			_telegraph(Rect2(e.pos.x - hw, BARRIER_Y, hw * 2.0, e.pos.y - 0.5 - BARRIER_Y), float(d.get("beam_delay", 1.4)), float(d.get("beam_dmg", 30.0)), 0.0)
+			telegraphs.back()["sun"] = true
 
 
 ## Soins ennemis réduits par le Sceau sacré ; 20 % volés au profit de la Barrière (Clé des Cendres).
@@ -1670,6 +1743,7 @@ func _update_boss() -> void:
 	if boss == null or not boss.alive:
 		return
 	boss_shield_t = maxf(0.0, boss_shield_t - TICK)
+	boss_exposed_t = maxf(0.0, boss_exposed_t - TICK)
 	var ratio := boss.hp / boss.max_hp
 	var want := 2 if ratio <= 0.33 else (1 if ratio <= 0.66 else 0)
 	if want > boss_phase:
@@ -1695,7 +1769,9 @@ func _boss_ability(ab: Dictionary) -> void:
 				used.append(y)
 				var hw := float(ab.get("width", 1.2)) * 0.5
 				_telegraph(Rect2(0.0, y - hw, W, hw * 2.0), float(ab.get("delay", 1.5)), float(ab.get("dmg", 40)), 2.0)
-			_log("%s : balayage de racines !" % boss_name)
+				if bool(ab.get("sun", false)):
+					telegraphs.back()["sun"] = true
+			_log(str(ab.get("log", "%s : balayage de racines !")) % boss_name)
 		"lane_strike":
 			var used_x: Array[float] = []
 			for k in range(int(ab.get("count", 1))):
@@ -1703,7 +1779,9 @@ func _boss_ability(ab: Dictionary) -> void:
 				used_x.append(x)
 				var hw := float(ab.get("width", 1.4)) * 0.5
 				_telegraph(Rect2(x - hw, BARRIER_Y, hw * 2.0, boss.pos.y - 0.6 - BARRIER_Y), float(ab.get("delay", 1.2)), float(ab.get("dmg", 40)), float(ab.get("barrier", 3.0)))
-			_log("%s charge !" % boss_name)
+				if bool(ab.get("sun", false)):
+					telegraphs.back()["sun"] = true
+			_log(str(ab.get("log", "%s charge !")) % boss_name)
 		"summon":
 			var kind := str(ab.get("kind", "mushroom"))
 			for k in range(int(ab.get("count", 4))):
@@ -1801,6 +1879,34 @@ func _boss_ability(ab: Dictionary) -> void:
 				terrain.add_poison(Vector2(rng.randf_range(0.8, W - 0.8), rng.randf_range(2.5, 11.5)), rng.randf_range(0.9, 1.4), float(ab.get("dur", 14.0)), false)
 			_log("%s inonde le marais de poison !" % boss_name)
 			_event({"t": "shake"})
+		"riddle":
+			_start_riddle(ab)
+		"mirage_gates":
+			# Le Sphinx change des portails en mirages : ils gardent leur aspect, mais n'ont plus d'effet.
+			var cands: Array[Portal] = []
+			for pt in portals:
+				if not pt.is_negative() and not pt.is_seal and not pt.mirage and pt.kind != "answer":
+					cands.append(pt)
+			for k in range(mini(int(ab.get("count", 1)), cands.size())):
+				var pt: Portal = cands[rng.randi() % cands.size()]
+				cands.erase(pt)
+				pt.mirage = true
+				_gate_curses.append({"portal": pt, "t": float(ab.get("dur", 12.0)), "kind": pt.kind, "value": pt.value, "element": pt.element, "mirage": true})
+			_log("%s tisse des mirages : un portail ment !" % boss_name)
+			_event({"t": "ring", "pos": boss.pos, "r": 3.0, "color": "F2C46B", "dur": 0.7})
+		"fast_cycle":
+			if daynight_cfg.is_empty():
+				daynight_cfg = {"day": 20.0, "night": 20.0}
+				daynight_t = 20.0
+			daynight_speed = float(ab.get("speed", 3.0))
+			_log("%s affole le ciel : le jour et la nuit se succèdent à toute allure !" % boss_name)
+		"force_day":
+			if daynight_cfg.is_empty():
+				daynight_cfg = {"day": 25.0, "night": 20.0}
+			if not is_day:
+				_switch_daynight()
+			daynight_t = float(ab.get("dur", 18.0))
+			_log("%s appelle le soleil : le Feu brûle plus fort !" % boss_name)
 		"shield":
 			boss_shield_t = float(ab.get("dur", 8.0))
 			boss_shield_elem = str(ab.get("element", "feu"))
@@ -1839,6 +1945,10 @@ func _update_gate_curses() -> void:
 			pt.kind = str(gc["kind"])
 			pt.value = int(gc["value"])
 			pt.element = str(gc["element"])
+			if bool(gc.get("mirage", false)):
+				pt.mirage = false
+				pt.revealed_t = 0.0
+				pt.hidden_t = 0.0
 			pt.flash_t = 0.4
 			_event({"t": "ring", "pos": Vector2(pt.x, pt.y), "r": 1.2, "color": "8FD0FF", "dur": 0.5})
 			_gate_curses.remove_at(i)
@@ -1867,7 +1977,8 @@ func shield_word() -> String:
 
 
 func _telegraph(r: Rect2, delay: float, dmg: float, barrier_dmg: float, venom: bool = false) -> void:
-	telegraphs.append({"rect": r, "t": delay, "dur": delay, "dmg": dmg * enemy_mult * diff, "barrier": barrier_dmg * diff, "venom": venom})
+	var k := 1.3 if boss != null and boss.alive and boss.enraged_t > 0.0 else 1.0
+	telegraphs.append({"rect": r, "t": delay, "dur": delay, "dmg": dmg * enemy_mult * diff * k, "barrier": barrier_dmg * diff, "venom": venom})
 
 
 func _update_telegraphs() -> void:
@@ -2025,6 +2136,10 @@ func _hit(src: Unit, tgt: Unit, mult: float = 1.0) -> void:
 	var dmg := _calc(src.atk * mult, src.element, src.crit + src.buff_crit, tgt, src.team == 0, src.crit_mult)
 	var crit := _last_crit
 	_damage(tgt, dmg, src.element)
+	if src.team == 0 and tgt.reflect > 0.0 and src.attack_range > 0.0 and src.alive:
+		# Miroirs (zone 5) : une part du tir revient sur le tireur.
+		_damage(src, dmg * tgt.reflect, "lumiere")
+		_event({"t": "beam", "a": tgt.pos, "b": src.pos, "color": "FFE9A8", "dur": 0.1})
 	if src.team == 0:
 		_on_hit_effects(src, tgt, dmg, src.element)
 		_class_on_hit(src, tgt, dmg, crit)
@@ -2118,6 +2233,14 @@ func _damage(tgt: Unit, amount: float, elem: String) -> void:
 		amount *= 0.25
 	if tgt == boss and runes_alive() > 0:
 		amount *= 0.3
+	if tgt == boss and not riddle.is_empty():
+		amount *= 0.1
+	if tgt == boss and boss_exposed_t > 0.0:
+		amount *= 1.5
+	if not daynight_cfg.is_empty():
+		# Désert de Verre : le jour, le Feu brûle plus fort ; la nuit, le Givre mord plus fort.
+		if (elem == "feu" and is_day) or (elem == "givre" and not is_day):
+			amount *= DAY_BONUS
 	if tgt.role == "rune" and elem != tgt.element and (_sid == "" or _sid != ultimate_id):
 		# Rune corporelle : seul son élément la blesse (une Ultime, elle, la brise quel que soit l'élément).
 		if _immune_txt_t <= 0.0:
@@ -2644,6 +2767,7 @@ func _apply_spell(c: Caster, sp: Dictionary, at: Vector2) -> bool:
 			var pr := float(sp.get("radius", 2.5)) * (1.0 + _spell_mod(c, "radius.", sp))
 			var cleared := clear_fog(at, pr)
 			cleared = terrain.cleanse(at, pr) or cleared
+			cleared = reveal_mirages(at, pr) or cleared
 			var best: Portal = null
 			var bd := 1e9
 			for p in portals:
@@ -3175,8 +3299,13 @@ func portal_value_at(x: float) -> float:
 	var v := 0.0
 	var light := false
 	for p in portals:
-		if absf(x - p.x) > p.width * 0.5:
+		if absf(x - p.x) > p.width * 0.5 or not p.active():
 			continue
+		if p.kind == "answer":
+			# Énigme : l'IA connaît le lore et vise la bonne réponse.
+			v += 8.0 if not riddle.is_empty() and p.id == int(riddle["right"]) else -4.0
+			continue
+		var before := v
 		if p.is_negative():
 			if light:
 				v += 3.0 if p.is_seal and not p.purified else 0.5
@@ -3205,6 +3334,9 @@ func portal_value_at(x: float) -> float:
 				v += 1.5 * forge_power
 			_:
 				v += 1.0
+		if p.mirage:
+			# Un mirage ressemble à un vrai portail : l'IA s'y laisse prendre à moitié.
+			v = before + (v - before) * 0.5
 	return v
 
 
@@ -3440,6 +3572,182 @@ func purify_target() -> Vector2:
 
 
 # ---------------------------------------------------------------- utilitaires
+
+# ---------------------------------------------------------------- zone 5 : Désert de Verre
+
+## Cycle soleil/lune : le jour, le Feu +25 % ; la nuit, le Givre +25 % (amis comme ennemis).
+func _update_daynight() -> void:
+	if daynight_cfg.is_empty():
+		return
+	daynight_t -= TICK * daynight_speed
+	if daynight_t <= 0.0:
+		_switch_daynight()
+
+
+func _switch_daynight() -> void:
+	is_day = not is_day
+	daynight_t = float(daynight_cfg.get("day" if is_day else "night", 25.0))
+	_event({"t": "daynight", "day": is_day})
+	_event({"t": "text", "pos": Vector2(W * 0.5, 8.0), "text": "LE SOLEIL SE LÈVE" if is_day else "LA NUIT TOMBE", "color": "FFD070" if is_day else "9FB8FF"})
+	_log("Le soleil se lève : Feu +25 %." if is_day else "La nuit tombe : Givre +25 %.")
+
+
+## Part écoulée de la phase en cours (jour ou nuit), pour l'affichage.
+func daynight_ratio() -> float:
+	if daynight_cfg.is_empty():
+		return 0.0
+	var full := float(daynight_cfg.get("day" if is_day else "night", 25.0))
+	return clampf(1.0 - daynight_t / maxf(0.1, full), 0.0, 1.0)
+
+
+## Mirage : révélé quand une invocation l'approche ; il se dissipe, puis se reforme ailleurs.
+func _update_mirage(p: Portal) -> void:
+	if p.revealed_t > 0.0:
+		p.revealed_t -= TICK
+		if p.revealed_t <= 0.0:
+			p.revealed_t = 0.0
+			p.hidden_t = mirage_reform if not p.spots.is_empty() else 999.0
+		return
+	if p.hidden_t > 0.0:
+		p.hidden_t -= TICK
+		if p.hidden_t <= 0.0:
+			p.hidden_t = 0.0
+			_relocate_mirage(p)
+		return
+	if _nearest(_grid_a, Vector2(p.x, p.y - 0.6), 0.75) != null:
+		_reveal_mirage(p)
+
+
+func _reveal_mirage(p: Portal) -> void:
+	if not p.mirage or p.revealed_t > 0.0 or p.hidden_t > 0.0:
+		return
+	p.revealed_t = 1.2
+	_event({"t": "text", "pos": Vector2(p.x, p.y + 0.6), "text": "MIRAGE !", "color": "F2E0B0"})
+	_event({"t": "puff", "pos": Vector2(p.x, p.y), "color": "F2E0B0"})
+
+
+## Un mirage se reforme sur un autre emplacement libre de sa rangée, avec un autre faux effet.
+func _relocate_mirage(p: Portal) -> void:
+	var free: Array[float] = []
+	for sx in p.spots:
+		var ok := true
+		for o in portals:
+			if o != p and absf(o.y - p.y) < 0.6 and absf(o.x - float(sx)) < (o.width + p.width) * 0.5:
+				ok = false
+		if ok and absf(float(sx) - p.x) > 0.5:
+			free.append(float(sx))
+	if not free.is_empty():
+		p.x = free[rng.randi() % free.size()]
+		p.base_x = p.x
+	var fakes := [["mult", 2], ["mult", 3], ["add", 5]]
+	var f: Array = fakes[rng.randi() % fakes.size()]
+	p.kind = str(f[0])
+	p.value = int(f[1])
+	p.ready = true
+	_event({"t": "ring", "pos": Vector2(p.x, p.y), "r": 1.0, "color": "F2E0B0", "dur": 0.5})
+
+
+## La Lumière (Purifier) dissipe les mirages proches. Retourne true si au moins un l'a été.
+func reveal_mirages(at: Vector2, r: float) -> bool:
+	var any := false
+	for p in portals:
+		if p.mirage and p.active() and Vector2(p.x, p.y).distance_to(at) <= r + p.width * 0.5:
+			_reveal_mirage(p)
+			any = true
+	return any
+
+
+func mirages_active() -> int:
+	var n := 0
+	for p in portals:
+		if p.mirage and p.active():
+			n += 1
+	return n
+
+
+## Énigme du Sphinx : 3 portails-réponses ; le Sphinx est protégé jusqu'à la réponse.
+func _start_riddle(ab: Dictionary) -> void:
+	if not riddle.is_empty():
+		return
+	var pool: Array[int] = []
+	for k in range(RIDDLES.size()):
+		if not _riddles_used.has(k):
+			pool.append(k)
+	if pool.is_empty():
+		for k in range(RIDDLES.size()):
+			pool.append(k)
+	var idx: int = pool[rng.randi() % pool.size()]
+	_riddles_used.append(idx)
+	var rd: Dictionary = RIDDLES[idx]
+	var answers: Array = rd["a"]
+	var order: Array[int] = [0, 1, 2]
+	for i in range(2, 0, -1):
+		var j := rng.randi_range(0, i)
+		var tmp := order[i]
+		order[i] = order[j]
+		order[j] = tmp
+	var xs: Array = ab.get("xs", [1.7, 4.5, 7.3])
+	var made: Array[Portal] = []
+	var right_id := 0
+	for i in range(3):
+		var p := Portal.new()
+		_portal_seq += 1
+		p.id = _portal_seq
+		p.kind = "answer"
+		p.answer = str(answers[order[i]])
+		p.need = int(ab.get("need", 10))
+		p.x = float(xs[i])
+		p.base_x = p.x
+		p.y = float(ab.get("y", 7.8))
+		p.width = float(ab.get("width", 1.9))
+		if order[i] == 0:
+			right_id = p.id
+		portals.append(p)
+		made.append(p)
+	portals.sort_custom(func(a: Portal, b: Portal) -> bool: return a.y < b.y)
+	riddle = {"q": str(rd["q"]), "portals": made, "right": right_id, "t": float(ab.get("time", 40.0))}
+	_log("Énigme du Sphinx : « %s »" % str(rd["q"]))
+	_event({"t": "text", "pos": Vector2(W * 0.5, 9.0), "text": "ÉNIGME !", "color": "F2C46B"})
+	_event({"t": "ring", "pos": boss.pos if boss != null else Vector2(W * 0.5, 13.0), "r": 3.5, "color": "F2C46B", "dur": 0.8})
+
+
+func _update_riddle() -> void:
+	if riddle.is_empty():
+		return
+	riddle["t"] = float(riddle["t"]) - TICK
+	if float(riddle["t"]) <= 0.0:
+		_log("Le Sphinx s'impatiente : pas de réponse, c'est une mauvaise réponse.")
+		_resolve_riddle(false)
+
+
+func _resolve_riddle(ok: bool) -> void:
+	for p in riddle.get("portals", []):
+		portals.erase(p)
+	riddle = {}
+	if boss == null or not boss.alive:
+		return
+	if ok:
+		riddles_right += 1
+		boss_exposed_t = 20.0
+		if riddles_right >= 2:
+			bonus_unique = str(level.get("riddle_reward", ""))
+		_log("Bonne réponse ! %s est exposé : +50 %% de dégâts pendant 20 s." % boss_name)
+		_event({"t": "text", "pos": boss.pos + Vector2(0.0, -1.2), "text": "BONNE RÉPONSE !", "color": "F2C46B"})
+		_event({"t": "ring", "pos": boss.pos, "r": 3.0, "color": "FFF0B0", "dur": 0.8})
+	else:
+		riddles_wrong += 1
+		var before := boss.hp
+		boss.hp = minf(boss.max_hp, boss.hp + boss.max_hp * 0.1)
+		boss.enraged_t = 20.0
+		_log("Mauvaise réponse : %s se renforce (+%d PV, coups +30 %%)." % [boss_name, int(boss.hp - before)])
+		_event({"t": "text", "pos": boss.pos + Vector2(0.0, -1.2), "text": "MAUVAISE RÉPONSE", "color": "FF6A5A"})
+		_event({"t": "ring", "pos": boss.pos, "r": 3.0, "color": "FF4A3A", "dur": 0.8})
+
+
+## Texte de l'énigme en cours ("" sinon), pour le bandeau du combat.
+func riddle_text() -> String:
+	return str(riddle.get("q", ""))
+
 
 func _event(e: Dictionary) -> void:
 	if _sid != "" and not e.has("sid"):

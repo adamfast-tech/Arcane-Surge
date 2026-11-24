@@ -1,0 +1,104 @@
+{
+  "id": "z05_l07",
+  "name": "La Nuit des Spectres",
+  "zone": 5,
+  "number": "5-7",
+  "global_level": 47,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "desc": "La nuit tombe sur les ruines. Les Spectres du Collège lancent des sorts, puis se dématérialisent pour réapparaître plus près. La nuit, ton Givre mord plus fort : profites-en avant l'aube.",
+  "par_time": 190,
+  "nexus": {
+    "hp": 22000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 360
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 360
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "lumiere"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 2,
+      "motion": "slide",
+      "range": 1.6,
+      "speed": 0.5
+    },
+    {
+      "kind": "elem",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "givre"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 10.4,
+      "width": 2.0,
+      "value": 2,
+      "motion": "slide",
+      "range": 2.2,
+      "speed": 0.45
+    },
+    {
+      "kind": "add",
+      "x": 1.6,
+      "y": 10.4,
+      "width": 1.8,
+      "value": 5,
+      "mirage": true,
+      "spots": [
+        1.6,
+        7.4
+      ]
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 21,
+    "budget_per_level": 6,
+    "local_level": 7,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "glass_scarab": 4,
+      "sand_jackal": 2,
+      "mummy_archer": 1.0,
+      "college_specter": 0.7
+    }
+  },
+  "daynight": {
+    "day": 20,
+    "night": 35,
+    "start": "nuit"
+  },
+  "mirage_reform": 14,
+  "initial_enemies": []
+}

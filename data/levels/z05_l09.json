@@ -1,0 +1,113 @@
+{
+  "id": "z05_l09",
+  "name": "Le Collège oublié",
+  "zone": 5,
+  "number": "5-9",
+  "global_level": 49,
+  "type": "Siège",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx"
+  ],
+  "desc": "Le Collège oublié, où Morvaen fut élève. Deux Nexus, une tour au centre, des miroirs dans la cour, et des Scorpions de cristal qui renvoient une part des tirs.",
+  "par_time": 170,
+  "nexus": {
+    "hp": 15000
+  },
+  "nexi": [
+    {
+      "x": 2.4,
+      "y": 14.9
+    },
+    {
+      "x": 6.6,
+      "y": 14.9
+    }
+  ],
+  "towers": [
+    {
+      "x": 4.5,
+      "y": 14.0,
+      "hp": 560
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "givre"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 2,
+      "motion": "slide",
+      "range": 1.6,
+      "speed": 0.5
+    },
+    {
+      "kind": "add",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 5
+    },
+    {
+      "kind": "mult",
+      "x": 2.4,
+      "y": 10.4,
+      "width": 2.0,
+      "value": 2
+    },
+    {
+      "kind": "elem",
+      "x": 6.6,
+      "y": 10.4,
+      "width": 2.0,
+      "element": "lumiere"
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 18,
+    "budget_per_level": 4,
+    "local_level": 9,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "glass_scarab": 6,
+      "sand_jackal": 3,
+      "mummy_archer": 1,
+      "sandstone_golem": 1,
+      "college_specter": 0.6,
+      "mirror_construct": 0.5,
+      "crystal_scorpion": 0.15
+    }
+  },
+  "daynight": {
+    "day": 30,
+    "night": 22,
+    "start": "jour"
+  },
+  "mirrors": [
+    {
+      "x": 1.2,
+      "y": 12.4
+    },
+    {
+      "x": 7.8,
+      "y": 12.4
+    }
+  ],
+  "initial_enemies": []
+}

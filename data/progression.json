@@ -33,6 +33,11 @@
       "commun": 48,
       "rare": 38,
       "epique": 14
+    },
+    "5": {
+      "commun": 42,
+      "rare": 40,
+      "epique": 18
     }
   },
   "boss_rarity": {
@@ -51,6 +56,10 @@
     "4": {
       "rare": 45,
       "epique": 55
+    },
+    "5": {
+      "rare": 40,
+      "epique": 60
     }
   },
   "materials": {
@@ -90,6 +99,16 @@
         3
       ],
       "rune_brisee": [
+        0,
+        2
+      ]
+    },
+    "5": {
+      "verre_soleil": [
+        1,
+        3
+      ],
+      "sable_or": [
         0,
         2
       ]

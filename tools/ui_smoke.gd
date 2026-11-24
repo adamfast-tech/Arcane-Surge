@@ -522,6 +522,134 @@ func _zone4_ok() -> bool:
 	return true
 
 
+## Zone 5 (étape 15.1) : cycle soleil/lune, mirages, miroirs (renvoi des tirs, rayon de jour),
+## énigmes du Sphinx (bonne et mauvaise réponse, Couronne de l'Énigme), sprites.
+func _zone5_ok() -> bool:
+	var errs: Array[String] = []
+	for k in ["glass_scarab", "sand_jackal", "sandstone_golem", "mummy_archer", "mirror_construct", "college_specter", "solar_priestess",
+			"crystal_scorpion", "glass_mirror", "sun_scarab", "glass_sphinx", "desert_caravan"]:
+		if SpriteAtlas.single(k) == null:
+			errs.append("sprite %s" % k)
+	# Jour : Feu +25 % ; nuit : Givre +25 %.
+	var s := BattleSim.new()
+	s.setup(GameData.level("z05_l01"), GameData.party(), 3, {"solo": true})
+	var foe := s._spawn_enemy("sandstone_golem", Vector2(4.5, 9.0))
+	s._flush()
+	var h0 := foe.hp
+	s._damage(foe, 100.0, "feu")
+	var day_fire := h0 - foe.hp
+	s._switch_daynight()
+	h0 = foe.hp
+	s._damage(foe, 100.0, "feu")
+	var night_fire := h0 - foe.hp
+	h0 = foe.hp
+	s._damage(foe, 100.0, "givre")
+	var night_frost := h0 - foe.hp
+	if not (s.is_day == false and is_equal_approx(day_fire, 125.0) and is_equal_approx(night_fire, 100.0) and is_equal_approx(night_frost, 125.0)):
+		errs.append("jour/nuit %s/%s/%s" % [day_fire, night_fire, night_frost])
+	s.terrain.sim = null
+	# Mirage : sans effet ; révélé à l'approche, il se dissipe puis se reforme ailleurs.
+	var m := BattleSim.new()
+	m.setup(GameData.level("z05_l02"), GameData.party(), 5, {"solo": true})
+	var mp: Portal = null
+	for pt in m.portals:
+		if pt.mirage:
+			mp = pt
+	var u := m._spawn_familiar(m.player(), Vector2(mp.x, mp.y - 0.4))
+	m._flush()
+	var n0 := m.allies.size() + m._pending_allies.size()
+	m._apply_portal(mp, u)
+	var no_effect := m.allies.size() + m._pending_allies.size() == n0 and mp.revealed_t > 0.0 and mp.label() == "MIRAGE"
+	var x0 := mp.x
+	for k in range(int((1.3 + m.mirage_reform + 0.2) / BattleSim.TICK)):
+		m._update_portals()
+	var reformed := mp.active() and mp.label() != "MIRAGE"
+	m.terrain.sim = null
+	if not no_effect or not reformed:
+		errs.append("mirage effet %s, reformé %s (x %.1f -> %.1f)" % [no_effect, reformed, x0, mp.x])
+	# Miroirs : renvoi des tirs ; rayon de soleil le jour seulement.
+	var r := BattleSim.new()
+	r.setup(GameData.level("z05_l04"), GameData.party(), 6, {"solo": true})
+	r._flush()
+	var mirror: Unit = null
+	for e in r.enemies:
+		if e.kind == "glass_mirror":
+			mirror = e
+	var shooter := r._make_unit("skeleton_archer", 0, mirror.pos - Vector2(0.0, 2.0))
+	r._add_ally(shooter)
+	r._flush()
+	var sh0 := shooter.hp
+	shooter.hp = 500.0
+	shooter.max_hp = 500.0
+	r._hit(shooter, mirror)
+	var reflected := shooter.hp < 500.0
+	r._build_grids()
+	mirror.cast_cd = 0.0
+	r.telegraphs.clear()
+	r._enemy_abilities()
+	var beam_day := r.telegraphs.size() == 1 and bool(r.telegraphs[0].get("sun", false))
+	r._switch_daynight()
+	mirror.cast_cd = 0.0
+	r.telegraphs.clear()
+	r._enemy_abilities()
+	var beam_night := r.telegraphs.size()
+	r.terrain.sim = null
+	if not reflected or not beam_day or beam_night != 0:
+		errs.append("miroir renvoi %s, rayon jour %s, nuit %d (PV tireur %s)" % [reflected, beam_day, beam_night, sh0])
+	# Énigmes du Sphinx.
+	var b := BattleSim.new()
+	b.setup(GameData.level("z05_l10"), GameData.party(), 8, {"solo": true})
+	b._flush()
+	var verdicts: Array[String] = []
+	for want in [true, false, true]:
+		b._boss_ability({"type": "riddle", "need": 3, "time": 40, "y": 7.8, "xs": [1.7, 4.5, 7.3]})
+		var answers := 0
+		var pick: Portal = null
+		for pt in b.portals:
+			if pt.kind == "answer":
+				answers += 1
+				if (pt.id == int(b.riddle["right"])) == want:
+					pick = pt
+		var bh := b.boss.hp
+		b._damage(b.boss, 100.0, "physique")
+		var guarded := bh - b.boss.hp < 20.0
+		var helper := b._spawn_familiar(b.player(), Vector2(pick.x, 7.0))
+		helper.owner_idx = 1
+		b._apply_portal(pick, helper)
+		var ignored := not b.riddle.is_empty() and pick.counter == 0
+		for k in range(3):
+			b._apply_portal(pick, b._spawn_familiar(b.player(), Vector2(pick.x, 7.0)))
+		var gone := 0
+		for pt in b.portals:
+			if pt.kind == "answer":
+				gone += 1
+		verdicts.append("%d réponses, gardé %s, compagnon ignoré %s, résolue %s" % [answers, guarded, ignored, b.riddle.is_empty() and gone == 0])
+		if answers != 3 or not guarded or not ignored or not b.riddle.is_empty() or gone != 0:
+			errs.append("énigme : %s" % verdicts.back())
+	var exposed := b.boss_exposed_t > 0.0
+	var enraged := b.boss.enraged_t > 0.0
+	if b.riddles_right != 2 or b.riddles_wrong != 1 or not exposed or not enraged or b.bonus_unique != "couronne_enigme":
+		errs.append("énigmes : justes %d, fausses %d, exposé %s, enragé %s, unique « %s »" % [b.riddles_right, b.riddles_wrong, exposed, enraged, b.bonus_unique])
+	b.terrain.sim = null
+	# Couronne de l'Énigme : donnée une seule fois.
+	var inv0: Array = (Profile.data["inventory"] as Array).duplicate(true)
+	var r1 := Profile.apply_battle("z05_l10", true, 3, 300.0, [], "couronne_enigme")
+	var r2 := Profile.apply_battle("z05_l10", true, 3, 300.0, [], "couronne_enigme")
+	var crowns := 0
+	for it in Profile.data["inventory"]:
+		if str(it["base"]) == "couronne_enigme":
+			crowns += 1
+	Profile.data["inventory"] = inv0
+	if crowns != 1:
+		errs.append("Couronne de l'Énigme ×%d" % crowns)
+	print("zone 5 : jour/nuit Feu %d → %d, Givre de nuit %d · mirage sans effet %s, reformé %s · miroir : renvoi %s, rayon de jour %s, la nuit %d · énigmes %s · Couronne ×%d (%d objets, puis %d)" % [
+		day_fire, night_fire, night_frost, no_effect, reformed, reflected, beam_day, beam_night, verdicts, crowns, (r1["items"] as Array).size(), (r2["items"] as Array).size()])
+	if not errs.is_empty():
+		push_error("zone 5 : %s" % [errs])
+		return false
+	return true
+
+
 func _run() -> void:
 	Profile.save_path = "user://smoke_save.json"
 	if FileAccess.file_exists(Profile.save_path):
@@ -574,6 +702,9 @@ func _run() -> void:
 		quit(1)
 		return
 	if not _zone4_ok():
+		quit(1)
+		return
+	if not _zone5_ok():
 		quit(1)
 		return
 	# Bibliothèque, onglet Classes : Ultime, sorts d'arbre et sorts de compagnon de chaque classe.
