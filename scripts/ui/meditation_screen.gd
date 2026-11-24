@@ -16,7 +16,7 @@ var _reset_armed := false
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	UiTheme.backdrop(self, 0.66, 0.0, "moon")
+	UiTheme.backdrop(self, 0.5, 0.0, "moon", "meditation")
 	_rebuild()
 
 

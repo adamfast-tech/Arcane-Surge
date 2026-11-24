@@ -18,7 +18,7 @@ var _msg_col := UiTheme.GOLD
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	UiTheme.backdrop(self, 0.6, 0.0, "forge")
+	UiTheme.backdrop(self, 0.45, 0.0, "forge", "forge")
 	_rebuild()
 
 

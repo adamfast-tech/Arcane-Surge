@@ -15,7 +15,7 @@ var who := "player" ## porteur : « player » ou l'identifiant d'un compagnon
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	UiTheme.backdrop(self, 0.6, 0.0, "forge")
+	UiTheme.backdrop(self, 0.5, 0.0, "forge", "armurerie")
 	_rebuild()
 
 

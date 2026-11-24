@@ -179,16 +179,22 @@ static func spacer() -> Control:
 	return c
 
 
-## Fond commun des écrans hors combat : illustration de la direction artistique, assombrie.
+## Fond commun des écrans hors combat : illustration assombrie (title.jpg, ou la scène de la salle générée
+## par RoomArt quand scene est donné), voile, dégradé, ambiance.
 ## fade > 0 : le bas de l'écran s'assombrit en dégradé (lisibilité des textes sur l'illustration).
-static func backdrop(parent: Control, dim: float = 0.62, fade: float = 0.0, mood: String = "dawn") -> void:
+static func backdrop(parent: Control, dim: float = 0.62, fade: float = 0.0, mood: String = "dawn", scene: String = "") -> void:
 	var bg := ColorRect.new()
 	bg.color = BG
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	parent.add_child(bg)
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var art := TextureRect.new()
-	art.texture = load("res://assets/art/title.jpg")
+	art.name = "BackdropArt"
+	if scene != "":
+		art.texture = RoomArt.scene(scene, RoomArt.size_for(parent.get_viewport_rect().size))
+		art.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	else:
+		art.texture = load("res://assets/art/title.jpg")
 	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -222,6 +228,13 @@ static func backdrop(parent: Control, dim: float = 0.62, fade: float = 0.0, mood
 		amb.mood = mood
 		amb.art = art
 		parent.add_child(amb)
+
+
+## Change la scène de fond d'un écran déjà construit (carte : un décor par zone).
+static func set_scene(parent: Control, scene: String) -> void:
+	var art := parent.get_node_or_null("BackdropArt") as TextureRect
+	if art != null:
+		art.texture = RoomArt.scene(scene, RoomArt.size_for(parent.get_viewport_rect().size))
 
 
 ## Change l'ambiance d'un écran déjà construit (carte : une ambiance par zone).

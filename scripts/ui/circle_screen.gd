@@ -10,7 +10,7 @@ signal open_equipment(who: String)
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	UiTheme.backdrop(self, 0.68, 0.0, "campfire")
+	UiTheme.backdrop(self, 0.5, 0.0, "campfire", "cercle")
 	_rebuild()
 
 

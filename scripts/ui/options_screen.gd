@@ -13,7 +13,7 @@ var _updater: Updater
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	UiTheme.backdrop(self, 0.7)
+	UiTheme.backdrop(self, 0.5, 0.0, "gold", "atelier")
 	_rebuild()
 
 

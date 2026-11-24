@@ -27,7 +27,7 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	if zone <= 0:
 		zone = int(GameData.level(Profile.next_level()).get("zone", 1))
-	UiTheme.backdrop(self, 0.72, 0.0, str(ZONE_MOOD.get(zone, "mist")))
+	UiTheme.backdrop(self, 0.55, 0.0, str(ZONE_MOOD.get(zone, "mist")), "zone%d" % zone)
 	_build()
 
 
@@ -75,6 +75,7 @@ func _build() -> void:
 		t.pressed.connect(func() -> void:
 			zone = zid
 			UiTheme.set_mood(self, str(ZONE_MOOD.get(zid, "mist")))
+			UiTheme.set_scene(self, "zone%d" % zid)
 			_build.call_deferred())
 		tabs.add_child(t)
 	var title := UiTheme.title("ZONE %d · %s" % [zone, str(zd.get("name", "")).to_upper()], 40, UiTheme.GOLD)

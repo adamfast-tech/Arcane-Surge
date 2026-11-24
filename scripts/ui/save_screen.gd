@@ -18,7 +18,7 @@ var _msg := ""
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	UiTheme.backdrop(self, 0.7)
+	UiTheme.backdrop(self, 0.5, 0.0, "arcane", "archives")
 	_overlay = Control.new()
 	_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_overlay)

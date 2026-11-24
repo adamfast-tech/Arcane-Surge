@@ -11,7 +11,7 @@ var mirror := false
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	UiTheme.backdrop(self, 0.74, 0.0, "moon")
+	UiTheme.backdrop(self, 0.55, 0.0, "moon", "creation")
 	_rebuild()
 
 

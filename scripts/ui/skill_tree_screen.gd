@@ -18,7 +18,7 @@ var _tab_buttons: Dictionary = {} ## branche -> bouton
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	UiTheme.backdrop(self, 0.68, 0.0, "gold")
+	UiTheme.backdrop(self, 0.5, 0.0, "gold", "entrainement")
 	var branches: Array = Profile.tree_db().get("branches", [])
 	_branch = str(branches[0]["id"]) if not branches.is_empty() else ""
 	_rebuild()

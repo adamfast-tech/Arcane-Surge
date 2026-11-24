@@ -757,6 +757,9 @@ func _run() -> void:
 	if not await _gear_ok():
 		quit(1)
 		return
+	if not await _rooms_art_ok():
+		quit(1)
+		return
 	# Bibliothèque, onglet Classes : Ultime, sorts d'arbre et sorts de compagnon de chaque classe.
 	var cs := LibraryScreen.class_spells("chevalier")
 	var tree_ids: Array[String] = []
@@ -1517,4 +1520,36 @@ func _gear_ok() -> bool:
 	if not errs.is_empty():
 		push_error("équipement : %s" % [errs])
 		return false
+	return true
+
+
+## Fonds des salles : chaque scène se génère (portrait et paysage), chaque salle a la sienne, la Carte suit la zone.
+func _rooms_art_ok() -> bool:
+	for kind in RoomArt.KINDS:
+		for v in [Vector2(720, 1280), Vector2(2275, 1280)]:
+			var tex := RoomArt.scene(str(kind), RoomArt.size_for(v))
+			if tex == null or tex.get_width() < 96 or tex.get_height() < 96:
+				push_error("fond de salle manquant : %s" % kind)
+				return false
+	var seen := {}
+	for sc in [ForgeScreen.new(), EquipmentScreen.new(), SkillTreeScreen.new(), MeditationScreen.new(), LibraryScreen.new(), CircleScreen.new(), OptionsScreen.new()]:
+		root.add_child(sc)
+		await process_frame
+		var art := sc.get_node_or_null("BackdropArt") as TextureRect
+		if art == null or art.texture == null or art.texture is CompressedTexture2D or seen.has(art.texture):
+			push_error("fond de salle non spécifique : %s" % sc.get_class())
+			return false
+		seen[art.texture] = true
+		sc.queue_free()
+	var map := MapScreen.new()
+	map.zone = 1
+	root.add_child(map)
+	await process_frame
+	var t1: Texture2D = (map.get_node("BackdropArt") as TextureRect).texture
+	UiTheme.set_scene(map, "zone4")
+	if (map.get_node("BackdropArt") as TextureRect).texture == t1:
+		push_error("la Carte ne change pas de décor avec la zone")
+		return false
+	map.queue_free()
+	print("salles : %d fonds générés" % RoomArt.KINDS.size())
 	return true
