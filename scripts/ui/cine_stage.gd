@@ -1227,7 +1227,7 @@ func _update_presence(delta: float) -> void:
 	if fig != "":
 		# En pied : sa taille suit la hauteur de la scène (le Cerf est immense, la fée minuscule), en multiple entier.
 		k = maxf(1.0, roundf(sh * FigureArt.height_share(fig) / th))
-		k = minf(k, maxf(1.0, floorf(size.x * 0.9 / tw)))
+		k = minf(k, maxf(1.0, floorf(size.x * 1.2 / tw)))
 		# La tête reste dans le cadre, sous la bande cinéma.
 		var feet := ground_y + sh * 0.08 - (sh * 0.3 if FigureArt.flies(fig) else 0.0)
 		k = minf(k, maxf(1.0, floorf((feet - size.y * 0.06 - 10.0) / th)))
@@ -1301,6 +1301,10 @@ func _update_presence(delta: float) -> void:
 			base_y -= sh * 0.3
 		sc *= 1.0 + 0.008 * sin(t * 1.4)
 	var bottom := Vector2(size.x * 0.5 + dx, base_y + dy)
+	if fig != "":
+		# La tête au centre de l'écran (le Cerf, de trois quarts, a la tête sur la gauche de son image) ;
+		# le corps peut déborder du cadre.
+		bottom.x += (tw * 0.5 - FigureArt.head_center(fig).x) * k * 0.85
 	var b2 := _cam_point(bottom, 0.7)
 	var cs := 1.0 + (_cam_s - 1.0) * 0.7
 	subject.size = fs
