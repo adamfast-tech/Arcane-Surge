@@ -293,6 +293,8 @@ static func ground_texture(healed: bool = false) -> ImageTexture:
 			_px(img, gx, gy, _pget(img, gx, gy).lightened(0.08))
 	else:
 		_cobbles(img, rng, Rect2i(x0, y_top, x1 - x0, y_bot - y_top), 5)
+	if not pal.is_empty():
+		_ground_richness(img, rng, x0, x1, y_top, y_bot)
 	# Parvis derrière la Barrière : grandes dalles.
 	_cobbles(img, rng, Rect2i(0, y_bot, w, h - y_bot), 8)
 	# Bordures de la chaussée (pierres de taille, mousse).
@@ -1311,3 +1313,379 @@ static func _backdrop_scene(img: Image, rng: RandomNumberGenerator, s: String) -
 					img.fill_rect(Rect2i(ccx - half2, ccy + yy, half2 * 2, 1), Color("2a1640"))
 			for i in range(40):
 				_px(img, rng.randi_range(int(w * 0.25), int(w * 0.75)), rng.randi_range(int(h * 0.1), int(h * 0.32)), Color("b07cff"))
+
+
+# ---------------------------------------------------------------- zone 1 · végétation et arbres des combats
+
+const FOLIAGE_N := 12 ## images de 16×16 dans la planche de végétation
+const FOLIAGE_GLOW := {"sentier": [9], "fougeres": [9], "cercle": [8, 9], "coeur": [8], "sylvarche": [9]}
+
+
+## Couleurs de fleurs selon le lieu.
+static func _flower_cols(s: String) -> Array:
+	match s:
+		"lisiere":
+			return [Color("f2e28b"), Color("f4f0ff")]
+		"sentier":
+			return [Color("f2e28b"), Color("9ff0ff")]
+		"clairiere":
+			return [Color("f4f0ff"), Color("f2a050")]
+		"roncier":
+			return [Color("8e62e0"), Color("5a2a7a")]
+		"fougeres":
+			return [Color("cfe0ff"), Color("9ab8ff")]
+		"cercle":
+			return [Color("f7a8e0"), Color("ffe8f8")]
+		"source":
+			return [Color("9ff0ff"), Color("f4f0ff")]
+		"coeur":
+			return [Color("d98cff"), Color("ff9ce8")]
+		"sylvarche":
+			return [Color("b07cff"), Color("f4f0ff")]
+	return [Color("f4f0ff"), Color("f2e28b")]
+
+
+static func _blade(img: Image, ox: int, x: int, y0: int, hgt: int, lean: float, base: Color, tip: Color) -> void:
+	for k in range(hgt):
+		var t := float(k) / float(maxi(1, hgt - 1))
+		_px(img, ox + x + int(round(lean * t * float(hgt) * 0.35)), y0 - k, base.lerp(tip, t))
+
+
+## Planche de végétation du lieu : 0-1 touffes d'herbe, 2-3 fleurs, 4 buisson, 5 rocher, 6 fougère, 7 cailloux,
+## 8-9 détails du lieu, 10 herbes hautes, 11 brindilles et feuilles.
+static func foliage_atlas(s: String) -> ImageTexture:
+	var img := Image.create_empty(16 * FOLIAGE_N, 16, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(s) + 7
+	var pal := scene_palette(s)
+	var g: Color = pal.get("grass", Color("2a4a36"))
+	var gdark := g.darkened(0.25)
+	var glit := g.lightened(0.45)
+	var fc := _flower_cols(s)
+	# 0, 1 : touffes d'herbe.
+	for f in range(2):
+		var ox := f * 16
+		for b in range(7 + f * 2):
+			_blade(img, ox, 4 + rng.randi_range(0, 8), 15, rng.randi_range(5, 10), rng.randf_range(-1.5, 1.5), gdark, glit)
+	# 2, 3 : fleurs dans l'herbe.
+	for f in range(2):
+		var ox := (2 + f) * 16
+		for b in range(6):
+			_blade(img, ox, 4 + rng.randi_range(0, 8), 15, rng.randi_range(4, 8), rng.randf_range(-1.2, 1.2), gdark, glit)
+		for k in range(4):
+			var fx := ox + rng.randi_range(3, 12)
+			var fy := rng.randi_range(4, 9)
+			var col: Color = fc[(k + f) % 2]
+			_px(img, fx, fy, col)
+			_px(img, fx + 1, fy, col.darkened(0.15))
+			_px(img, fx, fy + 1, col.darkened(0.25))
+			_px(img, fx + 1, fy + 1, col.darkened(0.1))
+			_px(img, fx, fy + 2, gdark)
+	# 4 : buisson (trois volumes, lumière de lune en haut à droite).
+	for e in [[8, 10, 6, 5], [5, 11, 4, 4], [11, 11, 4, 4]]:
+		var cx: int = e[0]
+		var cy: int = e[1]
+		var rx: int = e[2]
+		var ry: int = e[3]
+		for y in range(-ry, ry + 1):
+			for x in range(-rx, rx + 1):
+				var d := pow(float(x) / float(rx), 2.0) + pow(float(y) / float(ry), 2.0)
+				if d <= 1.0:
+					var c := g.darkened(0.15)
+					if x > 0 and y < 0 and d > 0.35:
+						c = glit
+					elif x < 0 and y > 0:
+						c = gdark
+					_px(img, 64 + cx + x, cy + y, c)
+	# 5 : rocher moussu.
+	for y in range(-5, 6):
+		for x in range(-7, 8):
+			var d2 := pow(float(x) / 7.0, 2.0) + pow(float(y) / 5.0, 2.0)
+			if d2 <= 1.0:
+				var c2 := Color("4a4a60")
+				if x > 1 and y < -1:
+					c2 = Color("6a6a84")
+				elif x < -2 or y > 2:
+					c2 = Color("2e2e40")
+				if y < -3 and x < 2:
+					c2 = Color("3f6a3a")
+				_px(img, 80 + 8 + x, 10 + y, c2)
+	# 6 : petite fougère.
+	for fr in range(5):
+		var ang := lerpf(-PI * 0.88, -PI * 0.12, float(fr) / 4.0)
+		var p := Vector2(96 + 8, 15)
+		var dv := Vector2.from_angle(ang)
+		for k in range(9):
+			_px(img, int(p.x), int(p.y), Color("2f6a44"))
+			if k % 2 == 1:
+				var n := dv.orthogonal()
+				_px(img, int(p.x + n.x), int(p.y + n.y), Color("4f8a54"))
+			dv = dv.rotated(0.08 if ang < -PI * 0.5 else -0.08)
+			p += dv
+	# 7 : cailloux.
+	for pb in [[4, 13, 2], [9, 12, 3], [13, 14, 1]]:
+		for y in range(-int(pb[2]), int(pb[2]) + 1):
+			for x in range(-int(pb[2]) - 1, int(pb[2]) + 2):
+				_px(img, 112 + int(pb[0]) + x, int(pb[1]) + y, Color("5a5a70") if y < 0 else Color("3a3a4e"))
+	# 8, 9 : détails propres au lieu.
+	_scene_detail(img, 128, s, 0, rng, fc)
+	_scene_detail(img, 144, s, 1, rng, fc)
+	# 10 : herbes hautes.
+	for b in range(9):
+		_blade(img, 160, 3 + rng.randi_range(0, 10), 15, rng.randi_range(9, 14), rng.randf_range(-1.0, 1.0), gdark, glit.lightened(0.1))
+	# 11 : brindilles et feuilles.
+	for k in range(5):
+		_px(img, 176 + rng.randi_range(2, 13), rng.randi_range(11, 15), [Color("8a5a2a"), Color("a8702a"), Color("5a4030")][k % 3])
+	for x in range(3, 13):
+		_px(img, 176 + x, 13 - int(float(x - 3) * 0.3), Color("4a3428"))
+	return _tex(img)
+
+
+static func _scene_detail(img: Image, ox: int, s: String, which: int, rng: RandomNumberGenerator, fc: Array) -> void:
+	match s + str(which):
+		"lisiere0":
+			# Botte de foin.
+			for y in range(8, 16):
+				for x in range(2, 14):
+					_px(img, ox + x, y, Color("c8a050") if (x + y) % 3 else Color("a8802a"))
+		"lisiere1":
+			# Tonneau.
+			for y in range(5, 16):
+				for x in range(4, 12):
+					_px(img, ox + x, y, Color("6a4a2a") if x not in [4, 11] else Color("4a3420"))
+			for x in range(4, 12):
+				_px(img, ox + x, 7, Color("3a3a48"))
+				_px(img, ox + x, 13, Color("3a3a48"))
+		"clairiere0", "sylvarche0":
+			# Branche cassée (ou racine qui affleure).
+			for x in range(1, 15):
+				var y := 13 - int(sin(float(x) / 14.0 * PI) * (5.0 if s == "sylvarche" else 2.0))
+				_px(img, ox + x, y, Color("5a4030"))
+				_px(img, ox + x, y + 1, Color("3a2a20"))
+		"clairiere1":
+			# Champignons bruns.
+			for m in [[5, 10], [10, 12]]:
+				for x in range(-2, 3):
+					_px(img, ox + int(m[0]) + x, int(m[1]) - 2, Color("8a5a3a"))
+				_px(img, ox + int(m[0]), int(m[1]) - 1, Color("e8dcc0"))
+				_px(img, ox + int(m[0]), int(m[1]), Color("e8dcc0"))
+		"roncier0", "coeur1":
+			# Rameau d'épines.
+			var p := Vector2(ox + 3, 15)
+			for k in range(14):
+				_px(img, int(p.x), int(p.y), Color("2a1430"))
+				if k % 3 == 1:
+					_px(img, int(p.x) + 1, int(p.y) - 1, Color("b07cff"))
+				p += Vector2(0.7, -0.8)
+		"roncier1":
+			# Pierre runique tombée.
+			for y in range(9, 15):
+				for x in range(2, 14):
+					_px(img, ox + x, y, Color("4a4660"))
+			_px(img, ox + 7, 11, Color("d93cf2"))
+			_px(img, ox + 8, 12, Color("d93cf2"))
+		"sentier0", "source1":
+			# Pierre plate (ou nénuphar).
+			for y in range(-2, 3):
+				for x in range(-6, 7):
+					if pow(float(x) / 6.0, 2.0) + pow(float(y) / 2.0, 2.0) <= 1.0:
+						_px(img, ox + 8 + x, 13 + y, Color("5a5a70") if s == "sentier" else Color("3f7a4a"))
+			if s == "source":
+				_px(img, ox + 9, 12, Color("f4f0ff"))
+		"sentier1", "fougeres1", "sylvarche1":
+			# Fleur lumineuse (luciole posée, fleur de lune, champignon violet).
+			_blade(img, ox, 8, 15, 6, 0.0, Color("2f5a3a"), Color("4f8a54"))
+			var col: Color = Color("f2e28b") if s == "sentier" else (Color("e8f0ff") if s == "fougeres" else Color("b07cff"))
+			for d in [Vector2i(0, 0), Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+				_px(img, ox + 8 + d.x, 8 + d.y, col)
+		"fougeres0":
+			# Grande fronde.
+			for k in range(14):
+				_px(img, ox + 2 + k, 15 - int(float(k) * 0.9), Color("2f6a44"))
+				_px(img, ox + 2 + k, 14 - int(float(k) * 0.9), Color("4f8a54"))
+		"cercle0", "cercle1":
+			# Champignon de fée (petit ou grand).
+			var r := 3 if which == 0 else 5
+			for y in range(-r + 1, 1):
+				for x in range(-r, r + 1):
+					if absi(x) <= r + y:
+						_px(img, ox + 8 + x, 9 + y, Color("f7a8e0"))
+			for y in range(10, 16):
+				_px(img, ox + 8, y, Color("e8dcc0"))
+				_px(img, ox + 9, y, Color("c8bca0"))
+			_px(img, ox + 7, 8, Color.WHITE)
+		"source0":
+			# Roseaux.
+			for k in range(5):
+				_blade(img, ox, 3 + k * 2, 15, 11 + (k % 2) * 3, 0.3, Color("2f6a44"), Color("6a8a4a"))
+			_px(img, ox + 5, 4, Color("6a4a2a"))
+			_px(img, ox + 5, 5, Color("6a4a2a"))
+		"coeur0":
+			# Éclat de cristal.
+			for y in range(16):
+				var half := int(4.0 * (1.0 - absf(float(y) - 9.0) / 9.0))
+				for x in range(-half, half + 1):
+					_px(img, ox + 8 + x, 15 - y, Color("5a2a7a") if x < 0 else Color("d98cff"))
+		_:
+			_blade(img, ox, 8, 15, 8, 0.0, Color("2f5a3a"), Color("4f8a54"))
+
+
+## Planche d'arbres du lieu (6 images de 28×48) : 0-2 sapins, 3-4 feuillus, 5 arbre mort (ou lumineux au cercle).
+static func tree_atlas(s: String) -> ImageTexture:
+	var fw := 28
+	var fh := 48
+	var img := Image.create_empty(fw * 6, fh, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(s) + 3
+	var violet := s in ["roncier", "coeur", "sylvarche"]
+	# Sapins : étages de branches, ombre à gauche, lune à droite.
+	var dark := [Color("0f2420"), Color("12281f"), Color("102a26")]
+	var mid := [Color("1d3d33"), Color("1f4336"), Color("1a3a34")]
+	var lit := [Color("3a6a5a"), Color("3f7058"), Color("3a6670")]
+	for v in range(3):
+		var cx := v * fw + fw / 2
+		img.fill_rect(Rect2i(cx - 1, fh - 8, 3, 8), Color("2a1e18"))
+		var layers := 6 + v
+		for l in range(layers):
+			var top := 2 + int(float(l) * float(fh - 14) / float(layers))
+			var bottom := top + 11 + l
+			for y in range(top, mini(bottom, fh - 6)):
+				var half := mini(int(float(y - top + 1) * (0.5 + 0.05 * float(v)) + 1.0), fw / 2 - 1)
+				for x in range(-half, half + 1):
+					var c: Color = mid[v]
+					if x < -half + 2:
+						c = dark[v]
+					elif x > half - 3 and y % 3 != 0:
+						c = lit[v]
+					if absi(x) == half and rng.randf() < 0.45:
+						continue
+					if violet:
+						c = c.lerp(Color("3a2450"), 0.35)
+					_px(img, cx + x, y, c)
+		_px(img, cx, 1, lit[v])
+	# Feuillus : tronc et couronne en grappes.
+	var leaf := [Color("1f3a26"), Color("2f5a36"), Color("4f8a4a")]
+	if s == "source":
+		leaf = [Color("1a3a36"), Color("2a5a4e"), Color("4a8a7a")]
+	elif violet:
+		leaf = [Color("2a1a40"), Color("4a2a6a"), Color("7a4aa8")]
+	elif s == "clairiere":
+		leaf = [Color("2a3a1e"), Color("4a5a2a"), Color("8a8a3a")]
+	for v in range(2):
+		var ox := (3 + v) * fw
+		var cx2 := ox + fw / 2
+		for y in range(fh - 18, fh):
+			img.fill_rect(Rect2i(cx2 - 2 + (1 if y < fh - 10 else 0), y, 4 - (1 if y < fh - 10 else 0), 1), Color("3a2a22"))
+		_px(img, cx2 + 1, fh - 12, Color("5a4232"))
+		for blob in [[0, 16, 12, 11], [-6, 22, 8, 7], [6, 22, 8, 7], [0, 9, 9, 7], [-4 + v * 8, 28, 6, 5]]:
+			var bx: int = cx2 + int(blob[0])
+			var by: int = int(blob[1])
+			var rx: int = int(blob[2])
+			var ry: int = int(blob[3])
+			for y in range(-ry, ry + 1):
+				for x in range(-rx, rx + 1):
+					var d := pow(float(x) / float(rx), 2.0) + pow(float(y) / float(ry), 2.0)
+					if d > 1.0 or (d > 0.85 and rng.randf() < 0.5):
+						continue
+					var c: Color = leaf[1]
+					if x > rx / 3 and y < 0:
+						c = leaf[2]
+					elif x < -rx / 3 or y > ry / 2:
+						c = leaf[0]
+					_px(img, bx + x, by + y, c)
+	# Arbre mort (branches nues) ou arbre lumineux du cercle des fées.
+	var ox3 := 5 * fw
+	var cx3 := ox3 + fw / 2
+	if s == "cercle":
+		for y in range(fh - 16, fh):
+			img.fill_rect(Rect2i(cx3 - 1, y, 3, 1), Color("4a3a48"))
+		for blob in [[0, 18, 11, 10], [-6, 26, 7, 6], [6, 26, 7, 6], [0, 10, 8, 6]]:
+			var bx2: int = cx3 + int(blob[0])
+			for y in range(-int(blob[3]), int(blob[3]) + 1):
+				for x in range(-int(blob[2]), int(blob[2]) + 1):
+					var d2 := pow(float(x) / float(blob[2]), 2.0) + pow(float(y) / float(blob[3]), 2.0)
+					if d2 <= 1.0 and not (d2 > 0.8 and rng.randf() < 0.5):
+						var pc := Color("8a4a7a")
+						if x > 0 and y < 0:
+							pc = Color("c87ab0")
+						elif x < -2 or y > 2:
+							pc = Color("5a2a5a")
+						if rng.randf() < 0.07:
+							pc = Color("ffd8f4")
+						_px(img, bx2 + x, int(blob[1]) + y, pc)
+	else:
+		var trunk := Color("2a2026") if violet else Color("3a2e2a")
+		for y in range(10, fh):
+			var half3 := 1 + int(float(y - 10) / 14.0)
+			img.fill_rect(Rect2i(cx3 - half3, y, half3 * 2, 1), trunk)
+		for br in [[16, -1, 9, -7], [22, 1, 9, -6], [13, 1, 6, -9], [28, -1, 7, -4], [19, -1, 5, -10]]:
+			var p := Vector2(cx3, br[0])
+			for k in range(int(br[2])):
+				_px(img, int(p.x), int(p.y), trunk)
+				p += Vector2(float(br[1]) * 0.9, float(br[3]) / float(br[2]))
+			if violet:
+				_px(img, int(p.x), int(p.y), Color("b07cff"))
+	return _tex(img)
+
+
+## Sol de la zone 1, plus riche : taches de couleur (bruit), brins d'herbe, cailloux, bords du chemin envahis,
+## ombre le long des bords de l'arène.
+static func _ground_richness(img: Image, rng: RandomNumberGenerator, x0: int, x1: int, y_top: int, y_bot: int) -> void:
+	var w := img.get_width()
+	var h := img.get_height()
+	# Bruit de valeur : une grille grossière interpolée.
+	var cell := 12
+	var gw := w / cell + 2
+	var gh := h / cell + 2
+	var grid := PackedFloat32Array()
+	grid.resize(gw * gh)
+	for i in range(gw * gh):
+		grid[i] = rng.randf_range(-1.0, 1.0)
+	for y in range(h):
+		for x in range(w):
+			if x >= x0 - 2 and x <= x1 + 2 and y >= y_top and y <= y_bot:
+				continue
+			var fx := float(x) / float(cell)
+			var fy := float(y) / float(cell)
+			var ix := int(fx)
+			var iy := int(fy)
+			var tx := fx - float(ix)
+			var ty := fy - float(iy)
+			var a := lerpf(grid[iy * gw + ix], grid[iy * gw + ix + 1], tx)
+			var b := lerpf(grid[(iy + 1) * gw + ix], grid[(iy + 1) * gw + ix + 1], tx)
+			var n := lerpf(a, b, ty)
+			var c := _pget(img, x, y)
+			c = c.lightened(n * 0.09) if n > 0.0 else c.darkened(-n * 0.12)
+			img.set_pixel(x, y, Color(c.r + n * 0.012, c.g + n * 0.02, c.b - n * 0.01, 1.0))
+	# Brins d'herbe : base sombre, pointe claire.
+	for i in range(w * h / 22):
+		var x := rng.randi_range(0, w - 1)
+		var y := rng.randi_range(2, h - 1)
+		if x >= x0 and x <= x1 and y >= y_top and y <= y_bot:
+			continue
+		var base := _pget(img, x, y)
+		_px(img, x, y, base.darkened(0.18))
+		_px(img, x, y - 1, base.lightened(0.12))
+		if rng.randf() < 0.4:
+			_px(img, x + (1 if rng.randf() < 0.5 else -1), y - 2, base.lightened(0.22))
+	# Bords du chemin envahis par l'herbe.
+	for y in range(y_top, y_bot):
+		for side in [x0, x1]:
+			for k in range(rng.randi_range(0, 3)):
+				var gx: int = side + (k if side == x0 else -k)
+				var gc := _pget(img, side - 3 if side == x0 else side + 3, y)
+				_px(img, gx, y, gc.lightened(0.05))
+	# Petits cailloux.
+	for i in range(w * h / 500):
+		var x2 := rng.randi_range(0, w - 1)
+		var y2 := rng.randi_range(0, h - 1)
+		_px(img, x2, y2, Color("5a5a6e"))
+		_px(img, x2 + 1, y2, Color("3e3e52"))
+	# Ombre le long des bords de l'arène.
+	for y in range(h):
+		for k in range(7):
+			var a2 := 0.22 * (1.0 - float(k) / 7.0)
+			for x in [k, w - 1 - k]:
+				img.set_pixel(x, y, _pget(img, x, y).darkened(a2))

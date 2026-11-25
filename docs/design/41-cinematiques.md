@@ -49,6 +49,12 @@ Chaque niveau se joue dans le lieu de ses cinématiques (`WorldArt.LEVEL_SCENE`,
 | 1-9 | Cœur corrompu | Veines du Surge et éclats de cristal ; piliers de cristal lumineux ; cristaux violets ; arbres teintés de violet |
 | 1-10 | Domaine de la Sylvarche | Racines sur le sol et sur les bords ; bois sombre ; l'arbre-mère sur l'horizon |
 
+**Détails** (zone 1, hors du pont) :
+- **Végétation en relief** (`WorldArt.foliage_atlas`, `shaders/foliage.gdshader`) : 12 éléments par lieu (touffes, fleurs aux couleurs du lieu, buisson, rocher moussu, fougère, cailloux, herbes hautes, brindilles, et deux détails propres : bottes de foin et tonneaux à Lysbourg, branches cassées et champignons dans la clairière, rameaux d'épines et pierre runique tombée au roncier, fleurs de lune aux fougères, champignons de fée, roseaux et nénuphars à la Source, éclats de cristal au Cœur, racines et champignons violets chez la Sylvarche). Environ 350 éléments : le long des bords du terrain, clairsemés sur le terrain, partout sur le sol de la forêt. Ils ondulent au vent ; certains luisent doucement.
+- **Arbres** (`WorldArt.tree_atlas`) : sapins, feuillus (verts, olive dans la clairière, bleu-vert à la Source, violets là où règne le Surge), arbre mort au roncier, au Cœur et chez la Sylvarche, arbres lumineux au cercle des fées ; leur mélange suit le lieu.
+- **Sol** : taches de couleur (bruit), brins d'herbe, cailloux, bords du chemin envahis d'herbe.
+- **Ambiance** : feuilles qui tombent (violettes chez la Sylvarche et au roncier), fumée des cheminées de Lysbourg, reflets qui scintillent sur l'eau de la Source, lueurs qui pulsent (lanternes, pierres runiques, champignons, cristaux).
+
 ## Indications (données)
 
 Facultatives, sur une réplique (`cam`, `fx`, `act`, `grade`, `emote`) ou dans l'en-tête d'une scène (`cast`, `grade`, `cam`). `cam` et `fx` acceptent une valeur ou une liste.

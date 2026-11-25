@@ -50,6 +50,8 @@ var _casters: Array[Sprite3D] = []
 var _staff_fx: CPUParticles3D
 var _staff_light: OmniLight3D
 var _torch_lights: Array[OmniLight3D] = []
+var _chimneys: Array[Vector3] = [] ## cheminées des chaumières (fumée)
+var _pulse: Array = [] ## lueurs qui pulsent : [lumière, énergie, phase]
 var _pylon_nodes: Array[Dictionary] = []
 var _terrain_view: TerrainView
 var _moss_cap: StandardMaterial3D
@@ -346,8 +348,12 @@ func _build_terrain() -> void:
 		mi.material_override = sm
 		mi.position = Vector3(4.5, float(l[0]), -10.0)
 		add_child(mi)
-	# Sapins (billboards verticaux).
-	var pine := WorldArt.pine_texture()
+	# Arbres (billboards verticaux) : sapins ; au sol de la forêt, l'essence suit le lieu.
+	var pine := WorldArt.pine_texture() if not floor_set else WorldArt.tree_atlas(sc)
+	var frames := 3 if not floor_set else 6
+	var weights: Array = {"lisiere": [2, 2, 1, 4, 4, 0], "sentier": [4, 4, 4, 1, 0, 0], "clairiere": [2, 2, 1, 4, 3, 2],
+		"roncier": [3, 3, 3, 0, 0, 4], "fougeres": [3, 3, 3, 2, 2, 0], "cercle": [3, 3, 2, 1, 1, 3], "source": [2, 3, 2, 3, 3, 0],
+		"coeur": [3, 3, 3, 0, 1, 3], "sylvarche": [3, 3, 2, 1, 2, 2]}.get(sc, [1, 1, 1, 0, 0, 0])
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_colors = true
@@ -364,7 +370,7 @@ func _build_terrain() -> void:
 		var side := -1.0 if i % 2 == 0 else 1.0
 		var x := 4.5 + side * rng.randf_range(dmin, 17.0)
 		var y := rng.randf_range(-6.0, 34.0)
-		spots.append([Vector3(x, ty, -y), rng.randf_range(3.0, 6.0), rng.randi_range(0, 2)])
+		spots.append([Vector3(x, ty, -y), rng.randf_range(3.0, 6.0), _pick(rng, weights) if floor_set else rng.randi_range(0, 2)])
 	if not floor_set:
 		for i in range(14):
 			var side := -1.0 if i % 2 == 0 else 1.0
@@ -373,12 +379,14 @@ func _build_terrain() -> void:
 	for i in range(spots.size()):
 		var s: Array = spots[i]
 		var hgt: float = s[1]
-		var tf := Transform3D(Basis.from_scale(Vector3(hgt * 20.0 / 44.0, hgt, 1.0)), s[0])
+		var tf := Transform3D(Basis.from_scale(Vector3(hgt * (20.0 / 44.0 if not floor_set else 28.0 / 48.0), hgt, 1.0)), s[0])
 		mm.set_instance_transform(i, tf)
 		var shade := rng.randf_range(0.8, 1.05)
 		mm.set_instance_color(i, Color(shade, shade, shade * 1.05) if not (sc in ["coeur", "sylvarche", "roncier"]) else Color(shade * 0.85, shade * 0.7, shade * 1.1))
 		var v: int = s[2]
-		mm.set_instance_custom_data(i, Color(float(v) / 3.0, 0.0, 1.0 / 3.0, 1.0))
+		mm.set_instance_custom_data(i, Color(float(v) / float(frames), 0.0, 1.0 / float(frames), 1.0))
+		if floor_set and v == 5 and sc == "cercle":
+			mm.set_instance_color(i, Color(1.12, 1.02, 1.12)) ## arbres lumineux du cercle des fées
 	var tmi := MultiMeshInstance3D.new()
 	tmi.name = "Trees"
 	tmi.multimesh = mm
@@ -391,6 +399,18 @@ func _build_terrain() -> void:
 	tmi.custom_aabb = AABB(Vector3(-30.0, -15.0, -60.0), Vector3(70.0, 40.0, 80.0))
 	add_child(tmi)
 	_trees_mm = mm
+
+
+static func _pick(rng: RandomNumberGenerator, weights: Array) -> int:
+	var total := 0
+	for wv in weights:
+		total += int(wv)
+	var r := rng.randi_range(1, maxi(1, total))
+	for i in range(weights.size()):
+		r -= int(weights[i])
+		if r <= 0:
+			return i
+	return 0
 
 
 func _trees_mm_instance() -> MultiMeshInstance3D:
@@ -529,6 +549,8 @@ func _build_props() -> void:
 	ff.color_ramp = ramp
 	add_child(ff)
 	_build_scene_props()
+	_build_foliage()
+	_build_ambience()
 
 
 ## Objets propres au lieu du combat (zone 1) : sur les bords, au sol de la forêt.
@@ -543,7 +565,9 @@ func _build_scene_props() -> void:
 			var cot := WorldArt.cottage_texture()
 			for i in range(6):
 				var side := -1.0 if i % 2 == 0 else 1.0
-				_prop(cot, Vector2(4.5 + side * rng.randf_range(7.0, 8.5), 1.5 + float(i / 2) * 6.0 + rng.randf_range(-1.0, 1.0)), 1.6)
+				var cp := Vector2(4.5 + side * rng.randf_range(7.0, 8.5), 1.5 + float(i / 2) * 6.0 + rng.randf_range(-1.0, 1.0))
+				_prop(cot, cp, 1.6)
+				_chimneys.append(w3(cp + Vector2(0.25, 0.0), -0.7 + 30.0 * TEXEL * 1.6))
 			var lamp := WorldArt.lamp_texture()
 			for i in range(6):
 				var side2 := -1.0 if i % 2 == 0 else 1.0
@@ -667,6 +691,129 @@ func _pillar_mats() -> Array:
 	return [body, cap]
 
 
+## Végétation des combats (zone 1, hors du pont) : touffes, fleurs, buissons, rochers, fougères, cailloux et
+## détails du lieu, le long des bords du terrain, clairsemés sur le terrain, et partout sur le sol de la forêt.
+## Elle ondule au vent ; certains détails luisent (champignons, cristaux, fleurs de lune).
+func _build_foliage() -> void:
+	var sc := WorldArt.scene if WorldArt.zone == 1 else ""
+	if sc == "" or sc == "pont":
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(sc) + 11
+	var glow: Array = WorldArt.FOLIAGE_GLOW.get(sc, [])
+	var items: Array = [] ## [position, taille, image]
+	# Bords du terrain : herbes hautes, fleurs, touffes, cailloux.
+	for i in range(90):
+		var side := -1.0 if i % 2 == 0 else 1.0
+		var x := 4.5 + side * rng.randf_range(3.95, 4.5)
+		items.append([w3(Vector2(x, rng.randf_range(-0.5, 15.8)), 0.0), rng.randf_range(0.32, 0.55), [0, 1, 2, 3, 10, 10, 7, 11][rng.randi_range(0, 7)]])
+	# Sur le terrain : quelques touffes basses et cailloux.
+	for i in range(55):
+		items.append([w3(Vector2(rng.randf_range(0.6, 8.4), rng.randf_range(0.8, 14.5)), 0.0), rng.randf_range(0.16, 0.26), [0, 1, 7, 11, 2][rng.randi_range(0, 4)]])
+	# Sol de la forêt de part et d'autre : tout, plus grand, avec les détails du lieu.
+	for i in range(200):
+		var side2 := -1.0 if i % 2 == 0 else 1.0
+		var x2 := 4.5 + side2 * rng.randf_range(5.3, 11.0)
+		var f: int = [0, 1, 2, 3, 4, 4, 5, 6, 6, 8, 9, 10, 8, 9][rng.randi_range(0, 13)]
+		var big := 1.6 if f in [4, 5, 8, 9] else 1.0
+		items.append([w3(Vector2(x2, rng.randf_range(-3.0, 24.0)), -0.6), rng.randf_range(0.45, 0.9) * big, f])
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_colors = true
+	mm.use_custom_data = true
+	mm.mesh = _quad_mesh()
+	mm.instance_count = items.size()
+	for i in range(items.size()):
+		var it: Array = items[i]
+		var sz: float = it[1]
+		mm.set_instance_transform(i, Transform3D(Basis.from_scale(Vector3(sz, sz, 1.0)), it[0]))
+		var f2: int = it[2]
+		var sh := rng.randf_range(0.82, 1.05)
+		mm.set_instance_color(i, Color(sh, sh, sh, 0.8 if f2 in glow else 0.0))
+		mm.set_instance_custom_data(i, Color(float(f2) / float(WorldArt.FOLIAGE_N), 0.0, 1.0 / float(WorldArt.FOLIAGE_N), 1.0))
+	var mi := MultiMeshInstance3D.new()
+	mi.multimesh = mm
+	var mat := ShaderMaterial.new()
+	mat.shader = load("res://shaders/foliage.gdshader")
+	mat.set_shader_parameter("atlas", WorldArt.foliage_atlas(sc))
+	mat.set_shader_parameter("sway", 0.05)
+	mat.set_shader_parameter("stretch", 1.0 / maxf(0.3, cos(deg_to_rad(PITCH_DEG))))
+	mi.material_override = mat
+	mi.custom_aabb = AABB(Vector3(-15.0, -2.0, -30.0), Vector3(40.0, 8.0, 40.0))
+	add_child(mi)
+
+
+## Ambiance animée du lieu : feuilles qui tombent, fumée des cheminées, reflets sur l'eau ; les lueurs pulsent.
+func _build_ambience() -> void:
+	var sc := WorldArt.scene if WorldArt.zone == 1 else ""
+	if sc == "" or sc == "pont":
+		return
+	if sc in ["lisiere", "sentier", "clairiere", "fougeres", "source", "sylvarche", "roncier"]:
+		var lv := CPUParticles3D.new()
+		lv.amount = 26
+		lv.lifetime = 9.0
+		lv.preprocess = 9.0
+		lv.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+		lv.emission_box_extents = Vector3(9.0, 0.5, 11.0)
+		lv.position = Vector3(4.5, 5.0, -8.0)
+		lv.direction = Vector3(0.3, -1.0, 0.0)
+		lv.spread = 25.0
+		lv.initial_velocity_min = 0.25
+		lv.initial_velocity_max = 0.5
+		lv.gravity = Vector3(0.12, -0.05, 0.0)
+		lv.angular_velocity_min = -90.0
+		lv.angular_velocity_max = 90.0
+		lv.mesh = _particle_mesh(0.11)
+		var cr := Gradient.new()
+		var cols: Array = [Color("8a5a2a"), Color("c88a3a"), Color("4f7a3a")]
+		if sc in ["sylvarche", "roncier"]:
+			cols = [Color("5a2a7a"), Color("8e62e0"), Color("3a2a4a")]
+		elif sc == "source":
+			cols = [Color("4f8a5a"), Color("8ac870"), Color("3f6a4a")]
+		cr.set_color(0, cols[0])
+		cr.set_color(1, cols[1])
+		cr.add_point(0.5, cols[2])
+		lv.color_initial_ramp = cr
+		add_child(lv)
+	if sc == "source":
+		for side: float in [-1.0, 1.0]:
+			var gl := CPUParticles3D.new()
+			gl.amount = 22
+			gl.lifetime = 1.4
+			gl.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+			gl.emission_box_extents = Vector3(1.8, 0.0, 6.5)
+			gl.position = w3(Vector2(4.5 + side * 7.6, 8.0), 0.06)
+			gl.gravity = Vector3.ZERO
+			gl.initial_velocity_max = 0.0
+			gl.mesh = _particle_mesh(0.08)
+			var gr := Gradient.new()
+			gr.set_color(0, Color(0.8, 1.0, 1.0, 0.0))
+			gr.set_color(1, Color(0.8, 1.0, 1.0, 0.0))
+			gr.add_point(0.5, Color(0.9, 1.0, 1.0, 0.9))
+			gl.color_ramp = gr
+			add_child(gl)
+	for c in _chimneys:
+		var sm := CPUParticles3D.new()
+		sm.amount = 10
+		sm.lifetime = 3.5
+		sm.preprocess = 3.5
+		sm.position = c
+		sm.direction = Vector3(0.15, 1.0, 0.0)
+		sm.spread = 10.0
+		sm.initial_velocity_min = 0.3
+		sm.initial_velocity_max = 0.5
+		sm.gravity = Vector3(0.08, 0.05, 0.0)
+		sm.scale_amount_min = 1.0
+		sm.scale_amount_max = 2.2
+		sm.mesh = _particle_mesh(0.22)
+		var sg := Gradient.new()
+		sg.set_color(0, Color(0.55, 0.52, 0.65, 0.0))
+		sg.set_color(1, Color(0.4, 0.4, 0.5, 0.0))
+		sg.add_point(0.25, Color(0.6, 0.58, 0.7, 0.5))
+		sm.color_ramp = sg
+		add_child(sm)
+
+
 func _side_spot(rng: RandomNumberGenerator) -> Vector2:
 	var side := -1.0 if rng.randf() < 0.5 else 1.0
 	return Vector2(4.5 + side * rng.randf_range(5.6, 9.0), rng.randf_range(-0.5, 18.0))
@@ -695,6 +842,7 @@ func _prop_light(p: Vector2, h: float, col: Color, energy: float, rng_m: float) 
 	l.omni_range = rng_m
 	l.position = w3(p, h)
 	add_child(l)
+	_pulse.append([l, energy, randf() * TAU])
 
 
 ## Pylônes d'ambre (zone 2) : cristal sur socle, s'illumine avant de surcharger son portail.
@@ -1210,6 +1358,8 @@ func _process(delta: float) -> void:
 	_draw_fx(delta)
 	if _terrain_view != null:
 		_terrain_view.update(delta)
+	for pl in _pulse:
+		(pl[0] as OmniLight3D).light_energy = float(pl[1]) * (0.78 + 0.22 * sin(t * 2.1 + float(pl[2])))
 	for l in _torch_lights:
 		l.light_energy = 1.25 + 0.25 * sin(t * 11.0 + l.position.x) + 0.1 * sin(t * 23.0)
 
