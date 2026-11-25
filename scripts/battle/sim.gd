@@ -270,6 +270,9 @@ var frenzy_until := 0.0 ## fin de la dernière frénésie lancée (Rage de sang 
 var sacrificed := 0 ## invocations sacrifiées (Moisson d'âmes)
 ## Sorts à impact différé (projectile, météore) et zones actives (pluie, racines, vortex).
 var pending_impacts: Array[Dictionary] = []
+var _champ_acc := 0.0 ## charge du Champion : au rythme de l'ancien Flux (4 par seconde), quelle que soit la classe
+var shot_buff_until := 0.0 ## Renfort lancé : les tirs de classe partent renforcés jusque-là
+var shot_buff: Dictionary = {} ## {atk, crit, aspd, steal}
 var terrain := BattleTerrain.new() ## sols, piliers, murs (scripts/battle/terrain.gd)
 var zones: Array[Dictionary] = []
 ## Effets des fils du destin appliqués à ce niveau (textes affichés au départ).
@@ -885,6 +888,7 @@ func step() -> void:
 	_cross_portals()
 	_tick_status()
 	_build_grids()
+	ClassFire.hits(self)
 	_update_impacts()
 	_update_zones()
 	_update_fog()
@@ -921,12 +925,17 @@ func _update_casters() -> void:
 		if not c.firing:
 			c.fire_acc = minf(c.fire_acc, 0.99)
 			continue
-		c.fire_acc += TICK * c.cadence * cadence_mult * (1.5 if breeze_t > 0.0 and c.idx == 0 else 1.0)
+		if c.idx == 0:
+			# Le Champion se charge au même rythme pour toutes les classes (l'ancien Flux : 4 par seconde).
+			_champ_acc += TICK * c.cadence * cadence_mult * (1.5 if breeze_t > 0.0 else 1.0)
+			while _champ_acc >= 1.0:
+				_champ_acc -= 1.0
+				champion_charge = mini(champion_need, champion_charge + 1)
+		# Tir normal propre à la classe (scripts/battle/class_fire.gd).
+		c.fire_acc += TICK * ClassFire.rate(self, c)
 		while c.fire_acc >= 1.0:
 			c.fire_acc -= 1.0
-			var u := _spawn_familiar(c, Vector2(c.x + rng.randf_range(-0.12, 0.12), CASTER_Y + 0.45))
-			if u != null and c.idx == 0:
-				champion_charge = mini(champion_need, champion_charge + 1)
+			ClassFire.volley(self, c)
 
 
 func _update_portals() -> void:
@@ -1032,7 +1041,14 @@ func _move_units() -> void:
 		u.prev_pos = u.pos
 		if not u.alive:
 			continue
+		if u.shot != "":
+			ClassFire.move(self, u)
+			continue
 		u.anim += TICK
+		if u.rise_t > 0.0:
+			# Squelette qui sort de terre : il n'avance qu'une fois debout.
+			u.rise_t -= TICK
+			continue
 		if u.role == "escort":
 			if not u.engaged and u.speed_factor() > 0.0:
 				u.pos.y = minf(escort_goal_y, u.pos.y + u.speed * u.speed_factor() * TICK)
@@ -1096,6 +1112,8 @@ func _cross_portals() -> void:
 				continue
 			if u.prev_pos.y < p.y and u.pos.y >= p.y and absf(u.pos.x - p.x) <= p.width * 0.5 and not u.crossed.has(p.id):
 				u.crossed[p.id] = true
+				if u.shot != "":
+					ClassFire.on_portal(self, p, u)
 				_apply_portal(p, u)
 				if not u.alive:
 					break
@@ -1116,7 +1134,7 @@ func _apply_portal(p: Portal, u: Unit) -> void:
 		if p.counter >= p.need and not riddle.is_empty():
 			_resolve_riddle(p.id == int(riddle["right"]))
 		return
-	if u.owner_idx == 0 and u.attack_range > 0.0 and _mod("portal_split") > 0.0 and not p.is_negative() and rng.randf() < _mod("portal_split"):
+	if u.owner_idx == 0 and (u.attack_range > 0.0 or u.shot != "") and _mod("portal_split") > 0.0 and not p.is_negative() and rng.randf() < _mod("portal_split"):
 		# Flèches astrales : un tireur du joueur se divise en passant un portail.
 		_add_ally(_clone(u, Vector2(rng.randf_range(-0.3, 0.3), -0.06)))
 	if p.charged_t > 0.0 and not p.is_negative():
@@ -1156,6 +1174,7 @@ func _apply_portal(p: Portal, u: Unit) -> void:
 			u.hp *= 2.0
 			u.max_hp *= 2.0
 			u.radius *= 1.3
+			u.scale *= 1.3
 			u.speed *= 0.8
 		"haste":
 			u.speed *= 1.4
@@ -1259,11 +1278,16 @@ func _make_unit(kind: String, team: int, p: Vector2) -> Unit:
 	return u
 
 
-func _spawn_familiar(c: Caster, p: Vector2) -> Unit:
+## « k_atk », « k_hp », « size », « rise » : troupes renforcées (squelettes du Nécromancien : ×2, ×2, 1,1,
+## sortie de terre).
+func _spawn_familiar(c: Caster, p: Vector2, k_atk: float = 1.0, k_hp: float = 1.0, size: float = 1.0, rise: float = 0.0) -> Unit:
 	var u := _make_unit(c.familiar, 0, p)
 	u.owner_idx = c.idx
-	u.atk *= c.atk_mult
-	u.hp *= c.hp_mult
+	u.atk *= c.atk_mult * k_atk
+	u.hp *= c.hp_mult * k_hp
+	u.scale = size
+	u.radius *= size
+	u.rise_t = rise
 	if c.idx == 0:
 		_player_unit_mods(u)
 	u.max_hp = u.hp
@@ -1347,6 +1371,20 @@ func _clone(u: Unit, off: Vector2) -> Unit:
 	c.wings = u.wings
 	c.crossed = u.crossed.duplicate()
 	c.anim = rng.randf() * 10.0
+	c.scale = u.scale
+	if u.shot != "":
+		# Un tir dédoublé par un portail garde sa course : mêmes ennemis déjà touchés, même portée.
+		c.shot = u.shot
+		c.pierce = u.pierce
+		c.travel = u.travel
+		c.hit_ids = u.hit_ids.duplicate()
+		c.anim = u.anim
+		c.frenzy_t = u.frenzy_t
+		c.buff_t = u.buff_t
+		c.buff_atk = u.buff_atk
+		c.buff_crit = u.buff_crit
+		c.buff_steal = u.buff_steal
+		return c
 	summoned += 1
 	return c
 
@@ -1489,7 +1527,7 @@ func _build_grids() -> void:
 		if e.alive:
 			_grid_e[_cell(e.pos)].append(e)
 	for a in allies:
-		if a.alive:
+		if a.alive and a.shot == "":
 			_grid_a[_cell(a.pos)].append(a)
 
 
@@ -1530,7 +1568,7 @@ func _resolve_contacts() -> void:
 		e.engaged = false
 	for a in allies:
 		a.engaged = false
-		if not a.alive:
+		if not a.alive or a.shot != "":
 			continue
 		var best: Unit = null
 		var best_d := 1e9
@@ -2176,7 +2214,7 @@ func _update_telegraphs() -> void:
 		var aval := bool(tg.get("avalanche", false))
 		var push := float(tg.get("push", 0.0))
 		for a in allies:
-			if a.alive and r.has_point(a.pos):
+			if a.alive and a.shot == "" and r.has_point(a.pos):
 				var dmg := float(tg["dmg"]) * 100.0 / (100.0 + a.defense)
 				_damage(a, dmg * (0.4 if a.role == "escort" else 1.0), "")
 				if push > 0.0 and a.alive and a.role != "escort":
@@ -2227,7 +2265,7 @@ func _target_row(avoid: Array[float]) -> float:
 		if ok:
 			var n := 0
 			for a in allies:
-				if a.alive and absf(a.pos.y - y) <= 0.7:
+				if a.alive and a.shot == "" and absf(a.pos.y - y) <= 0.7:
 					n += 1
 			if n > best_n:
 				best_n = n
@@ -2248,7 +2286,7 @@ func _target_lane(avoid: Array[float]) -> float:
 		if ok:
 			var n := 0
 			for a in allies:
-				if a.alive and a.pos.y < boss.pos.y and absf(a.pos.x - x) <= 0.7:
+				if a.alive and a.shot == "" and a.pos.y < boss.pos.y and absf(a.pos.x - x) <= 0.7:
 					n += 1
 			if n > best_n:
 				best_n = n
@@ -2432,7 +2470,7 @@ static func affinity(a: String, b: String) -> float:
 
 
 func _damage(tgt: Unit, amount: float, elem: String) -> void:
-	if not tgt.alive or amount <= 0.0:
+	if not tgt.alive or amount <= 0.0 or tgt.shot != "":
 		return
 	if tgt == boss and boss_shield_t > 0.0 and elem != boss_shield_elem:
 		amount *= 0.1
@@ -3175,8 +3213,12 @@ func _rally(c: Caster, r: Dictionary, at: Vector2, col: String) -> int:
 	var rad := float(r.get("radius", 0.0))
 	var n := 0
 	var pts: Array = []
+	# Les tirs de classe lancés pendant le Renfort en profitent aussi (ils ne vivent pas assez longtemps
+	# pour le recevoir en vol).
+	shot_buff_until = maxf(shot_buff_until, time + dur)
+	shot_buff = {"atk": float(r.get("atk", 0.0)), "crit": float(r.get("crit", 0.0)), "aspd": float(r.get("aspd", 0.0)), "steal": float(r.get("steal", 0.0))}
 	for a in allies:
-		if not a.alive or a.role == "escort":
+		if not a.alive or a.role == "escort" or a.shot != "":
 			continue
 		if rad > 0.0 and a.pos.distance_to(at) > rad:
 			continue
@@ -3194,6 +3236,9 @@ func _rally(c: Caster, r: Dictionary, at: Vector2, col: String) -> int:
 			a.hp = minf(a.max_hp, a.hp + a.max_hp * float(r["heal"]))
 		n += 1
 	_event({"t": "rally", "pos": at, "from": Vector2(c.x, CASTER_Y + 0.3), "r": rad if rad > 0.0 else 4.0, "color": col, "n": n, "dur": dur, "pts": pts})
+	if ClassFire.spec_of(c).has("shot"):
+		# Classe qui tire (Archer, Épéiste…) : le Renfort porte sur ses tirs, même sans invocation.
+		n += 1
 	if n > 0:
 		_event({"t": "text", "pos": Vector2(c.x, CASTER_Y + 1.6), "text": str(r.get("label", "RENFORT !")), "color": col})
 	return n
@@ -4046,7 +4091,7 @@ func _fire_lane() -> float:
 		if ok:
 			var s := rng.randf() * 2.0
 			for a in allies:
-				if a.alive and absf(a.pos.x - x) < 0.8:
+				if a.alive and a.shot == "" and absf(a.pos.x - x) < 0.8:
 					s += 0.15
 			if s > best_s:
 				best_s = s
@@ -4102,7 +4147,7 @@ func _update_fires() -> void:
 		var r := fire_rect(f)
 		var dps := fire_dps * float(f.get("k", 1.0))
 		for a in allies:
-			if a.alive and r.grow(a.radius * 0.5).has_point(a.pos):
+			if a.alive and a.shot == "" and r.grow(a.radius * 0.5).has_point(a.pos):
 				fire_burned += minf(a.hp, dps * TICK)
 				fire_by[str(f["src"])] = float(fire_by.get(str(f["src"]), 0.0)) + minf(a.hp, dps * TICK)
 				_damage(a, dps * TICK * (0.4 if a.role == "escort" else 1.0), "feu")
@@ -4155,7 +4200,7 @@ func fire_target() -> Vector2:
 		if not bool(f["patch"]):
 			s = 3.0 + (FIRE_TOP - float(f["front"])) * 0.4
 		for a in allies:
-			if a.alive and fr.grow(0.6).has_point(a.pos):
+			if a.alive and a.shot == "" and fr.grow(0.6).has_point(a.pos):
 				s += 0.3
 		if s > best_s:
 			best_s = s
@@ -4334,7 +4379,7 @@ func _update_whirlpools() -> void:
 		var c: Vector2 = wp["pos"]
 		var r := float(wp["r"])
 		for a in allies:
-			if not a.alive or a.role == "escort":
+			if not a.alive or a.role == "escort" or a.shot != "":
 				continue
 			var d := a.pos.distance_to(c)
 			if d > r * 1.8:

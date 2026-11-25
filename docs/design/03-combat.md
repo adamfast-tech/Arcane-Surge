@@ -43,9 +43,9 @@ Un mode **solo** (sans bots) est jouable et récompensé : **+25 % d'XP**, mais 
 ### 2.1 Les trois ressources
 | Ressource | Rôle | Valeurs de base |
 |---|---|---|
-| **Flux** | Tir continu d'invocations tant que le doigt est posé, **gratuit** | Cadence 4 unités/s ; jusqu'à 8 avec les améliorations |
+| **Flux** | Tir continu tant que le doigt est posé, **gratuit** : le tir propre à la classe (troupes ou projectiles, voir [42-tirs-de-classe.md](42-tirs-de-classe.md)) | Cadence propre à chaque classe (0,15 à 0,8 s) ; accélérée par la Célérité et les améliorations |
 | **Mana** | Sert à lancer les sorts actifs | Max 100, régénération 4/s |
-| **Charge du Champion** | Se remplit à chaque unité envoyée | 30 unités envoyées → 1 Champion |
+| **Charge du Champion** | Se remplit pendant le tir, au rythme de 4 par seconde, quelle que soit la classe | 40 → 1 Champion |
 | **Jauge Surge** | Se remplit grâce aux kills | 1 par kill, 5 par élite, 20 par mini-boss ; 100 = ultime |
 
 ## 3. Unités

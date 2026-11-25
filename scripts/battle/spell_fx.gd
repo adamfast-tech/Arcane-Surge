@@ -99,6 +99,9 @@ func handle(e: Dictionary) -> bool:
 		"storm":
 			_rain(e, col)
 			_line_fx.append({"kind": "storm", "pos": e["pos"], "r": float(e["r"]), "age": 0.0, "dur": float(e["dur"]), "color": col})
+		"shot_fire", "shot_hit", "shot_beam", "shot_end", "rise", "fireflies":
+			# Tirs de classe (scripts/battle/shot_fx.gd).
+			ShotFx.play(self, e)
 		_:
 			return false
 	return true
@@ -771,7 +774,10 @@ func collect(lines: Array, points: Array) -> void:
 				lines.append([p0, p1, Color(1, 1, 1, 1.0 - k * 0.5)])
 				lines.append([p0 + Vector3(0, 0.04, 0), p1 + Vector3(0, 0.04, 0), Color(col, 1.0 - k * 0.5)])
 			_:
-				sig.draw(lf, lines, points, k)
+				if str(lf["kind"]).begins_with("tir_"):
+					ShotFx.draw(self, lf, lines, points, k)
+				else:
+					sig.draw(lf, lines, points, k)
 
 
 ## Éclair vertical, du ciel jusqu'au sol.

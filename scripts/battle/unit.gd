@@ -72,6 +72,15 @@ var reflect := 0.0 ## miroirs (zone 5) : part des coups à distance renvoyée au
 var airborne_t := 0.0 ## en vol (Drake ancien, Wyrm de cendre) : seuls les tirs et les sorts l'atteignent
 var reborn := false ## Phénix mineur : a déjà renaît de ses cendres
 
+# Tir de classe (docs/design/42-tirs-de-classe.md) : "" pour une invocation, sinon fleche, onde, lumiere,
+# bouclier ou hache. Un tir traverse les portails comme une invocation, mais rien ne peut le viser.
+var shot := ""
+var pierce := 0 ## ennemis que le tir peut encore toucher
+var travel := 0.0 ## distance qu'il peut encore parcourir
+var hit_ids: Dictionary = {} ## ennemis déjà touchés : un tir ne frappe jamais deux fois le même
+var scale := 1.0 ## taille d'affichage (squelettes du Nécromancien : 1,1 ; portail GÉANT : ×1,3)
+var rise_t := 0.0 ## > 0 : sort de terre (squelettes du Nécromancien) et n'avance pas encore
+
 # Rendu
 var flash_t := 0.0
 var anim := 0.0

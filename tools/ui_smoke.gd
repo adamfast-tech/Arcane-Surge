@@ -742,6 +742,9 @@ func _run() -> void:
 		push_error("création du personnage incorrecte")
 		quit(1)
 		return
+	if not _class_fire_ok():
+		quit(1)
+		return
 	if not _classes_ok():
 		quit(1)
 		return
@@ -2227,4 +2230,180 @@ func _replay_scenes_ok() -> bool:
 		push_error("cinématiques revues : %s" % [errs])
 		return false
 	print("cinématiques revues : choix réservé aux missions réussies · Passer -> combat · Revoir -> intro rejouée (%d répliques), sans effets" % guard)
+	return true
+
+
+## Tir normal de chaque classe (docs/design/42-tirs-de-classe.md).
+func _fire_sim(cls: String) -> BattleSim:
+	var s := BattleSim.new()
+	s.setup(GameData.level("z01_l05"), GameData.party(), 11, {"player_class": cls, "solo": true})
+	s.wave_t = 9999.0
+	s.spawn_queue.clear()
+	s.portals.clear()
+	return s
+
+
+func _fire_steps(s: BattleSim, n: int) -> void:
+	for k in range(n):
+		s.step()
+
+
+func _foe(s: BattleSim, p: Vector2) -> Unit:
+	var e := s._spawn_enemy("mushroom", p)
+	e.hp = 9999.0
+	e.max_hp = 9999.0
+	e.speed = 0.0
+	return e
+
+
+func _class_fire_ok() -> bool:
+	var out: Array[String] = []
+	var errs: Array[String] = []
+	# Cadence : salves en 3 s (Célérité comprise) et contenu de chaque salve.
+	for cls: String in ClassFire.SPEC.keys():
+		var s := _fire_sim(cls)
+		var pc := s.player()
+		s.set_player_firing(true)
+		var volleys := 0
+		var units := 0
+		var kinds := {}
+		for k in range(90):
+			s.step()
+			for ev in s.events:
+				if str(ev["t"]) in ["shot_fire", "fireflies"] or (str(ev["t"]) == "rise"):
+					volleys += 1
+			s.events.clear()
+		for a in s.allies:
+			if a.owner_idx == 0:
+				units += 1
+				kinds[a.shot if a.shot != "" else a.kind] = true
+		var sp: Dictionary = ClassFire.SPEC[cls]
+		var want := 3.0 * (pc.cadence / 4.0) / float(sp["every"]) * (int(sp.get("n", 1)) if cls == "necromancien" else 1)
+		if absf(float(volleys) - want) > maxf(2.0, want * 0.1):
+			errs.append("%s : %d salves en 3 s (attendu %.0f)" % [cls, volleys, want])
+		out.append("%s %d" % [cls, volleys])
+		if cls == "necromancien":
+			var sk: Unit = null
+			for a in s.allies:
+				if a.owner_idx == 0:
+					sk = a
+					break
+			var base := float(GameData.units()[pc.familiar]["atk"]) * pc.atk_mult
+			if sk == null or absf(sk.scale - 1.1) > 0.001 or absf(sk.atk / base - 2.0) > 0.05:
+				errs.append("nécromancien : squelette %s" % (str([sk.scale, sk.atk / base]) if sk != null else "absent"))
+	# Archer : la flèche traverse 2 ennemis et s'arrête dans le 3e.
+	var ar := _fire_sim("archer")
+	var foes: Array[Unit] = []
+	for k in range(5):
+		foes.append(_foe(ar, Vector2(ar.player().x, 3.0 + 0.6 * float(k))))
+	ar._flush()
+	ClassFire.volley(ar, ar.player())
+	_fire_steps(ar, 40)
+	var touched := 0
+	for e in foes:
+		if e.hp < e.max_hp:
+			touched += 1
+	if touched != 3:
+		errs.append("archer : %d ennemis touchés (3 attendus)" % touched)
+	# Épéiste : l'onde touche tout l'arc, s'éteint vers 5,6 cases, repart après un portail positif.
+	var ep := _fire_sim("epeiste")
+	var row: Array[Unit] = []
+	for k in range(4):
+		row.append(_foe(ep, Vector2(ep.player().x - 0.75 + 0.5 * float(k), 3.0)))
+	ep._flush()
+	ClassFire.volley(ep, ep.player())
+	var far := 0.0
+	for k in range(40):
+		ep.step()
+		for a in ep.allies:
+			if a.shot == "onde":
+				far = maxf(far, a.pos.y)
+	var arc_hits := 0
+	for e in row:
+		if e.hp < e.max_hp:
+			arc_hits += 1
+	var ep2 := _fire_sim("epeiste")
+	var gate := Portal.new()
+	gate.id = 900
+	gate.kind = "haste"
+	gate.x = ep2.player().x
+	gate.y = 4.0
+	gate.width = 2.0
+	ep2.portals.append(gate)
+	ClassFire.volley(ep2, ep2.player())
+	var far2 := 0.0
+	for k in range(60):
+		ep2.step()
+		for a in ep2.allies:
+			if a.shot == "onde":
+				far2 = maxf(far2, a.pos.y)
+	if arc_hits != 4 or far > 6.8 or far < 5.8 or far2 < 9.0:
+		errs.append("épéiste : arc %d/4 · portée %.1f · relancée %.1f" % [arc_hits, far, far2])
+	# Clerc : le rayon tombe sur le groupe et rend de la Barrière.
+	var cl := _fire_sim("clerc")
+	for k in range(3):
+		_foe(cl, Vector2(cl.player().x + 0.3 * float(k - 1), 4.0))
+	cl._flush()
+	cl.barrier_hp = 50.0
+	ClassFire.volley(cl, cl.player())
+	var beam := false
+	for k in range(40):
+		cl.step()
+		for ev in cl.events:
+			if str(ev["t"]) == "shot_beam" and int(ev["n"]) == 3:
+				beam = true
+		cl.events.clear()
+	if not beam or cl.barrier_hp <= 50.0:
+		errs.append("clerc : rayon %s · barrière %.1f" % [beam, cl.barrier_hp])
+	# Chevalier : le bouclier frappe le premier ennemi, le repousse et le ralentit.
+	var kn := _fire_sim("chevalier")
+	var front := _foe(kn, Vector2(kn.player().x, 4.0))
+	var back := _foe(kn, Vector2(kn.player().x, 6.0))
+	kn._flush()
+	ClassFire.volley(kn, kn.player())
+	var y_hit := 0.0
+	for k in range(30):
+		kn.step()
+		if front.hp < front.max_hp and y_hit == 0.0:
+			y_hit = front.pos.y
+	if front.hp >= front.max_hp or back.hp < back.max_hp or y_hit < 4.3 or front.slow_stacks < 2:
+		errs.append("chevalier : premier %s · second épargné %s · recul %.2f" % [front.hp < front.max_hp, back.hp >= back.max_hp, y_hit - 4.0])
+	# Berserker : cadence ×2 quand la Barrière est basse.
+	var bz := _fire_sim("berserker")
+	var r_full := ClassFire.rate(bz, bz.player())
+	bz.barrier_hp = bz.barrier_max * 0.2
+	var r_low := ClassFire.rate(bz, bz.player())
+	if absf(r_low / r_full - 2.0) > 0.01:
+		errs.append("berserker : rage ×%.2f" % (r_low / r_full))
+	# Portails : une flèche passée par un ×2 en ressort doublée ; un tir n'est ni visé ni blessé.
+	var pm := _fire_sim("archer")
+	var dbl := Portal.new()
+	dbl.id = 901
+	dbl.kind = "mult"
+	dbl.value = 2
+	dbl.x = pm.player().x
+	dbl.y = 3.0
+	dbl.width = 2.0
+	pm.portals.append(dbl)
+	ClassFire.volley(pm, pm.player())
+	_fire_steps(pm, 12)
+	var arrows := 0
+	var safe := true
+	for a in pm.allies:
+		if a.shot == "fleche":
+			arrows += 1
+			pm._damage(a, 999.0, "feu")
+			safe = safe and a.alive
+	pm._build_grids()
+	var in_grid := false
+	for cell in pm._grid_a:
+		for a in cell:
+			if a.shot != "":
+				in_grid = true
+	if arrows != 2 or not safe or in_grid:
+		errs.append("portail ×2 : %d flèches · intouchables %s · hors grille %s" % [arrows, safe, not in_grid])
+	print("tirs de classe : salves en 3 s ", out, " · flèche ", touched, " ennemis · onde ", arc_hits, " en arc, portée %.1f, relancée %.1f · clerc barrière %.1f · chevalier recul %.2f · rage berserker ×%.1f · ×2 → %d flèches" % [far, far2, cl.barrier_hp, y_hit - 4.0, r_low / r_full, arrows])
+	if not errs.is_empty():
+		push_error("tirs de classe : %s" % [errs])
+		return false
 	return true

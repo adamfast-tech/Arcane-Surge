@@ -36,6 +36,11 @@ func _choose_position(sim: BattleSim, c: BattleSim.Caster) -> void:
 	var wp := float(w["portal"])
 	var wd := float(w["def"])
 	var wn := float(w["nexus"])
+	var shot := str(ClassFire.spec_of(c).get("shot", ""))
+	if shot != "" and shot != "onde":
+		# Classe qui tire (docs/design/42-tirs-de-classe.md) : ses tirs ne retiennent personne, il faut viser
+		# les ennemis qui approchent.
+		wd *= 2.0
 	match c.order:
 		"focus_nexus":
 			wn *= 3.0

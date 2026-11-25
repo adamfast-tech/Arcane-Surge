@@ -33,9 +33,12 @@ const HEIGHT_M := {
 	"ice_goblin": 0.6, "white_wolf": 0.55, "yeti": 1.1, "stalactite_kobold": 0.55, "ice_golem": 0.85, "blizzard_elemental": 0.9, "aurora_spirit": 0.9, "ancient_sentinel": 1.2, "rune_sentinel": 1.6, "rune_colossus": 3.2, "body_rune": 0.7, "rune_cart": 1.1,
 	"glass_scarab": 0.45, "sand_jackal": 0.55, "sandstone_golem": 0.9, "mummy_archer": 0.75, "mirror_construct": 1.0, "college_specter": 0.9, "solar_priestess": 0.85, "crystal_scorpion": 0.75, "glass_mirror": 1.5, "sun_scarab": 1.9, "glass_sphinx": 2.8, "desert_caravan": 1.1,
 	"fishman": 0.6, "thunder_eel": 0.45, "titan_crab": 0.85, "naga_archer": 0.75, "coral_guard": 0.8, "tide_mage": 0.85, "siren": 0.85, "abyss_horror": 1.3, "young_kraken": 2.4, "leviathan": 3.4, "diving_bell": 1.2,
+	"tir_fleche": 0.95, "tir_onde": 0.5, "tir_lumiere": 0.55, "tir_bouclier": 0.85, "tir_hache": 0.5,
 	"ssareth": 1.3, "mere_dragon": 3.4, "ignara": 1.4, "brann_cendre": 1.25, "sylwen_cendre": 1.45, "krag_cendre": 1.55, "nyx_cendre": 1.05, "wyrm_mark": 2.2,
 	"ember_imp": 0.55, "salamander": 0.45, "drakonid": 0.8, "wyvernling": 0.6, "magma_golem": 1.0, "wyrm_cultist": 0.85, "minor_phoenix": 0.8, "ash_demon": 1.35, "dragon_egg": 0.7, "ancient_drake": 2.4, "ash_wyrm": 3.2, "refugee_convoy": 1.2,
 }
+## Tirs de classe (docs/design/42-tirs-de-classe.md), dessinés par le code, aux couleurs de leur élément.
+const SHOTS := ["tir_fleche", "tir_onde", "tir_lumiere", "tir_bouclier", "tir_hache"]
 ## Sprites dont les lettres o/d/m/l prennent les couleurs de l'élément.
 const RECOLOR := ["familiar", "knight", "archer", "golem", "fusion", "berserker", "champion_ranger", "champion_blademaster", "champion_guardian", "champion_bone", "champion_paladin", "champion_warlord", "duelist", "body_rune"]
 
@@ -2862,7 +2865,7 @@ static func frame(name: String, element: String = "", index: int = 0) -> Diction
 	if _texture == null:
 		_build()
 	var key := name
-	if RECOLOR.has(name):
+	if _recolor(name):
 		key = name + "@" + (element if ELEM.has(element) else "physique")
 	var arr: Array = _frames.get(key, _frames.get("familiar@physique"))
 	return arr[index % arr.size()]
@@ -2892,8 +2895,12 @@ static func set_player(look: Dictionary, race: String, cls: String = "mage") -> 
 static func frame_count(name: String) -> int:
 	if _texture == null:
 		_build()
-	var key := name + "@physique" if RECOLOR.has(name) else name
+	var key := name + "@physique" if _recolor(name) else name
 	return (_frames.get(key, [0]) as Array).size()
+
+
+static func _recolor(name: String) -> bool:
+	return RECOLOR.has(name) or SHOTS.has(name)
 
 
 ## Texture autonome d'une image de sprite (icônes de l'interface).
@@ -2909,8 +2916,8 @@ static func _build() -> void:
 	var entries: Array = [] # [key, Image]
 	for img in _images_for("player", ""):
 		entries.append(["player", img])
-	for name in DEFS.keys():
-		if RECOLOR.has(name):
+	for name in DEFS.keys() + SHOTS:
+		if _recolor(str(name)):
 			for el in ELEM.keys():
 				var imgs := _images_for(str(name), str(el))
 				for i in range(imgs.size()):
@@ -2971,6 +2978,8 @@ static func _images_for(name: String, element: String) -> Array[Image]:
 		out.append(_gen_player(0))
 		out.append(_gen_player(1))
 		return out
+	if SHOTS.has(name):
+		return _gen_shot(name, element if ELEM.has(element) else "physique")
 	var d: Dictionary = DEFS[name]
 	if bool(d.get("procedural", false)):
 		out.append(_gen_sylvarche(0))
@@ -3277,3 +3286,147 @@ static func _outline(img: Image, c: Color) -> void:
 				if q.x >= 0 and q.y >= 0 and q.x < img.get_width() and q.y < img.get_height() and src.get_pixel(q.x, q.y).a > 0.0:
 					img.set_pixel(x, y, c)
 					break
+
+
+# ---------------------------------------------------------------- tirs de classe
+
+## Images d'un tir : la silhouette dit la classe (flèche, croissant, orbe, bouclier, hache), la couleur
+## dit l'élément (un portail FEU rougit la flèche).
+static func _gen_shot(name: String, element: String) -> Array[Image]:
+	var ec: Array = ELEM[element]
+	var r: Array[Color] = [Color(str(ec[0])), Color(str(ec[1])), Color(str(ec[2])), Color(str(ec[3]))]
+	var out: Array[Image] = []
+	match name:
+		"tir_fleche":
+			for f in range(2):
+				out.append(_shot_arrow(r, f))
+		"tir_onde":
+			for f in range(2):
+				out.append(_shot_crescent(r, f))
+		"tir_lumiere":
+			for f in range(2):
+				out.append(_shot_orb(r, f))
+		"tir_bouclier":
+			for f in range(4):
+				out.append(_shot_shield(r, f))
+		"tir_hache":
+			var base := _shot_axe(r)
+			for f in range(4):
+				out.append(base.duplicate())
+				base.rotate_90(CLOCKWISE)
+	return out
+
+
+## Flèche vue de dos, pointe en avant (vers le haut de l'écran) : pointe de l'élément, hampe de bois,
+## empennage vert de l'Archer.
+static func _shot_arrow(r: Array[Color], f: int) -> Image:
+	var img := Image.create_empty(7, 17, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	for y in range(5):
+		var hw := int(y * 0.6)
+		for x in range(3 - hw, 4 + hw):
+			img.set_pixel(x, y, r[3] if x == 3 - hw or y < 2 else r[2])
+	img.set_pixel(3, 0, Color.WHITE if f == 1 else r[3])
+	for y in range(5, 15):
+		img.set_pixel(3, y, Color("c89a5a") if y % 3 != 0 else Color("8a6236"))
+	var vane := [Color("6fbf4a"), Color("c8f5a0")]
+	for k in range(4):
+		img.set_pixel(2 - k / 2, 11 + k, vane[k % 2])
+		img.set_pixel(4 + k / 2, 11 + k, vane[(k + 1) % 2])
+	img.set_pixel(3, 15, Color("c8f5a0"))
+	_outline(img, r[0].darkened(0.4))
+	return img
+
+
+## Onde d'épée : un croissant large, bombé vers l'avant, tranchant clair devant, traîne sombre derrière.
+static func _shot_crescent(r: Array[Color], f: int) -> Image:
+	var w := 33
+	var h := 10
+	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	for x in range(1, w - 1):
+		var u := (float(x) - float(w - 1) * 0.5) / (float(w - 1) * 0.5)
+		var yc := 1.0 + 5.2 * u * u
+		var th := 3.2 * (1.0 - u * u) + 0.6
+		for y in range(int(floor(yc)), mini(h - 1, int(ceil(yc + th)))):
+			var k := (float(y) - yc) / maxf(0.5, th)
+			var c := r[1]
+			if k < 0.22:
+				c = Color.WHITE if (f == 1 and absf(u) < 0.5) else Color("eaf6ff")
+			elif k < 0.5:
+				c = r[3]
+			elif k < 0.8:
+				c = r[2]
+			img.set_pixel(x, y, c)
+	_outline(img, r[0].darkened(0.3))
+	return img
+
+
+## Orbe du Clerc : cœur blanc, halo doré de l'élément, étoile à quatre branches qui tourne.
+static func _shot_orb(r: Array[Color], f: int) -> Image:
+	var img := Image.create_empty(13, 13, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	for y in range(13):
+		for x in range(13):
+			var d := Vector2(x - 6, y - 6).length()
+			if d <= 3.6:
+				img.set_pixel(x, y, Color.WHITE if d < 1.6 else (r[3] if d < 2.7 else r[2]))
+	var straight: Array[Vector2i] = [Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)]
+	var diag: Array[Vector2i] = [Vector2i(1, -1), Vector2i(1, 1), Vector2i(-1, 1), Vector2i(-1, -1)]
+	for dv: Vector2i in (straight if f == 0 else diag):
+		for k in range(4, 7 if f == 0 else 6):
+			var q := Vector2i(6, 6) + dv * k
+			img.set_pixel(q.x, q.y, r[3] if k < 5 else Color("fffbe8"))
+	_outline(img, r[1].darkened(0.2))
+	return img
+
+
+## Bouclier du Chevalier lancé en tournoyant : de face, de trois quarts, sur la tranche.
+static func _shot_shield(r: Array[Color], f: int) -> Image:
+	var img := Image.create_empty(13, 15, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var halves: Array[float] = [5.0, 3.2, 1.0, 3.2]
+	var half: float = halves[f]
+	var field := [Color("1e3a7a"), Color("2e56a8")]
+	for y in range(14):
+		# Écu : bord droit en haut, pointe en bas.
+		var wk := 1.0 if y < 8 else maxf(0.1, 1.0 - float(y - 8) / 6.0)
+		var hw: float = half * wk
+		for x in range(int(round(6.0 - hw)), int(round(6.0 + hw)) + 1):
+			var edge: bool = absf(float(x) - 6.0) >= hw - 1.0 or y == 0 or (y >= 8 and absf(float(x) - 6.0) >= hw - 1.4)
+			var c: Color = r[2] if edge else field[0 if (f == 3 and x > 6) or (f != 3 and x < 6) else 1]
+			if f == 2:
+				c = r[3] if x == 6 else r[1]
+			img.set_pixel(x, y, c)
+	if f != 2:
+		# Emblème : une croix claire de l'élément.
+		for y in range(3, 10):
+			img.set_pixel(6, y, r[3])
+		for x in range(int(round(6.0 - half * 0.5)), int(round(6.0 + half * 0.5)) + 1):
+			img.set_pixel(x, 5, r[3])
+	_outline(img, r[0].darkened(0.4))
+	return img
+
+
+## Petite hache de lancer à double tranchant : tête de l'élément, manche de bois, lien rouge.
+static func _shot_axe(r: Array[Color]) -> Image:
+	var img := Image.create_empty(11, 11, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	_line(img, Vector2i(1, 9), Vector2i(7, 3), Color("8a6236"))
+	_line(img, Vector2i(2, 9), Vector2i(7, 4), Color("c89a5a"))
+	img.set_pixel(2, 8, Color("c83a2a"))
+	img.set_pixel(3, 8, Color("ff6b5a"))
+	# Les deux fers s'évasent de part et d'autre du manche, perpendiculaires à lui.
+	var hub := Vector2(7.0, 3.0)
+	var along := Vector2(1.0, -1.0).normalized()
+	var across := Vector2(1.0, 1.0).normalized()
+	for y in range(11):
+		for x in range(11):
+			var d := Vector2(float(x), float(y)) - hub
+			var a := d.dot(along)
+			var b := absf(d.dot(across))
+			if b < 0.7 or b > 3.9 or absf(a) > 0.7 + 0.5 * b:
+				continue
+			img.set_pixel(x, y, r[3] if b > 3.0 else (r[2] if b > 1.6 else r[1]))
+	_outline(img, r[0].darkened(0.4))
+	return img

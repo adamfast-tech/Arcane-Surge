@@ -69,6 +69,11 @@ var _boss_lift := 0.0 ## hauteur du boss en vol (Drake ancien, Wyrm de cendre)
 var _sun: DirectionalLight3D
 var _day_k := 1.0 ## 1 = plein jour, 0 = nuit (transition douce)
 var _fog_nodes: Array[Dictionary] = []
+var _kick: Array[float] = [] ## recul de chaque lanceur quand il tire (1 → 0)
+var _dt := 0.0
+## Hauteur de vol des tirs de classe (au-dessus du sol).
+const SHOT_LIFT := {"fleche": 0.3, "onde": 0.05, "lumiere": 0.75, "bouclier": 0.22, "hache": 0.24}
+const SHOT_FPS := {"fleche": 7.0, "onde": 10.0, "lumiere": 6.0, "bouclier": 14.0, "hache": 18.0}
 ## Forêt guérie (la Sylvarche a été purifiée) : sol plus vert, veines dorées, lucioles.
 var healed := false
 
@@ -1230,6 +1235,7 @@ func _build_casters() -> void:
 		s.modulate = Color(1.1, 1.1, 1.15)
 		add_child(s)
 		_casters.append(s)
+		_kick.append(0.0)
 	_staff_fx = CPUParticles3D.new()
 	_staff_fx.amount = 22
 	_staff_fx.lifetime = 0.9
@@ -1243,9 +1249,11 @@ func _build_casters() -> void:
 	_staff_fx.tangential_accel_min = 2.0
 	_staff_fx.tangential_accel_max = 4.0
 	_staff_fx.mesh = _particle_mesh(0.07)
+	# Lueur de l'arme aux couleurs du tir de la classe (cyan du Mage, violet du Nécromancien, or du Clerc…).
+	var ccol := Color(ClassFire.color(sim.player().class_id))
 	var ramp := Gradient.new()
-	ramp.set_color(0, Color(0.55, 1.0, 0.95, 1.0))
-	ramp.set_color(1, Color(0.75, 0.45, 1.0, 0.0))
+	ramp.set_color(0, ccol.lerp(Color.WHITE, 0.35))
+	ramp.set_color(1, Color(ccol.darkened(0.2), 0.0))
 	_staff_fx.color_ramp = ramp
 	add_child(_staff_fx)
 	if healed:
@@ -1270,7 +1278,7 @@ func _build_casters() -> void:
 		ff.color_ramp = fr
 		add_child(ff)
 	_staff_light = OmniLight3D.new()
-	_staff_light.light_color = Color("4fe3d2")
+	_staff_light.light_color = ccol
 	_staff_light.light_energy = 1.2
 	_staff_light.omni_range = 3.2
 	add_child(_staff_light)
@@ -1314,6 +1322,13 @@ func consume_events(events: Array[Dictionary]) -> void:
 				_spawn_label(e)
 			"dragon":
 				_spawn_dragon(float(e["y"]), float(e.get("dur", 1.1)))
+			"shot_fire", "rise", "fireflies":
+				# Tir de classe : le lanceur a un léger recul, puis l'animation du geste (ShotFx).
+				var ci := int(e.get("c", -1))
+				if ci >= 0 and ci < _kick.size():
+					_kick[ci] = 1.0
+				if _spell_fx != null:
+					_spell_fx.handle(e)
 			"prop_hit", "prop_fall", "prop_crash", "wall", "wall_break":
 				if _terrain_view != null:
 					_terrain_view.handle(e)
@@ -1345,6 +1360,7 @@ func _process(delta: float) -> void:
 	if sim == null or cam == null:
 		return
 	t += delta
+	_dt = delta
 	shake = maxf(0.0, shake - delta)
 	flash = maxf(0.0, flash - delta)
 	cam.transform = _cam_base
@@ -1515,12 +1531,19 @@ func _update_units() -> void:
 func _put_unit(u: Unit, n: int, cam_right: Vector3, cam_back: Vector3) -> int:
 	if not u.alive:
 		return n
+	if u.shot != "":
+		return _put_shot(u, n)
 	var lp := u.prev_pos.lerp(u.pos, alpha)
-	var moving := not u.engaged and u.speed_factor() > 0.0
+	var moving := not u.engaged and u.speed_factor() > 0.0 and u.rise_t <= 0.0
 	var fr := SpriteAtlas.frame(u.sprite, u.element, int(u.anim * 6.0) if moving else 0)
-	var h := SpriteAtlas.height_m(u.sprite)
+	var h := SpriteAtlas.height_m(u.sprite) * u.scale
 	var w := h * float(fr["w"]) / float(fr["h"])
 	var bob := absf(sin(u.anim * 9.0)) * 0.035 if moving else 0.0
+	if u.rise_t > 0.0:
+		# Squelette du Nécromancien qui sort de terre (le sol cache ce qui est encore dessous).
+		var rk := clampf(u.rise_t / float(ClassFire.SPEC["necromancien"]["rise"]), 0.0, 1.0)
+		bob -= h * 0.95 * rk * rk
+		lp.x += sin(u.rise_t * 40.0) * 0.03 * rk
 	if u == sim.boss and _boss_lift > 0.0:
 		bob += _boss_lift + sin(t * 2.2) * 0.12
 	var pos := w3(lp, bob)
@@ -1543,6 +1566,74 @@ func _put_unit(u: Unit, n: int, cam_right: Vector3, cam_back: Vector3) -> int:
 	return n
 
 
+## Tir de classe : sprite de l'élément, en vol au-dessus du sol, qui tourne (bouclier, haches) ou scintille.
+func _put_shot(u: Unit, n: int) -> int:
+	var lp := u.prev_pos.lerp(u.pos, alpha)
+	var fr := SpriteAtlas.frame(u.sprite, u.element, int(u.anim * float(SHOT_FPS.get(u.shot, 8.0))))
+	var h := SpriteAtlas.height_m(u.sprite) * u.scale
+	var w := h * float(fr["w"]) / float(fr["h"])
+	var lift := float(SHOT_LIFT.get(u.shot, 0.3))
+	if u.shot == "lumiere":
+		lift += sin(u.anim * 9.0) * 0.06
+	elif u.shot == "onde":
+		# L'onde s'élargit en avançant, puis s'amincit avant de s'éteindre.
+		var life := clampf(u.travel / ClassFire.ONDE_RANGE, 0.0, 1.0)
+		w *= 0.85 + 0.25 * (1.0 - life)
+		h *= 0.6 + 0.4 * minf(1.0, life * 3.0)
+	_units_mm.set_instance_transform(n, Transform3D(Basis.from_scale(Vector3(w, h, 1.0)), w3(lp, lift)))
+	var glow := 1.8 if u.shot == "lumiere" else 1.35
+	_units_mm.set_instance_color(n, Color(glow, glow, glow))
+	var uv: Rect2 = fr["uv"]
+	_units_mm.set_instance_custom_data(n, Color(uv.position.x, uv.position.y, uv.size.x, uv.size.y))
+	return n + 1
+
+
+## Traînées des tirs de classe, à la couleur de la classe : on reconnaît chaque tir d'un coup d'œil.
+func _shot_trails(lines: Array, points: Array) -> void:
+	for u in sim.allies:
+		if not u.alive or u.shot == "":
+			continue
+		var lp := u.prev_pos.lerp(u.pos, alpha)
+		var col := Color(ClassFire.color(str(ClassFire.SHOT_CLASS.get(u.shot, ""))))
+		var dir := (u.pos - u.prev_pos)
+		dir = dir.normalized() if dir.length_squared() > 0.000001 else Vector2(0.0, 1.0)
+		var lift := float(SHOT_LIFT.get(u.shot, 0.3))
+		match u.shot:
+			"fleche":
+				# Longue traînée verte, doublée pour rester lisible de loin.
+				for k in range(4):
+					var a := lp - dir * (0.2 + 0.3 * float(k))
+					var b := lp - dir * (0.2 + 0.3 * float(k + 1))
+					var ca := Color(col, 0.9 * (1.0 - float(k) / 4.0))
+					lines.append([w3(a, lift + 0.12), w3(b, lift + 0.12), ca])
+					lines.append([w3(a + Vector2(0.035, 0.0), lift + 0.1), w3(b + Vector2(0.035, 0.0), lift + 0.1), ca])
+					lines.append([w3(a - Vector2(0.035, 0.0), lift + 0.1), w3(b - Vector2(0.035, 0.0), lift + 0.1), Color(1.0, 1.0, 1.0, ca.a * 0.6)])
+			"onde":
+				var half := u.radius
+				for g in range(2):
+					var back := 0.3 + 0.3 * float(g)
+					var prev := Vector2.ZERO
+					for i in range(9):
+						var v := float(i) / 4.0 - 1.0
+						var p := lp + Vector2(v * half, -back - 0.4 * v * v)
+						if i > 0:
+							lines.append([w3(prev, 0.12), w3(p, 0.12), Color(col, 0.55 - 0.25 * float(g))])
+						prev = p
+			"lumiere":
+				lines.append([w3(lp, lift + 0.2), w3(lp, 0.02), Color(col, 0.25)])
+				for k in range(3):
+					var sp := lp - dir * (0.2 + 0.22 * float(k)) + Vector2(sin(t * 13.0 + float(k) * 2.0) * 0.08, 0.0)
+					points.append([w3(sp, lift + 0.25 + 0.05 * float(k)), Color(col, 0.9 - 0.25 * float(k))])
+			"bouclier":
+				for sx: float in [-0.14, 0.14]:
+					lines.append([w3(lp + Vector2(sx, -0.2), lift + 0.3), w3(lp + Vector2(sx, -0.75), lift + 0.3), Color(col, 0.6)])
+			"hache":
+				for k in range(4):
+					var ang := u.anim * 26.0 - float(k) * 0.6
+					var sp2 := lp - dir * (0.1 + 0.1 * float(k)) + Vector2(cos(ang), sin(ang)) * 0.12
+					points.append([w3(sp2, lift + 0.22), Color(col, 0.85 - 0.2 * float(k))])
+
+
 func _put_bar(pos: Vector3, frac: float, col: Color, n: int, cam_right: Vector3, cam_back: Vector3) -> int:
 	var px := SpriteAtlas.frame("px")
 	var uv: Rect2 = px["uv"]
@@ -1559,10 +1650,10 @@ func _put_bar(pos: Vector3, frac: float, col: Color, n: int, cam_right: Vector3,
 
 
 func _put_shadow(u: Unit, sn: int) -> int:
-	if not u.alive or sn >= MAX_SHADOWS:
+	if not u.alive or sn >= MAX_SHADOWS or u.shot == "onde" or u.shot == "lumiere":
 		return sn
 	var lp := u.prev_pos.lerp(u.pos, alpha)
-	var r := u.radius
+	var r := u.radius if u.shot == "" else 0.09
 	_shadow_mm.set_instance_transform(sn, Transform3D(Basis.from_scale(Vector3(r * 2.6, 1.0, r * 1.5)), w3(lp, 0.012)))
 	return sn + 1
 
@@ -1607,6 +1698,12 @@ func _update_casters() -> void:
 		s.pixel_size = SpriteAtlas.height_m(c.sprite) / float(px.size.y)
 		s.offset = Vector2(0.0, float(px.size.y) * 0.5)
 		s.position = w3(Vector2(x, BattleSim.CASTER_Y), 0.0)
+		if i < _kick.size() and _kick[i] > 0.0:
+			# Recul du tir : le lanceur se tasse et recule d'un cheveu.
+			var kk := _kick[i]
+			s.position.z += kk * 0.09
+			s.pixel_size *= 1.0 - kk * 0.04
+			_kick[i] = maxf(0.0, kk - _dt * 7.0)
 		if i == 0:
 			var wm := float(px.size.x) * s.pixel_size
 			var hm := float(px.size.y) * s.pixel_size
@@ -1717,6 +1814,7 @@ func _draw_fx(delta: float) -> void:
 	if aim_active and aim_pos.x > -50.0:
 		_ring(lines, aim_pos, aim_radius, Color(aim_color, 0.95), 0.07)
 		_ring(lines, aim_pos, aim_radius * 0.15, Color(aim_color, 0.95), 0.07)
+	_shot_trails(lines, points)
 	if _spell_fx != null:
 		_spell_fx.collect(lines, points)
 	if not lines.is_empty():
