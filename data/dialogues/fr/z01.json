@@ -73,10 +73,10 @@
       "art": "foret",
       "cast": ["porteur", "sylwen"],
       "lines": [
-        {"act": {"brann": "attack"}, "cam": "shake", "who": "brann", "mood": "colere", "text": "Enfin des renforts ! Je tiens cette clairière depuis l'aube, avec mon bouclier et ma mauvaise humeur."},
-        {"who": "brann", "text": "Brann Forgecœur, du Bastion d'Argent. Un nain ne fuit jamais, mais un nain apprécie qu'on l'aide."},
-        {"act": {"brann": "hurt"}, "who": "sylwen", "mood": "joie", "text": "Il ronfle. Toute la nuit. Les sangliers ont fui la clairière à cause de lui, pas du Surge."},
-        {"cam": "punch", "who": "brann", "mood": "colere", "text": "Je ne ronfle pas, l'elfe. Je respire avec conviction."},
+        {"act": {"brann": "attack"}, "fx": "clang@brann", "who": "brann", "mood": "colere", "text": "Enfin des renforts ! Je tiens cette clairière depuis l'aube, avec mon bouclier et ma mauvaise humeur."},
+        {"cam": "focus:brann", "who": "brann", "text": "Brann Forgecœur, du Bastion d'Argent. Un nain ne fuit jamais, mais un nain apprécie qu'on l'aide."},
+        {"cam": "reset", "emote": {"brann": "drop"}, "who": "sylwen", "mood": "joie", "text": "Il ronfle. Toute la nuit. Les sangliers ont fui la clairière à cause de lui, pas du Surge."},
+        {"fx": "steam@brann", "emote": {"sylwen": "note"}, "who": "brann", "mood": "colere", "text": "Je ne ronfle pas, l'elfe. Je respire avec conviction."},
         {"choice": "z01_l03", "prompt": "Brann et Sylwen te regardent.", "options": [
           {"key": "A", "text": "« Respirer avec conviction, c'est tout un art. »", "effects": {"add": {"loy.brann": 3}},
            "then": [{"who": "brann", "mood": "joie", "text": "Enfin quelqu'un de sensé dans cette forêt !"}]},
@@ -90,9 +90,9 @@
       "art": "foret",
       "cast": ["porteur", "sylwen", "brann"],
       "lines": [
-        {"fx": "sparkles:f2c46b", "who": "brann", "mood": "joie", "text": "Ha ! Voilà ce que j'appelle un nettoyage de printemps."},
-        {"cam": "zoom", "who": "sylwen", "mood": "triste", "text": "Des ronces poussent sur la route du nord. Ce n'est pas naturel : c'est l'œuvre des fées sombres."},
-        {"who": "brann", "text": "Des fées ? Bah. Elles sont grandes comme ma main. Combien d'ennuis peuvent-elles causer ?"}
+        {"act": {"brann": "hop"}, "fx": "dust@ground", "who": "brann", "mood": "joie", "text": "Ha ! Voilà ce que j'appelle un nettoyage de printemps."},
+        {"fx": "thorns@center:8a4aa8", "cam": "push", "grade": "violet", "who": "sylwen", "mood": "triste", "text": "Des ronces poussent sur la route du nord. Ce n'est pas naturel : c'est l'œuvre des fées sombres."},
+        {"cam": "reset", "grade": "none", "emote": {"sylwen": "dots"}, "who": "brann", "text": "Des fées ? Bah. Elles sont grandes comme ma main. Combien d'ennuis peuvent-elles causer ?"}
       ]
     },
 

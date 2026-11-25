@@ -31,7 +31,7 @@ const MAX_FIGURES := 4
 ## Vocabulaire des indications (vérifié par tools/ui_smoke.gd).
 const CAMS := ["zoom", "zoom_out", "reset", "punch", "shake", "tremble", "pan_left", "pan_right", "pan_up", "push", "pull", "kick", "focus"]
 const FXS := ["flash", "white", "fade", "lightning", "sparkles", "embers", "bloom", "ring", "rays", "bolt", "beam", "crack",
-	"seal", "spiral", "flux", "gate", "arrow", "swarm",
+	"seal", "spiral", "flux", "gate", "arrow", "swarm", "clang", "steam", "thorns",
 	"slash", "wisps", "charge", "burst", "leaves", "dust", "shock"]
 const ACTS := ["jump", "hop", "shake", "hurt", "attack", "droop", "kneel", "glow", "fall", "exit", "enter", "rise", "turn", "step", "cast"]
 const SUBJECT_ACTS := ["roar", "hit", "fall", "glow", "rise", "fade", "appear"]
@@ -554,6 +554,25 @@ func _effect(spec: String) -> void:
 			ar["from"] = from
 			ar["off"] = Vector2(0.0, sh * 0.3)
 			ar["landed"] = false
+		"clang":
+			# Coup de bouclier : étoile d'impact métallique et éclats.
+			var cl := _add_fx("clang", anchor, col if col_s != "" else Color("fff0b0"), "light", 0.5)
+			if _figs.has(anchor):
+				cl["off"] = Vector2(-float(_figs[anchor]["side"]) * sh * 0.22, sh * 0.15)
+			_burst(_fx_pos(cl), Color("e8e8ff"), 18, "light")
+			_kick_impulse(7.0)
+		"steam":
+			# Colère comique : deux bouffées de vapeur sortent de chaque côté de la tête.
+			var st := _add_fx("emit_steam", anchor, Color("f0f0ff"), "front", 1.2)
+			st["rate"] = 16.0
+		"thorns":
+			# Ronces maudites des fées : elles poussent du sol en se tordant, hérissées d'épines.
+			var th := _add_fx("thorns", anchor, col if col_s != "" else Color("7a3a8a"), "back", 4.5)
+			var stems := PackedVector2Array()
+			for i in range(7):
+				stems.append(Vector2(randf_range(-1.0, 1.0), randf_range(0.6, 1.0)))
+			th["pts"] = stems
+			th["r"] = sh * 0.5
 		"swarm":
 			# Essaim de lucioles qui tourne autour du repère.
 			var sw := _add_fx("swarm", anchor, col if col_s != "" else Color("fff3b0"), "light", 4.0)
@@ -1153,6 +1172,14 @@ func _emit(e: Dictionary) -> void:
 			var p3 := c + Vector2(randf_range(-1.0, 1.0) * hs, randf_range(-1.0, 1.0) * hs)
 			_part({"p": p3, "v": Vector2(randf_range(-10, 10), randf_range(-70, -30)), "max": randf_range(1.0, 1.8), "col": col.lightened(0.3),
 				"size": 1.0 if randf() < 0.6 else 2.0, "layer": "light", "sway": 12.0, "kind": "sq"})
+		"emit_steam":
+			if _figs.has(str(e["anchor"])):
+				var sf: Dictionary = _figs[str(e["anchor"])]
+				var big := float(sf.get("S", sh))
+				var side_x := -1.0 if randf() < 0.5 else 1.0
+				var hp := (sf.get("bottom", c) as Vector2) + Vector2(side_x * big * 0.24, -big * 0.6)
+				_part({"p": hp, "v": Vector2(side_x * randf_range(40, 80), randf_range(-70, -40)), "max": randf_range(0.5, 0.8), "col": col,
+					"size": randf_range(6.0, 11.0), "layer": "front", "drag": 2.0, "kind": "puff"})
 		"emit_embers":
 			_part({"p": Vector2(randf() * size.x, ground_y + 10.0), "v": Vector2(randf_range(-10, 10), randf_range(-90, -50)),
 				"max": randf_range(2.0, 3.5), "col": col.lerp(Color("ffe08a"), randf()), "size": 1.0, "layer": "light", "sway": 18.0, "kind": "sq"})
@@ -1368,6 +1395,37 @@ func _draw_fx(ci: CanvasItem, e: Dictionary, k: float) -> void:
 			ci.draw_line(tail, tail - d2.rotated(-0.5) * 6.0, Color(Color("8fd16a"), a8), 2.0)
 			if fly < 1.0:
 				ci.draw_line(tail, tail - d2 * 30.0, Color(Color.WHITE, 0.35), 1.0)
+		"clang":
+			var a10 := 1.0 - u
+			var rc := _sh() * 0.07 * k * (0.6 + 0.6 * _ease_out(u))
+			for i in range(4):
+				var ang5 := float(i) * PI * 0.5 + PI * 0.25
+				ci.draw_line(c.floor(), (c + Vector2.from_angle(ang5) * rc).floor(), Color(col, a10), 2.0)
+			for i in range(4):
+				var ang6 := float(i) * PI * 0.5
+				ci.draw_line(c.floor(), (c + Vector2.from_angle(ang6) * rc * 0.55).floor(), Color(Color.WHITE, a10), 1.0)
+			ci.draw_arc(c, rc * 0.8, 0.0, TAU, 24, Color(col, a10 * 0.6), 1.0)
+		"thorns":
+			var stems2: PackedVector2Array = e["pts"]
+			var hgt := float(e["r"]) * k
+			var a11 := minf(1.0, (dur - t) / 0.8)
+			var grow := _ease_out(clampf(t / 1.4, 0.0, 1.0))
+			var gnd := (_anchor_pos("ground") * k).y + 4.0
+			for i in range(stems2.size()):
+				var st2 := stems2[i]
+				var x0 := c.x + st2.x * hgt * 0.9
+				var pts3 := PackedVector2Array()
+				var n2 := 14
+				for j in range(n2 + 1):
+					var f3 := float(j) / float(n2) * grow * st2.y
+					var sway := sin(f3 * 5.0 + float(i) + t * 1.5) * hgt * 0.06 * f3
+					pts3.append(Vector2(x0 + sway + st2.x * f3 * hgt * 0.25, gnd - f3 * hgt).floor())
+				ci.draw_polyline(pts3, Color(Color("2a1430"), a11), 3.0)
+				ci.draw_polyline(pts3, Color(col, a11), 1.0)
+				for j in range(2, pts3.size(), 3):
+					var sp2 := pts3[j]
+					var sd2 := 1.0 if j % 2 == 0 else -1.0
+					ci.draw_line(sp2, sp2 + Vector2(sd2 * 3.0, -2.0), Color(col.lightened(0.3), a11), 1.0)
 		"swarm":
 			var seeds2: PackedVector2Array = e["pts"]
 			var rs := float(e["r"]) * k

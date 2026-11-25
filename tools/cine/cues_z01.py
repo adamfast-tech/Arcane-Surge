@@ -39,13 +39,15 @@ CUES = [
     ("z01_l02_outro", "Joli travail.", {"fx": "swarm@porteur:fff3b0"}),
     ("z01_l02_outro", "Les Nexus poussent plus vite", {"fx": "wisps@center:b07cff", "cam": "push", "grade": "violet"}),
     ("z01_l02_outro", "Allons à la Clairière brisée", {"act": {"sylwen": "rise"}, "emote": {"sylwen": "dots"}, "cam": "reset", "grade": "none"}),
-    # 1-3 : Brann.
-    ("z01_l03_intro", "Enfin des renforts !", {"act": {"brann": "attack"}, "cam": "shake"}),
-    ("z01_l03_intro", "Il ronfle. Toute la nuit.", {"act": {"brann": "hurt"}}),
-    ("z01_l03_intro", "Je ne ronfle pas, l'elfe", {"cam": "punch"}),
+    # 1-3 : Brann. Coup de bouclier, vapeur de colère, les ronces du nord.
+    ("z01_l03_intro", "Enfin des renforts !", {"act": {"brann": "attack"}, "fx": "clang@brann"}),
+    ("z01_l03_intro", "Brann Forgecœur, du Bastion", {"cam": "focus:brann"}),
+    ("z01_l03_intro", "Il ronfle. Toute la nuit.", {"cam": "reset", "emote": {"brann": "drop"}}),
+    ("z01_l03_intro", "Je ne ronfle pas, l'elfe", {"fx": "steam@brann", "emote": {"sylwen": "note"}}),
     ("z01_l03_intro", "Le portail de feu, là-bas", {"cam": "pan_left", "fx": "embers"}),
-    ("z01_l03_outro", "Voilà ce que j'appelle un nettoyage", {"fx": "sparkles:f2c46b"}),
-    ("z01_l03_outro", "Des ronces poussent sur la route", {"cam": "zoom"}),
+    ("z01_l03_outro", "Voilà ce que j'appelle un nettoyage", {"act": {"brann": "hop"}, "fx": "dust@ground"}),
+    ("z01_l03_outro", "Des ronces poussent sur la route", {"fx": "thorns@center:8a4aa8", "cam": "push", "grade": "violet"}),
+    ("z01_l03_outro", "Des fées ? Bah.", {"cam": "reset", "grade": "none", "emote": {"sylwen": "dots"}}),
     # 1-4 : les fées.
     ("z01_l04_intro", "Les fées sont nées de la magie pure", {"act": {"subject": "glow"}, "fx": "sparkles:ff9bf0"}),
     ("z01_l04_intro", "Leurs ronces ont maudit", {"act": {"subject": "roar"}}),
