@@ -34,10 +34,23 @@ Aucun ennemi ne peut viser ni blesser un tir (ni coups, ni zones, ni feu, ni tou
 
 Le tir de classe est celui du **héros**. Les compagnons gardent l'ancien Flux (leur familier, un toutes les 0,25 s) : leurs troupes tiennent le terrain pendant que les tirs frappent. S'ils tiraient eux aussi, il ne resterait plus d'armée pour retenir les ennemis (`ClassFire.COMPANIONS_FIRE`). Simulations (4 parties chacune) :
 
-| Combat | Tout le monde tire | Compagnons avec leurs troupes |
+| Combat | Tout le monde tire | Compagnons avec leurs troupes (réglage retenu) |
 |---|---|---|
-| 4-5, Colosse runique | Mage, Nécro., Archer, Clerc, Chevalier 0/4 ; Épéiste, Berserker 3/4 | Nécro., Archer, Épéiste, Clerc 4/4 ; Mage 2/4 |
-| 6-8 | Archer, Clerc, Chevalier 0/4 | voir le journal de l'étape |
+| 4-5, Colosse runique | 0/4 sauf Épéiste et Berserker 3/4 | 4/4 pour toutes, sauf Mage 2/4 |
+
+Réglage retenu, toutes les classes (victoires sur 4 · durée moyenne ; ancien Flux entre parenthèses) :
+
+| Classe | 3-8 (réf. 158 s) | 4-5 (réf. 220 s) | 6-8 (réf. 220 s) |
+|---|---|---|---|
+| Mage | 4/4 · 40 s | 2/4 · 251 s (3/4) | 4/4 · 38 s (2/4) |
+| Nécromancien | 4/4 · 42 s | 4/4 · 198 s (4/4) | 4/4 · 47 s (3/4) |
+| Archer | 4/4 · 125 s | 4/4 · 178 s (4/4) | **0/4** (3/4) |
+| Épéiste | 4/4 · 55 s | 4/4 · 185 s (4/4) | 4/4 · 147 s (4/4) |
+| Clerc | **0/4** | 4/4 · 236 s (4/4) | **0/4** (1/4) |
+| Chevalier | 3/4 · 74 s | 4/4 · 234 s (4/4) | **0/4** (1/4) |
+| Berserker | 4/4 · 55 s | 4/4 · 166 s (4/4) | **0/4** (4/4) |
+
+À régler : le Mage et le Nécromancien écrasent tout (3 à 5 fois plus d'unités qu'avant) ; l'Archer, le Clerc, le Chevalier et le Berserker ne tiennent plus en fin de jeu (zone 6), le Clerc dès la zone 3 (son orbe s'arrête au premier groupe, ses dégâts sont faibles et il atteint rarement le Nexus).
 
 ## Le reste du combat
 
