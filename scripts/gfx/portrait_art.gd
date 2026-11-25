@@ -10,10 +10,35 @@ const OUTLINE := Color("120e1a")
 const LIGHT := Vector3(0.55, -0.5, 0.67)
 
 static var _cache: Dictionary = {}
+## Images d'animation (dialogues, docs/design/41-cinematiques.md) : bouche ouverte (1 entrouverte, 2 ouverte)
+## et yeux fermés. Lues par _mouth, _eye et _glow_eye pendant le dessin.
+static var _talk := 0
+static var _blink := false
+
+
+## Portrait animé : talk 0..2 (bouche), blink (yeux fermés). Les images remplacées par des fichiers ne s'animent pas.
+static func frame(who: String, mood: String, talk: int, blink: bool) -> Texture2D:
+	if talk == 0 and not blink:
+		return texture(who, mood)
+	if ResourceLoader.exists("res://assets/portraits/%s.png" % who) or ResourceLoader.exists("res://assets/portraits/%s-%s.png" % [who, mood]):
+		return texture(who, mood)
+	_talk = talk
+	_blink = blink
+	var t := texture(who, mood)
+	_talk = 0
+	_blink = false
+	return t
+
+
+## Le portrait a-t-il une bouche dessinée (sinon il s'anime en respirant) ?
+static func can_talk(who: String) -> bool:
+	return not (who in ["cerf", "sylvarche", "voix", "orrin", "mere_dragon", "wyrm", "leviathan", "ourdisseur"])
 
 
 static func texture(who: String, mood: String = "neutre") -> Texture2D:
 	var key := "%s|%s" % [who, mood]
+	if _talk > 0 or _blink:
+		key += "|t%d%s" % [_talk, "b" if _blink else ""]
 	if who == "porteur":
 		# Le héros change d'apparence (création, Miroir) : l'empreinte entre dans la clé du cache.
 		key += "|" + PlayerLook.key(Profile.look(), Profile.race())
@@ -212,6 +237,12 @@ static func _eye(img: Image, ex: int, ey: int, side: int, mood: String, iris: Co
 	var pupil := iris.darkened(0.55)
 	var inner := ex + 3 if side < 0 else ex
 	var outer := ex if side < 0 else ex + 3
+	if _blink and mood != "joie":
+		# Paupière fermée : un trait, un peu plus bas aux coins.
+		for x in range(4):
+			_px(img, ex + x, ey + 1, lash)
+		_px(img, outer, ey + 2, lash)
+		return
 	match mood:
 		"joie":
 			_px(img, ex, ey + 2, lash)
@@ -256,6 +287,12 @@ static func _eye(img: Image, ex: int, ey: int, side: int, mood: String, iris: Co
 static func _glow_eye(img: Image, ex: int, ey: int, side: int, mood: String, core: Color, halo: Color) -> void:
 	var inner := ex + 2 if side < 0 else ex
 	var outer := ex if side < 0 else ex + 2
+	if _blink:
+		# Regard éteint un instant.
+		_glow(img, ex + 1, ey, 2, halo, 0.15)
+		for x in range(3):
+			_px(img, ex + x, ey, core.darkened(0.55))
+		return
 	_glow(img, ex + 1, ey, 3, halo, 0.35)
 	match mood:
 		"joie":
@@ -302,6 +339,22 @@ static func _brow(img: Image, ex: int, ey: int, side: int, mood: String, c: Colo
 
 
 static func _mouth(img: Image, cx: int, my: int, mood: String, c: Color, open_c: Color) -> void:
+	if _talk > 0:
+		# Bouche qui parle : un ovale ouvert sur 1 ou 2 rangées, plus large dans la joie.
+		var hw := 2 if mood == "joie" else 1
+		var top := my - 1 if mood == "joie" else my
+		for x in range(-hw, hw + 1):
+			_px(img, cx + x, top, c)
+		for r in range(_talk):
+			_px(img, cx - hw - 1, top + 1 + r, c)
+			_px(img, cx + hw + 1, top + 1 + r, c)
+			for x in range(-hw, hw + 1):
+				_px(img, cx + x, top + 1 + r, open_c)
+		if _talk == 2:
+			_px(img, cx, top + 1, open_c.lightened(0.25))
+		for x in range(-hw, hw + 1):
+			_px(img, cx + x, top + 1 + _talk, c)
+		return
 	match mood:
 		"joie":
 			_px(img, cx - 3, my - 1, c)
@@ -546,6 +599,10 @@ static func _brann(img: Image, mood: String) -> void:
 	var eye := Color("2a1a1a")
 	for e in [[25, -1], [37, 1]]:
 		var ex: int = e[0]
+		if _blink and mood != "joie":
+			for x in range(3):
+				_px(img, ex + x, 33, eye)
+			continue
 		match mood:
 			"joie":
 				_px(img, ex, 33, eye)
@@ -561,6 +618,23 @@ static func _brann(img: Image, mood: String) -> void:
 				_px(img, ex + 2, 32, eye)
 				_px(img, ex + 1, 33, eye)
 				_px(img, ex + 2, 33, Color("f4f0ff") if mood != "colere" else eye)
+	if _talk > 0:
+		# Il parle : la bouche s'ouvre dans la barbe.
+		for r in range(_talk + 1):
+			for x in range(30, 35):
+				_px(img, x, 43 + r, Color("3a1a1a"))
+		if _talk == 2:
+			for x in range(31, 34):
+				_px(img, x, 44, Color("1a0e0e"))
+		if mood == "joie":
+			for x in range(30, 35):
+				_px(img, x, 43, Color("f4f0ff"))
+	else:
+		_brann_mouth(img, mood)
+	_rim(img, 2, 62, 6, 63, Color("ffe0c0"))
+
+
+static func _brann_mouth(img: Image, mood: String) -> void:
 	match mood:
 		"joie":
 			for x in range(29, 36):
@@ -572,7 +646,6 @@ static func _brann(img: Image, mood: String) -> void:
 		"colere":
 			for x in range(29, 36):
 				_px(img, x, 43, Color("3a1a1a"))
-	_rim(img, 2, 62, 6, 63, Color("ffe0c0"))
 
 
 ## Le dôme du casque couvre le haut du visage : on redessine le bas du visage par-dessus.

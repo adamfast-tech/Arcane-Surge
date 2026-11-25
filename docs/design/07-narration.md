@@ -136,7 +136,8 @@ Chaque compagnon a une **quête personnelle en 3 parties**, débloquée à certa
 L'humour vient surtout de **Brann** (bourru) et de **Nyx** (sarcastique).
 
 ### 6.2 Format
-- **Portraits** en pixel art 64×64, avec 4 à 6 expressions. Le nom s'affiche dans la couleur de la faction.
+- **Portraits** en pixel art 64×64, avec 4 à 6 expressions. Le nom s'affiche dans la couleur de la faction. Ils parlent (bouche animée) et clignent.
+- **Mise en scène** : décor animé, acteurs sur scène, caméra, actions et effets, avec des indications facultatives par réplique (`cam`, `fx`, `act`, `cast`) : voir [`41-cinematiques.md`](41-cinematiques.md).
 - **Bulles** de 120 caractères maximum ; **2 à 6 bulles** par intro ou outro de niveau.
 - Mode auto, possibilité de passer, historique des dialogues.
 - **Bips vocaux** propres à chaque personnage. Pas de doublage au départ.

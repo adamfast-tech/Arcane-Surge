@@ -1081,6 +1081,9 @@ func _run() -> void:
 	if not await _act7_ok():
 		quit(1)
 		return
+	if not await _cine_ok():
+		quit(1)
+		return
 	main.call("_show_room", "circle")
 	await _frames(5)
 	Profile.swap_active("krag", "brann")
@@ -2090,4 +2093,65 @@ func _act7_ok() -> bool:
 		push_error("acte 7 : " + " · ".join(errs))
 		return false
 	print("acte 7 : scènes, Ssareth, Prémonitions, Léviathan, dragons hostiles OK")
+	return true
+
+
+## Cinématiques des dialogues (docs/design/41-cinematiques.md) : vocabulaire des indications de toutes les zones,
+## portraits animés (bouche, clignement), puis le prologue et la zone 1 joués à l'écran, réplique par réplique.
+func _cine_ok() -> bool:
+	var errs: Array[String] = []
+	var cued := 0
+	for z in range(1, 8):
+		var scs: Dictionary = Dialogues.db(z).get("scenes", {})
+		for sid in scs.keys():
+			var sc: Dictionary = scs[sid]
+			for e in CineStage.check_cues(sc):
+				errs.append("%s : %s" % [sid, e])
+			var stack: Array = (sc.get("lines", []) as Array).duplicate()
+			while not stack.is_empty():
+				var l: Dictionary = stack.pop_back()
+				for opt in l.get("options", []):
+					stack.append_array(opt.get("then", []))
+				if l.has("cam") or l.has("fx") or l.has("act"):
+					cued += 1
+				for e in CineStage.check_cues(l):
+					errs.append("%s : %s" % [sid, e])
+	for who in ["brann", "sylwen", "porteur", "krag", "ignara"]:
+		var base := PortraitArt.texture(who, "neutre").get_image()
+		if PortraitArt.frame(who, "neutre", 2, false).get_image().get_data() == base.get_data():
+			errs.append("bouche immobile : " + who)
+		if PortraitArt.frame(who, "colere", 0, true).get_image().get_data() == PortraitArt.texture(who, "colere").get_image().get_data():
+			errs.append("pas de clignement : " + who)
+	var ids: Array = ["prologue"]
+	for n in range(1, 11):
+		ids.append("z01_l%02d_intro" % n)
+		ids.append("z01_l%02d_outro" % n)
+	var saved: Dictionary = (Story.st() as Dictionary).duplicate(true)
+	main.call("_show_dialogue", ids, Callable(main, "_show_map"))
+	await _frames(3)
+	var max_actors := 0
+	var lines := 0
+	var guard := 0
+	while _screen() is DialogueScreen and guard < 600:
+		var d: DialogueScreen = _screen()
+		if d.get("_waiting_choice"):
+			for ch in d.choice_box.get_children():
+				if ch is Button and not (ch as Button).disabled:
+					(ch as Button).pressed.emit()
+					break
+		else:
+			d._tap()
+			if not bool(d.get("_typing")):
+				lines += 1
+		await _frames(2)
+		if _screen() is DialogueScreen:
+			max_actors = maxi(max_actors, ((_screen() as DialogueScreen).stage.get("_order") as Array).size())
+		guard += 1
+	Profile.data["story"] = saved
+	if max_actors < 3:
+		errs.append("acteurs en scène : %d" % max_actors)
+	if not errs.is_empty():
+		push_error("cinématiques : %s" % [errs])
+		return false
+	print("cinématiques : %d répliques mises en scène · zone 1 jouée (%d répliques, %d acteurs au plus)" % [cued, lines, max_actors])
 	return true

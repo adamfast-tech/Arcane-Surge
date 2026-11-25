@@ -198,4 +198,7 @@ iOS (iPhone 16 Pro Max, iPad), Android, PC (16:9, 16:10).
 17. Acte 7 :
     - 17.1 ✅ zone 7 jouable, Cité Engloutie : 10 niveaux (61 à 70), créatures abyssales, marées qui noient les portails du premier rang, courants latéraux, tourbillons, Kraken juvénile et Léviathan (vagues, tentacules, portails avalés) ; panoplie de 36 objets — [`design/39-zone7.md`](design/39-zone7.md)
     - 17.2 ✅ narration de l'acte 7 : 20 dialogues, Ssareth 6ᵉ compagnon, les Archives du Temps, la révélation (Morvaen, Porteur d'Écho, 412 retours ; 3ᵉ Fragment), l'Ourdisseur entrevu ; choix 7-7 (les Sirènes), 7-9 (lire sa ligne : Prémonitions, ou sceller les Archives) et ✦ 7-10 (libérer le Léviathan ou le tuer : Trident des Archives) ; les dragons de l'Œuf volé survolent la côte — [`design/40-narration-zone7.md`](design/40-narration-zone7.md)
-18. Saison 2 : zones 11–15, niveau max 150, L'Ourdisseur (fils semés en saison 1)
+18. Cinématiques des dialogues (zone par zone) :
+    - 18.1 ✅ moteur de mise en scène (caméra, ambiance selon le décor, acteurs sur scène, actions, effets, portraits qui parlent et clignent) ; prologue et zone 1 mis en scène — [`design/41-cinematiques.md`](design/41-cinematiques.md)
+    - 18.2 à 18.7 : zones 2 à 7
+19. Saison 2 : zones 11–15, niveau max 150, L'Ourdisseur (fils semés en saison 1)

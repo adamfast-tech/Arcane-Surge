@@ -26,6 +26,11 @@ var _t := 0.0
 var _feedback_t := 0.0
 var _overlay_open := false
 var _done := false
+var _who := ""
+var _mood := "neutre"
+var _talk_frame := 0
+var _blink := false
+var _blink_t := 3.0
 
 var art_rect: TextureRect
 var subject_rect: TextureRect
@@ -42,6 +47,7 @@ var choice_box: VBoxContainer
 var title_label: Label
 var auto_btn: Button
 var overlay: Control
+var stage: CineStage ## mise en scène : caméra, ambiance, acteurs, effets (docs/design/41-cinematiques.md)
 
 
 func configure(ids: Array) -> void:
@@ -72,6 +78,13 @@ func _ready() -> void:
 	subject_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	subject_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(subject_rect)
+	stage = CineStage.new()
+	stage.art = art_rect
+	stage.subject = subject_rect
+	add_child(stage)
+	var flash := stage.make_flash_layer()
+	add_child(flash)
+	flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build_top_bar()
 	_build_panel()
 	overlay = Control.new()
@@ -197,8 +210,14 @@ func _relayout() -> void:
 	panel.position = Vector2((size.x - pw) * 0.5, size.y - panel.size.y - 24.0)
 	title_label.position = Vector2(size.x * 0.5, 22)
 	title_label.size = Vector2(size.x * 0.5 - 16.0, 40)
+	# Sol des acteurs : au-dessus du panneau tel qu'il est avec un portrait, pour qu'ils ne sautent pas
+	# d'une réplique à l'autre.
+	var ph := panel.size.y
+	if not head_row.visible:
+		ph += head_row.get_combined_minimum_size().y + 12.0
+	stage.ground_y = size.y - 24.0 - ph - 6.0
+	stage.top_y = 90.0
 	_refresh_art()
-	_place_subject()
 
 
 func _refresh_art() -> void:
@@ -206,18 +225,6 @@ func _refresh_art() -> void:
 		return
 	var px := 3.0 if size.x < size.y else 4.0
 	art_rect.texture = StoryArt.plate(_art, Vector2i(int(size.x / px), int(size.y / px)))
-
-
-func _place_subject() -> void:
-	if subject_rect.texture == null:
-		return
-	var area_h := maxf(120.0, panel.position.y - 90.0)
-	var th := float(subject_rect.texture.get_height())
-	var tw := float(subject_rect.texture.get_width())
-	var k := clampf(floorf(area_h * 0.55 / th), 2.0, 7.0)
-	subject_rect.size = Vector2(tw * k, th * k)
-	subject_rect.position = Vector2((size.x - tw * k) * 0.5, 90.0 + (area_h - th * k) * 0.5)
-	subject_rect.set_meta("base_y", subject_rect.position.y)
 
 
 # ---------------------------------------------------------------- déroulement
@@ -237,6 +244,7 @@ func _load_scene(id: String) -> void:
 	_scene_id = id
 	var sc := Dialogues.scene(id)
 	_queue = (sc.get("lines", []) as Array).duplicate()
+	stage.begin_scene(sc)
 	_set_art(str(sc.get("art", "foret")))
 	_set_subject(str(sc.get("subject", "")))
 	subject_rect.modulate = Color(str(sc.get("subject_tint", "ffffff")))
@@ -301,7 +309,26 @@ func _apply_visuals(l: Dictionary) -> void:
 func _set_art(kind: String) -> void:
 	if kind == _art:
 		return
+	# Changement de plan : l'ancien décor s'efface sous le nouveau, la caméra repart.
+	if _art != "" and art_rect.texture != null and is_inside_tree():
+		var old := TextureRect.new()
+		old.texture = art_rect.texture
+		old.expand_mode = art_rect.expand_mode
+		old.stretch_mode = art_rect.stretch_mode
+		old.texture_filter = art_rect.texture_filter
+		old.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(old)
+		move_child(old, art_rect.get_index() + 1)
+		old.size = art_rect.size
+		old.position = art_rect.position
+		old.pivot_offset = art_rect.pivot_offset
+		old.scale = art_rect.scale
+		var tw := old.create_tween()
+		tw.tween_property(old, "modulate:a", 0.0, 0.6)
+		tw.tween_callback(old.queue_free)
+		stage.new_shot()
 	_art = kind
+	stage.set_plate(kind)
 	_refresh_art()
 
 
@@ -309,7 +336,7 @@ func _set_subject(name: String) -> void:
 	_subject = name
 	subject_rect.texture = SpriteAtlas.single(name) if name != "" else null
 	subject_rect.visible = name != ""
-	_place_subject()
+	stage.subject_changed()
 
 
 func _show_line(l: Dictionary) -> void:
@@ -317,9 +344,15 @@ func _show_line(l: Dictionary) -> void:
 	var text := Dialogues.fmt(str(l.get("text", "")))
 	var narr := who == "narrateur" or not PortraitArt.has_portrait(who)
 	head_row.visible = not narr
+	_who = "" if narr else who
+	_mood = str(l.get("mood", "neutre"))
+	_talk_frame = 0
+	_blink = false
+	stage.speak(who, _mood)
+	stage.play_cues(l)
 	if not narr:
 		var col := Dialogues.color(who)
-		portrait_rect.texture = PortraitArt.texture(who, str(l.get("mood", "neutre")))
+		portrait_rect.texture = PortraitArt.texture(who, _mood)
 		portrait_frame.add_theme_stylebox_override("panel", UiTheme.box(UiTheme.PANEL2, col, 12, 3, 4))
 		name_label.text = Dialogues.display_name(who).to_upper()
 		name_label.add_theme_color_override("font_color", col)
@@ -447,6 +480,34 @@ func _complete_line() -> void:
 	text_label.visible_characters = -1
 
 
+## Portrait vivant : la bouche bouge pendant que le texte s'écrit (fermée sur les espaces et la ponctuation),
+## les yeux clignent de temps en temps. Sans bouche dessinée (créatures), le portrait respire en parlant.
+func _animate_portrait(delta: float) -> void:
+	if _who == "":
+		return
+	var talk := 0
+	if _typing:
+		var i := clampi(int(_shown), 0, maxi(0, text_label.text.length() - 1))
+		var ch := text_label.text.substr(i, 1)
+		if not (ch in [" ", ",", ".", "!", "?", "…", ";", ":", "—", "«", "»"]):
+			talk = [1, 2, 1, 0][int(_t / 0.08) % 4]
+	_blink_t -= delta
+	var blink := false
+	if _blink_t <= 0.0:
+		blink = true
+		if _blink_t <= -0.13:
+			_blink_t = randf_range(2.4, 4.6)
+	if not PortraitArt.can_talk(_who):
+		portrait_rect.pivot_offset = portrait_rect.size * 0.5
+		portrait_rect.scale = Vector2.ONE * (1.0 + (0.035 * absf(sin(_t * 7.0)) if _typing else 0.0))
+		return
+	portrait_rect.scale = Vector2.ONE
+	if talk != _talk_frame or blink != _blink:
+		_talk_frame = talk
+		_blink = blink
+		portrait_rect.texture = PortraitArt.frame(_who, _mood, talk, blink)
+
+
 ## Passer : saute les répliques jusqu'au prochain choix (jamais passé) ou jusqu'à la fin.
 ## Les effets rencontrés (drapeaux) sont appliqués.
 func _skip() -> void:
@@ -536,15 +597,15 @@ func _process(delta: float) -> void:
 		text_label.visible_characters = int(_shown)
 		if int(_shown) >= n:
 			_complete_line()
-	elif not _waiting_choice and not _done:
+	_animate_portrait(delta)
+	stage.talking = _typing
+	if not _typing and not _waiting_choice and not _done:
 		next_mark.modulate.a = 0.5 + 0.5 * sin(_t * 5.0)
 		if _auto and not _overlay_open:
 			_auto_t += delta
 			if _auto_t >= AUTO_DELAY + 0.02 * float(text_label.text.length()):
 				_auto_t = 0.0
 				_advance()
-	if subject_rect.visible and subject_rect.has_meta("base_y"):
-		subject_rect.position.y = float(subject_rect.get_meta("base_y")) + sin(_t * 1.6) * 4.0
 	if _feedback_t > 0.0:
 		_feedback_t -= delta
 		feedback_label.modulate.a = clampf(_feedback_t, 0.0, 1.0)
