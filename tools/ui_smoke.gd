@@ -2184,7 +2184,7 @@ func _replay_scenes_ok() -> bool:
 	Story.mark_seen(lid + "_intro")
 	Story.mark_seen(lid + "_outro")
 	if Story.choice("z01_l03") == "":
-		Story.st()["choices"]["z01_l03"] = "A"
+		Story.st()["choices"]["z01_l03"] = {"opt": "A", "t": 0}
 	main.call("_play", lid, false)
 	await _frames(3)
 	var prep: PrepScreen = _screen()
