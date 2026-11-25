@@ -19,15 +19,15 @@ Le chantier avance niveau par niveau. **Version 2 du moteur** (bustes, calques d
 
 **Un décor par lieu** (`StoryArt._forest` et ses variantes) : Lysbourg (1-1), **le sentier des lucioles** (1-2 : chemin de terre qui serpente, bordé de pierres, lucioles), **la clairière brisée** (1-3 : souches éclatées, tronc couché, branches cassées), **le roncier** (1-4 : ronces maudites, deux pierres runiques), **la clairière aux fougères** (1-5 : rai de lune au milieu, grandes fougères), **le cercle des fées** (1-6 : anneau de champignons lumineux), le pont (1-7), la Tour du Croissant, la Source (1-8), le Cœur de la Forêt (1-9), la Sylvarche (1-10), la forêt guérie. Les clairières laissent le centre libre pour la créature.
 
-**Personnages en pied** (`scripts/gfx/figure_art.gd`) : chacun est dessiné **d'un seul tenant**, avec son anatomie (volumes ombrés en ellipses, membres modelés en cylindres qui s'affinent, contour sombre, reflet de lune) — pas un portrait recollé sur un corps.
+**Personnages en pied** (`scripts/gfx/figure_art.gd`) : **le haut reste leur portrait, tel quel** (mêmes traits, bouche, expressions) ; le bas le prolonge à partir de sa dernière ligne de pixels (chaque colonne garde sa couleur et son motif, un peu plus sombre vers le bas), sans coupure, puis prend sa forme.
 
-| Personnage | Dessin |
+| Personnage | Le bas du corps |
 |---|---|
-| Grand Cerf | De trois quarts, tête vers nous : ramure de lumière, cou puissant, jabot clair, corps et croupe, cuisses, pattes fines aux genoux marqués, sabots ; traînées violettes quand il est corrompu |
-| Sylvarche | Couronne en grappes (violette, verte une fois purifiée), branches maîtresses, tronc noueux qui s'évase, visage creusé dans l'écorce (orbites, regard, bouche creuse), racines |
-| Fée | Ailes nervurées, robe en corolle, bras et jambes fines, visage qui parle et cligne ; elle vole |
-| Morvaen | Capuche profonde au regard turquoise, robe à plis et pan clair, ceinture d'or, une main sur le bâton à l'orbe |
-| La Voix | Ombre couronnée au regard violet, robe qui se dissout vers le sol en volutes |
+| Grand Cerf | Image peinte (`assets/figures/cerf.png`, fournie) : la tête du portrait et le corps entier de face, poitrail, pattes, sabots |
+| Sylvarche | Le tronc descend, s'évase et plonge ses racines dans le sol ; les fissures (Surge violet, sève dorée une fois purifiée) continuent |
+| Fée | La robe s'évase en corolle à l'ourlet ondulé, puis deux jambes fines ; elle vole |
+| Morvaen | La robe tombe jusqu'au sol avec ses plis, les pieds dépassent de l'ourlet |
+| La Voix | La robe d'ombre tombe et se dissout vers le sol |
 | Lanterne de l'Aube | Accrochée à sa perche plantée dans le sol |
 
 Placement : la tête au centre de l'écran (le corps peut déborder du cadre), les pieds au sol derrière le panneau et les bustes.

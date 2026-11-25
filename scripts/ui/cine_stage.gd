@@ -1226,11 +1226,17 @@ func _update_presence(delta: float) -> void:
 	var k := 2.0
 	if fig != "":
 		# En pied : sa taille suit la hauteur de la scène (le Cerf est immense, la fée minuscule), en multiple entier.
-		k = maxf(1.0, roundf(sh * FigureArt.height_share(fig) / th))
-		k = minf(k, maxf(1.0, floorf(size.x * 1.2 / tw)))
-		# La tête reste dans le cadre, sous la bande cinéma.
 		var feet := ground_y + sh * 0.08 - (sh * 0.3 if FigureArt.flies(fig) else 0.0)
-		k = minf(k, maxf(1.0, floorf((feet - size.y * 0.06 - 10.0) / th)))
+		if FigureArt.painted(fig):
+			# Image peinte : taille libre, lissée.
+			k = minf(sh * FigureArt.height_share(fig) / th, minf(size.x * 1.2 / tw, (feet - size.y * 0.06 - 10.0) / th))
+			subject.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		else:
+			k = maxf(1.0, roundf(sh * FigureArt.height_share(fig) / th))
+			k = minf(k, maxf(1.0, floorf(size.x * 1.2 / tw)))
+			# La tête reste dans le cadre, sous la bande cinéma.
+			k = minf(k, maxf(1.0, floorf((feet - size.y * 0.06 - 10.0) / th)))
+			subject.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	elif pid != "":
 		k = clampf(floorf(minf(sh * (0.6 if narrow else 1.0), size.x * (0.78 if narrow else 0.4)) / th), 2.0, 14.0)
 	else:
