@@ -33,7 +33,7 @@ const HEIGHT_M := {
 	"ice_goblin": 0.6, "white_wolf": 0.55, "yeti": 1.1, "stalactite_kobold": 0.55, "ice_golem": 0.85, "blizzard_elemental": 0.9, "aurora_spirit": 0.9, "ancient_sentinel": 1.2, "rune_sentinel": 1.6, "rune_colossus": 3.2, "body_rune": 0.7, "rune_cart": 1.1,
 	"glass_scarab": 0.45, "sand_jackal": 0.55, "sandstone_golem": 0.9, "mummy_archer": 0.75, "mirror_construct": 1.0, "college_specter": 0.9, "solar_priestess": 0.85, "crystal_scorpion": 0.75, "glass_mirror": 1.5, "sun_scarab": 1.9, "glass_sphinx": 2.8, "desert_caravan": 1.1,
 	"fishman": 0.6, "thunder_eel": 0.45, "titan_crab": 0.85, "naga_archer": 0.75, "coral_guard": 0.8, "tide_mage": 0.85, "siren": 0.85, "abyss_horror": 1.3, "young_kraken": 2.4, "leviathan": 3.4, "diving_bell": 1.2,
-	"mere_dragon": 3.4, "ignara": 1.4, "brann_cendre": 1.25, "sylwen_cendre": 1.45, "krag_cendre": 1.55, "nyx_cendre": 1.05, "wyrm_mark": 2.2,
+	"ssareth": 1.3, "mere_dragon": 3.4, "ignara": 1.4, "brann_cendre": 1.25, "sylwen_cendre": 1.45, "krag_cendre": 1.55, "nyx_cendre": 1.05, "wyrm_mark": 2.2,
 	"ember_imp": 0.55, "salamander": 0.45, "drakonid": 0.8, "wyvernling": 0.6, "magma_golem": 1.0, "wyrm_cultist": 0.85, "minor_phoenix": 0.8, "ash_demon": 1.35, "dragon_egg": 0.7, "ancient_drake": 2.4, "ash_wyrm": 3.2, "refugee_convoy": 1.2,
 }
 ## Sprites dont les lettres o/d/m/l prennent les couleurs de l'élément.
@@ -2735,6 +2735,7 @@ const DEFS := {
 	"sylwen_cendre": {"base": "sylwen", "pal": {"o": "0e0808", "G": "5a3a30", "g": "3a2420", "e": "d8a890", "h": "ffb050", "H": "c86a2a", "l": "4a3020", "q": "3a2a1a", "w": "c8b8a8", "c": "4a2a24", "C": "6a3a2a", "k": "1a1414"}},
 	"krag_cendre": {"base": "krag", "pal": {"o": "0e0808", "g": "6a4a3a", "G": "8a6a5a", "h": "1a0e0c", "H": "3a2420", "f": "8a4a2a", "F": "c8642a", "l": "3a2a20", "a": "ffb050", "A": "c86a2a", "w": "4a2a1a", "r": "ff6a2a"}},
 	"nyx_cendre": {"base": "nyx", "pal": {"o": "0e0808", "w": "5a3a30", "W": "8a5a40", "x": "ffb050", "h": "c8a8a0", "H": "e8d0c0", "d": "3a1a14", "D": "6a2a1a", "s": "c8a090", "g": "ff6a2a"}},
+	"ssareth": {"base": "renegade_adept", "pal": {"o": "0a1a14", "h": "3a7aa0", "H": "8ab8c0", "s": "6aa880", "e": "fff06a", "p": "d0e8ec", "P": "4fe3d2"}},
 	"mere_dragon": {"base": "ash_wyrm", "pal": {"o": "2a1006", "s": "c8702a", "S": "f0a050", "w": "8a3a1a", "W": "e8903a", "b": "5a2a10", "h": "f0e0c0", "e": "fff6c0", "t": "ffe0a0", "k": "ffd890"}},
 	"wyrm_mark": {"base": "body_rune", "pal": {"o": "2a0806", "d": "6a1a0a", "m": "d84a1a", "l": "ffb050", "s": "fff0a0"}},
 	# Zone 7 : Cité Engloutie.

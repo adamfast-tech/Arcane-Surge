@@ -10,7 +10,8 @@
     "sylwen",
     "krag",
     "nyx",
-    "ignara"
+    "ignara",
+    "ssareth"
   ],
   "desc": "Le Grand Canal traverse la cité. Deux courants latéraux y emportent tes invocations d'un côté puis de l'autre. Les Nagas archères tirent depuis les berges.",
   "par_time": 130,
@@ -97,6 +98,23 @@
       "dir": -1,
       "speed": 0.8,
       "flip": 16
+    }
+  ],
+  "story_mods": [
+    {
+      "if": "s1.oeuf_vole",
+      "dragons": {
+        "first": 16,
+        "every": [
+          20,
+          26
+        ],
+        "warn": 1.7,
+        "dmg": 44,
+        "band": 1.4,
+        "patches": 0
+      },
+      "log": "Les dragons de la Mère n'ont pas oublié l'Œuf volé : ils survolent la côte."
     }
   ],
   "initial_enemies": []

@@ -44,6 +44,8 @@ Les drapeaux sont rangés par saison (`s1.*`, `s2.*`) pour que l'histoire puisse
 
 > Zone 3 mise en œuvre à l'étape 12.2 : voir [`22-narration-zone3.md`](22-narration-zone3.md). Les deux voies de 3-10 ouvrent la branche « Voie du Surge » ; sa Clé de voûte dépend de la voie choisie.
 >
+> Zone 7 mise en œuvre à l'étape 17.2 : voir [`40-narration-zone7.md`](40-narration-zone7.md). 7-9 A pose `s1.premonitions` : les choix suivants affichent le type de leurs conséquences. 5-10 B rend Ssareth méfiant (−10) ; 6-9 B fait survoler la côte par les dragons (7-2, 7-4).
+>
 > Zone 6 mise en œuvre à l'étape 16.2 : voir [`38-narration-zone6.md`](38-narration-zone6.md). La Marque du Wyrm se pose au début de l'acte sur le compagnon le moins loyal (sous 25) ; il résiste si sa loyauté remonte à 40. ✦ 6-10 sans traître : briser la Marque ou en garder un éclat.
 >
 > Zone 5 mise en œuvre à l'étape 15.2 : voir [`34-narration-zone5.md`](34-narration-zone5.md). 5-9 A donne le 1er Fragment de Morvaen et des énigmes plus faciles ; 5-9 B, le bouclier de Thalren devant le Sphinx ; ✦ 5-10 A pose `s1.faiblesse_morvaen`.

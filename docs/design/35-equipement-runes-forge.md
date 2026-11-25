@@ -4,7 +4,7 @@
 
 ## 1. Catalogue
 
-- **259 objets** : 7 panoplies de zone de 36 pièces chacune, plus 7 uniques (dont l'Œuf de cendre, acte 6) :
+- **260 objets** : 7 panoplies de zone de 36 pièces chacune, plus 8 uniques (dont l'Œuf de cendre, acte 6, et le Trident des Archives, acte 7) :
   - Bâton de la Première Sève, Croc de Gharok, Enclume-Cœur, Couronne de l'Énigme (choix et exploits de l'histoire) ;
   - Hache du Serment Brisé et Fiole des Trois Venins : légendaires de boss. Une chance sur huit à chaque victoire contre Gharok (2-10) ou l'Hydre (3-10), multipliée par la difficulté, une seule fois (`boss_unique` dans progression.json).
 - Chaque zone a son butin (`loot_pool`), couvrant tous les emplacements : 8 armes, 4 mains secondaires, 4 têtes, 4 armures, 4 gants, 4 bottes, 2 médaillons, 4 anneaux, 2 charmes.
@@ -149,7 +149,7 @@ On y accède par une nouvelle salle d'Havre-Aube, par le bouton « Forge » de l
 ## 6. Vérifications
 
 `tools/ui_smoke.gd` (`_gear_ok`) contrôle :
-- les 259 icônes (36 par zone) et les 16 runes, avec leurs 4 effets ;
+- les 260 icônes (36 par zone) et les 16 runes, avec leurs 4 effets ;
 - la Fiole des Trois Venins, tombée une seule fois en 60 victoires contre l'Hydre ;
 - Pyr gravée sur l'arme (Sorts de Feu en combat) ;
 - Kaor sur un heaume (POU) ;

@@ -3898,6 +3898,24 @@
         "g": "4fe3d2"
       },
       "zone": 7
+    },
+    "trident_archives": {
+      "name": "Trident des Archives",
+      "slot": "weapon",
+      "stats": {
+        "pou": 10,
+        "esp": 5,
+        "des": 3
+      },
+      "element": "foudre",
+      "unique": true,
+      "lore": "Arraché à la gueule du Léviathan, gardien des Archives du Temps. Ses trois pointes vibrent encore des marées qu'il commandait.",
+      "art": {
+        "t": "lance",
+        "m": "pearl",
+        "c": "teal",
+        "g": "fff06a"
+      }
     }
   },
   "loot_pool": {

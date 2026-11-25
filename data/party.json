@@ -481,6 +481,25 @@
       "id": "ignara",
       "requires": "s1.ignara_allie",
       "role": "Feu draconique : son souffle embrase toute une colonne"
+    },
+    {
+      "name": "Ssareth",
+      "class": "clerc",
+      "race": "reptilien",
+      "level": 7,
+      "side": "left",
+      "sprite": "ssareth",
+      "personality": "defensif",
+      "order": "defends",
+      "spells": [
+        "chant_archives"
+      ],
+      "think": 0.4,
+      "aim_error": 0.35,
+      "cadence_mult": 0.8,
+      "id": "ssareth",
+      "requires": "s1.ssareth_allie",
+      "role": "Gardien : son Chant des Archives soigne la Barrière"
     }
   ]
 }

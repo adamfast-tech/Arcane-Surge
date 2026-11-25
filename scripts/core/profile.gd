@@ -957,7 +957,7 @@ static func battle_opts() -> Dictionary:
 		"flags": Story.active_flags(), "healed": Story.has_flag("s1.sylvarche_purifiee"),
 		"mods": all_mods(), "don": don_info(), "deck": deck() if spell_mode() == "deck" else drawer_spells(), "spell_mode": spell_mode(), "circle": circle(),
 		"player_race": race(), "look": look(), "player_class": player_class(),
-		"loyalty": {"brann": Story.loyalty("brann"), "sylwen": Story.loyalty("sylwen"), "krag": Story.loyalty("krag"), "nyx": Story.loyalty("nyx"), "ignara": Story.loyalty("ignara")},
+		"loyalty": {"brann": Story.loyalty("brann"), "sylwen": Story.loyalty("sylwen"), "krag": Story.loyalty("krag"), "nyx": Story.loyalty("nyx"), "ignara": Story.loyalty("ignara"), "ssareth": Story.loyalty("ssareth")},
 		"active": active_companions(), "bots": bots_opts(), "difficulty": difficulty_mult()}
 
 
@@ -1619,7 +1619,7 @@ static func learn(id: String) -> bool:
 static func default_circle() -> Dictionary:
 	return {"swap": false, "active": ["brann", "sylwen"], "brann": {"order": "defends", "spell": "bouclier_leve"},
 		"sylwen": {"order": "focus_nexus", "spell": "tir_precision"}, "krag": {"order": "defends", "spell": "hache_tournoyante"},
-		"nyx": {"order": "focus_nexus", "spell": "linceul"}, "ignara": {"order": "focus_nexus", "spell": "souffle_draconique"}}
+		"nyx": {"order": "focus_nexus", "spell": "linceul"}, "ignara": {"order": "focus_nexus", "spell": "souffle_draconique"}, "ssareth": {"order": "defends", "spell": "chant_archives"}}
 
 
 ## Compagnons qui ont rejoint le groupe (Krag : selon les choix de l'acte 2).

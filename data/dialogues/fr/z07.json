@@ -59,9 +59,670 @@
       "title": "???",
       "color": "B07CFF",
       "portrait": "voix"
+    },
+    "ssareth": {
+      "name": "Ssareth",
+      "title": "Scribe des Archives du Temps",
+      "color": "8FE0C8",
+      "portrait": "ssareth",
+      "loyalty": true,
+      "loyalty_if": "s1.ssareth_allie"
+    },
+    "leviathan": {
+      "name": "Le Léviathan",
+      "title": "Gardien des Archives",
+      "color": "4FA8C8",
+      "portrait": "leviathan"
+    },
+    "ourdisseur": {
+      "name": "???",
+      "title": "Celui qui tisse",
+      "color": "D8C8FF",
+      "portrait": "ourdisseur"
     }
   },
-  "scenes": {},
+  "scenes": {
+    "z07_l01_intro": {
+      "art": "quais",
+      "subject": "fishman",
+      "lines": [
+        {
+          "who": "narrateur",
+          "text": "Au-delà de la forêt, la côte s'effondre dans une mer d'un bleu d'encre. Sous les vagues, des tours brillent encore : la Cité Engloutie."
+        },
+        {
+          "who": "brann",
+          "text": "Une ville entière sous l'eau. Et on est censés y descendre ?"
+        },
+        {
+          "who": "narrateur",
+          "text": "Une bulle de nacre se forme autour de chacun de vous. Quelqu'un, en bas, vous a invités."
+        },
+        {
+          "who": "ignara",
+          "text": "Les dragons nous suivent depuis la forêt. Ils n'ont pas oublié l'Œuf.",
+          "mood": "colere",
+          "if": "s1.oeuf_vole"
+        },
+        {
+          "who": "sylwen",
+          "text": "Des hommes-poissons. Ils remontent les quais vers nous."
+        }
+      ]
+    },
+    "z07_l01_outro": {
+      "art": "quais",
+      "subject": "",
+      "lines": [
+        {
+          "who": "narrateur",
+          "text": "Un reptilien en robe d'écume s'avance, un bâton de corail à la main. Écailles vert-de-gris, yeux d'or fendus, une voix comme un ressac."
+        },
+        {
+          "who": "ssareth",
+          "text": "Je suis Ssareth, scribe des Archives du Temps. C'est moi qui vous ai donné le souffle."
+        },
+        {
+          "who": "ssareth",
+          "text": "Les Archives t'attendaient, Porteur. Elles attendent toujours le suivant."
+        },
+        {
+          "who": "ssareth",
+          "text": "Le Sphinx de verre m'a parlé de toi. Tu lui as menti. Ici, on ne ment pas aux Archives.",
+          "mood": "colere",
+          "if": "s1.sphinx_mensonge"
+        },
+        {
+          "if": "s1.sphinx_mensonge",
+          "effects": {
+            "add": {
+              "loy.ssareth": -10
+            }
+          }
+        },
+        {
+          "who": "ssareth",
+          "text": "Le Sphinx m'a dit que tu lui avais montré ton Sceau. C'est un bon début.",
+          "mood": "joie",
+          "if": "s1.sceau_revele"
+        },
+        {
+          "who": "brann",
+          "text": "Un scribe qui se bat ? J'aurai tout vu."
+        },
+        {
+          "effects": {
+            "set": [
+              "s1.ssareth_allie"
+            ]
+          }
+        },
+        {
+          "who": "narrateur",
+          "text": "Ssareth rejoint le groupe. Au Cercle de Havre-Aube, choisis les deux compagnons qui t'accompagnent."
+        }
+      ]
+    },
+    "z07_l02_intro": {
+      "art": "canal",
+      "subject": "naga_archer",
+      "lines": [
+        {
+          "who": "ssareth",
+          "text": "Chaque vie est un fil de corail, dans la grande salle des Archives. Nous les lisons, nous les gardons. Nous ne les touchons jamais."
+        },
+        {
+          "who": "nyx",
+          "text": "Et le Surge, dans tout ça ?",
+          "if": "s1.nyx_allie"
+        },
+        {
+          "who": "ssareth",
+          "text": "Il a noyé la cité le jour de la Fracture. Il a noyé aussi certains des nôtres… dans leur tête.",
+          "mood": "triste"
+        },
+        {
+          "who": "sylwen",
+          "text": "Attention aux courants : ils emportent nos troupes de côté."
+        }
+      ]
+    },
+    "z07_l02_outro": {
+      "art": "canal",
+      "lines": [
+        {
+          "who": "ssareth",
+          "text": "Ces nagas étaient des gardes du canal. Le Surge les a rendues sauvages.",
+          "mood": "triste"
+        },
+        {
+          "who": "ignara",
+          "text": "Tu parles beaucoup, pour un lézard.",
+          "if": "s1.ignara_allie"
+        },
+        {
+          "who": "ssareth",
+          "text": "Et toi, tu fumes beaucoup, pour quelqu'un qui est sous l'eau.",
+          "mood": "joie",
+          "if": "s1.ignara_allie"
+        },
+        {
+          "who": "krag",
+          "text": "Il me plaît, le scribe. Il a de la répartie.",
+          "mood": "joie",
+          "if": "s1.krag_allie"
+        }
+      ]
+    },
+    "z07_l03_intro": {
+      "art": "quais",
+      "subject": "coral_guard",
+      "lines": [
+        {
+          "who": "ssareth",
+          "text": "La grande marée. Le Léviathan respire : quand il inspire, la mer monte."
+        },
+        {
+          "who": "brann",
+          "text": "Et quand il expire ?"
+        },
+        {
+          "who": "ssareth",
+          "text": "On prie pour qu'il expire doucement."
+        }
+      ]
+    },
+    "z07_l03_outro": {
+      "art": "quais",
+      "lines": [
+        {
+          "who": "ssareth",
+          "text": "Tu sens ça ? Le temps a tremblé. Quelqu'un, quelque part, vient de revenir en arrière.",
+          "mood": "surpris"
+        },
+        {
+          "who": "sylwen",
+          "text": "Comment tu peux sentir une chose pareille ?"
+        },
+        {
+          "who": "ssareth",
+          "text": "Les Archivistes sentent chaque fil qu'on renoue. Ça fait comme une démangeaison sous les écailles."
+        }
+      ]
+    },
+    "z07_l04_intro": {
+      "art": "statues",
+      "subject": "titan_crab",
+      "lines": [
+        {
+          "who": "narrateur",
+          "text": "Sur la place, des statues de toutes les époques : humains, elfes, orcs, nains. Tous tiennent la même pierre au creux de la main : un Sceau d'Écho."
+        },
+        {
+          "who": "ssareth",
+          "text": "Les Porteurs. Tous ceux qui ont tenu le Sceau avant toi."
+        },
+        {
+          "who": "brann",
+          "text": "Il y en a eu autant ?",
+          "mood": "surpris"
+        }
+      ]
+    },
+    "z07_l04_outro": {
+      "art": "statues",
+      "lines": [
+        {
+          "who": "narrateur",
+          "text": "Une statue n'a plus de visage : on l'a martelé. Sur le socle, une seule lettre, gravée profond : « M. »"
+        },
+        {
+          "who": "ssareth",
+          "text": "Le dernier Porteur avant toi. Les Archivistes ont effacé son visage le jour de la Fracture. Pas son nom : on n'efface pas un nom des Archives."
+        },
+        {
+          "who": "sylwen",
+          "text": "Le dernier avant {pseudo}… Le prodige du Collège.",
+          "mood": "surpris"
+        },
+        {
+          "who": "nyx",
+          "text": "« M. »… Le Journal, l'autel du Wyrm, et maintenant ça.",
+          "if": "s1.nyx_allie"
+        }
+      ]
+    },
+    "z07_l05_intro": {
+      "art": "palais",
+      "subject": "young_kraken",
+      "lines": [
+        {
+          "who": "ssareth",
+          "text": "Le kraken des Archives. Il était petit quand j'étais petit. Il a grandi plus vite que moi."
+        },
+        {
+          "who": "sylwen",
+          "text": "Ses tentacules frappent des couloirs entiers. Et son encre cache tout."
+        }
+      ]
+    },
+    "z07_l05_outro": {
+      "art": "palais",
+      "lines": [
+        {
+          "who": "narrateur",
+          "text": "Le kraken s'enfuit vers les profondeurs. Au même instant, la mer devient silencieuse."
+        },
+        {
+          "who": "voix",
+          "text": "Tu marches dans mes pas, Porteur. Même ville, même mer, mêmes questions. Demande-leur ce que j'ai lu, dans ces Archives."
+        },
+        {
+          "who": "ssareth",
+          "text": "Cette voix… Elle a lu les Archives. Personne n'a le droit de lire sa propre ligne.",
+          "mood": "colere"
+        }
+      ]
+    },
+    "z07_l06_intro": {
+      "art": "quais",
+      "subject": "diving_bell",
+      "lines": [
+        {
+          "who": "ssareth",
+          "text": "Cette cloche porte le registre des Archivistes. Sans lui, les portes ne s'ouvriront pas."
+        },
+        {
+          "who": "brann",
+          "text": "Une cloche qui porte un livre, au fond de la mer. Bien sûr. Pourquoi pas."
+        }
+      ]
+    },
+    "z07_l06_outro": {
+      "art": "statues",
+      "lines": [
+        {
+          "who": "narrateur",
+          "text": "Aux portes des Archives, une douzaine d'Archivistes attendent, immobiles. La plus vieille incline la tête."
+        },
+        {
+          "who": "narrateur",
+          "text": "« Porteur. Nous vous attendions depuis trois cents ans. Nous espérions juste que vous seriez moins… nombreux. »"
+        },
+        {
+          "who": "ssareth",
+          "text": "Elle plaisante. Je crois.",
+          "mood": "joie"
+        },
+        {
+          "effects": {
+            "add": {
+              "rep.archivistes": 5
+            }
+          }
+        }
+      ]
+    },
+    "z07_l07_intro": {
+      "art": "palais",
+      "subject": "siren",
+      "lines": [
+        {
+          "who": "nyx",
+          "text": "Ce chant… N'écoute pas trop longtemps.",
+          "mood": "triste",
+          "if": "s1.nyx_allie"
+        },
+        {
+          "who": "ssareth",
+          "text": "Les Sirènes. Abats-les d'abord : tant qu'elles chantent, rien ne meurt vraiment ici."
+        }
+      ]
+    },
+    "z07_l07_outro": {
+      "art": "palais",
+      "subject": "siren",
+      "lines": [
+        {
+          "who": "narrateur",
+          "text": "La dernière Sirène chante encore, d'une voix brisée. Un nom revient dans son chant : « Liriel… Liriel… »"
+        },
+        {
+          "who": "ssareth",
+          "text": "C'étaient des chanteuses des Archives. Elles chantaient les fils, pour qu'on ne les oublie pas. Le Surge a mélangé leurs chants.",
+          "mood": "triste"
+        },
+        {
+          "choice": "z07_l07",
+          "prompt": "Le chant des sirènes",
+          "options": [
+            {
+              "key": "A",
+              "text": "Les délivrer : faire taire leur chant",
+              "effects": {
+                "set": [
+                  "s1.sirenes_delivrees"
+                ],
+                "add": {
+                  "loy.ssareth": 10,
+                  "loy.sylwen": 5
+                }
+              },
+              "then": [
+                {
+                  "who": "narrateur",
+                  "text": "Ssareth pose la main sur la gorge de la Sirène. Le chant s'éteint doucement, et elle ferme les yeux, enfin en paix."
+                },
+                {
+                  "who": "ssareth",
+                  "text": "Merci. Les Archives se souviendront d'elles.",
+                  "mood": "joie"
+                }
+              ]
+            },
+            {
+              "key": "B",
+              "text": "Écouter la fin du chant",
+              "effects": {
+                "set": [
+                  "s1.chant_ecoute"
+                ],
+                "add": {
+                  "corruption": 5,
+                  "loy.nyx": 5
+                }
+              },
+              "then": [
+                {
+                  "who": "narrateur",
+                  "text": "« Liriel brûlait à l'aube. Il a remonté le fil, une fois, cent fois, mille fois. À chaque retour, elle mourait autrement. »"
+                },
+                {
+                  "who": "nyx",
+                  "text": "Il l'a vue mourir mille fois…",
+                  "mood": "triste",
+                  "if": "s1.nyx_allie"
+                },
+                {
+                  "who": "ssareth",
+                  "text": "Assez. Ce chant n'est pas pour nous.",
+                  "mood": "colere"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "z07_l08_intro": {
+      "art": "archives",
+      "subject": "siren",
+      "lines": [
+        {
+          "who": "ssareth",
+          "text": "Les portes des Archives. La corruption les a scellées. Purifie les sceaux, et je t'ouvrirai."
+        }
+      ]
+    },
+    "z07_l08_outro": {
+      "art": "archives",
+      "lines": [
+        {
+          "who": "narrateur",
+          "text": "Derrière les portes, une salle immense : des millions de fils de corail lumineux, tendus du sol à la voûte. Chacun est une vie."
+        },
+        {
+          "who": "ssareth",
+          "text": "Celui-là est noir. Il a été lu, relu, déchiré, renoué des centaines de fois."
+        },
+        {
+          "who": "narrateur",
+          "text": "Sur la plaque, le nom est enfin écrit en entier : « Morvaen, Porteur d'Écho, élève du premier Collège. Retours : quatre cent douze. »"
+        },
+        {
+          "who": "sylwen",
+          "text": "Morvaen… L'archimage. Le Roi Éclipsé. C'était un Porteur. Comme {pseudo}.",
+          "mood": "surpris"
+        },
+        {
+          "who": "brann",
+          "text": "Quatre cent douze fois…",
+          "mood": "triste"
+        },
+        {
+          "who": "narrateur",
+          "text": "Au pied du fil noir, un éclat de corail s'est détaché, couvert d'une écriture violette : « Un visage. Le Sceau m'a tout pris, sauf un visage. »"
+        },
+        {
+          "effects": {
+            "add": {
+              "fragments": 1
+            }
+          }
+        },
+        {
+          "who": "narrateur",
+          "text": "Tu ramasses l'éclat : un Fragment de Morvaen."
+        }
+      ]
+    },
+    "z07_l09_intro": {
+      "art": "palais",
+      "subject": "abyss_horror",
+      "lines": [
+        {
+          "who": "ssareth",
+          "text": "Le palais du gardien. Derrière, la salle où chaque fil a son reflet. Le tien aussi."
+        }
+      ]
+    },
+    "z07_l09_outro": {
+      "art": "archives",
+      "lines": [
+        {
+          "who": "narrateur",
+          "text": "Au cœur du palais, un fil brille plus que les autres. Il est tiède. Il bat au même rythme que ton cœur."
+        },
+        {
+          "who": "ssareth",
+          "text": "Ta ligne, Porteur. Ce qui a été, et ce qui sera peut-être. Les Archivistes ne lisent jamais leur propre fil. C'est la règle."
+        },
+        {
+          "who": "nyx",
+          "text": "Les règles, c'est pour ceux qui ont le temps.",
+          "if": "s1.nyx_allie"
+        },
+        {
+          "choice": "z07_l09",
+          "prompt": "Les Archives du Temps",
+          "options": [
+            {
+              "key": "A",
+              "text": "Lire ta propre ligne",
+              "effects": {
+                "set": [
+                  "s1.ligne_lue",
+                  "s1.premonitions"
+                ],
+                "add": {
+                  "loy.ssareth": -10
+                }
+              },
+              "then": [
+                {
+                  "who": "narrateur",
+                  "text": "Tu touches le fil. Des images : des choix que tu n'as pas encore faits, des visages que tu n'as pas encore rencontrés."
+                },
+                {
+                  "who": "narrateur",
+                  "text": "Tout au bout de ta ligne, une silhouette faite de fils tisse sans relâche. Elle s'arrête. Elle lève la tête. Elle te voit."
+                },
+                {
+                  "who": "ourdisseur",
+                  "text": "Pas encore."
+                },
+                {
+                  "who": "ssareth",
+                  "text": "Tu as lu. Tu ne pourras plus jamais choisir sans savoir… un peu.",
+                  "mood": "colere"
+                },
+                {
+                  "who": "narrateur",
+                  "text": "Prémonitions : désormais, à chaque choix, tu devines le type de ses conséquences."
+                }
+              ]
+            },
+            {
+              "key": "B",
+              "text": "Sceller les Archives",
+              "effects": {
+                "set": [
+                  "s1.archives_scellees"
+                ],
+                "add": {
+                  "loy.ssareth": 20,
+                  "rep.archivistes": 10
+                }
+              },
+              "then": [
+                {
+                  "who": "narrateur",
+                  "text": "Ssareth tire un voile de nacre sur la salle des fils. Les lumières s'éteignent une à une."
+                },
+                {
+                  "who": "ssareth",
+                  "text": "Merci. Le temps n'est pas un livre qu'on feuillette. Je te suivrai jusqu'au bout, Porteur.",
+                  "mood": "joie"
+                },
+                {
+                  "who": "narrateur",
+                  "text": "Les Archivistes retiendront la marée pour toi, devant le Léviathan."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "z07_l10_intro": {
+      "art": "abysse",
+      "subject": "leviathan",
+      "lines": [
+        {
+          "who": "narrateur",
+          "text": "Au fond du palais, une fosse s'ouvre sur le noir absolu. Deux yeux immenses s'y allument."
+        },
+        {
+          "who": "ssareth",
+          "text": "Le Léviathan. Il garde les Archives depuis avant la cité. La Marée noire du Surge le ronge depuis trois siècles.",
+          "mood": "triste"
+        },
+        {
+          "who": "leviathan",
+          "text": "Porteur. Encore un. Ils viennent tous, à la fin. Ils veulent tous lire."
+        },
+        {
+          "who": "ignara",
+          "text": "Il parle ? Formidable. Il va nous raconter sa vie avant de nous manger ?",
+          "if": "s1.ignara_allie"
+        },
+        {
+          "who": "sylwen",
+          "text": "Il craint la Nature. Et quand il creuse son tourbillon, éloigne nos troupes du centre."
+        }
+      ]
+    },
+    "z07_l10_outro": {
+      "art": "abysse",
+      "subject": "leviathan",
+      "subject_tint": "6a8aa8",
+      "lines": [
+        {
+          "who": "narrateur",
+          "text": "Le Léviathan s'échoue sur le sol du palais. Sous ses écailles, la Marée noire du Surge pulse encore, comme une seconde peau."
+        },
+        {
+          "who": "leviathan",
+          "text": "Libère-moi de cette marée, Porteur, et je garderai cette cité jusqu'à la fin des temps. Ou prends mon trident, et finis-en."
+        },
+        {
+          "who": "ssareth",
+          "text": "Si tu le libères, les Archivistes te devront tout. Si tu le tues… les Archives n'auront plus de gardien."
+        },
+        {
+          "choice": "z07_l10",
+          "major": true,
+          "prompt": "Le Léviathan",
+          "options": [
+            {
+              "key": "A",
+              "text": "Libérer le gardien",
+              "effects": {
+                "set": [
+                  "s1.leviathan_libere"
+                ],
+                "add": {
+                  "rep.archivistes": 20,
+                  "loy.ssareth": 10
+                }
+              },
+              "then": [
+                {
+                  "who": "narrateur",
+                  "text": "Tu lèves le Sceau. Un fil de lumière traverse le Léviathan, et la Marée noire se dissout comme de l'encre dans l'eau claire."
+                },
+                {
+                  "who": "leviathan",
+                  "text": "Merci. Quand viendra la dernière marée, appelle-moi."
+                },
+                {
+                  "who": "ssareth",
+                  "text": "L'Ordre des Archivistes s'allie à toi, Porteur. C'est la première fois depuis Morvaen.",
+                  "mood": "joie"
+                }
+              ]
+            },
+            {
+              "key": "B",
+              "text": "Le tuer",
+              "effects": {
+                "set": [
+                  "s1.leviathan_tue"
+                ],
+                "add": {
+                  "rep.archivistes": -10,
+                  "loy.ssareth": -15
+                },
+                "grant": {
+                  "base": "trident_archives",
+                  "rarity": "legendaire"
+                }
+              },
+              "then": [
+                {
+                  "who": "narrateur",
+                  "text": "Le Léviathan pousse un dernier soupir. Son trident roule jusqu'à tes pieds, vibrant encore des marées qu'il commandait."
+                },
+                {
+                  "who": "ssareth",
+                  "text": "Les Archives n'ont plus de gardien. J'espère que tu sais ce que tu fais.",
+                  "mood": "triste"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "who": "ssareth",
+          "text": "Je viens avec toi. Les Archives m'ont appris une chose : Morvaen a lu sa ligne jusqu'au bout. Il ne faut pas que tu deviennes lui."
+        },
+        {
+          "who": "narrateur",
+          "text": "Fin de l'acte 7. Au-delà de la mer, la terre se fend : les Terres Brisées, où les lignes du temps se mélangent."
+        }
+      ]
+    }
+  },
   "barks": {
     "start": [
       {
@@ -91,6 +752,17 @@
         "text": "De l'eau. Partout. Je vous préviens : je ne suis pas d'humeur.",
         "if": "s1.ignara_allie",
         "mood": "colere"
+      },
+      {
+        "who": "ssareth",
+        "text": "Respire calmement. Le souffle des marées tient tant que tu ne paniques pas.",
+        "if": "s1.ssareth_allie"
+      },
+      {
+        "who": "ssareth",
+        "text": "Je soigne la Barrière. Toi, occupe-toi de ne pas la casser.",
+        "if": "s1.ssareth_allie",
+        "mood": "joie"
       }
     ],
     "barrier_low": [
@@ -111,6 +783,16 @@
         "who": "ignara",
         "text": "Si la Barrière tombe, je mets le feu à cet océan.",
         "if": "s1.ignara_allie"
+      },
+      {
+        "who": "ssareth",
+        "text": "Je chante pour la Barrière ! Tiens encore un peu !",
+        "if": "s1.ssareth_allie"
+      },
+      {
+        "who": "ssareth",
+        "text": "Je chante pour la Barrière ! Tiens encore un peu !",
+        "if": "s1.ssareth_allie"
       }
     ],
     "half": [

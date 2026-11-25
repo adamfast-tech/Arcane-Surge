@@ -8,7 +8,7 @@ extends RefCounted
 ## « fragments » (Fragments de Morvaen, 0 à 10).
 ## Drapeaux rangés par saison : « s1.fees_liberees », « s1.sylvarche_purifiee »…
 
-const COMPANIONS := {"brann": "Brann", "sylwen": "Sylwen", "krag": "Krag", "nyx": "Nyx", "ignara": "Ignara"}
+const COMPANIONS := {"brann": "Brann", "sylwen": "Sylwen", "krag": "Krag", "nyx": "Nyx", "ignara": "Ignara", "ssareth": "Ssareth"}
 ## Acte 6 : un compagnon dont la loyauté est sous ce seuil au début de l'acte peut trahir (06-monde §4.1).
 const TRAITOR_LOYALTY := 25
 ## … sauf si, au moment du combat contre le Wyrm, sa loyauté est remontée jusqu'ici : il résiste à la Marque.
@@ -344,3 +344,19 @@ static func companion_lost(who: String, flags: Array = []) -> bool:
 	if fl.has("s1.mort_" + who) or fl.has("s1.exile_" + who):
 		return true
 	return fl.has("s1.trahison") and fl.has("s1.traitre_" + who) and not fl.has("s1.redemption_" + who)
+
+
+## Acte 7 · Prémonitions (7-9 A, « lire sa propre ligne ») : le type de conséquences d'une option, sans le détail.
+static func premonition(eff: Dictionary) -> String:
+	var kinds: Array[String] = []
+	var add: Dictionary = eff.get("add", {})
+	for k in add.keys():
+		var ks := str(k)
+		var lab := "Loyauté" if ks.begins_with("loy.") else ("Réputation" if ks.begins_with("rep.") else ("Corruption" if ks == "corruption" else ("Fragment" if ks == "fragments" else "")))
+		if lab != "" and not kinds.has(lab):
+			kinds.append(lab)
+	if eff.has("grant"):
+		kinds.append("Objet")
+	if not _as_list(eff.get("set", [])).is_empty() or eff.has("exile") or eff.has("redeem"):
+		kinds.append("Fil du destin")
+	return " · ".join(kinds)

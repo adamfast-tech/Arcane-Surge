@@ -1914,3 +1914,17 @@ func s_souffle_de_cendre(ph: String, e: Dictionary) -> bool:
 		[Color(0.3, 0.25, 0.25, 0.8), Color(0.12, 0.1, 0.1, 0.5), Color(0.05, 0.05, 0.05, 0.0)], 0.0)
 	line("shock", {"pos": pos, "r": r, "dur": 0.5, "color": Color("ff6a2a")})
 	return true
+
+
+## Chant des Archives (Ssareth) : des fils de corail lumineux montent de la Barrière, comme des notes.
+func s_chant_archives(ph: String, e: Dictionary) -> bool:
+	match ph:
+		"spell":
+			for i in range(12):
+				var x := 0.4 + 8.2 * float(i) / 11.0
+				emit(w3(Vector2(x, BattleSim.BARRIER_Y), 0.1), Vector3(0.1, 0.02, 0.1), 10, 1.2, Vector3.UP, 8.0, Vector2(0.8, 1.6), -0.2, 0.06,
+					[Color("bff6ff"), Color("4fe3d2"), Color(0.3, 0.8, 0.8, 0.0)], 0.03 * float(i))
+			return true
+		"shield", "heal", "ring":
+			return true
+	return false

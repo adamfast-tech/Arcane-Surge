@@ -1078,6 +1078,9 @@ func _run() -> void:
 	if not await _act6_ok():
 		quit(1)
 		return
+	if not await _act7_ok():
+		quit(1)
+		return
 	main.call("_show_room", "circle")
 	await _frames(5)
 	Profile.swap_active("krag", "brann")
@@ -2027,4 +2030,64 @@ func _zone7_ok() -> bool:
 		push_error("zone 7 : " + " · ".join(errs))
 		return false
 	print("zone 7 : marée, eau, tourbillon, courants, vague, portail avalé OK")
+	return true
+
+
+## Acte 7 : scènes, portraits, planches ; Ssareth (méfiant après le mensonge au Sphinx), choix joués à l'écran,
+## Prémonitions, et leurs effets en combat (marée retenue, annonces plus longues, bouclier, dragons de l'Œuf volé).
+func _act7_ok() -> bool:
+	var errs: Array[String] = []
+	for n in range(1, 11):
+		for part in ["intro", "outro"]:
+			if not Dialogues.has_scene("z07_l%02d_%s" % [n, part]):
+				errs.append("scène z07_l%02d_%s" % [n, part])
+	for who in ["ssareth", "leviathan", "ourdisseur"]:
+		for mood in ["neutre", "joie", "triste", "colere", "surpris"]:
+			if PortraitArt.texture(who, mood) == null:
+				errs.append("portrait %s/%s" % [who, mood])
+	for kind in ["quais", "canal", "statues", "archives", "palais", "abysse"]:
+		if StoryArt.plate(kind, Vector2i(320, 180)) == null:
+			errs.append("planche " + kind)
+	if SpriteAtlas.single("ssareth") == null:
+		errs.append("sprite ssareth")
+	var saved: Dictionary = (Story.st() as Dictionary).duplicate(true)
+	Story.set_flag("s1.sphinx_mensonge")
+	for sid in ["z07_l01_outro", "z07_l07_outro", "z07_l09_outro", "z07_l10_outro"]:
+		main.call("_show_dialogue", [sid], Callable(main, "_show_map"))
+		await _frames(3)
+		await _through_dialogues(0)
+	print("acte 7 : Ssareth %d · 7-7 %s · 7-9 %s · ✦ 7-10 %s · Archivistes %d · Fragments %d" % [Story.loyalty("ssareth"), Story.choice("z07_l07"),
+		Story.choice("z07_l09"), Story.choice("z07_l10"), Story.value("rep.archivistes"), Story.value("fragments")])
+	if not Story.has_flag("s1.ssareth_allie") or not Profile.companions_available().has("ssareth"):
+		errs.append("Ssareth non recruté")
+	if Story.choice("z07_l07") != "A" or Story.choice("z07_l09") != "A" or not Story.has_flag("s1.premonitions") or Story.choice("z07_l10") != "A" or not Story.has_flag("s1.leviathan_libere"):
+		errs.append("choix joués à l'écran")
+	var pm := Story.premonition({"set": ["s1.x"], "add": {"loy.ssareth": 5, "corruption": 3}, "grant": {"base": "trident_archives"}})
+	if not (pm.contains("Loyauté") and pm.contains("Corruption") and pm.contains("Objet") and pm.contains("Fil du destin")):
+		errs.append("prémonition « %s »" % pm)
+	Profile.data["story"] = saved
+	# Effets en combat.
+	var base := BattleSim.new()
+	base.setup(GameData.level("z07_l10"), GameData.party(), 2, {"solo": true})
+	var a := BattleSim.new()
+	a.setup(GameData.level("z07_l10"), GameData.party(), 2, {"solo": true, "flags": ["s1.archives_scellees", "s1.ligne_lue", "s1.sirenes_delivrees"]})
+	a._flush()
+	a._boss_ability({"type": "lane_strike", "delay": 1.0, "dmg": 10, "width": 1.4})
+	var warned := float(a.telegraphs.back()["dur"]) >= 1.49
+	if not (not base.tide_cfg.is_empty() and a.tide_cfg.is_empty() and warned and a.barrier_shield >= 25.0):
+		errs.append("Léviathan : marée %s/%s, annonce %s, bouclier %s" % [base.tide_cfg.is_empty(), a.tide_cfg.is_empty(), warned, a.barrier_shield])
+	base.terrain.sim = null
+	a.terrain.sim = null
+	var d0 := BattleSim.new()
+	d0.setup(GameData.level("z07_l02"), GameData.party(), 3, {"solo": true})
+	var d1 := BattleSim.new()
+	d1.setup(GameData.level("z07_l02"), GameData.party(), 3, {"solo": true, "flags": ["s1.oeuf_vole"]})
+	if not (d0.dragon_cfg.is_empty() and not d1.dragon_cfg.is_empty()):
+		errs.append("dragons de l'Œuf volé")
+	d0.terrain.sim = null
+	d1.terrain.sim = null
+	if not errs.is_empty():
+		push_error("acte 7 : " + " · ".join(errs))
+		return false
+	print("acte 7 : scènes, Ssareth, Prémonitions, Léviathan, dragons hostiles OK")
 	return true

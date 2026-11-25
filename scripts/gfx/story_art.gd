@@ -36,7 +36,7 @@ static func plate(kind: String, size: Vector2i) -> ImageTexture:
 			_desert(img, rng, kind)
 		"cendres", "coulee", "braisemont", "nid", "autels", "citadelle", "caldeira", "antre":
 			_cendres(img, rng, kind)
-		"cite":
+		"cite", "quais", "canal", "statues", "archives", "palais", "abysse":
 			_cite(img, rng, kind)
 		_:
 			_forest(img, rng, kind)
@@ -1241,9 +1241,12 @@ static func _cendres_cave(img: Image, rng: RandomNumberGenerator, kind: String) 
 # ---------------------------------------------------------------- acte 7 · Cité Engloutie
 
 ## La Cité Engloutie : lumière de la surface en rayons, tours et arches noyées, statues d'Archivistes, algues, bulles.
-static func _cite(img: Image, rng: RandomNumberGenerator, _kind: String) -> void:
+static func _cite(img: Image, rng: RandomNumberGenerator, kind: String) -> void:
 	var w := img.get_width()
 	var h := img.get_height()
+	if kind in ["archives", "abysse"]:
+		_cite_deep(img, rng, kind)
+		return
 	_sky(img, rng, [[0.0, Color("2a8aa8")], [0.2, Color("146a8a")], [0.5, Color("0a3a5a")], [1.0, Color("041428")]], 0.0)
 	# Surface ondulante et rayons de lumière.
 	for x in range(w):
@@ -1300,6 +1303,71 @@ static func _cite(img: Image, rng: RandomNumberGenerator, _kind: String) -> void
 		var fy := rng.randi_range(int(h * 0.2), int(h * 0.5))
 		for j in range(6):
 			_px(img, fx + j * 4, fy + rng.randi_range(-2, 2), Color(0.7, 0.9, 1.0, 0.7))
+	match kind:
+		"quais":
+			# Quais de pierre et bateaux échoués au premier plan.
+			img.fill_rect(Rect2i(0, int(h * 0.78), w, 4), Color("1a3a4a"))
+			for k in range(3):
+				var bx := int(w * (0.15 + 0.32 * float(k)))
+				var by := int(h * 0.86)
+				for yy in range(6):
+					img.fill_rect(Rect2i(bx - 10 + yy, by + yy, 20 - yy * 2, 1), Color("3a2a1e"))
+				img.fill_rect(Rect2i(bx, by - 14, 1, 14), Color("3a2a1e"))
+		"canal":
+			# Le canal : deux berges et un pont arqué.
+			img.fill_rect(Rect2i(0, int(h * 0.7), w, int(h * 0.08)), Color("0e4a6a"))
+			for k in range(-int(w * 0.2), int(w * 0.2)):
+				var yy := int(h * 0.62) + int(float(k * k) / float(maxi(1, int(w * 0.2) * int(w * 0.2))) * h * 0.06)
+				img.fill_rect(Rect2i(w / 2 + k, yy, 1, 3), Color("1a4a5a"))
+			for k in range(10):
+				_px(img, rng.randi_range(0, w), int(h * 0.74), Color(0.7, 0.95, 1.0, 0.8))
+		"statues":
+			# Rangée de statues de Porteurs, une sans visage.
+			for k in range(5):
+				var sx := int(w * (0.12 + 0.19 * float(k)))
+				var sb := int(h * 0.86)
+				img.fill_rect(Rect2i(sx - 3, sb - 22, 7, 22), Color("2a5a6a"))
+				img.fill_rect(Rect2i(sx - 5, sb, 11, 3), Color("1a3a4a"))
+				_disc(img, sx, sb - 25, 3, Color("2a5a6a") if k != 2 else Color("1a2a34"))
+				_px(img, sx + 3, sb - 14, Color("4fe3d2"))
+		"palais":
+			# Façade du palais aux colonnes de nacre.
+			var pw := int(w * 0.6)
+			img.fill_rect(Rect2i(w / 2 - pw / 2, int(h * 0.42), pw, int(h * 0.3)), Color("123a54"))
+			for k in range(6):
+				img.fill_rect(Rect2i(w / 2 - pw / 2 + 4 + k * (pw - 8) / 5, int(h * 0.44), 3, int(h * 0.28)), Color("bfd8e0"))
+			for yy in range(8):
+				img.fill_rect(Rect2i(w / 2 - pw / 2 - 6 + yy, int(h * 0.42) - 8 + yy, pw + 12 - yy * 2, 1), Color("1a4a64"))
+			_glow_px(img, w / 2, int(h * 0.58), int(minf(w, h) * 0.12), Color("4fe3d2"), 0.3)
+
+
+## Profondeurs : la salle des fils (archives) et la fosse du Léviathan (abysse).
+static func _cite_deep(img: Image, rng: RandomNumberGenerator, kind: String) -> void:
+	var w := img.get_width()
+	var h := img.get_height()
+	var hall := kind == "archives"
+	_sky(img, rng, [[0.0, Color("06142a") if hall else Color("020810")], [0.6, Color("0a2440") if hall else Color("041020")], [1.0, Color("040c18")]], 0.0)
+	if hall:
+		# Des milliers de fils de corail lumineux tendus du sol à la voûte, un fil noir au centre.
+		for i in range(maxi(30, w / 3)):
+			var x := rng.randi_range(0, w)
+			var col: Color = [Color("4fe3d2"), Color("8fe0ff"), Color("e86a8a"), Color("b07cff")][rng.randi_range(0, 3)]
+			for y in range(0, h, 2):
+				_px(img, x + int(sin(float(y) * 0.05 + float(i)) * 2.0), y, Color(col, rng.randf_range(0.25, 0.6)))
+		for y in range(h):
+			_px(img, w / 2, y, Color("0a0010"))
+			_px(img, w / 2 + 1, y, Color("2a0a3a"))
+		_glow_px(img, w / 2, int(h * 0.5), int(minf(w, h) * 0.15), Color("b07cff"), 0.25)
+	else:
+		# La fosse : deux yeux immenses s'allument dans le noir, des bulles montent.
+		var ey := int(h * 0.45)
+		for side: int in [-1, 1]:
+			var ex := w / 2 + side * int(w * 0.14)
+			_glow_px(img, ex, ey, int(minf(w, h) * 0.08), Color("6fdccf"), 0.5)
+			_disc(img, ex, ey, maxi(3, int(minf(w, h) * 0.025)), Color("e8fbff"))
+			img.fill_rect(Rect2i(ex, ey - 3, 1, 7), Color("04121a"))
+		for i in range(int(w * h / 300.0)):
+			_px(img, rng.randi_range(0, w - 1), rng.randi_range(0, h - 1), Color(0.6, 0.9, 1.0, rng.randf_range(0.1, 0.4)))
 
 
 static func icon(kind: String, col: Color) -> ImageTexture:

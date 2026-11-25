@@ -10,7 +10,8 @@
     "sylwen",
     "krag",
     "nyx",
-    "ignara"
+    "ignara",
+    "ssareth"
   ],
   "objective": "boss",
   "desc": "Le Léviathan, gardien des Archives du Temps. Ses vagues repoussent tes troupes, ses tentacules saisissent des couloirs ; à marée haute il avale des portails, et à la fin il creuse un tourbillon au centre. Il craint la Nature.",
@@ -198,5 +199,22 @@
     "low_y": 2.0,
     "high_y": 6.0
   },
+  "story_mods": [
+    {
+      "if": "s1.archives_scellees",
+      "no_tide": true,
+      "log": "Les Archivistes retiennent la marée : elle ne montera pas."
+    },
+    {
+      "if": "s1.ligne_lue",
+      "warn_bonus": 0.5,
+      "log": "Tu as lu ta ligne : tu sens venir les coups du Léviathan (annonces +0,5 s)."
+    },
+    {
+      "if": "s1.sirenes_delivrees",
+      "barrier_shield": 25,
+      "log": "Les sirènes délivrées chantent pour la Barrière : bouclier +25."
+    }
+  ],
   "initial_enemies": []
 }

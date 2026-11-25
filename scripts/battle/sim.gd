@@ -237,6 +237,9 @@ var tide_y := 0.0 ## niveau de l'eau : tout ce qui est sous cette rangée est so
 var currents: Array[Dictionary] = [] ## {y, h, dir, speed, flip, t}
 var whirlpools: Array[Dictionary] = [] ## {pos, r, t, pull, dps}
 var whirl_dps := 8.0 ## PV perdus par seconde au cœur d'un tourbillon (invocations)
+var warn_bonus := 0.0 ## secondes d'annonce en plus pour les attaques des boss (Prémonitions, acte 7)
+var story_dragons: Dictionary = {} ## passages de dragons ajoutés par l'histoire (story_mods)
+var story_no_tide := false ## la marée retenue par l'histoire (Archives scellées)
 ## Acte 6 : la Marque du Wyrm (06-monde §4.1). Le compagnon marqué combat aux côtés du Wyrm en phase 3.
 var flags_in: Array = [] ## drapeaux de l'histoire reçus au départ
 var traitor_id := "" ## compagnon passé au Wyrm ("" sinon)
@@ -362,6 +365,13 @@ func _apply_story_mods(opts: Dictionary) -> void:
 			casters[0].mana = minf(casters[0].mana_max, casters[0].mana + float(m["mana"]))
 		if m.has("orbs"):
 			orb_cfg = m["orbs"]
+		if m.has("dragons"):
+			# Les dragons hostiles (l'Œuf de cendre volé, acte 6) survolent aussi la zone.
+			story_dragons = m["dragons"]
+		if bool(m.get("no_tide", false)):
+			story_no_tide = true
+		if m.has("warn_bonus"):
+			warn_bonus = float(m["warn_bonus"])
 		if m.has("boss_hp") and boss != null:
 			boss.hp = boss.max_hp * clampf(float(m["boss_hp"]), 0.05, 1.0)
 		if m.has("riddle_need"):
@@ -405,10 +415,10 @@ func _setup_zone_mechanics() -> void:
 	fire_dps = float(wildfire_cfg.get("dps", level.get("fire_dps", 9.0))) * diff
 	if not wildfire_cfg.is_empty():
 		wildfire_t = float(wildfire_cfg.get("first", 12.0))
-	dragon_cfg = level.get("dragons", {})
+	dragon_cfg = level.get("dragons", story_dragons)
 	if not dragon_cfg.is_empty():
 		dragon_t = float(dragon_cfg.get("first", 14.0))
-	tide_cfg = level.get("tide", {})
+	tide_cfg = {} if story_no_tide else level.get("tide", {})
 	if not tide_cfg.is_empty():
 		tide_state = "low"
 		tide_y = float(tide_cfg.get("low_y", 2.0))
@@ -2150,6 +2160,7 @@ func shield_word() -> String:
 
 func _telegraph(r: Rect2, delay: float, dmg: float, barrier_dmg: float, venom: bool = false) -> void:
 	var k := 1.3 if boss != null and boss.alive and boss.enraged_t > 0.0 else 1.0
+	delay += warn_bonus
 	telegraphs.append({"rect": r, "t": delay, "dur": delay, "dmg": dmg * enemy_mult * diff * k, "barrier": barrier_dmg * diff, "venom": venom})
 
 

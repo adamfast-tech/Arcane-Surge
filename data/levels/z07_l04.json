@@ -10,7 +10,8 @@
     "sylwen",
     "krag",
     "nyx",
-    "ignara"
+    "ignara",
+    "ssareth"
   ],
   "desc": "Une place bordée de statues d'Archivistes. La marée et un courant se disputent tes troupes ; les Crabes titans encaissent tout.",
   "par_time": 150,
@@ -99,6 +100,23 @@
       "dir": -1,
       "speed": 0.8,
       "flip": 18
+    }
+  ],
+  "story_mods": [
+    {
+      "if": "s1.oeuf_vole",
+      "dragons": {
+        "first": 16,
+        "every": [
+          20,
+          26
+        ],
+        "warn": 1.7,
+        "dmg": 44,
+        "band": 1.4,
+        "patches": 0
+      },
+      "log": "Les dragons de la Mère n'ont pas oublié l'Œuf volé : ils survolent la côte."
     }
   ],
   "initial_enemies": []

@@ -77,6 +77,12 @@ static func texture(who: String, mood: String = "neutre") -> Texture2D:
 			_mere_dragon(img, mood)
 		"wyrm":
 			_wyrm(img, mood)
+		"ssareth":
+			_ssareth(img, mood)
+		"leviathan":
+			_leviathan(img, mood)
+		"ourdisseur":
+			_ourdisseur(img, mood)
 		_:
 			return null
 	_outline(img)
@@ -86,7 +92,7 @@ static func texture(who: String, mood: String = "neutre") -> Texture2D:
 
 
 static func has_portrait(who: String) -> bool:
-	return who in ["porteur", "sylwen", "brann", "ancien", "cerf", "sylvarche", "fee", "voix", "krag", "gharok", "prevote", "varg", "nyx", "vesper", "aurele", "corvin", "aelis", "durgan", "ysolde", "orrin", "thalren", "sphinx", "ignara", "mere_dragon", "wyrm"] \
+	return who in ["porteur", "sylwen", "brann", "ancien", "cerf", "sylvarche", "fee", "voix", "krag", "gharok", "prevote", "varg", "nyx", "vesper", "aurele", "corvin", "aelis", "durgan", "ysolde", "orrin", "thalren", "sphinx", "ignara", "mere_dragon", "wyrm", "ssareth", "leviathan", "ourdisseur"] \
 		or ResourceLoader.exists("res://assets/portraits/%s.png" % who)
 
 
@@ -1367,3 +1373,69 @@ static func _wyrm(img: Image, mood: String) -> void:
 	for q in [[Vector2(20, 18), Vector2(26, 28)], [Vector2(44, 16), Vector2(40, 30)], [Vector2(24, 38), Vector2(22, 48)], [Vector2(40, 38), Vector2(43, 47)], [Vector2(30, 14), Vector2(33, 22)]]:
 		_line(img, q[0], q[1], Color("ff6a2a"))
 	_rim(img, 6, 58, 6, 60, Color("ff9b4a"))
+
+
+## Ssareth : scribe reptilien, écailles vert-de-gris, collerette, yeux d'or fendus, robe d'écume et perles de corail.
+static func _ssareth(img: Image, mood: String) -> void:
+	var sc := _ramp(["2a4a3a", "4a7a5a", "7aa880", "a8d0a8"])
+	var robe := _ramp(["4a7a8a", "8ab8c0", "d0e8ec", "f4fbfc"])
+	var frill := _ramp(["2a6a6a", "3fa8a0", "8fe0c8"])
+	_glow(img, 32, 36, 26, Color("4fe3d2"), 0.15)
+	_poly(img, PackedVector2Array([Vector2(4, 64), Vector2(8, 51), Vector2(20, 45), Vector2(44, 45), Vector2(56, 51), Vector2(60, 64)]), robe)
+	# Collier de perles de corail.
+	for i in range(9):
+		var x := 22 + i * 2.6
+		_ellipse(img, x, 48.0 + absf(float(i) - 4.0) * 0.6, 1.2, 1.2, _ramp(["c8506a", "ff8aa0", "ffd0d8"]))
+	# Collerette (crête) derrière la tête.
+	_poly(img, PackedVector2Array([Vector2(14, 34), Vector2(10, 18), Vector2(20, 22), Vector2(24, 10), Vector2(32, 16), Vector2(40, 10), Vector2(44, 22), Vector2(54, 18), Vector2(50, 34)]), frill)
+	# Tête de lézard : crâne et museau.
+	_ellipse(img, 32.0, 30.0, 11.0, 12.0, sc)
+	_poly(img, PackedVector2Array([Vector2(24, 34), Vector2(26, 44), Vector2(32, 47), Vector2(38, 44), Vector2(40, 34)]), sc)
+	for y in range(20, 44, 4):
+		for x in range(24, 41, 5):
+			_px(img, x + (y / 4) % 2 * 2, y, sc[3])
+	_px(img, 30, 44, Color("1a2a20"))
+	_px(img, 34, 44, Color("1a2a20"))
+	_ellipse(img, 26.0, 29.0, 3.2, 2.4, _ramp(["1a2a1a"]), 0.0, true)
+	_ellipse(img, 38.0, 29.0, 3.2, 2.4, _ramp(["1a2a1a"]), 0.0, true)
+	_glow_eye(img, 25, 29, -1, mood, Color("fff06a"), Color("f2c46b"))
+	_glow_eye(img, 37, 29, 1, mood, Color("fff06a"), Color("f2c46b"))
+	_line(img, Vector2(26, 28), Vector2(26, 30), Color("2a1a08"))
+	_line(img, Vector2(38, 28), Vector2(38, 30), Color("2a1a08"))
+	_mouth(img, 32, 41, mood, Color("2a4a3a"), Color("1a1010"))
+	_rim(img, 6, 58, 10, 63, Color("bff6ff"))
+
+
+## Le Léviathan : tête de serpent de mer, écailles bleu abysse, nageoires turquoise, yeux pâles.
+static func _leviathan(img: Image, mood: String) -> void:
+	# Nageoires en éventail derrière la tête.
+	for side: int in [-1, 1]:
+		for k in range(5):
+			var a := Vector2(32 + side * 10, 24)
+			var b := Vector2(32 + side * (22 + k * 2), 6 + k * 7)
+			_line(img, a, b, Color("6fdccf"), 2)
+		_poly(img, PackedVector2Array([Vector2(32 + side * 10, 26), Vector2(32 + side * 24, 6), Vector2(32 + side * 30, 34)]), _ramp(["1a6a7a", "2a8a9a", "4fc8c0"]))
+	_dragon_head(img, mood, _ramp(["0a2034", "1e4a6a", "3a7aa0", "6aa8c8"]), _ramp(["1a3a4a", "2a6a7a", "6fdccf", "bff6ff"]),
+		_ramp(["0a1a2a", "2a5a7a", "9fe0e8"]), Color("f0f8ff"), Color("6fdccf"), true)
+	_rim(img, 6, 58, 6, 60, Color("9fe0e8"))
+
+
+## L'Ourdisseur : une silhouette encapuchonnée faite de fils lumineux, sans visage.
+static func _ourdisseur(img: Image, mood: String) -> void:
+	_glow(img, 32, 32, 30, Color("b07cff"), 0.2)
+	_poly(img, PackedVector2Array([Vector2(6, 64), Vector2(12, 40), Vector2(18, 20), Vector2(32, 8), Vector2(46, 20), Vector2(52, 40), Vector2(58, 64)]), _ramp(["0a0614", "1a1030", "2a1a48"]), 0.0, true)
+	_ellipse(img, 32.0, 32.0, 10.0, 13.0, _ramp(["04020a"]), 0.0, true)
+	# Fils tendus qui partent de la silhouette.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 4242
+	for i in range(14):
+		var a := Vector2(rng.randf_range(14.0, 50.0), rng.randf_range(16.0, 60.0))
+		var b := Vector2(rng.randf_range(0.0, 64.0), rng.randf_range(0.0, 64.0))
+		_line(img, a, b, Color(0.85, 0.78, 1.0, 0.5) if i % 3 else Color("4fe3d2"))
+	# Deux points de lumière là où devraient être les yeux.
+	_px(img, 28, 31, Color("fff6ff"))
+	_px(img, 36, 31, Color("fff6ff"))
+	if mood == "colere":
+		_px(img, 28, 32, Color("ff6a9a"))
+		_px(img, 36, 32, Color("ff6a9a"))
+	_rim(img, 6, 58, 6, 63, Color("d8c8ff"))

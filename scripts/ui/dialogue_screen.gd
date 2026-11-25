@@ -389,6 +389,11 @@ func _show_choice(l: Dictionary) -> void:
 		var o: Dictionary = opt
 		b.pressed.connect(func() -> void: _on_option(l, o))
 		choice_box.add_child(b)
+		if Story.has_flag("s1.premonitions"):
+			# Prémonitions (acte 7) : le type de conséquences de l'option, sans le détail.
+			var pm := Story.premonition(opt.get("effects", {}))
+			if pm != "":
+				choice_box.add_child(UiTheme.wrap("Prémonition : " + pm, 17, Color(UiTheme.VIOLET, 0.9)))
 	if major:
 		var note := UiTheme.wrap("Ce choix changera la suite de l'histoire.", 19, UiTheme.MUTED)
 		note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
