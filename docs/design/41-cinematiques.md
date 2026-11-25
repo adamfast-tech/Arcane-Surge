@@ -2,7 +2,7 @@
 
 > Mise en scène des scènes de dialogue : décor animé, personnages en grands bustes qui parlent et réagissent, créatures en présence, effets, étalonnage. Format des scènes : [`07-narration.md`](07-narration.md) §6.2. Code : `scripts/ui/cine_stage.gd` (scène), `scripts/ui/cine_fx.gd` (calques d'effets), `shaders/cine_figure.gdshader`, `scripts/ui/dialogue_screen.gd` (déroulé), `PortraitArt.frame` (portraits animés).
 
-Le chantier avance zone par zone. **Version 2 du moteur** (bustes, calques d'effets, étalonnage, carton-titre). **Mis en scène en détail : le prologue, la zone 1 et la zone 2** (cinématiques et combats). Les zones 3 à 7 profitent de tout ce qui est automatique.
+Le chantier avance zone par zone. **Version 2 du moteur** (bustes, calques d'effets, étalonnage, carton-titre). **Mis en scène en détail : le prologue et les zones 1 à 3** (cinématiques et combats). Les zones 4 à 7 profitent de tout ce qui est automatique.
 
 ## Ce qui se joue sans indication
 
@@ -13,7 +13,7 @@ Le chantier avance zone par zone. **Version 2 du moteur** (bustes, calques d'eff
 | Ambiance | Selon le décor (`CineStage.PLATE_MOOD`) : lucioles et brume, poussière arcanique, braises, neige, sable, bulles ; **feuilles qui tombent** devant la scène en forêt et à Lysbourg |
 | Personnages | **Grands bustes** (portraits 64×64 agrandis d'un facteur entier). **Deux au plus à l'écran** : celui qui parle et celui à qui il répond, un de chaque côté (le héros à gauche de préférence) ; quand un troisième parle, le plus ancien sort. Pendant le carton-titre, plan d'ensemble sans personnages : ils entrent ensuite. Ils entrent en glissant (léger rebond), respirent, parlent (bouche animée), clignent. Celui qui parle s'avance dans la lumière ; les autres reculent dans l'ombre, un peu ternis. Le panneau de texte ne garde que le nom |
 | Humeur | Au changement d'humeur d'un personnage : **bulle d'émotion** posée sur sa tête et entraînée par elle (« ! » au-dessus, veine de colère au coin du crâne qui palpite, goutte sur la tempe qui glisse, note près du visage) et geste : saut avec écrasement, tremblement et pas en avant avec liseré rouge, petits bonds, affaissement et couleurs passées |
-| Présence | Créatures et esprits, au centre, dans leur **aura**. **En pied** quand leur corps est dessiné (`FigureArt`, zone 1 : le Grand Cerf, la Sylvarche, la fée, Morvaen, la Voix, la Lanterne) : ils se tiennent **debout dans le décor**, les pieds au sol derrière le panneau et les bustes (le premier plan cache le bas du corps), la tête toujours dans le cadre ; seuls ceux qui volent (la fée) planent. Leur taille suit la scène (le Cerf est immense, la fée minuscule). Les autres (zones 3 à 7, pour l'instant) gardent un grand portrait qui flotte. Les sujets de scène connus (`stag`, `sylvarche`, `pixie`, `varg`, `gharok`) prennent leur portrait ou leur corps ; les autres gardent leur sprite de combat, **debout au sol** (pillards, gardes, chamans…), sans flotter. Quand un esprit parle sans être le sujet, il apparaît en présence |
+| Présence | Créatures et esprits, au centre, dans leur **aura**. **En pied** quand leur corps est dessiné (`FigureArt`, zone 1 : le Grand Cerf, la Sylvarche, la fée, Morvaen, la Voix, la Lanterne) : ils se tiennent **debout dans le décor**, les pieds au sol derrière le panneau et les bustes (le premier plan cache le bas du corps), la tête toujours dans le cadre ; seuls ceux qui volent (la fée) planent. Leur taille suit la scène (le Cerf est immense, la fée minuscule). Les autres (zones 4 à 7, pour l'instant) gardent un grand portrait qui flotte. Les sujets de scène connus (`stag`, `sylvarche`, `pixie`, `varg`, `gharok`) prennent leur portrait ou leur corps ; les autres gardent leur sprite de combat, **debout au sol** (pillards, gardes, chamans…), sans flotter. Quand un esprit parle sans être le sujet, il apparaît en présence |
 
 ## Décors et personnages en pied (zone 1)
 
@@ -78,6 +78,23 @@ Même principe qu'en zone 1 : chaque niveau des Collines d'Ambre se joue **au so
 
 Végétation : herbe sèche dorée (ou vert doré près des moulins et du gué), fleurs du lieu (coquelicots, boutons d'or, ambre), deux détails propres à chaque lieu (roue brisée et borne, gerbe et meule, éclat d'ambre et rocher veiné, roseaux et galets, os et caisse d'ambre, lance brisée et petit totem, herbes et crâne, fanions bleu et rouge). Elle ondule plus fort quand le vent des steppes souffle sur le niveau. Des brins de paille et des graines filent au vent.
 
+## Combats de la zone 3 : un lieu par niveau
+
+Les Marais Murmurants, au crépuscule : saules pleureurs et arbres morts, eau de part et d'autre du terrain (sa couleur suit le lieu), roseaux sur les rives.
+
+| Niveau | Lieu | Sol, bords et décor |
+|---|---|---|
+| 3-1 | Les Pilotis | **Passerelle de planches** au milieu ; pieux de bois ; maisons sur pilotis aux fenêtres allumées, lanternes, barques |
+| 3-2 | Les Mares | Flaques de poison ; pierres moussues coiffées de vert ; **eau verte qui luit**, bulles qui montent, cages thoraciques |
+| 3-3 | La Brume | Vase, roseaux couchés ; une **nappe de brume** roule sur le terrain |
+| 3-4 | Le Gué des Morts | Ossements et dalles dans la vase ; stèles et croix, **feux follets** bleus ; eau noire |
+| 3-5 | Repaire du Crocodile-liche | Flaques de poison, os ; cages thoraciques, crânes géants ; bulles |
+| 3-6 | Le Cercle de Saules | Cendres et braises ; **deux cercles de pierres du Cercle des Cendres** autour de leurs braseros (lueur et fumée) |
+| 3-7 | La Barque des passeurs | Passerelle de planches ; barques amarrées, lanternes, maisons sur pilotis |
+| 3-8 | La Sorcière des brumes | Flaques de poison ; **chaudrons** qui fument au bouillon vert, hutte sur pilotis, os |
+| 3-9 | Le refuge de l'adepte | Pavés, pierres tombées, éclats arcaniques ; **piliers en ruine** aux cristaux violets, stèles |
+| 3-10 | L'antre de l'Hydre | Vase ; crânes géants, cages thoraciques, brume |
+
 ## Indications (données)
 
 Facultatives, sur une réplique (`cam`, `fx`, `act`, `grade`, `emote`) ou dans l'en-tête d'une scène (`cast`, `grade`, `cam`). `cam` et `fx` acceptent une valeur ou une liste.
@@ -85,7 +102,7 @@ Facultatives, sur une réplique (`cam`, `fx`, `act`, `grade`, `emote`) ou dans l
 | Clé | Valeurs |
 |---|---|
 | `cam` | `push` (la caméra avance), `pull` (recule), `focus:<repère>` (s'approche d'un personnage ou du sujet), `kick` (à-coup amorti par un ressort), `tremble` (rare), `pan_left`, `pan_right`, `pan_up`, `reset`. Anciens noms acceptés : `zoom`, `zoom_out`, `punch`, `shake` |
-| `fx` | `effet[@repère][:RRGGBB]`. **Effets propres à une scène** (jamais repris des sorts) : `seal` (le Sceau d'Écho se grave et laisse des échos), `spiral` (sortilège de Morvaen : cadran à rebours), `flux` (Surge canalisé : rubans convergents), `gate` (porte runique), `arrow` (flèche de semonce), `swarm` (lucioles), `clang` (choc de bouclier), `steam` (vapeur de colère), `thorns` (ronces des fées), `glitter` (poussière de fée), `hooves` (martèlement de sabots au loin), `drip` (lumière qui ruisselle), `ferns` (fougères qui volent), `lanes` (couloirs de charge), `timestop` (le temps se fige : bandes de distorsion, onde lente), `flicker` (flamme fragile), `wind` (coup de vent), `eyes` (yeux dans les fourrés), `veins` (veines de corruption sur le sol), `fountain` (jet d'eau), `heartbeat` (battement de cœur), `willo` (feux-follets), `cage` (cage de ronces, jusqu'à `shatter` qui la brise), `roots` (racines qui se tordent), `splinters` (éclats d'écorce), `renewal` (la forêt renaît). Collines d'Ambre : `smoke` (fumée qui monte au loin), `arcs` (la foudre saute d'un pylône d'ambre à l'autre), `shieldwall` (un mur de pavois se dresse et frappe le sol), `howl` (hurlement des loups : ondes de son), `drums` (tambours de guerre : boum, boum, BOUM), `rain` (pluie d'orage), `banners` (bannières de guerre qui claquent, sur les bords du cadre), `pact` (le Traité : un ruban bleu et un rouge se nouent, l'or jaillit), `shadow` (le Surge se tord sous la peau), `coins` (pièces d'or jetées), `chant` (chant de la rebouteuse : volutes vertes et dorées), `sigils` (deux sceaux du Surge qui pulsent, jusqu'à `shatter`), `cheer` (vivats : chapeaux et fleurs en l'air), `bars` (cage de bois, jusqu'à `shatter`). Lumière : `bloom` (halo), `ring` (onde), `shock` (onde au sol et poussière), `rays` (rayons tournants), `bolt` (éclair), `beam` (colonne de lumière), `crack` (faille qui se déchire dans le ciel), `slash` (entaille), `charge` (particules aspirées vers le repère), `burst` (gerbe d'étincelles). Matière : `wisps` (volutes qui montent), `dust`, `embers`, `leaves`. Écran : `fade` (sortie du noir), `white` (éclair blanc et halo). Anciens noms : `flash`, `lightning`, `sparkles` |
+| `fx` | `effet[@repère][:RRGGBB]`. **Effets propres à une scène** (jamais repris des sorts) : `seal` (le Sceau d'Écho se grave et laisse des échos), `spiral` (sortilège de Morvaen : cadran à rebours), `flux` (Surge canalisé : rubans convergents), `gate` (porte runique), `arrow` (flèche de semonce), `swarm` (lucioles), `clang` (choc de bouclier), `steam` (vapeur de colère), `thorns` (ronces des fées), `glitter` (poussière de fée), `hooves` (martèlement de sabots au loin), `drip` (lumière qui ruisselle), `ferns` (fougères qui volent), `lanes` (couloirs de charge), `timestop` (le temps se fige : bandes de distorsion, onde lente), `flicker` (flamme fragile), `wind` (coup de vent), `eyes` (yeux dans les fourrés), `veins` (veines de corruption sur le sol), `fountain` (jet d'eau), `heartbeat` (battement de cœur), `willo` (feux-follets), `cage` (cage de ronces, jusqu'à `shatter` qui la brise), `roots` (racines qui se tordent), `splinters` (éclats d'écorce), `renewal` (la forêt renaît). Collines d'Ambre : `smoke` (fumée qui monte au loin), `arcs` (la foudre saute d'un pylône d'ambre à l'autre), `shieldwall` (un mur de pavois se dresse et frappe le sol), `howl` (hurlement des loups : ondes de son), `drums` (tambours de guerre : boum, boum, BOUM), `rain` (pluie d'orage), `banners` (bannières de guerre qui claquent, sur les bords du cadre), `pact` (le Traité : un ruban bleu et un rouge se nouent, l'or jaillit), `shadow` (le Surge se tord sous la peau), `coins` (pièces d'or jetées), `chant` (chant de la rebouteuse : volutes vertes et dorées), `sigils` (deux sceaux du Surge qui pulsent, jusqu'à `shatter`), `cheer` (vivats : chapeaux et fleurs en l'air), `bars` (cage de bois, jusqu'à `shatter`). Marais Murmurants : `bubbles` (bulles de poison qui montent de la vase), `fogbank` (un mur de brume roule à travers la scène), `lanterns` (lanternes qui dansent au-dessus de l'eau), `ripples` (ronds dans l'eau), `bonerise` (os et mains de squelettes qui sortent de la vase), `chains` (chaînes de runes autour du repère, jusqu'à `shatter`), `jaws` (des mâchoires immenses claquent), `ashring` (cercle rituel de cendre, ses runes de braise s'allument une à une), `heads` (les cous de l'Hydre se dressent hors de l'eau, jusqu'à `shatter`), `moths` (phalènes autour de Nyx), `whispers` (la brume parle : des volutes de murmures). Lumière : `bloom` (halo), `ring` (onde), `shock` (onde au sol et poussière), `rays` (rayons tournants), `bolt` (éclair), `beam` (colonne de lumière), `crack` (faille qui se déchire dans le ciel), `slash` (entaille), `charge` (particules aspirées vers le repère), `burst` (gerbe d'étincelles). Matière : `wisps` (volutes qui montent), `dust`, `embers`, `leaves`. Écran : `fade` (sortie du noir), `white` (éclair blanc et halo). Anciens noms : `flash`, `lightning`, `sparkles` |
 | Repères | un personnage (sa tête), `subject`, `center`, `sky`, `ground`, `left`, `right` ; par défaut, celui qui agit sur la réplique, sinon le sujet, sinon le centre |
 | `act` | `{"qui": "action"}`. Bustes : `jump`, `hop`, `shake`, `hurt` (recul, éclat), `attack` (fente vers la créature avec traînée, entaille et étincelles ; sans créature, un pas décidé en avant), `glow` (éclat, liseré, particules), `cast` (comme `glow`, avec le Surge canalisé), `echo` (échos du temps : le personnage se dédouble en fantômes), `droop`, `kneel`, `fall`, `step`, `turn`, `rise` (annule une posture), `enter`, `exit`. Sujet (`subject`) : `roar`, `hit`, `glow`, `fall`, `rise`, `appear`, `fade` (se dissout en particules) |
 | `grade` | Étalonnage du décor et des personnages, en fondu : `night`, `violet`, `warm`, `dawn`, `cold`, `red`, `green`, `dark`, `gold`, `none` |
@@ -141,6 +158,23 @@ Un décor par lieu (`StoryArt._ambre`) : la route d'Ambre (chariots renversés, 
 | 2-9 | **Tambours de guerre**, bannières ; la prévôte et Krag s'élancent chacun vers les siens. Fin : la fumée retombe ; les deux camps se déchirent ; le **pacte** (rubans bleu et rouge) au moment du choix |
 | 2-10 | Le fort sous la pluie, bannières, tambours ; **Gharok en pied**, il rugit, éclair et ombre du Surge sous sa peau ; Krag, son fils ; selon le Traité : la prévôte s'élance, les chamans chantent, ou le pacte. Fin : Gharok tombe à genoux, l'ombre se tord ; Krag s'agenouille ; carton « Acte 2 · Les Alliances » |
 
+## Zone 3
+
+Un décor par lieu (`StoryArt._marais`) : les pilotis (maisons serrées, passerelles, lanternes), les mares (eau verdâtre, bulles, arbres morts, champignons qui luisent), la brume (saules à demi effacés, mur de brouillard), le gué des morts (croix et stèles, feux follets, eau noire), le repaire du Crocodile-liche (ruines englouties, sa tête osseuse qui affleure, yeux verts), le cercle de saules, la barque des passeurs (sa lanterne à la proue), la hutte de la sorcière (fenêtre verte, chaudron), le refuge, l'antre de l'Hydre. Dans les lieux qui ont quelque chose à montrer au milieu, les saules restent sur les bords.
+
+| Scène | Mise en scène |
+|---|---|
+| 3-1 | Le brouillard roule, les lanternes dansent ; la brume murmure ; des ronds dans l'eau. Fin : Nyx entre entourée de **phalènes**, puis repart dans la brume |
+| 3-2 | **Bulles de poison**, étalonnage vert. Fin : le Sceau luit de violet quand Nyx parle de son histoire |
+| 3-3 | Le brouillard, les murmures ; Aurèle entre dans une colonne de lumière, ses rayons |
+| 3-4 | Les **os sortent de la vase**, ronds dans l'eau noire (nuit). Fin : la rune de Corvin pulse, puis se brise |
+| 3-5 | Le Crocodile-liche surgit, **enchaîné de runes**, ses **mâchoires** claquent, ses couloirs de charge. Fin : les chaînes se brisent, il retourne à la vase ; la Voix fige le temps |
+| 3-6 | Le **cercle de cendre** s'allume, braises ; Nyx canalise, ses phalènes. Fin : Vesper ; la blessure du Surge (faille dans le ciel), le Sceau ; les cous de l'Hydre au loin ; Nyx rejoint le groupe |
+| 3-7 | La barque, ses lanternes, ronds dans l'eau. Fin : l'accostage à l'aube ; Nyx s'emporte, Aurèle baisse la tête |
+| 3-8 | Deux **sceaux** pulsent, le chant des sorcières, les bulles ; une colonne de lumière. Fin : les sceaux tombent, éclair blanc |
+| 3-9 | Le siège : os qui sortent de la vase, bulles. Fin : Corvin tremble, les morts remuent ; Aurèle et Nyx s'affrontent ; Corvin à genoux au moment du choix |
+| 3-10 | **Les cous de l'Hydre se dressent**, l'eau bouillonne. Fin : elle s'effondre, la brume se dissipe (aube) ; la vérité : cercle de cendre, faille, le cadran du sortilège ; carton « Acte 3 · Les Cendres » |
+
 ## Revoir ou passer (missions déjà réussies)
 
 - Une scène déjà vue ne se rejoue pas d'elle-même. Pour une mission déjà réussie qui a une intro ou une fin, l'écran de **préparation** (sous le choix Deck ou Tiroir) propose **Passer** (par défaut : droit au combat) ou **Revoir** (l'intro avant le combat, la fin après la victoire).
@@ -150,11 +184,12 @@ Un décor par lieu (`StoryArt._ambre`) : la route d'Ambre (chariots renversés, 
 
 ## Outils
 
+- `python3 tools/dialogue_format.py data/dialogues/fr/zNN.json` remet un fichier de dialogues au format « une réplique par ligne » (même contenu), celui qu'attend l'outil suivant.
 - Les indications de chaque zone sont listées dans `tools/cine/cues_zNN.py` et posées par `python3 tools/cine_cues.py data/dialogues/fr/zNN.json tools/cine/cues_zNN.py`, dans le texte du fichier de dialogues, sans changer sa mise en forme : chaque réplique visée voit ses anciennes indications remplacées, et relancer le script ne change rien.
-- `tools/ui_smoke.gd` (`_cine_ok`) contrôle le vocabulaire des indications de toutes les zones (`CineStage.check_cues`), les images de bouche et de clignement de 5 portraits, puis joue le prologue et les zones 1 et 2 réplique par réplique (jamais plus de 2 personnages à l'écran).
+- `tools/ui_smoke.gd` (`_cine_ok`) contrôle le vocabulaire des indications de toutes les zones (`CineStage.check_cues`), les images de bouche et de clignement de 5 portraits, puis joue le prologue et les zones 1 à 3 réplique par réplique (jamais plus de 2 personnages à l'écran).
 - `tools/ui_smoke.gd` (`_replay_scenes_ok`) contrôle que le choix n'apparaît qu'une fois la mission réussie, que « Passer » mène au combat et que « Revoir » rejoue l'intro sans redemander le choix ni en rejouer les effets.
 - Aperçu web : `?scene=prologue`, `?scene=z01_l01_intro`, `?scene=z01_l05_outro`. `&cdbg=back,front,light,figs` masque des calques (débogage).
 
 ## Suite
 
-Zones 3 à 7, une par une : décors de combat par niveau, décors de cinématique par lieu, créatures et chefs en pied, effets écrits pour chaque scène.
+Zones 4 à 7, une par une : décors de combat par niveau, décors de cinématique par lieu, créatures et chefs en pied, effets écrits pour chaque scène.

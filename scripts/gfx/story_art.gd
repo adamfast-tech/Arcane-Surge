@@ -26,7 +26,7 @@ static func plate(kind: String, size: Vector2i) -> ImageTexture:
 			_tour(img, rng)
 		"steppe", "moulins", "campement", "orage", "traite", "fort", "route", "pylones", "gue", "caravane", "rebouteux":
 			_ambre(img, rng, kind)
-		"marais", "cercle", "hydre", "refuge":
+		"marais", "cercle", "hydre", "refuge", "pilotis", "mares", "brume", "gue_morts", "croc", "barque", "sorciere":
 			_marais(img, rng, kind)
 		"pics", "porte", "lac", "forteresse", "colosse":
 			_pics(img, rng, kind)
@@ -801,15 +801,19 @@ static func _marais(img: Image, rng: RandomNumberGenerator, kind: String) -> voi
 	_moon(img, int(w * 0.72), int(h * 0.14), maxi(5, int(minf(w, h) * 0.045)))
 	_ridge(img, rng, int(h * 0.44), int(h * 0.03), Color("4a4a5e"), Color("6a6a82"))
 	var water := int(h * 0.56)
-	img.fill_rect(Rect2i(0, water, w, h - water), Color("2a3530"))
+	var wcol := Color("2a3a24") if kind == "mares" else (Color("1a2228") if kind == "gue_morts" else Color("2a3530"))
+	img.fill_rect(Rect2i(0, water, w, h - water), wcol)
 	for i in range(int(w * h / 300.0)):
 		var y := rng.randi_range(water, h - 1)
 		var x := rng.randi_range(0, w - 1)
 		for dx in range(rng.randi_range(4, 14)):
 			_px(img, x + dx, y, Color(0.6, 0.65, 0.75, 0.12))
-	# Saules pleureurs.
-	for i in range(maxi(3, int(w / 45.0))):
+	# Saules pleureurs (repoussés sur les bords quand le lieu a quelque chose à montrer au milieu).
+	var open_mid := kind in ["pilotis", "mares", "croc", "barque", "sorciere", "gue_morts", "hydre"]
+	for i in range(maxi(3, int(w / 45.0)) if not open_mid else 4):
 		var tx := rng.randi_range(-10, w + 10)
+		if open_mid:
+			tx = rng.randi_range(-int(w * 0.12), int(w * 0.12)) + (0 if i % 2 == 0 else w)
 		var th := rng.randi_range(int(h * 0.16), int(h * 0.26))
 		img.fill_rect(Rect2i(tx - 1, water - th, 3, th), Color("23222a"))
 		_disc(img, tx, water - th, int(th * 0.4), Color("2e3d34"))
@@ -819,6 +823,114 @@ static func _marais(img: Image, rng: RandomNumberGenerator, kind: String) -> voi
 			for d in range(rng.randi_range(5, int(th * 0.8))):
 				_px(img, sx, sy + d, Color("33463a"))
 	match kind:
+		"pilotis":
+			# Le village sur pilotis : maisons serrées, passerelles de planches, lanternes.
+			for i in range(5):
+				var hx2 := int(w * (0.04 + 0.2 * float(i))) + rng.randi_range(-4, 4)
+				var hb := water - rng.randi_range(2, 8)
+				img.fill_rect(Rect2i(hx2, hb - 12, 16, 10), Color("2a2420"))
+				for r in range(6):
+					img.fill_rect(Rect2i(hx2 - 2 + r, hb - 12 - r, 20 - r * 2, 1), Color("3a3028"))
+				for pp in [hx2 + 1, hx2 + 7, hx2 + 14]:
+					img.fill_rect(Rect2i(pp, hb - 2, 1, 10), Color("2a2420"))
+				_glow_px(img, hx2 + 8, hb - 7, 6, Color("f2c46b"), 0.35)
+				_px(img, hx2 + 8, hb - 7, Color("fff0b0"))
+				if i < 4:
+					img.fill_rect(Rect2i(hx2 + 16, hb - 2, int(w * 0.2) - 16, 1), Color("4a3a28"))
+			for i in range(6):
+				var lx := rng.randi_range(int(w * 0.05), int(w * 0.95))
+				var ly := water + rng.randi_range(6, int(h * 0.2))
+				img.fill_rect(Rect2i(lx, ly - 14, 1, 14), Color("2a2018"))
+				_glow_px(img, lx, ly - 15, 5, Color("ffc870"), 0.4)
+				_px(img, lx, ly - 15, Color("fff0b0"))
+		"mares":
+			# Mares empoisonnées : bulles vertes, arbres morts, champignons qui luisent.
+			for i in range(40):
+				var bx2 := rng.randi_range(0, w - 1)
+				var by2 := rng.randi_range(water + 2, h - 2)
+				_disc(img, bx2, by2, rng.randi_range(1, 2), Color(0.6, 1.0, 0.35, 0.5))
+			for i in range(4):
+				var tx2 := int(w * (0.1 + 0.27 * float(i)))
+				var th2 := rng.randi_range(int(h * 0.12), int(h * 0.2))
+				img.fill_rect(Rect2i(tx2 - 1, water - th2, 3, th2 + 4), Color("1e1c22"))
+				for b in range(3):
+					var p2 := Vector2(tx2, water - th2 + b * 6)
+					var dv := Vector2(-1.0 if b % 2 else 1.0, -0.6)
+					for st in range(10):
+						_px(img, int(p2.x), int(p2.y), Color("1e1c22"))
+						p2 += dv
+			for i in range(8):
+				_glow_px(img, rng.randi_range(0, w - 1), water - rng.randi_range(0, 4), 4, Color("8ae050"), 0.35)
+		"brume":
+			# La Brume : des saules fantômes à demi effacés, et un mur de brouillard.
+			for i in range(int(w * h / 90.0)):
+				var y2 := rng.randi_range(int(h * 0.3), h - 1)
+				var x2 := rng.randi_range(-60, w)
+				for dx in range(rng.randi_range(40, 120)):
+					_px(img, x2 + dx, y2, Color(0.85, 0.9, 0.88, 0.09))
+		"gue_morts":
+			# Le gué des morts : croix et stèles sur la rive, feux follets bleus au-dessus de l'eau noire.
+			for i in range(9):
+				var gx := int(w * (0.04 + 0.11 * float(i))) + rng.randi_range(-3, 3)
+				var gy := water + rng.randi_range(-2, 4)
+				var tall := rng.randi_range(8, 14)
+				img.fill_rect(Rect2i(gx, gy - tall, 2, tall), Color("3a3a48"))
+				if i % 2 == 0:
+					img.fill_rect(Rect2i(gx - 3, gy - tall + 3, 8, 2), Color("3a3a48"))
+			for i in range(7):
+				var wx := rng.randi_range(0, w - 1)
+				var wy := water + rng.randi_range(-int(h * 0.1), int(h * 0.12))
+				_glow_px(img, wx, wy, 6, Color("8fd8ff"), 0.4)
+				_px(img, wx, wy, Color("e8f8ff"))
+		"croc":
+			# Le repaire du Crocodile-liche : ruines englouties, et sa tête osseuse qui affleure, yeux verts.
+			for i in range(3):
+				var rx := int(w * (0.15 + 0.35 * float(i)))
+				img.fill_rect(Rect2i(rx, water - 16, 6, 18), Color("3a3a44"))
+				img.fill_rect(Rect2i(rx - 2, water - 18, 10, 3), Color("4a4a54"))
+			var cx3 := int(w * 0.5)
+			var cy3 := water - int(h * 0.02)
+			for y in range(-6, 4):
+				var half := int(float(w) * 0.16 * (1.0 - float(y + 6) / 12.0)) + 4
+				img.fill_rect(Rect2i(cx3 - half, cy3 + y, half * 2, 1), Color("c8c0a8") if y < -2 else Color("8a8270"))
+			for k in range(-6, 7):
+				img.fill_rect(Rect2i(cx3 + k * 4, cy3 + 3, 2, 3), Color("e8e0d0"))
+			for e in [-1, 1]:
+				_glow_px(img, cx3 + e * int(w * 0.05), cy3 - 4, 6, Color("8ae050"), 0.6)
+				_px(img, cx3 + e * int(w * 0.05), cy3 - 4, Color("d8ff8a"))
+		"barque":
+			# La barque des passeurs sur le chenal, sa lanterne à la proue.
+			var bx3 := int(w * 0.5)
+			var by3 := water - int(h * 0.01)
+			for y in range(5):
+				var inset := y
+				img.fill_rect(Rect2i(bx3 - int(w * 0.14) + inset, by3 + y, int(w * 0.28) - inset * 2, 1), Color("3a2a1e"))
+			img.fill_rect(Rect2i(bx3 + int(w * 0.1), by3 - 14, 1, 14), Color("2a2018"))
+			_glow_px(img, bx3 + int(w * 0.1), by3 - 15, 7, Color("ffc870"), 0.45)
+			img.fill_rect(Rect2i(bx3 - 8, by3 - 12, 3, 12), Color("1a1820"))
+			_disc(img, bx3 - 7, by3 - 14, 2, Color("1a1820"))
+			for k in range(4):
+				img.fill_rect(Rect2i(int(w * (0.1 + 0.25 * float(k))), water - 4, 1, 12), Color("2a2420"))
+		"sorciere":
+			# La hutte de la sorcière sur pilotis, fenêtre verte, chaudron qui fume, os qui pendent.
+			var hx3 := int(w * 0.62)
+			var hb2 := water - 4
+			img.fill_rect(Rect2i(hx3, hb2 - 16, 22, 14), Color("2a2420"))
+			for r in range(9):
+				img.fill_rect(Rect2i(hx3 - 3 + r, hb2 - 16 - r, 28 - r * 2, 1), Color("3a3a2a"))
+			for pp2 in [hx3 + 2, hx3 + 10, hx3 + 19]:
+				img.fill_rect(Rect2i(pp2, hb2 - 2, 1, 10), Color("2a2420"))
+			_glow_px(img, hx3 + 8, hb2 - 10, 7, Color("8ae050"), 0.45)
+			img.fill_rect(Rect2i(hx3 + 6, hb2 - 12, 4, 4), Color("c8ff8a"))
+			for k in range(4):
+				img.fill_rect(Rect2i(hx3 + 2 + k * 6, hb2 - 2, 1, 4 + k % 2 * 2), Color("d8d0c0"))
+			var kx := int(w * 0.28)
+			_disc(img, kx, water + 6, 6, Color("1a1a20"))
+			_glow_px(img, kx, water + 10, 8, Color("ff8a3a"), 0.4)
+			var sp3 := Vector2(float(kx), float(water))
+			for st2 in range(int(h * 0.3)):
+				_disc(img, int(sp3.x), int(sp3.y), 2 + st2 / 14, Color(0.55, 0.85, 0.45, 0.06))
+				sp3 += Vector2(rng.randf_range(-0.6, 0.6), -1.0)
 		"marais":
 			for i in range(3):
 				var hx := int(w * (0.18 + 0.32 * float(i)))

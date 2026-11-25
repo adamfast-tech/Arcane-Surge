@@ -15,6 +15,7 @@ const PLATE_MOOD := {
 	"steppe": "steppe", "moulins": "steppe", "campement": "campfire", "orage": "steppe", "traite": "steppe", "fort": "steppe",
 	"route": "steppe", "pylones": "steppe", "gue": "steppe", "caravane": "steppe", "rebouteux": "campfire",
 	"marais": "swamp", "cercle": "swamp", "hydre": "swamp", "refuge": "campfire",
+	"pilotis": "swamp", "mares": "swamp", "brume": "swamp", "gue_morts": "swamp", "croc": "swamp", "barque": "swamp", "sorciere": "swamp",
 	"pics": "snow", "porte": "snow", "lac": "snow", "forteresse": "snow", "colosse": "forge", "forge": "forge",
 	"dunes": "desert", "oasis": "desert", "miroirs": "desert", "desert_nuit": "moon",
 	"cendres": "cinder", "coulee": "cinder", "braisemont": "cinder", "nid": "cinder", "autels": "arcane", "citadelle": "cinder",
@@ -36,7 +37,8 @@ const CAMS := ["zoom", "zoom_out", "reset", "punch", "shake", "tremble", "pan_le
 const FXS := ["flash", "white", "fade", "lightning", "sparkles", "embers", "bloom", "ring", "rays", "bolt", "beam", "crack",
 	"seal", "spiral", "flux", "gate", "arrow", "swarm", "clang", "steam", "thorns", "glitter", "hooves", "drip", "ferns", "lanes", "timestop", "flicker", "wind", "eyes", "veins", "fountain", "heartbeat", "willo", "cage", "shatter", "roots", "splinters", "renewal",
 	"slash", "wisps", "charge", "burst", "leaves", "dust", "shock",
-	"smoke", "arcs", "shieldwall", "howl", "drums", "rain", "banners", "pact", "shadow", "coins", "chant", "sigils", "cheer", "bars"]
+	"smoke", "arcs", "shieldwall", "howl", "drums", "rain", "banners", "pact", "shadow", "coins", "chant", "sigils", "cheer", "bars",
+	"bubbles", "fogbank", "lanterns", "ripples", "bonerise", "chains", "jaws", "ashring", "heads", "moths", "whispers"]
 const ACTS := ["jump", "hop", "shake", "hurt", "attack", "droop", "kneel", "glow", "fall", "exit", "enter", "rise", "turn", "step", "cast", "echo"]
 const SUBJECT_ACTS := ["roar", "hit", "fall", "glow", "rise", "fade", "appear"]
 const GRADES := {"none": "ffffff", "night": "8c98d8", "violet": "c8a0f0", "warm": "ffd8ac", "dawn": "ffe6cc", "cold": "b8d6ff",
@@ -675,7 +677,7 @@ func _effect(spec: String) -> void:
 		"shatter":
 			# La cage vole en éclats : barreaux en morceaux, poussière de lumière.
 			for e9 in _fx.duplicate():
-				if str(e9["kind"]) in ["cage", "sigils", "bars"]:
+				if str(e9["kind"]) in ["cage", "sigils", "bars", "chains", "heads"]:
 					_fx.erase(e9)
 			var sp3 := _anchor_pos(anchor)
 			for i in range(40):
@@ -810,6 +812,65 @@ func _effect(spec: String) -> void:
 		"bars":
 			# Cage de bois : barreaux et traverses autour du repère (jusqu'à « shatter »).
 			_fx_set(_add_fx("bars", anchor, col if col_s != "" else Color("7a5a32"), "front", 1e9), "r", sh * 0.26)
+		# Marais Murmurants (zone 3).
+		"bubbles":
+			# Bulles de poison qui montent de la vase sur toute la largeur.
+			var bu := _add_fx("emit_bubbles", "ground", col if col_s != "" else Color("8ae050"), "light", 4.0)
+			bu["rate"] = 30.0
+		"fogbank":
+			# Un mur de brume roule à travers la scène.
+			_add_fx("fogbank", "center", col if col_s != "" else Color("d8e0d8"), "front", 6.0)
+		"lanterns":
+			# Lanternes qui dansent au-dessus de l'eau.
+			var ln := _add_fx("lanterns", "ground", col if col_s != "" else Color("ffc870"), "light", 1e9)
+			var lp := PackedVector2Array()
+			for i in range(7):
+				lp.append(Vector2(randf_range(0.05, 0.95), randf_range(0.0, 1.0)))
+			ln["pts"] = lp
+		"ripples":
+			# Ronds dans l'eau, l'un après l'autre.
+			for i in range(4):
+				var rp := _add_fx("ring", anchor if anchor != "auto" else "ground", col if col_s != "" else Color("c8e0e0"), "back", 1.4 + 0.3 * float(i))
+				rp["sq"] = 0.22
+				rp["R"] = sh * (0.25 + 0.12 * float(i))
+				rp["t"] = -0.3 * float(i)
+		"bonerise":
+			# Des os et des mains de squelettes sortent de la vase.
+			var br2 := _add_fx("bonerise", "ground", col if col_s != "" else Color("e8e0d0"), "back", 3.5)
+			var bp := PackedVector2Array()
+			for i in range(9):
+				bp.append(Vector2(randf_range(0.05, 0.95), randf_range(0.6, 1.0)))
+			br2["pts"] = bp
+			_dust(_anchor_pos("ground"), 12)
+		"chains":
+			# Chaînes de runes autour du repère (jusqu'à « shatter »).
+			_fx_set(_add_fx("chains", anchor, col if col_s != "" else Color("8ae050"), "light", 1e9), "r", sh * 0.3)
+		"jaws":
+			# Des mâchoires immenses claquent sur le repère.
+			_fx_set(_add_fx("jaws", anchor, col if col_s != "" else Color("e8e0d0"), "front", 1.0), "r", sh * 0.32)
+			_kick_impulse(14.0)
+		"ashring":
+			# Cercle rituel de cendre au sol, ses runes de braise s'allument une à une.
+			var ar3 := _add_fx("ashring", anchor if anchor != "auto" else "ground", col if col_s != "" else Color("ff8a3a"), "back", 4.5)
+			ar3["r"] = sh * 0.5
+		"heads":
+			# Les cous de l'Hydre se dressent hors de l'eau et ondulent, les yeux jaunes allumés.
+			_fx_set(_add_fx("heads", "ground", col if col_s != "" else Color("1e2a22"), "back", 1e9), "r", sh * 0.6)
+		"moths":
+			# Phalènes qui voltigent autour du repère (Nyx).
+			var mo := _add_fx("moths", anchor, col if col_s != "" else Color("c8b8e8"), "light", 4.0)
+			var mp := PackedVector2Array()
+			for i in range(9):
+				mp.append(Vector2(randf() * TAU, randf_range(0.6, 1.4)))
+			mo["pts"] = mp
+			mo["r"] = sh * 0.25
+		"whispers":
+			# La brume parle : des volutes de murmures dérivent et s'effacent.
+			var wh := _add_fx("whispers", "center", col if col_s != "" else Color("d8d0f0"), "light", 4.0)
+			var wp2 := PackedVector2Array()
+			for i in range(10):
+				wp2.append(Vector2(randf_range(0.05, 0.9), randf_range(0.15, 0.7)))
+			wh["pts"] = wp2
 
 
 func _fx_set(e: Dictionary, key: String, v: Variant) -> void:
@@ -1514,6 +1575,9 @@ func _emit(e: Dictionary) -> void:
 		"emit_smoke":
 			_part({"p": c + Vector2(randf_range(-8, 8), randf_range(-4, 4)), "v": Vector2(randf_range(-4, 12), randf_range(-40, -22)), "max": randf_range(2.4, 3.4), "col": col,
 				"size": randf_range(3.0, 6.0), "layer": "back", "drag": 0.2, "sway": 10.0, "kind": "puff"})
+		"emit_bubbles":
+			_part({"p": Vector2(randf() * size.x, ground_y + randf_range(-4.0, 10.0)), "v": Vector2(randf_range(-6, 6), randf_range(-70, -35)), "max": randf_range(0.8, 1.6),
+				"col": col.lerp(Color.WHITE, randf() * 0.3), "size": 2.0 if randf() < 0.4 else 1.0, "layer": "light", "sway": 10.0, "kind": "sq"})
 		"emit_chant":
 			var a6 := randf() * TAU
 			_part({"p": c + Vector2.from_angle(a6) * sh * 0.12, "v": Vector2.from_angle(a6 + PI * 0.5) * 50.0 + Vector2(0, -50), "max": randf_range(1.2, 1.8),
@@ -1852,6 +1916,107 @@ func _draw_fx(ci: CanvasItem, e: Dictionary, k: float) -> void:
 						ci.draw_rect(Rect2(op.floor() - Vector2.ONE, Vector2(2, 2)), Color(Color.WHITE, ta))
 					else:
 						ci.draw_rect(Rect2(op.floor(), Vector2.ONE), Color(col, ta * 0.6))
+		"fogbank":
+			var W8 := size.x * k
+			var fa2 := minf(1.0, t / 1.2) * minf(1.0, (dur - t) / 1.5)
+			for j in range(5):
+				var fy2 := (ground_y - _sh() * (0.1 + 0.15 * float(j))) * k
+				var off := fmod(t * (14.0 + 6.0 * float(j)) + float(j) * 70.0, W8 + 120.0) - 60.0
+				for q in range(4):
+					var fx3 := fmod(off + float(q) * (W8 + 120.0) / 4.0, W8 + 120.0) - 60.0
+					ci.draw_circle(Vector2(fx3, fy2), _sh() * k * (0.12 + 0.03 * float(q % 2)), Color(col, fa2 * 0.12))
+		"lanterns":
+			var la := minf(1.0, t / 0.8)
+			var lp2: PackedVector2Array = e["pts"]
+			for i in range(lp2.size()):
+				var lx2 := lp2[i].x * size.x * k
+				var ly2 := (ground_y - _sh() * (0.05 + 0.18 * lp2[i].y)) * k + sin(_t * 1.6 + float(i)) * 2.0
+				ci.draw_circle(Vector2(lx2, ly2), 6.0, Color(col, la * 0.12))
+				ci.draw_rect(Rect2(Vector2(lx2, ly2).floor() - Vector2(1, 1), Vector2(2, 3)), Color(col.lightened(0.4), la))
+				ci.draw_line(Vector2(lx2, ly2 + 3.0).floor(), Vector2(lx2, ly2 + 8.0).floor(), Color(col, la * 0.2), 1.0)
+		"bonerise":
+			var bp2: PackedVector2Array = e["pts"]
+			var gy4 := (ground_y + 4.0) * k
+			var ba := minf(1.0, (dur - t) / 0.6)
+			for i in range(bp2.size()):
+				var g4 := _ease_out(clampf((t - 0.2 * float(i)) / 0.8, 0.0, 1.0))
+				if g4 <= 0.0:
+					continue
+				var bx5 := bp2[i].x * size.x * k
+				var bh2 := _sh() * k * 0.12 * bp2[i].y * g4
+				ci.draw_line(Vector2(bx5, gy4).floor(), Vector2(bx5, gy4 - bh2).floor(), Color(col, ba), 2.0)
+				for f9 in range(3):
+					var fa3 := -PI * 0.5 + (float(f9) - 1.0) * 0.5
+					ci.draw_line(Vector2(bx5, gy4 - bh2).floor(), (Vector2(bx5, gy4 - bh2) + Vector2.from_angle(fa3) * 4.0 * g4).floor(), Color(col, ba), 1.0)
+		"chains":
+			var cr2 := float(e["r"]) * k
+			var cg2 := clampf(t / 0.7, 0.0, 1.0)
+			for j in range(3):
+				var yy := c.y + (float(j) - 1.0) * cr2 * 0.6
+				var links := int(14.0 * cg2)
+				for q in range(links):
+					var ang3 := float(q) / 14.0 * TAU + t * 0.6 * (1.0 if j % 2 == 0 else -1.0)
+					var lp3 := Vector2(c.x + cos(ang3) * cr2, yy + sin(ang3) * cr2 * 0.2)
+					var front := sin(ang3) > 0.0
+					ci.draw_rect(Rect2(lp3.floor() - Vector2(1, 1), Vector2(3, 2)), Color(col, 0.9 if front else 0.35))
+		"jaws":
+			var jr := float(e["r"]) * k
+			var jc := _ease_in(clampf(t / 0.25, 0.0, 1.0))
+			var ja := minf(1.0, (dur - t) / 0.4)
+			for side3: float in [-1.0, 1.0]:
+				var jy := c.y + side3 * jr * (1.0 - jc) * 0.8
+				ci.draw_arc(Vector2(c.x, jy), jr, PI if side3 < 0.0 else 0.0, TAU if side3 < 0.0 else PI, 24, Color(col, ja), 3.0)
+				for q in range(7):
+					var tx5 := c.x - jr * 0.8 + float(q) * jr * 1.6 / 6.0
+					ci.draw_line(Vector2(tx5, jy).floor(), Vector2(tx5, jy - side3 * 6.0).floor(), Color(col, ja), 2.0)
+		"ashring":
+			var ar4 := float(e["r"]) * k
+			var aa := minf(1.0, t / 0.6) * minf(1.0, (dur - t) / 0.8)
+			ci.draw_set_transform(c, 0.0, Vector2(1.0, 0.25))
+			ci.draw_arc(Vector2.ZERO, ar4, 0.0, TAU, 56, Color(Color("6a6a6a"), aa), 3.0)
+			for q in range(10):
+				var on3 := clampf((t - 0.25 * float(q)) / 0.3, 0.0, 1.0)
+				if on3 > 0.0:
+					var rp2 := Vector2.from_angle(float(q) / 10.0 * TAU) * ar4
+					ci.draw_circle(rp2, 5.0, Color(col, aa * on3 * 0.25))
+					ci.draw_rect(Rect2(rp2 - Vector2(1, 1), Vector2(3, 3)), Color(col.lightened(0.3), aa * on3))
+			ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		"heads":
+			var hr2 := float(e["r"]) * k
+			var hg := _ease_out(clampf(t / 1.6, 0.0, 1.0))
+			var gy5 := (ground_y + 6.0) * k
+			for j in range(5):
+				var base_x := c.x + (float(j) - 2.0) * hr2 * 0.28
+				var pts9 := PackedVector2Array()
+				var hp2 := Vector2(base_x, gy5)
+				for q in range(14):
+					var f10 := float(q) / 13.0
+					hp2 = Vector2(base_x + (float(j) - 2.0) * hr2 * 0.25 * f10 + sin(_t * 1.3 + f10 * 3.0 + float(j)) * 6.0 * f10, gy5 - hr2 * 0.9 * f10 * hg)
+					pts9.append(hp2.floor())
+				ci.draw_polyline(pts9, Color(col, 1.0), 6.0)
+				ci.draw_circle(hp2, 6.0, Color(col, 1.0))
+				ci.draw_rect(Rect2(hp2.floor() + Vector2(1, -2), Vector2(2, 1)), Color("f0d23c"))
+		"moths":
+			var ma := minf(1.0, t / 0.5) * minf(1.0, (dur - t) / 0.8)
+			var mr2 := float(e["r"]) * k
+			var mp2: PackedVector2Array = e["pts"]
+			for i in range(mp2.size()):
+				var mo2 := mp2[i]
+				var mpos := c + Vector2(cos(mo2.x + t * mo2.y * 1.5) * mr2 * 1.3, sin(mo2.x * 1.7 + t * mo2.y * 2.1) * mr2 * 0.7)
+				var flap := absf(sin(_t * 18.0 + float(i)))
+				ci.draw_rect(Rect2(mpos.floor() - Vector2(1.0 + flap * 2.0, 0), Vector2(1.0 + flap * 2.0, 2)), Color(col, ma))
+				ci.draw_rect(Rect2(mpos.floor() + Vector2(1, 0), Vector2(1.0 + flap * 2.0, 2)), Color(col, ma))
+				ci.draw_rect(Rect2(mpos.floor(), Vector2(1, 2)), Color(Color("2a2038"), ma))
+		"whispers":
+			var wa := minf(1.0, t / 0.8) * minf(1.0, (dur - t) / 1.0)
+			var wp3: PackedVector2Array = e["pts"]
+			for i in range(wp3.size()):
+				var wx2 := (wp3[i].x * size.x + t * 10.0) * k
+				var wy2 := (top_y + wp3[i].y * _sh()) * k
+				var pts10 := PackedVector2Array()
+				for q in range(10):
+					pts10.append(Vector2(wx2 + float(q) * 3.0, wy2 + sin(_t * 4.0 + float(q) * 0.9 + float(i)) * 2.0).floor())
+				ci.draw_polyline(pts10, Color(col, wa * (0.3 + 0.3 * sin(_t * 2.0 + float(i)))), 1.0)
 		"arcs":
 			var a20 := minf(1.0, t / 0.15) * minf(1.0, (dur - t) / 0.5)
 			var ar2 := float(e["r"]) * k
