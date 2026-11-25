@@ -214,8 +214,9 @@ func _build_environment() -> void:
 			"roncier": ["9a78c0", "3a2450"], "fougeres": ["9ab0e8", "2a3a6a"], "cercle": ["c890c8", "4a2a50"], "source": ["80b8c8", "1f4050"],
 			"coeur": ["b070d0", "3a1a50"], "sylvarche": ["9070b8", "2a1a40"]}
 		var pair: Array = amb.get(WorldArt.scene, ["7078c0", "2d2c5e"])
-		_env.ambient_light_color = Color(str(pair[0]))
-		_env.fog_light_color = Color(str(pair[1]))
+		# Une nuance seulement : la lumière de nuit du Bois reste la base (contraste, couleurs profondes).
+		_env.ambient_light_color = Color("7078c0").lerp(Color(str(pair[0])), 0.3)
+		_env.fog_light_color = Color("2d2c5e").lerp(Color(str(pair[1])), 0.5)
 	_env.fog_depth_begin = 40.0
 	_env.fog_depth_end = 80.0
 	_env.glow_enabled = true
@@ -301,12 +302,13 @@ func _build_terrain() -> void:
 	var rock := _triplanar(WorldArt.rock_texture(), 0.4)
 	var moss := _triplanar(WorldArt.moss_texture(), 0.5)
 	if floor_set:
-		moss.albedo_color = (pal["moss"] as Color).lerp(Color.WHITE, 0.35)
+		moss.albedo_color = (pal["moss"] as Color).lerp(Color("3f6a3a"), 0.5).lightened(0.15)
 	for side in [-1, 1]:
 		var cx := 4.5 + float(side) * 14.5
 		if floor_set:
-			_box(Vector3(18.0, 2.0, 46.0), Vector3(cx, -1.12, -9.0), rock)
-			_box(Vector3(18.0, 0.2, 46.0), Vector3(cx, -0.1, -9.0), moss)
+			# Le sol de la forêt, un peu en contrebas du chemin : la brume s'y couche, comme sous le pont.
+			_box(Vector3(18.0, 2.0, 46.0), Vector3(cx, -1.72, -9.0), rock)
+			_box(Vector3(18.0, 0.2, 46.0), Vector3(cx, -0.7, -9.0), moss)
 			continue
 		_box(Vector3(18.0, 10.0, 46.0), Vector3(cx, -7.6, -9.0), rock)
 		_box(Vector3(18.0, 0.2, 46.0), Vector3(cx, -2.5, -9.0), moss)
@@ -329,7 +331,7 @@ func _build_terrain() -> void:
 		layers = [[-1.3, Color("4fa8c8"), 0.45, Vector2(0.014, 0.004)], [-2.8, Color("1a5a7a"), 0.6, Vector2(-0.01, 0.006)]]
 	if floor_set:
 		# Brume au ras du sol de la forêt, à la couleur du lieu.
-		layers = [[0.25, pal["mist"], 0.18, Vector2(0.012, 0.004)], [1.4, (pal["mist"] as Color).darkened(0.3), 0.1, Vector2(-0.008, 0.006)]]
+		layers = [[-0.22, (pal["mist"] as Color).lerp(Color("8a8ad0"), 0.4), 0.45, Vector2(0.012, 0.004)], [-0.48, (pal["mist"] as Color).darkened(0.35), 0.55, Vector2(-0.008, 0.006)]]
 	for l in layers:
 		var mi := MeshInstance3D.new()
 		var mp := PlaneMesh.new()
@@ -357,7 +359,7 @@ func _build_terrain() -> void:
 	# Densité des arbres selon le lieu : clairsemés à la lisière, serrés sur le sentier.
 	var tree_n: int = {"lisiere": 30, "sentier": 120, "clairiere": 44, "roncier": 80, "fougeres": 58, "cercle": 66, "source": 60, "coeur": 84, "sylvarche": 70}.get(sc, 90)
 	var dmin: float = {"lisiere": 10.0, "sentier": 6.2, "clairiere": 9.0, "roncier": 7.0, "fougeres": 8.0, "cercle": 7.5, "source": 9.0, "coeur": 6.8, "sylvarche": 7.5}.get(sc, 6.0)
-	var ty := -0.1 if floor_set else -2.5
+	var ty := -0.7 if floor_set else -2.5
 	for i in range(tree_n):
 		var side := -1.0 if i % 2 == 0 else 1.0
 		var x := 4.5 + side * rng.randf_range(dmin, 17.0)
@@ -681,7 +683,7 @@ func _prop(tex: Texture2D, p: Vector2, scale: float, mod: Color = Color.WHITE) -
 	s3.shaded = false
 	s3.modulate = mod
 	s3.offset = Vector2(0.0, float(tex.get_height()) * 0.5)
-	s3.position = w3(p, -0.1)
+	s3.position = w3(p, -0.7 if absf(p.x - 4.5) > 5.2 else 0.0)
 	add_child(s3)
 	return s3
 

@@ -237,12 +237,12 @@ static func ground_texture(healed: bool = false) -> ImageTexture:
 				var fy := rng.randi_range(0, h - 1)
 				_px(img, fx, fy, Color("3f7a4a"))
 				_px(img, fx + 1, fy - 1, Color("5f9a5a"))
-			for i in range(w * h / 120):
-				_px(img, rng.randi_range(0, w - 1), rng.randi_range(0, h - 1), Color("b8c8ff"))
+			for i in range(w * h / 900):
+				_px(img, rng.randi_range(0, w - 1), rng.randi_range(0, h - 1), Color("8898c8"))
 		"cercle":
 			# Fleurs de fée, roses et blanches.
-			for i in range(w * h / 28):
-				_px(img, rng.randi_range(0, w - 1), rng.randi_range(int(2.0 * PX_PER_M), h - 1), Color("f7a8e0") if rng.randf() < 0.6 else Color("ffe8f8"))
+			for i in range(w * h / 70):
+				_px(img, rng.randi_range(0, w - 1), rng.randi_range(int(2.0 * PX_PER_M), h - 1), Color("c87ab0") if rng.randf() < 0.6 else Color("f7a8e0"))
 		"source":
 			# Flaques claires.
 			for i in range(18):
