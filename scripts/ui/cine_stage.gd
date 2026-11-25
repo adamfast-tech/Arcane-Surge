@@ -31,7 +31,7 @@ const MAX_FIGURES := 4
 ## Vocabulaire des indications (vérifié par tools/ui_smoke.gd).
 const CAMS := ["zoom", "zoom_out", "reset", "punch", "shake", "tremble", "pan_left", "pan_right", "pan_up", "push", "pull", "kick", "focus"]
 const FXS := ["flash", "white", "fade", "lightning", "sparkles", "embers", "bloom", "ring", "rays", "bolt", "beam", "crack",
-	"seal", "spiral", "flux", "gate", "arrow", "swarm", "clang", "steam", "thorns", "glitter", "hooves", "drip", "ferns", "lanes", "timestop", "flicker", "wind", "eyes", "veins", "fountain", "heartbeat", "willo", "cage", "shatter",
+	"seal", "spiral", "flux", "gate", "arrow", "swarm", "clang", "steam", "thorns", "glitter", "hooves", "drip", "ferns", "lanes", "timestop", "flicker", "wind", "eyes", "veins", "fountain", "heartbeat", "willo", "cage", "shatter", "roots", "splinters", "renewal",
 	"slash", "wisps", "charge", "burst", "leaves", "dust", "shock"]
 const ACTS := ["jump", "hop", "shake", "hurt", "attack", "droop", "kneel", "glow", "fall", "exit", "enter", "rise", "turn", "step", "cast", "echo"]
 const SUBJECT_ACTS := ["roar", "hit", "fall", "glow", "rise", "fade", "appear"]
@@ -427,6 +427,8 @@ func set_mouth(talk: int, blink: bool) -> void:
 func play_cues(l: Dictionary) -> void:
 	if l.has("grade"):
 		_grade_to = Color(str(GRADES.get(str(l["grade"]), "ffffff")))
+	if l.has("title"):
+		title_card(str(l["title"]))
 	if l.has("cam"):
 		for c in _list(l["cam"]):
 			_camera(c)
@@ -671,6 +673,26 @@ func _effect(spec: String) -> void:
 			var gl2 := _add_fx("emit_glitter", anchor, col if col_s != "" else Color("ffe4f6"), "light", 2.0)
 			gl2["rate"] = 60.0
 			_kick_impulse(8.0)
+		"roots":
+			# Racines qui se tordent : elles sortent du sol par les côtés et rampent vers le centre.
+			var rt := _add_fx("roots", anchor if anchor != "auto" else "ground", col if col_s != "" else Color("5a3a2a"), "front", 4.5)
+			var rs2 := PackedVector2Array()
+			for i in range(6):
+				rs2.append(Vector2(-1.0 if i % 2 == 0 else 1.0, randf_range(0.0, 1.0)))
+			rt["pts"] = rs2
+		"splinters":
+			# Éclats d'écorce : le bois se fend, des copeaux volent, la poussière retombe.
+			var sp4 := _anchor_pos(anchor)
+			for i in range(44):
+				_part({"p": sp4 + Vector2(randf_range(-1, 1) * sh * 0.15, randf_range(-1, 1) * sh * 0.15), "v": Vector2.from_angle(randf_range(-PI, 0.0)) * randf_range(160, 380),
+					"max": randf_range(0.8, 1.3), "col": [Color("6a4a2a"), Color("9a6a3a"), Color("c8a070")][i % 3], "size": 1.0, "layer": "front",
+					"grav": Vector2(0, 520), "drag": 0.8, "kind": "leaf"})
+			_dust(_anchor_pos("ground"), 16)
+			_kick_impulse(12.0)
+		"renewal":
+			# Renouveau : feuilles claires et lueurs vertes montent du sol en tournoyant.
+			var rn := _add_fx("emit_renewal", anchor if anchor != "auto" else "ground", col if col_s != "" else Color("8fd16a"), "light", 4.0)
+			rn["rate"] = 40.0
 		"hooves":
 			# Martèlement au loin : le sol bat, la poussière saute, à intervalles réguliers.
 			var hv := _add_fx("hooves", "ground", Color("d8c8b0"), "back", 3.2)
@@ -1314,6 +1336,10 @@ func _emit(e: Dictionary) -> void:
 			_part({"p": c + Vector2(randf_range(-10, 10), 0.0), "v": Vector2(randf_range(-90, 90), -randf_range(480, 660)), "max": randf_range(1.6, 2.2),
 				"col": col.lerp(Color.WHITE, randf() * 0.5), "size": 2.0 if randf() < 0.5 else 1.0, "layer": "light", "grav": Vector2(0, 560), "drag": 0.2,
 				"kind": "sq"})
+		"emit_renewal":
+			var rp2 := Vector2(randf_range(0.05, 0.95) * size.x, ground_y + 6.0)
+			_part({"p": rp2, "v": Vector2(randf_range(-20, 20), randf_range(-120, -70)), "max": randf_range(2.0, 3.2), "col": col.lerp(Color("e8ffb0"), randf()),
+				"size": 1.0, "layer": "light" if randf() < 0.5 else "front", "sway": 40.0, "drag": 0.2, "kind": "leaf" if randf() < 0.5 else "sq"})
 		"emit_drip":
 			var top := c + Vector2(randf_range(-1.0, 1.0) * sh * 0.3, -sh * randf_range(0.25, 0.45))
 			_part({"p": top, "v": Vector2(0.0, randf_range(10, 30)), "max": randf_range(0.9, 1.4), "col": col.lightened(0.2), "size": 1.0,
@@ -1679,6 +1705,24 @@ func _draw_fx(ci: CanvasItem, e: Dictionary, k: float) -> void:
 				for j in range(3):
 					var ty := lerpf(base2, top2, 0.25 + 0.25 * float(j))
 					ci.draw_line(Vector2(bx2, ty).floor(), Vector2(bx2 + (2.0 if j % 2 == 0 else -2.0), ty - 2.0).floor(), Color(col.lightened(0.2), 1.0), 1.0)
+		"roots":
+			var rr4: PackedVector2Array = e["pts"]
+			var gy2 := (_anchor_pos("ground") * k).y + 6.0
+			var W3 := size.x * k
+			var a18 := minf(1.0, (dur - t) / 0.8)
+			var g3 := _ease_out(clampf(t / 1.6, 0.0, 1.0))
+			for i in range(rr4.size()):
+				var r5 := rr4[i]
+				var sx2 := 0.0 if r5.x < 0.0 else W3
+				var pts5 := PackedVector2Array()
+				for j in range(16):
+					var f4 := float(j) / 15.0 * g3
+					var x3 := lerpf(sx2, W3 * 0.5, f4 * (0.55 + 0.3 * r5.y))
+					var y3 := gy2 - f4 * _sh() * k * (0.15 + 0.25 * r5.y) - sin(f4 * 6.0 + t * 2.0 + float(i)) * 6.0 * f4
+					pts5.append(Vector2(x3, y3).floor())
+				ci.draw_polyline(pts5, Color(Color("1a0e0a"), a18), 5.0)
+				ci.draw_polyline(pts5, Color(col, a18), 3.0)
+				ci.draw_polyline(pts5, Color(col.lightened(0.25), a18), 1.0)
 		"lanes":
 			var xs: PackedVector2Array = e["pts"]
 			var gy := (_anchor_pos("ground") * k).y

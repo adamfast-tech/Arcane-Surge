@@ -8,7 +8,7 @@ Chaque réplique visée est réécrite : ses anciennes indications (cam, fx, act
 par les nouvelles. Relancer le script ne change rien."""
 import json, sys, importlib.util
 
-CUE_KEYS = ("cam", "fx", "act", "grade", "emote")
+CUE_KEYS = ("cam", "fx", "act", "grade", "emote", "title")
 path, mod = sys.argv[1], sys.argv[2]
 spec = importlib.util.spec_from_file_location("cues", mod)
 m = importlib.util.module_from_spec(spec)

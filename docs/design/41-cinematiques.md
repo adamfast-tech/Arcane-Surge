@@ -2,7 +2,7 @@
 
 > Mise en scène des scènes de dialogue : décor animé, personnages en grands bustes qui parlent et réagissent, créatures en présence, effets, étalonnage. Format des scènes : [`07-narration.md`](07-narration.md) §6.2. Code : `scripts/ui/cine_stage.gd` (scène), `scripts/ui/cine_fx.gd` (calques d'effets), `shaders/cine_figure.gdshader`, `scripts/ui/dialogue_screen.gd` (déroulé), `PortraitArt.frame` (portraits animés).
 
-Le chantier avance niveau par niveau. **Version 2 du moteur** (bustes, calques d'effets, étalonnage, carton-titre). **Mis en scène en détail : le prologue, 1-1 à 1-9.** Le reste de la zone 1 garde ses premières indications, traduites par le nouveau moteur ; les zones 2 à 7 profitent de tout ce qui est automatique.
+Le chantier avance niveau par niveau. **Version 2 du moteur** (bustes, calques d'effets, étalonnage, carton-titre). **Mis en scène en détail : le prologue et toute la zone 1.** Le reste de la zone 1 garde ses premières indications, traduites par le nouveau moteur ; les zones 2 à 7 profitent de tout ce qui est automatique.
 
 ## Ce qui se joue sans indication
 
@@ -22,11 +22,12 @@ Facultatives, sur une réplique (`cam`, `fx`, `act`, `grade`, `emote`) ou dans l
 | Clé | Valeurs |
 |---|---|
 | `cam` | `push` (la caméra avance), `pull` (recule), `focus:<repère>` (s'approche d'un personnage ou du sujet), `kick` (à-coup amorti par un ressort), `tremble` (rare), `pan_left`, `pan_right`, `pan_up`, `reset`. Anciens noms acceptés : `zoom`, `zoom_out`, `punch`, `shake` |
-| `fx` | `effet[@repère][:RRGGBB]`. **Effets propres à une scène** (jamais repris des sorts) : `seal` (le Sceau d'Écho se grave et laisse des échos), `spiral` (sortilège de Morvaen : cadran à rebours), `flux` (Surge canalisé : rubans convergents), `gate` (porte runique), `arrow` (flèche de semonce), `swarm` (lucioles), `clang` (choc de bouclier), `steam` (vapeur de colère), `thorns` (ronces des fées), `glitter` (poussière de fée), `hooves` (martèlement de sabots au loin), `drip` (lumière qui ruisselle), `ferns` (fougères qui volent), `lanes` (couloirs de charge), `timestop` (le temps se fige : bandes de distorsion, onde lente), `flicker` (flamme fragile), `wind` (coup de vent), `eyes` (yeux dans les fourrés), `veins` (veines de corruption sur le sol), `fountain` (jet d'eau), `heartbeat` (battement de cœur), `willo` (feux-follets), `cage` (cage de ronces, jusqu'à `shatter` qui la brise). Lumière : `bloom` (halo), `ring` (onde), `shock` (onde au sol et poussière), `rays` (rayons tournants), `bolt` (éclair), `beam` (colonne de lumière), `crack` (faille qui se déchire dans le ciel), `slash` (entaille), `charge` (particules aspirées vers le repère), `burst` (gerbe d'étincelles). Matière : `wisps` (volutes qui montent), `dust`, `embers`, `leaves`. Écran : `fade` (sortie du noir), `white` (éclair blanc et halo). Anciens noms : `flash`, `lightning`, `sparkles` |
+| `fx` | `effet[@repère][:RRGGBB]`. **Effets propres à une scène** (jamais repris des sorts) : `seal` (le Sceau d'Écho se grave et laisse des échos), `spiral` (sortilège de Morvaen : cadran à rebours), `flux` (Surge canalisé : rubans convergents), `gate` (porte runique), `arrow` (flèche de semonce), `swarm` (lucioles), `clang` (choc de bouclier), `steam` (vapeur de colère), `thorns` (ronces des fées), `glitter` (poussière de fée), `hooves` (martèlement de sabots au loin), `drip` (lumière qui ruisselle), `ferns` (fougères qui volent), `lanes` (couloirs de charge), `timestop` (le temps se fige : bandes de distorsion, onde lente), `flicker` (flamme fragile), `wind` (coup de vent), `eyes` (yeux dans les fourrés), `veins` (veines de corruption sur le sol), `fountain` (jet d'eau), `heartbeat` (battement de cœur), `willo` (feux-follets), `cage` (cage de ronces, jusqu'à `shatter` qui la brise), `roots` (racines qui se tordent), `splinters` (éclats d'écorce), `renewal` (la forêt renaît). Lumière : `bloom` (halo), `ring` (onde), `shock` (onde au sol et poussière), `rays` (rayons tournants), `bolt` (éclair), `beam` (colonne de lumière), `crack` (faille qui se déchire dans le ciel), `slash` (entaille), `charge` (particules aspirées vers le repère), `burst` (gerbe d'étincelles). Matière : `wisps` (volutes qui montent), `dust`, `embers`, `leaves`. Écran : `fade` (sortie du noir), `white` (éclair blanc et halo). Anciens noms : `flash`, `lightning`, `sparkles` |
 | Repères | un personnage (sa tête), `subject`, `center`, `sky`, `ground`, `left`, `right` ; par défaut, celui qui agit sur la réplique, sinon le sujet, sinon le centre |
 | `act` | `{"qui": "action"}`. Bustes : `jump`, `hop`, `shake`, `hurt` (recul, éclat), `attack` (fente vers le centre avec traînée, entaille et étincelles), `glow` (éclat, liseré, particules), `cast` (comme `glow`, avec le Surge canalisé), `echo` (échos du temps : le personnage se dédouble en fantômes), `droop`, `kneel`, `fall`, `step`, `turn`, `rise` (annule une posture), `enter`, `exit`. Sujet (`subject`) : `roar`, `hit`, `glow`, `fall`, `rise`, `appear`, `fade` (se dissout en particules) |
 | `grade` | Étalonnage du décor et des personnages, en fondu : `night`, `violet`, `warm`, `dawn`, `cold`, `red`, `green`, `dark`, `gold`, `none` |
 | `emote` | `{"qui": "!"}` : `!`, `?`, `anger`, `drop`, `note`, `dots` |
+| `title` | Carton-titre au milieu d'une scène (fin d'acte) : `"Acte 1 · L'Éveil"` |
 | `cast` | Personnages présents dès le début de la scène : `["porteur", "sylwen"]` ou `[{"id": "brann", "side": "left", "hidden": true}]` |
 | `subject` | Hors indications : `"portrait:<id>"` montre n'importe quel portrait en présence (ex. `portrait:morvaen`, silhouette teintée par `subject_tint`) |
 
@@ -58,7 +59,7 @@ Exemple (1-5, le Sceau) :
 | 1-7 | La flamme de la Lanterne vacille (halo, étincelles) ; un coup de vent la fait ployer ; des yeux rouges s'allument dans les fourrés (embuscade). Fin : la flamme avale le Nexus (halo et rayons dorés) ; la Tour du Croissant au loin, lumière froide, la caméra recule |
 | 1-8 | Des veines violettes rampent sur le sol de la Source scellée ; Brann « tape ». Fin : **la Source rejaillit** (jet d'eau claire qui retombe en gouttes, onde), les lucioles reviennent en essaim, lumière d'aube |
 | 1-9 | Le Cœur de la Forêt bat (double battement, la lumière enfle) ; des feux-follets dérivent ; la Sylvarche s'éveille (battement rouge, veines). Fin : les fées en **cage de ronces**, leur lumière goutte et s'épuise ; libérées, la cage vole en éclats dans une poussière de lumière ; abandonnées, Brann file et la fée s'affaisse |
-| 1-10 | La Sylvarche se dresse, rugit ; purifiée elle brille (le héros aussi), la forêt guérit ; abattue, Brann frappe, Sylwen s'en va seule |
+| 1-10 | La Sylvarche se dresse en présence, ses racines se tordent au premier plan, son écorce suinte de violet ; son cœur souffre (battement rouge) ; les fées libérées reviennent en essaim. Fin : elle ploie (éclats d'écorce, poussière) ; **purifiée**, le Sceau se grave sur son écorce, lumière verte, la forêt renaît (feuilles et lueurs qui montent, lucioles, aube) ; **abattue**, Brann frappe (choc, éclats), Sylwen s'en va seule. Carton « Acte 1 · L'Éveil » |
 
 ## Revoir ou passer (missions déjà réussies)
 
@@ -76,4 +77,4 @@ Exemple (1-5, le Sceau) :
 
 ## Suite
 
-Niveau par niveau : 1-2 à 1-10 avec le vocabulaire de la version 2, puis les zones 2 à 7 (éclairs de l'orage des Collines, souffle des dragons, vagues de la Cité Engloutie).
+Zone 2, niveau par niveau, avec des effets écrits pour chaque scène (éclairs de l'orage des Collines, les clans orcs, Krag…), puis les zones 3 à 7.
