@@ -393,7 +393,11 @@ func _build_terrain() -> void:
 		# Collines d'Ambre : arbres isolés, vergers près des moulins, arbres morts sous l'orage.
 		"route": [0, 0, 0, 3, 2, 2], "moulins": [0, 0, 0, 4, 4, 1], "pylones": [0, 0, 0, 1, 1, 4], "gue": [0, 0, 0, 3, 3, 1],
 		"repaire": [0, 0, 0, 1, 1, 3], "orage": [0, 0, 0, 1, 0, 5], "caravane": [0, 0, 0, 3, 2, 2], "rebouteux": [0, 0, 0, 2, 2, 2],
-		"traite": [0, 0, 0, 3, 3, 1], "fort": [0, 0, 0, 0, 1, 5]}.get(sc, [1, 1, 1, 0, 0, 0])
+		"traite": [0, 0, 0, 3, 3, 1], "fort": [0, 0, 0, 0, 1, 5],
+		# Marais : saules pleureurs et arbres morts.
+		"pilotis": [0, 0, 0, 4, 4, 2], "mares": [0, 0, 0, 2, 2, 4], "brume": [0, 0, 0, 3, 3, 3], "gue_morts": [0, 0, 0, 1, 1, 5],
+		"croc": [0, 0, 0, 2, 2, 4], "saules": [0, 0, 0, 5, 5, 1], "barque": [0, 0, 0, 4, 4, 1], "sorciere": [0, 0, 0, 2, 2, 4],
+		"refuge": [0, 0, 0, 2, 2, 3], "hydre": [0, 0, 0, 2, 2, 4]}.get(sc, [1, 1, 1, 0, 0, 0])
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_colors = true
@@ -404,7 +408,8 @@ func _build_terrain() -> void:
 	rng.seed = 808
 	# Densité des arbres selon le lieu : clairsemés à la lisière, serrés sur le sentier.
 	var tree_n: int = {"lisiere": 30, "sentier": 120, "clairiere": 44, "roncier": 80, "fougeres": 58, "cercle": 66, "source": 60, "coeur": 84, "sylvarche": 70,
-		"route": 22, "moulins": 40, "pylones": 16, "gue": 36, "repaire": 18, "orage": 20, "caravane": 22, "rebouteux": 26, "traite": 26, "fort": 16}.get(sc, 90)
+		"route": 22, "moulins": 40, "pylones": 16, "gue": 36, "repaire": 18, "orage": 20, "caravane": 22, "rebouteux": 26, "traite": 26, "fort": 16,
+		"pilotis": 44, "mares": 40, "brume": 56, "gue_morts": 34, "croc": 40, "saules": 60, "barque": 40, "sorciere": 50, "refuge": 36, "hydre": 38}.get(sc, 90)
 	var dmin: float = {"lisiere": 10.0, "sentier": 6.2, "clairiere": 9.0, "roncier": 7.0, "fougeres": 8.0, "cercle": 7.5, "source": 9.0, "coeur": 6.8, "sylvarche": 7.5}.get(sc, 10.0)
 	var ty := -0.7 if floor_set else -2.5
 	for i in range(tree_n):
@@ -605,6 +610,9 @@ func _build_scene_props() -> void:
 		return
 	if WorldArt.zone == 2:
 		_build_hills_props()
+		return
+	if WorldArt.zone == 3:
+		_build_swamp_props()
 		return
 	var sc := WorldArt.scene
 	var rng := RandomNumberGenerator.new()
@@ -816,6 +824,156 @@ func _build_hills_props() -> void:
 			_hills_fires(rng, 2)
 
 
+## Marais Murmurants (zone 3) : eau de part et d'autre, maisons sur pilotis, stèles, ossements, pierres du Cercle.
+func _build_swamp_props() -> void:
+	var sc := WorldArt.scene
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(sc) + 3
+	if WorldArt.SWAMP_WATER.has(sc):
+		for side: float in [-1.0, 1.0]:
+			var water := MeshInstance3D.new()
+			var wm := PlaneMesh.new()
+			wm.size = Vector2(16.0, 44.0)
+			water.mesh = wm
+			var mat := StandardMaterial3D.new()
+			mat.albedo_color = Color(Color(str(WorldArt.SWAMP_WATER[sc])), 0.85)
+			mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			mat.roughness = 0.1
+			mat.metallic_specular = 0.9
+			if sc == "mares":
+				mat.emission_enabled = true
+				mat.emission = Color("4a8a20")
+				mat.emission_energy_multiplier = 0.25
+			water.material_override = mat
+			water.position = w3(Vector2(4.5 + side * 13.5, 8.0), -0.6)
+			add_child(water)
+	var reeds := WorldArt.reeds_texture()
+	for i in range(14):
+		var side2 := -1.0 if i % 2 == 0 else 1.0
+		_prop(reeds, Vector2(4.5 + side2 * rng.randf_range(5.3, 5.8), rng.randf_range(0.5, 16.0)), 1.1, Color(0.8, 0.85, 0.75))
+	match sc:
+		"pilotis", "barque":
+			var hut := WorldArt.stilt_house_texture()
+			for i in range(5 if sc == "pilotis" else 2):
+				var side3 := -1.0 if i % 2 == 0 else 1.0
+				var hp := Vector2(4.5 + side3 * rng.randf_range(7.5, 9.5), 1.5 + float(i) * 3.5)
+				_prop(hut, hp, 2.0)
+				_prop_light(hp, 1.4, Color("f2c46b"), 0.8, 3.0)
+			var lamp := WorldArt.lamp_texture()
+			for i in range(6):
+				var side4 := -1.0 if i % 2 == 0 else 1.0
+				var lp := Vector2(4.5 + side4 * 5.9, 1.0 + float(i / 2) * 6.0)
+				_prop(lamp, lp, 1.0)
+				_prop_light(lp, 1.4, Color("ffc870"), 0.8, 2.8)
+			var boat := WorldArt.boat_texture()
+			for i in range(2 if sc == "pilotis" else 5):
+				_prop(boat, Vector2(4.5 + (-1.0 if i % 2 == 0 else 1.0) * rng.randf_range(6.5, 9.0), rng.randf_range(1.0, 16.0)), 1.6)
+		"mares", "croc", "hydre":
+			var rib := WorldArt.ribcage_texture()
+			for i in range(3 if sc == "mares" else 5):
+				_prop(rib, _side_spot(rng), rng.randf_range(1.4, 2.0))
+			if sc != "mares":
+				var skull := WorldArt.big_skull_texture()
+				for i in range(2):
+					_prop(skull, _side_spot(rng), 1.8)
+		"gue_morts":
+			var grave := WorldArt.grave_texture()
+			for i in range(16):
+				_prop(grave, _side_spot(rng), rng.randf_range(1.0, 1.5))
+			for i in range(4):
+				var gp := _side_spot(rng)
+				_prop_light(gp, 0.8, Color("8fd8ff"), 0.9, 3.0)
+		"saules":
+			var stone := WorldArt.ash_stone_texture()
+			for side5: float in [-1.0, 1.0]:
+				var ctr := Vector2(4.5 + side5 * 8.0, 9.0)
+				for k in range(10):
+					var a := float(k) / 10.0 * TAU
+					_prop(stone, ctr + Vector2(cos(a) * 2.4, sin(a) * 3.4), 1.3)
+				_prop_light(ctr, 0.6, Color("ff7a2a"), 1.1, 4.0)
+				_chimneys.append(w3(ctr, -0.4))
+		"sorciere":
+			var pot := WorldArt.cauldron_texture()
+			for x: float in [-1.6, 10.6]:
+				var cp := Vector2(x, 13.0)
+				_prop(pot, cp, 1.5)
+				_prop_light(cp, 0.8, Color("8ae050"), 1.0, 3.5)
+				_chimneys.append(w3(cp, 0.4))
+			var hut2 := WorldArt.stilt_house_texture()
+			_prop(hut2, Vector2(-4.5, 15.0), 2.2)
+			var rib2 := WorldArt.ribcage_texture()
+			for i in range(3):
+				_prop(rib2, _side_spot(rng), 1.5)
+		"refuge":
+			var ruin := WorldArt.ruin_pillar_texture()
+			for i in range(10):
+				var rp := _side_spot(rng)
+				_prop(ruin, rp, rng.randf_range(1.4, 2.0))
+				if i % 3 == 0:
+					_prop_light(rp, 1.8, Color("b07cff"), 0.8, 3.0)
+			var grave2 := WorldArt.grave_texture()
+			for i in range(4):
+				_prop(grave2, _side_spot(rng), 1.2)
+
+
+## Marais : reflets sur l'eau, bulles de poison, nappes de brume plus épaisses dans la Brume.
+func _build_swamp_ambience() -> void:
+	var sc := WorldArt.scene
+	if WorldArt.SWAMP_WATER.has(sc):
+		for side: float in [-1.0, 1.0]:
+			var gl := CPUParticles3D.new()
+			gl.amount = 24
+			gl.lifetime = 1.6
+			gl.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+			gl.emission_box_extents = Vector3(5.0, 0.0, 16.0)
+			gl.position = w3(Vector2(4.5 + side * 9.0, 8.0), -0.56)
+			gl.gravity = Vector3.ZERO
+			gl.initial_velocity_max = 0.0
+			gl.mesh = _particle_mesh(0.07)
+			var gr := Gradient.new()
+			gr.set_color(0, Color(0.85, 0.95, 0.9, 0.0))
+			gr.set_color(1, Color(0.85, 0.95, 0.9, 0.0))
+			gr.add_point(0.5, Color(0.9, 1.0, 0.95, 0.7))
+			gl.color_ramp = gr
+			add_child(gl)
+	if sc in ["mares", "croc", "sorciere"]:
+		var bub := CPUParticles3D.new()
+		bub.amount = 40
+		bub.lifetime = 2.2
+		bub.preprocess = 2.2
+		bub.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+		bub.emission_box_extents = Vector3(10.0, 0.1, 11.0)
+		bub.position = Vector3(4.5, -0.5, -8.0)
+		bub.direction = Vector3(0, 1, 0)
+		bub.spread = 10.0
+		bub.initial_velocity_min = 0.2
+		bub.initial_velocity_max = 0.5
+		bub.gravity = Vector3.ZERO
+		bub.mesh = _particle_mesh(0.09)
+		var bg := Gradient.new()
+		bg.set_color(0, Color(0.6, 1.0, 0.3, 0.0))
+		bg.set_color(1, Color(0.6, 1.0, 0.3, 0.0))
+		bg.add_point(0.3, Color(0.7, 1.0, 0.4, 0.8))
+		bub.color_ramp = bg
+		add_child(bub)
+	if sc in ["brume", "hydre", "gue_morts"]:
+		# Brume épaisse qui roule au ras du sol, jusque sur le terrain.
+		var mist_shader: Shader = load("res://shaders/mist.gdshader")
+		var mi := MeshInstance3D.new()
+		var mp := PlaneMesh.new()
+		mp.size = Vector2(40.0, 40.0)
+		mi.mesh = mp
+		var sm := ShaderMaterial.new()
+		sm.shader = mist_shader
+		sm.set_shader_parameter("noise_tex", WorldArt.mist_texture())
+		sm.set_shader_parameter("tint", Color("d8e0d8"))
+		sm.set_shader_parameter("strength", 0.28 if sc == "brume" else 0.2)
+		sm.set_shader_parameter("speed", Vector2(0.01, 0.004))
+		mi.material_override = sm
+		mi.position = Vector3(4.5, 0.25, -8.0)
+		add_child(mi)
+
+
 ## Feux de camp : flamme, lueur qui danse, fumée.
 func _hills_fires(rng: RandomNumberGenerator, n: int) -> void:
 	var flame := WorldArt.flame_texture()
@@ -940,6 +1098,34 @@ func _pillar_mats() -> Array:
 		"traite":
 			body.albedo_color = Color(1.0, 0.92, 0.78)
 			cap.albedo_color = Color("f2c46b")
+		# Marais : pieux de bois, pierres moussues, stèles, pierres du Cercle, ruines.
+		"pilotis", "barque", "brume", "hydre":
+			body.albedo_color = Color(0.7, 0.58, 0.45)
+			cap.albedo_color = Color("5a6a48")
+		"mares", "croc", "sorciere":
+			body.albedo_color = Color(0.7, 0.8, 0.65)
+			cap.albedo_color = Color("6aa83a")
+			cap.emission_enabled = true
+			cap.emission = Color("4a8a20")
+			cap.emission_energy_multiplier = 0.5
+		"gue_morts":
+			body.albedo_color = Color(0.8, 0.82, 0.9)
+			cap.albedo_color = Color("bfe8ff")
+			cap.emission_enabled = true
+			cap.emission = Color("6ab8e0")
+			cap.emission_energy_multiplier = 0.5
+		"saules":
+			body.albedo_color = Color(0.75, 0.72, 0.78)
+			cap.albedo_color = Color("ff8a3a")
+			cap.emission_enabled = true
+			cap.emission = Color("e85a1a")
+			cap.emission_energy_multiplier = 0.7
+		"refuge":
+			body.albedo_color = Color(0.85, 0.82, 0.95)
+			cap.albedo_color = Color("b07cff")
+			cap.emission_enabled = true
+			cap.emission = Color("8a4ad0")
+			cap.emission_energy_multiplier = 0.6
 		"lisiere":
 			body.albedo_color = Color(0.85, 0.6, 0.42)
 			cap.albedo_color = Color("8a6a3a")
@@ -1035,6 +1221,8 @@ func _build_ambience() -> void:
 		return
 	if WorldArt.zone == 2:
 		_build_hills_ambience()
+	if WorldArt.zone == 3:
+		_build_swamp_ambience()
 	if sc in ["lisiere", "sentier", "clairiere", "fougeres", "source", "sylvarche", "roncier"]:
 		var lv := CPUParticles3D.new()
 		lv.amount = 26
