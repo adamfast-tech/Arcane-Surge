@@ -101,19 +101,19 @@
       "subject": "pixie",
       "cast": ["porteur", "sylwen", "brann"],
       "lines": [
-        {"act": {"subject": "glow"}, "fx": "sparkles:ff9bf0", "who": "sylwen", "text": "Les fées sont nées de la magie pure des Veines. Le Surge les rend folles… et sombres."},
-        {"act": {"subject": "roar"}, "who": "sylwen", "mood": "triste", "text": "Leurs ronces ont maudit certaines portes : elles retirent des invocations au lieu d'en ajouter."},
-        {"act": {"porteur": "glow"}, "fx": "sparkles:fff3b0", "who": "brann", "text": "Ton sort Purifier nettoie une porte maudite. Et pour changer notre tactique, donne-nous un ordre."},
-        {"who": "brann", "mood": "joie", "text": "Je ne mords pas. Enfin, rarement."}
+        {"act": {"subject": "glow"}, "fx": "glitter@subject:ffb8f0", "who": "sylwen", "text": "Les fées sont nées de la magie pure des Veines. Le Surge les rend folles… et sombres."},
+        {"fx": ["gate@center:8a4aa8", "thorns@center:8a4aa8"], "grade": "violet", "who": "sylwen", "mood": "triste", "text": "Leurs ronces ont maudit certaines portes : elles retirent des invocations au lieu d'en ajouter."},
+        {"cam": "focus:brann", "grade": "none", "who": "brann", "text": "Ton sort Purifier nettoie une porte maudite. Et pour changer notre tactique, donne-nous un ordre."},
+        {"cam": "reset", "emote": {"sylwen": "drop"}, "who": "brann", "mood": "joie", "text": "Je ne mords pas. Enfin, rarement."}
       ]
     },
     "z01_l04_outro": {
       "art": "foret",
       "cast": ["porteur", "sylwen", "brann"],
       "lines": [
-        {"cam": "punch", "who": "brann", "mood": "colere", "text": "D'accord. Les fées causent BEAUCOUP d'ennuis. Je retire ce que j'ai dit."},
-        {"cam": ["tremble", "zoom"], "who": "sylwen", "mood": "surpris", "text": "Écoutez… Ce martèlement. Le Grand Cerf, le gardien du Bois. Il vient vers nous."},
-        {"cam": "reset", "who": "sylwen", "mood": "triste", "text": "S'il a été touché par le Surge… nous devrons l'affronter. Que les Veines nous pardonnent."}
+        {"fx": "thorns@right:8a4aa8", "emote": {"sylwen": "note"}, "who": "brann", "mood": "colere", "text": "D'accord. Les fées causent BEAUCOUP d'ennuis. Je retire ce que j'ai dit."},
+        {"fx": "hooves", "cam": "push", "who": "sylwen", "mood": "surpris", "text": "Écoutez… Ce martèlement. Le Grand Cerf, le gardien du Bois. Il vient vers nous."},
+        {"grade": "cold", "cam": "reset", "who": "sylwen", "mood": "triste", "text": "S'il a été touché par le Surge… nous devrons l'affronter. Que les Veines nous pardonnent."}
       ]
     },
 

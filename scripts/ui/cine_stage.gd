@@ -31,7 +31,7 @@ const MAX_FIGURES := 4
 ## Vocabulaire des indications (vérifié par tools/ui_smoke.gd).
 const CAMS := ["zoom", "zoom_out", "reset", "punch", "shake", "tremble", "pan_left", "pan_right", "pan_up", "push", "pull", "kick", "focus"]
 const FXS := ["flash", "white", "fade", "lightning", "sparkles", "embers", "bloom", "ring", "rays", "bolt", "beam", "crack",
-	"seal", "spiral", "flux", "gate", "arrow", "swarm", "clang", "steam", "thorns",
+	"seal", "spiral", "flux", "gate", "arrow", "swarm", "clang", "steam", "thorns", "glitter", "hooves",
 	"slash", "wisps", "charge", "burst", "leaves", "dust", "shock"]
 const ACTS := ["jump", "hop", "shake", "hurt", "attack", "droop", "kneel", "glow", "fall", "exit", "enter", "rise", "turn", "step", "cast"]
 const SUBJECT_ACTS := ["roar", "hit", "fall", "glow", "rise", "fade", "appear"]
@@ -573,6 +573,14 @@ func _effect(spec: String) -> void:
 				stems.append(Vector2(randf_range(-1.0, 1.0), randf_range(0.6, 1.0)))
 			th["pts"] = stems
 			th["r"] = sh * 0.5
+		"glitter":
+			# Poussière de fée : de petites étoiles qui scintillent et s'éteignent autour du repère.
+			var gl := _add_fx("emit_glitter", anchor, col if col_s != "" else Color("ffb8f0"), "light", 3.5)
+			gl["rate"] = 45.0
+		"hooves":
+			# Martèlement au loin : le sol bat, la poussière saute, à intervalles réguliers.
+			var hv := _add_fx("hooves", "ground", Color("d8c8b0"), "back", 3.2)
+			hv["beat"] = -1
 		"swarm":
 			# Essaim de lucioles qui tourne autour du repère.
 			var sw := _add_fx("swarm", anchor, col if col_s != "" else Color("fff3b0"), "light", 4.0)
@@ -1135,6 +1143,17 @@ func _update_fx(delta: float) -> void:
 			while float(e["acc"]) >= 1.0:
 				e["acc"] = float(e["acc"]) - 1.0
 				_emit(e)
+		if kind == "hooves":
+			var beat := int(float(e["t"]) / 0.42)
+			if beat != int(e["beat"]) and float(e["t"]) < float(e["dur"]) - 0.4:
+				e["beat"] = beat
+				var g := _anchor_pos("ground") + Vector2(randf_range(-0.25, 0.25) * size.x, 0.0)
+				_dust(g, 5 + beat)
+				_kick_v += Vector2(0.0, 60.0 + 25.0 * float(beat))
+				var rg := _add_fx("ring", "", Color("d8c8b0"), "back", 0.5)
+				rg["at"] = g
+				rg["sq"] = 0.25
+				rg["R"] = _sh() * (0.2 + 0.05 * float(beat))
 		if float(e["t"]) > float(e["dur"]):
 			_fx.erase(e)
 
@@ -1172,6 +1191,10 @@ func _emit(e: Dictionary) -> void:
 			var p3 := c + Vector2(randf_range(-1.0, 1.0) * hs, randf_range(-1.0, 1.0) * hs)
 			_part({"p": p3, "v": Vector2(randf_range(-10, 10), randf_range(-70, -30)), "max": randf_range(1.0, 1.8), "col": col.lightened(0.3),
 				"size": 1.0 if randf() < 0.6 else 2.0, "layer": "light", "sway": 12.0, "kind": "sq"})
+		"emit_glitter":
+			var gp := c + Vector2.from_angle(randf() * TAU) * sh * randf_range(0.05, 0.32)
+			_part({"p": gp, "v": Vector2(randf_range(-6, 6), randf_range(-14, 4)), "max": randf_range(0.5, 0.9), "col": col.lerp(Color.WHITE, randf() * 0.6),
+				"size": 1.0, "layer": "light", "kind": "star"})
 		"emit_steam":
 			if _figs.has(str(e["anchor"])):
 				var sf: Dictionary = _figs[str(e["anchor"])]
@@ -1268,6 +1291,14 @@ func draw_layer(ci: CanvasItem, layer: String) -> void:
 		match str(p["kind"]):
 			"puff":
 				ci.draw_circle(pos, float(p["size"]) * k * (0.6 + u), Color(col, 0.35 * (1.0 - u)))
+			"star":
+				var tw := sin(u * PI)
+				var arm := 1.0 + floorf(tw * 4.0)
+				ci.draw_circle(pf_glow(pos), 3.0 + arm, Color(col, tw * 0.15))
+				var pf := pos.floor()
+				ci.draw_rect(Rect2(pf, Vector2.ONE), Color(Color.WHITE, tw))
+				ci.draw_rect(Rect2(pf - Vector2(arm, 0), Vector2(arm * 2.0 + 1.0, 1)), Color(col, tw * 0.8))
+				ci.draw_rect(Rect2(pf - Vector2(0, arm), Vector2(1, arm * 2.0 + 1.0)), Color(col, tw * 0.8))
 			"leaf":
 				var flip := sin(float(p["ph"]) + float(p["life"]) * 5.0) > 0.0
 				ci.draw_rect(Rect2(pos.floor(), Vector2(2, 1) if flip else Vector2(1, 2)), Color(col, minf(1.0, (1.0 - u) * 3.0)))
@@ -1501,6 +1532,10 @@ func _draw_fx(ci: CanvasItem, e: Dictionary, k: float) -> void:
 			var a0 := float(e["rot"]) - span * 0.5
 			for i in range(3):
 				ci.draw_arc(c, r2 - float(i), a0, a0 + span * prog, 24, Color(col if i > 0 else Color.WHITE, a6 * (1.0 - float(i) * 0.25)), 2.0 - float(i) * 0.5)
+
+
+static func pf_glow(p: Vector2) -> Vector2:
+	return p.floor() + Vector2(0.5, 0.5)
 
 
 func _bolt_path(target: Vector2) -> PackedVector2Array:

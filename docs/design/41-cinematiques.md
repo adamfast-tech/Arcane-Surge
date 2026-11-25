@@ -2,7 +2,7 @@
 
 > Mise en scène des scènes de dialogue : décor animé, personnages en grands bustes qui parlent et réagissent, créatures en présence, effets, étalonnage. Format des scènes : [`07-narration.md`](07-narration.md) §6.2. Code : `scripts/ui/cine_stage.gd` (scène), `scripts/ui/cine_fx.gd` (calques d'effets), `shaders/cine_figure.gdshader`, `scripts/ui/dialogue_screen.gd` (déroulé), `PortraitArt.frame` (portraits animés).
 
-Le chantier avance niveau par niveau. **Version 2 du moteur** (bustes, calques d'effets, étalonnage, carton-titre). **Mis en scène en détail : le prologue, 1-1, 1-2, 1-3 et le Sceau de 1-5.** Le reste de la zone 1 garde ses premières indications, traduites par le nouveau moteur ; les zones 2 à 7 profitent de tout ce qui est automatique.
+Le chantier avance niveau par niveau. **Version 2 du moteur** (bustes, calques d'effets, étalonnage, carton-titre). **Mis en scène en détail : le prologue, 1-1 à 1-4 et le Sceau de 1-5.** Le reste de la zone 1 garde ses premières indications, traduites par le nouveau moteur ; les zones 2 à 7 profitent de tout ce qui est automatique.
 
 ## Ce qui se joue sans indication
 
@@ -22,7 +22,7 @@ Facultatives, sur une réplique (`cam`, `fx`, `act`, `grade`, `emote`) ou dans l
 | Clé | Valeurs |
 |---|---|
 | `cam` | `push` (la caméra avance), `pull` (recule), `focus:<repère>` (s'approche d'un personnage ou du sujet), `kick` (à-coup amorti par un ressort), `tremble` (rare), `pan_left`, `pan_right`, `pan_up`, `reset`. Anciens noms acceptés : `zoom`, `zoom_out`, `punch`, `shake` |
-| `fx` | `effet[@repère][:RRGGBB]`. **Effets propres à une scène** (jamais repris des sorts) : `seal` (le Sceau d'Écho se grave et laisse des échos), `spiral` (sortilège de Morvaen : cadran à rebours), `flux` (Surge canalisé : rubans convergents), `gate` (porte runique), `arrow` (flèche de semonce), `swarm` (lucioles), `clang` (choc de bouclier), `steam` (vapeur de colère), `thorns` (ronces des fées). Lumière : `bloom` (halo), `ring` (onde), `shock` (onde au sol et poussière), `rays` (rayons tournants), `bolt` (éclair), `beam` (colonne de lumière), `crack` (faille qui se déchire dans le ciel), `slash` (entaille), `charge` (particules aspirées vers le repère), `burst` (gerbe d'étincelles). Matière : `wisps` (volutes qui montent), `dust`, `embers`, `leaves`. Écran : `fade` (sortie du noir), `white` (éclair blanc et halo). Anciens noms : `flash`, `lightning`, `sparkles` |
+| `fx` | `effet[@repère][:RRGGBB]`. **Effets propres à une scène** (jamais repris des sorts) : `seal` (le Sceau d'Écho se grave et laisse des échos), `spiral` (sortilège de Morvaen : cadran à rebours), `flux` (Surge canalisé : rubans convergents), `gate` (porte runique), `arrow` (flèche de semonce), `swarm` (lucioles), `clang` (choc de bouclier), `steam` (vapeur de colère), `thorns` (ronces des fées), `glitter` (poussière de fée), `hooves` (martèlement de sabots au loin). Lumière : `bloom` (halo), `ring` (onde), `shock` (onde au sol et poussière), `rays` (rayons tournants), `bolt` (éclair), `beam` (colonne de lumière), `crack` (faille qui se déchire dans le ciel), `slash` (entaille), `charge` (particules aspirées vers le repère), `burst` (gerbe d'étincelles). Matière : `wisps` (volutes qui montent), `dust`, `embers`, `leaves`. Écran : `fade` (sortie du noir), `white` (éclair blanc et halo). Anciens noms : `flash`, `lightning`, `sparkles` |
 | Repères | un personnage (sa tête), `subject`, `center`, `sky`, `ground`, `left`, `right` ; par défaut, celui qui agit sur la réplique, sinon le sujet, sinon le centre |
 | `act` | `{"qui": "action"}`. Bustes : `jump`, `hop`, `shake`, `hurt` (recul, éclat), `attack` (fente vers le centre avec traînée, entaille et étincelles), `glow` (éclat, liseré, particules), `cast` (comme `glow`, avec le Surge canalisé), `droop`, `kneel`, `fall`, `step`, `turn`, `rise` (annule une posture), `enter`, `exit`. Sujet (`subject`) : `roar`, `hit`, `glow`, `fall`, `rise`, `appear`, `fade` (se dissout en particules) |
 | `grade` | Étalonnage du décor et des personnages, en fondu : `night`, `violet`, `warm`, `dawn`, `cold`, `red`, `green`, `dark`, `gold`, `none` |
@@ -51,7 +51,8 @@ Exemple (1-5, le Sceau) :
 | 1-1 | Carton-titre ; ciel violet, éclair, l'Ancien sursaute ; volutes vers le pont ; le héros canalise (cercle, particules aspirées, caméra sur lui) ; cercle doré des portes runiques ; « Va ! » : le héros s'élance. Fin : rayons dorés, puis la forêt violette au loin, puis l'aube |
 | 1-2 | Flèche de semonce de Sylwen, plantée aux pieds du héros (« ! ») ; l'essaim des lucioles ; fin : volutes violettes, Sylwen hésite (« … ») |
 | 1-3 | Brann entre d'un coup de bouclier (choc métallique) ; goutte de sueur quand Sylwen parle de ses ronflements, vapeur de colère, notes amusées de Sylwen ; fin : poussière retombée, ronces maudites qui poussent du sol |
-| 1-4 / 1-6 | Les fées brillent et rugissent ; le héros se prépare à purifier |
+| 1-4 | La fée en présence, entourée de poussière scintillante ; une porte maudite envahie de ronces ; Brann pris dans les ronces ; le martèlement du Grand Cerf (le sol bat, la poussière saute) |
+| 1-6 | Les fées sombres s'organisent ; le héros se prépare |
 | 1-5 | Le Grand Cerf, en présence, rugit (onde, rayons) ; apaisé, il se relève ; **le Sceau** : colonne de lumière sur le héros, cercle runique, éclair blanc, caméra sur lui |
 | 1-6 (fin) | Le monde se fige (éclair blanc), la Voix fait trembler l'image |
 | 1-7 | La Lanterne brille ; la Tour du Croissant au loin (zoom) |

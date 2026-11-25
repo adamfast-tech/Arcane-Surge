@@ -48,13 +48,14 @@ CUES = [
     ("z01_l03_outro", "Voilà ce que j'appelle un nettoyage", {"act": {"brann": "hop"}, "fx": "dust@ground"}),
     ("z01_l03_outro", "Des ronces poussent sur la route", {"fx": "thorns@center:8a4aa8", "cam": "push", "grade": "violet"}),
     ("z01_l03_outro", "Des fées ? Bah.", {"cam": "reset", "grade": "none", "emote": {"sylwen": "dots"}}),
-    # 1-4 : les fées.
-    ("z01_l04_intro", "Les fées sont nées de la magie pure", {"act": {"subject": "glow"}, "fx": "sparkles:ff9bf0"}),
-    ("z01_l04_intro", "Leurs ronces ont maudit", {"act": {"subject": "roar"}}),
-    ("z01_l04_intro", "Ton sort Purifier", {"act": {"porteur": "glow"}, "fx": "sparkles:fff3b0"}),
-    ("z01_l04_outro", "Les fées causent BEAUCOUP", {"cam": "punch"}),
-    ("z01_l04_outro", "Ce martèlement.", {"cam": ["tremble", "zoom"]}),
-    ("z01_l04_outro", "S'il a été touché par le Surge", {"cam": "reset"}),
+    # 1-4 : les fées. Poussière de fée, portes maudites, Brann pris dans les ronces, le martèlement du Cerf.
+    ("z01_l04_intro", "Les fées sont nées de la magie pure", {"act": {"subject": "glow"}, "fx": "glitter@subject:ffb8f0"}),
+    ("z01_l04_intro", "Leurs ronces ont maudit", {"fx": ["gate@center:8a4aa8", "thorns@center:8a4aa8"], "grade": "violet"}),
+    ("z01_l04_intro", "Ton sort Purifier", {"cam": "focus:brann", "grade": "none"}),
+    ("z01_l04_intro", "Je ne mords pas. Enfin, rarement.", {"cam": "reset", "emote": {"sylwen": "drop"}}),
+    ("z01_l04_outro", "Les fées causent BEAUCOUP", {"fx": "thorns@right:8a4aa8", "emote": {"sylwen": "note"}}),
+    ("z01_l04_outro", "Ce martèlement.", {"fx": "hooves", "cam": "push"}),
+    ("z01_l04_outro", "S'il a été touché par le Surge", {"grade": "cold", "cam": "reset"}),
     # 1-5 : le Grand Cerf et le Sceau.
     ("z01_l05_intro", "Un cerf immense jaillit", {"act": {"subject": "roar"}, "fx": "flash:d93cf2", "cam": "zoom"}),
     ("z01_l05_intro", "Il baisse la tête", {"act": {"subject": "roar"}, "cam": ["shake", "reset"]}),
