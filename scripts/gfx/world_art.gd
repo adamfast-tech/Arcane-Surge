@@ -350,6 +350,44 @@ static func ground_texture(healed: bool = false) -> ImageTexture:
 			# Pierres tombées, éclats arcaniques.
 			for i in range(w * h / 120):
 				_px(img, rng.randi_range(0, w - 1), rng.randi_range(0, h - 1), Color("6a6a78") if rng.randf() < 0.8 else Color("b07cff"))
+		"col", "chariot":
+			# Traces de pas et (chariot) deux rails sombres dans la neige.
+			for i in range(120):
+				var fx3 := rng.randi_range(int((3.9 - GROUND_MIN.x) * PX_PER_M), int((5.1 - GROUND_MIN.x) * PX_PER_M))
+				var fy3 := rng.randi_range(int(2.0 * PX_PER_M), h - int(2.0 * PX_PER_M))
+				_px(img, fx3, fy3, Color("1e3028"))
+			if scene == "chariot":
+				for rx2 in [int((4.0 - GROUND_MIN.x) * PX_PER_M), int((5.0 - GROUND_MIN.x) * PX_PER_M)]:
+					for y in range(int(1.0 * PX_PER_M), h - int(1.5 * PX_PER_M)):
+						_px(img, rx2, y, Color("1a1a20"))
+						if y % 5 == 0:
+							for x in range(int((3.8 - GROUND_MIN.x) * PX_PER_M), int((5.2 - GROUND_MIN.x) * PX_PER_M)):
+								_px(img, x, y, Color("3a2a20"))
+		"congeres":
+			# Grandes congères claires.
+			for i in range(26):
+				var pc6 := Vector2i(rng.randi_range(0, w - 1), rng.randi_range(0, h - 1))
+				_disc(img, pc6.x, pc6.y, rng.randi_range(5, 12), Color("4a7a52"))
+		"lac_gele":
+			# Fissures dans la glace.
+			for v5 in range(18):
+				var p5 := Vector2(rng.randf_range(0.0, float(w)), rng.randf_range(0.0, float(h)))
+				var d5 := Vector2.from_angle(rng.randf_range(0.0, TAU))
+				for k in range(30):
+					_px(img, int(p5.x), int(p5.y), Color("1a2a40"))
+					d5 = d5.rotated(rng.randf_range(-0.6, 0.6))
+					p5 += d5
+		"porte_naine", "sentinelle", "portes", "forteresse", "colosse":
+			# Lignes de runes cyan gravées dans la pierre.
+			for i in range(14):
+				var ry2 := rng.randi_range(int(2.0 * PX_PER_M), h - int(2.0 * PX_PER_M))
+				var rx3 := rng.randi_range(0, w - 20)
+				for k in range(rng.randi_range(6, 16)):
+					_px(img, rx3 + k, ry2, Color("8fe3f2") if k % 3 != 0 else Color("2a3a5a"))
+		"aurore":
+			# Reflets verts de l'aurore sur la neige.
+			for i in range(w * h / 80):
+				_px(img, rng.randi_range(0, w - 1), rng.randi_range(0, h - 1), Color("5ff0a8") if rng.randf() < 0.5 else Color("b07cff"))
 		"traite":
 			# Herbe foulée par les deux camps, fleurs des prés.
 			for i in range(w * h / 80):
@@ -1218,7 +1256,11 @@ const LEVEL_SCENE := {
 	"z02_l06": "orage", "z02_l07": "caravane", "z02_l08": "rebouteux", "z02_l09": "traite", "z02_l10": "fort",
 	"z03_l01": "pilotis", "z03_l02": "mares", "z03_l03": "brume", "z03_l04": "gue_morts", "z03_l05": "croc",
 	"z03_l06": "saules", "z03_l07": "barque", "z03_l08": "sorciere", "z03_l09": "refuge", "z03_l10": "hydre",
+	"z04_l01": "col", "z04_l02": "congeres", "z04_l03": "porte_naine", "z04_l04": "lac_gele", "z04_l05": "sentinelle",
+	"z04_l06": "aurore", "z04_l07": "chariot", "z04_l08": "portes", "z04_l09": "forteresse", "z04_l10": "colosse",
 }
+## Pics Gelés (zone 4) : lieux taillés par les nains (pavés, runes cyan).
+const DWARF_SCENES := ["porte_naine", "sentinelle", "portes", "forteresse", "colosse"]
 ## Lieux du marais (zone 3) où l'eau borde le terrain, et sa couleur.
 const SWAMP_WATER := {"pilotis": "2f4a48", "mares": "3a5a2a", "brume": "34484a", "gue_morts": "1e2a30", "croc": "2a3a2a",
 	"barque": "2f4a48", "hydre": "263a3a", "saules": "2f4044"}
@@ -1291,6 +1333,23 @@ static func scene_palette(s: String) -> Dictionary:
 			return {"grass": Color("2a3434"), "path": "cobbles", "mist": Color("b0a8c8"), "moss": Color("343c3a"), "motes": Color(0.85, 0.6, 1.0), "lift": 0.95}
 		"hydre":
 			return {"grass": Color("263a30"), "path": "dirt", "mist": Color("c0d0c8"), "moss": Color("2e4034"), "motes": Color(0.8, 0.95, 0.9), "lift": 0.95}
+		# Zone 4, Pics Gelés : couleurs du Bois, que la teinte des Pics change en neige bleutée et granit glacier.
+		"col":
+			return {"grass": Color("2f4a36"), "path": "dirt", "mist": Color("dcecf8"), "moss": Color("3f5a3a"), "motes": Color(0.95, 0.98, 1.0), "lift": 1.0}
+		"congeres":
+			return {"grass": Color("35593f"), "path": "grass", "mist": Color("eaf4fb"), "moss": Color("4a6a48"), "motes": Color(0.95, 0.98, 1.0), "lift": 1.05}
+		"porte_naine", "portes", "forteresse":
+			return {"grass": Color("2f4a36"), "path": "cobbles", "mist": Color("c8dcec"), "moss": Color("3f5a3a"), "motes": Color(0.6, 0.9, 1.0), "lift": 0.95}
+		"lac_gele":
+			return {"grass": Color("2f4a3e"), "path": "grass", "mist": Color("d8ecf8"), "moss": Color("3f5a48"), "motes": Color(0.85, 0.95, 1.0), "lift": 1.0}
+		"sentinelle":
+			return {"grass": Color("2a4034"), "path": "cobbles", "mist": Color("b8d0e8"), "moss": Color("3a5038"), "motes": Color(0.55, 0.9, 1.0), "lift": 0.9}
+		"aurore":
+			return {"grass": Color("2f4a3a"), "path": "grass", "mist": Color("b8f0d8"), "moss": Color("3f5a40"), "motes": Color(0.5, 1.0, 0.7), "lift": 0.95}
+		"chariot":
+			return {"grass": Color("2f4a36"), "path": "dirt", "mist": Color("dcecf8"), "moss": Color("3f5a3a"), "motes": Color(0.6, 0.9, 1.0), "lift": 1.0}
+		"colosse":
+			return {"grass": Color("263830"), "path": "cobbles", "mist": Color("a8c0e0"), "moss": Color("34483a"), "motes": Color(1.0, 0.75, 0.4), "lift": 0.85}
 	return {}
 
 
@@ -1516,6 +1575,7 @@ static func _backdrop_scene(img: Image, rng: RandomNumberGenerator, s: String) -
 # ---------------------------------------------------------------- zone 1 · végétation et arbres des combats
 
 const FOLIAGE_N := 12 ## images de 16×16 dans la planche de végétation
+const FOLIAGE_GLOW_Z4 := {"porte_naine": [9], "sentinelle": [9], "portes": [9], "forteresse": [9], "colosse": [8, 9], "aurore": [8], "lac_gele": [8]}
 const FOLIAGE_GLOW := {"sentier": [9], "fougeres": [9], "cercle": [8, 9], "coeur": [8], "sylvarche": [9], "pylones": [8], "repaire": [9],
 	"pilotis": [9], "barque": [9], "mares": [8], "sorciere": [8], "gue_morts": [9], "refuge": [9], "saules": [9]}
 
@@ -1565,6 +1625,14 @@ static func _flower_cols(s: String) -> Array:
 			return [Color("ff8a3a"), Color("e8e0ff")]
 		"refuge":
 			return [Color("b07cff"), Color("e8e0ff")]
+		"col", "congeres", "lac_gele", "chariot":
+			return [Color("f4f8ff"), Color("cfe8ff")]
+		"porte_naine", "sentinelle", "portes", "forteresse":
+			return [Color("8fe3f2"), Color("f4f8ff")]
+		"aurore":
+			return [Color("5ff0a8"), Color("b07cff")]
+		"colosse":
+			return [Color("ffb050"), Color("8fe3f2")]
 	return [Color("f4f0ff"), Color("f2e28b")]
 
 
@@ -1668,6 +1736,57 @@ static func foliage_atlas(s: String) -> ImageTexture:
 
 static func _scene_detail(img: Image, ox: int, s: String, which: int, rng: RandomNumberGenerator, fc: Array) -> void:
 	match s + str(which):
+		"col0", "congeres0", "chariot0", "lac_gele1":
+			# Rocher sous un chapeau de neige.
+			for y in range(-5, 6):
+				for x in range(-7, 8):
+					if pow(float(x) / 7.0, 2.0) + pow(float(y) / 5.0, 2.0) <= 1.0:
+						_px(img, ox + 8 + x, 10 + y, Color("f4f8ff") if y < -1 else (Color("6a7a98") if x > 0 else Color("3a4a6a")))
+		"col1", "congeres1", "chariot1":
+			# Petit sapin enneigé.
+			for y in range(3, 15):
+				var hw2 := (y - 3) / 2
+				for x in range(-hw2, hw2 + 1):
+					_px(img, ox + 8 + x, y, Color("f4f8ff") if (y % 3 == 0 and absi(x) < hw2) else Color("2a4a4a"))
+			_px(img, ox + 8, 15, Color("3a2a20"))
+		"lac_gele0", "aurore0":
+			# Éclat de glace dressé (il luit).
+			for y in range(3, 16):
+				var hw3 := int(3.0 * (1.0 - float(y - 3) / 13.0)) + 1 if y < 9 else 3 - (y - 9) / 3
+				for x in range(-hw3, hw3 + 1):
+					_px(img, ox + 8 + x, y, Color("e8f8ff") if x == 0 else (Color("8fd0f0") if x > 0 else Color("4a8ab0")))
+		"aurore1":
+			# Herbe gelée scintillante.
+			for k in range(6):
+				_blade(img, ox, 3 + k * 2, 15, 7 + k % 3, float(k - 3) * 0.2, Color("4a6a8a"), Color("c8f0ff"))
+		"porte_naine0", "sentinelle0", "portes0", "forteresse0":
+			# Bouclier nain à demi enfoui dans la neige.
+			for y in range(5, 14):
+				for x in range(4, 13):
+					if Vector2(float(x) - 8.0, float(y) - 9.0).length() <= 4.5:
+						_px(img, ox + x, y, Color("6a7a98") if x < 9 else Color("4a5a78"))
+			_px(img, ox + 8, 9, Color("d8b048"))
+			for x in range(2, 14):
+				_px(img, ox + x, 13, Color("f4f8ff"))
+				_px(img, ox + x, 14, Color("dceaf6"))
+		"porte_naine1", "sentinelle1", "portes1", "forteresse1", "colosse1":
+			# Pierre runique cyan (elle luit).
+			for y in range(5, 16):
+				for x in range(5, 11):
+					_px(img, ox + x, y, Color("5a6a88") if x < 9 else Color("3a4a68"))
+			for y: int in [7, 10, 13]:
+				_px(img, ox + 7, y, Color("8fe3f2"))
+				_px(img, ox + 8, y, Color("c8f8ff"))
+		"colosse0":
+			# Enclume (le métal rougeoie).
+			for x in range(3, 14):
+				_px(img, ox + x, 8, Color("ff9a4a") if x > 9 else Color("4a4a58"))
+				_px(img, ox + x, 9, Color("3a3a48"))
+			for y in range(10, 15):
+				for x in range(6, 11):
+					_px(img, ox + x, y, Color("2a2a38"))
+			for x in range(4, 13):
+				_px(img, ox + x, 15, Color("2a2a38"))
 		"pilotis0", "barque0", "brume0", "hydre0":
 			# Roseaux et quenouilles du marais.
 			for k in range(6):
@@ -2575,4 +2694,122 @@ static func big_skull_texture() -> ImageTexture:
 	for x in range(6, 23, 3):
 		for y in range(15, 20):
 			_px(img, x, y, Color("e8e0d0"))
+	return _tex(img)
+
+
+
+# ---------------------------------------------------------------- zone 4 · objets des combats (couleurs finales)
+
+## Statue naine taillée dans la roche, barbe tressée, hache au repos, chapeau de neige.
+static func dwarf_statue_texture() -> ImageTexture:
+	var img := _sprite(20, 40)
+	for y in range(30, 40):
+		for x in range(2, 18):
+			_px(img, x, y, Color("5a6a88") if x < 12 else Color("3a4a68"))
+	for y in range(10, 30):
+		var half := 6 + (y - 10) / 6
+		for x in range(-half, half + 1):
+			_px(img, 10 + x, y, Color("7a8aa8") if x < 2 else Color("5a6a88"))
+	for y in range(2, 11):
+		for x in range(-4, 5):
+			if Vector2(float(x), float(y) - 6.0).length() <= 4.8:
+				_px(img, 10 + x, y, Color("8a9ab8") if x < 1 else Color("6a7a98"))
+	for y in range(9, 22):
+		_px(img, 10, y, Color("aab8d0"))
+		_px(img, 9 + (y % 2), y, Color("9aa8c0"))
+	for y in range(12, 30):
+		_px(img, 17, y, Color("4a3a30"))
+	for y in range(12, 18):
+		for x in range(14, 20):
+			if absi(x - 17) + absi(y - 14) < 4:
+				_px(img, x, y, Color("aab8d0"))
+	for x in range(5, 16):
+		_px(img, x, 2, Color("f4f8ff"))
+		_px(img, x, 1, Color("ffffff"))
+	_px(img, 8, 6, Color("8fe3f2"))
+	_px(img, 12, 6, Color("8fe3f2"))
+	return _tex(img)
+
+
+## Pilier runique : pierre sombre, runes cyan qui luisent, chapeau de neige.
+static func rune_pillar_texture() -> ImageTexture:
+	var img := _sprite(12, 34)
+	for y in range(3, 34):
+		for x in range(2, 10):
+			_px(img, x, y, Color("4a5a78") if x < 7 else Color("2e3a58"))
+	for y: int in [8, 14, 20, 26]:
+		for x in range(4, 8):
+			_px(img, x, y, Color("8fe3f2") if x % 2 == 0 else Color("c8f8ff"))
+	for x in range(1, 11):
+		_px(img, x, 2, Color("f4f8ff"))
+		_px(img, x, 3, Color("dceaf6"))
+	return _tex(img)
+
+
+## Brasero nain : vasque de fer sur pied, feu.
+static func brazier_texture() -> ImageTexture:
+	var img := _sprite(14, 22)
+	for y in range(10, 22):
+		_px(img, 7, y, Color("3a3a48"))
+		_px(img, 6, y, Color("4a4a58"))
+	for x in range(3, 12):
+		_px(img, x, 21, Color("3a3a48"))
+	for y in range(6, 10):
+		for x in range(2 + (y - 6) / 2, 13 - (y - 6) / 2):
+			_px(img, x, y, Color("5a5a68") if x < 8 else Color("3a3a48"))
+	for k in range(9):
+		_px(img, 3 + k, 5 - (k % 3), Color("ffd080") if k % 2 else Color("ff8a3a"))
+	_px(img, 7, 1, Color("fff0b0"))
+	return _tex(img)
+
+
+## Flèche de glace : un grand cristal translucide.
+static func ice_spire_texture() -> ImageTexture:
+	var img := _sprite(16, 36)
+	for y in range(36):
+		var half := int(6.0 * (float(y) / 24.0)) if y < 24 else 6 - (y - 24) / 3
+		for x in range(-half, half + 1):
+			var c := Color("4a8ab0") if x < 0 else Color("8fd0f0")
+			if x == 0 or (x == 1 and y % 5 == 0):
+				c = Color("e8f8ff")
+			_px(img, 8 + x, y, c)
+	return _tex(img)
+
+
+## Wagonnet runique sur ses rails, caisse cerclée de fer, runes cyan.
+static func minecart_texture() -> ImageTexture:
+	var img := _sprite(26, 18)
+	for y in range(3, 13):
+		var inset := (12 - y) / 4
+		for x in range(2 + inset, 24 - inset):
+			_px(img, x, y, Color("6a4a32") if (x + y) % 5 else Color("4a3222"))
+	for x in range(2, 24):
+		_px(img, x, 3, Color("8a8a98"))
+		_px(img, x, 8, Color("5a5a68"))
+	for x: int in [8, 13, 18]:
+		_px(img, x, 6, Color("8fe3f2"))
+	for cx: int in [7, 19]:
+		for a in range(16):
+			var ang := float(a) / 16.0 * TAU
+			_px(img, cx + int(round(cos(ang) * 3.0)), 14 + int(round(sin(ang) * 3.0)), Color("3a3a48"))
+	return _tex(img)
+
+
+## Grande porte naine scellée : deux battants de pierre, chaînes, sceau de givre.
+static func great_door_texture() -> ImageTexture:
+	var img := _sprite(34, 42)
+	for y in range(8, 42):
+		for x in range(2, 32):
+			_px(img, x, y, Color("3a4466") if x < 17 else Color("2e3652"))
+	for y in range(0, 9):
+		var half := int(15.0 * sqrt(maxf(0.0, 1.0 - pow(float(8 - y) / 8.0, 2.0))))
+		for x in range(-half, half + 1):
+			_px(img, 17 + x, y, Color("4a5272"))
+	for y in range(8, 42):
+		_px(img, 17, y, Color("141c34"))
+	for k in range(14):
+		_px(img, 4 + k * 2, 22 + (k % 2), Color("8a8a98"))
+	_px(img, 17, 22, Color("c8d8ff"))
+	for d in [Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1)]:
+		_px(img, 17 + d.x, 22 + d.y, Color("4a6aff"))
 	return _tex(img)

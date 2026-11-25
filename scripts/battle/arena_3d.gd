@@ -397,7 +397,11 @@ func _build_terrain() -> void:
 		# Marais : saules pleureurs et arbres morts.
 		"pilotis": [0, 0, 0, 4, 4, 2], "mares": [0, 0, 0, 2, 2, 4], "brume": [0, 0, 0, 3, 3, 3], "gue_morts": [0, 0, 0, 1, 1, 5],
 		"croc": [0, 0, 0, 2, 2, 4], "saules": [0, 0, 0, 5, 5, 1], "barque": [0, 0, 0, 4, 4, 1], "sorciere": [0, 0, 0, 2, 2, 4],
-		"refuge": [0, 0, 0, 2, 2, 3], "hydre": [0, 0, 0, 2, 2, 4]}.get(sc, [1, 1, 1, 0, 0, 0])
+		"refuge": [0, 0, 0, 2, 2, 3], "hydre": [0, 0, 0, 2, 2, 4],
+		# Pics : sapins enneigés, quelques arbres morts au col et devant la forteresse.
+		"col": [4, 4, 4, 0, 0, 1], "congeres": [4, 4, 3, 0, 0, 1], "porte_naine": [3, 3, 3, 0, 0, 1], "lac_gele": [3, 3, 3, 0, 0, 2],
+		"sentinelle": [2, 2, 2, 0, 0, 2], "aurore": [3, 3, 3, 0, 0, 1], "chariot": [4, 4, 4, 0, 0, 1], "portes": [2, 2, 2, 0, 0, 2],
+		"forteresse": [2, 2, 2, 0, 0, 2], "colosse": [1, 1, 1, 0, 0, 3]}.get(sc, [1, 1, 1, 0, 0, 0])
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_colors = true
@@ -409,7 +413,8 @@ func _build_terrain() -> void:
 	# Densité des arbres selon le lieu : clairsemés à la lisière, serrés sur le sentier.
 	var tree_n: int = {"lisiere": 30, "sentier": 120, "clairiere": 44, "roncier": 80, "fougeres": 58, "cercle": 66, "source": 60, "coeur": 84, "sylvarche": 70,
 		"route": 22, "moulins": 40, "pylones": 16, "gue": 36, "repaire": 18, "orage": 20, "caravane": 22, "rebouteux": 26, "traite": 26, "fort": 16,
-		"pilotis": 44, "mares": 40, "brume": 56, "gue_morts": 34, "croc": 40, "saules": 60, "barque": 40, "sorciere": 50, "refuge": 36, "hydre": 38}.get(sc, 90)
+		"pilotis": 44, "mares": 40, "brume": 56, "gue_morts": 34, "croc": 40, "saules": 60, "barque": 40, "sorciere": 50, "refuge": 36, "hydre": 38,
+		"col": 80, "congeres": 70, "porte_naine": 50, "lac_gele": 56, "sentinelle": 36, "aurore": 60, "chariot": 76, "portes": 36, "forteresse": 30, "colosse": 20}.get(sc, 90)
 	var dmin: float = {"lisiere": 10.0, "sentier": 6.2, "clairiere": 9.0, "roncier": 7.0, "fougeres": 8.0, "cercle": 7.5, "source": 9.0, "coeur": 6.8, "sylvarche": 7.5}.get(sc, 10.0)
 	var ty := -0.7 if floor_set else -2.5
 	for i in range(tree_n):
@@ -613,6 +618,9 @@ func _build_scene_props() -> void:
 		return
 	if WorldArt.zone == 3:
 		_build_swamp_props()
+		return
+	if WorldArt.zone == 4:
+		_build_frost_props()
 		return
 	var sc := WorldArt.scene
 	var rng := RandomNumberGenerator.new()
@@ -974,6 +982,129 @@ func _build_swamp_ambience() -> void:
 		add_child(mi)
 
 
+## Pics Gelés (zone 4) : statues naines, piliers runiques, braseros, flèches de glace, wagonnets, portes scellées.
+func _build_frost_props() -> void:
+	var sc := WorldArt.scene
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(sc) + 4
+	match sc:
+		"col", "chariot":
+			var statue := WorldArt.dwarf_statue_texture()
+			for i in range(4):
+				var side := -1.0 if i % 2 == 0 else 1.0
+				_prop(statue, Vector2(4.5 + side * 6.2, 2.0 + float(i / 2) * 8.0), 1.6)
+			var stone := WorldArt.milestone_texture()
+			for i in range(5):
+				_prop(stone, _side_spot(rng), 1.4, Color(0.85, 0.9, 1.05))
+			if sc == "chariot":
+				var cart := WorldArt.minecart_texture()
+				for i in range(3):
+					_prop(cart, _side_spot(rng), 1.6)
+				var rp := WorldArt.rune_pillar_texture()
+				for i in range(4):
+					var p := _side_spot(rng)
+					_prop(rp, p, 1.4)
+					_prop_light(p, 1.6, Color("8fe3f2"), 0.7, 3.0)
+		"congeres":
+			var spire := WorldArt.ice_spire_texture()
+			for i in range(6):
+				_prop(spire, _side_spot(rng), rng.randf_range(1.0, 1.6))
+		"porte_naine", "portes", "forteresse":
+			var door := WorldArt.great_door_texture()
+			for x: float in [-3.2, 12.2]:
+				_prop(door, Vector2(x, 14.0), 2.4)
+				_prop_light(Vector2(x, 14.0), 2.0, Color("4a6aff"), 0.9, 4.0)
+			var statue2 := WorldArt.dwarf_statue_texture()
+			for i in range(4):
+				var side2 := -1.0 if i % 2 == 0 else 1.0
+				_prop(statue2, Vector2(4.5 + side2 * 6.3, 3.0 + float(i / 2) * 6.0), 1.8)
+			var braz := WorldArt.brazier_texture()
+			for i in range(4):
+				var side3 := -1.0 if i % 2 == 0 else 1.0
+				var bp := Vector2(4.5 + side3 * 5.8, 1.0 + float(i / 2) * 8.0)
+				_prop(braz, bp, 1.2)
+				_prop_light(bp, 1.1, Color("ff9b4a"), 1.0, 3.0)
+			if sc == "forteresse":
+				var flag := WorldArt.banner_pole_texture(Color("2a4a8a"), false)
+				for i in range(4):
+					_prop(flag, _side_spot(rng), 1.4)
+		"lac_gele", "aurore":
+			var spire2 := WorldArt.ice_spire_texture()
+			for i in range(10 if sc == "aurore" else 6):
+				var sp := _side_spot(rng)
+				_prop(spire2, sp, rng.randf_range(1.2, 2.0), Color(1.1, 1.15, 1.2))
+				if sc == "aurore" and i % 3 == 0:
+					_prop_light(sp, 1.4, Color("5ff0a8"), 0.7, 3.0)
+		"sentinelle":
+			var rp2 := WorldArt.rune_pillar_texture()
+			for i in range(10):
+				var side4 := -1.0 if i % 2 == 0 else 1.0
+				var pp := Vector2(4.5 + side4 * rng.randf_range(5.8, 8.5), 0.5 + float(i / 2) * 3.4)
+				_prop(rp2, pp, 1.6)
+				if i % 2 == 0:
+					_prop_light(pp, 1.8, Color("8fe3f2"), 0.8, 3.2)
+		"colosse":
+			var rp3 := WorldArt.rune_pillar_texture()
+			for i in range(8):
+				var side5 := -1.0 if i % 2 == 0 else 1.0
+				_prop(rp3, Vector2(4.5 + side5 * 6.4, 1.0 + float(i / 2) * 4.2), 2.0)
+			var braz2 := WorldArt.brazier_texture()
+			for i in range(6):
+				var bp2 := _side_spot(rng)
+				_prop(braz2, bp2, 1.3)
+				_prop_light(bp2, 1.1, Color("ff9b4a"), 1.1, 3.2)
+				_chimneys.append(w3(bp2, 1.0))
+
+
+## Pics : rafales de neige au col et sur les congères, reflets sur le lac gelé.
+func _build_frost_ambience() -> void:
+	var sc := WorldArt.scene
+	if sc in ["col", "congeres", "chariot"]:
+		var gust := CPUParticles3D.new()
+		gust.amount = 90
+		gust.lifetime = 2.0
+		gust.preprocess = 2.0
+		gust.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+		gust.emission_box_extents = Vector3(2.0, 1.2, 12.0)
+		gust.position = Vector3(-6.0, 1.2, -8.0)
+		gust.direction = Vector3(1.0, -0.05, 0.0)
+		gust.spread = 6.0
+		gust.initial_velocity_min = 6.0
+		gust.initial_velocity_max = 9.0
+		gust.gravity = Vector3(0.0, -0.3, 0.0)
+		var q := QuadMesh.new()
+		q.size = Vector2(0.3, 0.025)
+		var gm := StandardMaterial3D.new()
+		gm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		gm.vertex_color_use_as_albedo = true
+		gm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		gm.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+		q.material = gm
+		gust.mesh = q
+		var gg := Gradient.new()
+		gg.set_color(0, Color(1, 1, 1, 0.0))
+		gg.set_color(1, Color(1, 1, 1, 0.0))
+		gg.add_point(0.3, Color(1, 1, 1, 0.6))
+		gust.color_ramp = gg
+		add_child(gust)
+	if sc in ["lac_gele", "aurore"]:
+		var gl := CPUParticles3D.new()
+		gl.amount = 40
+		gl.lifetime = 1.6
+		gl.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+		gl.emission_box_extents = Vector3(10.0, 0.0, 12.0)
+		gl.position = Vector3(4.5, 0.05, -8.0)
+		gl.gravity = Vector3.ZERO
+		gl.initial_velocity_max = 0.0
+		gl.mesh = _particle_mesh(0.07)
+		var gr := Gradient.new()
+		gr.set_color(0, Color(0.9, 1.0, 1.0, 0.0))
+		gr.set_color(1, Color(0.9, 1.0, 1.0, 0.0))
+		gr.add_point(0.5, Color(0.95, 1.0, 1.0, 0.85))
+		gl.color_ramp = gr
+		add_child(gl)
+
+
 ## Feux de camp : flamme, lueur qui danse, fumée.
 func _hills_fires(rng: RandomNumberGenerator, n: int) -> void:
 	var flame := WorldArt.flame_texture()
@@ -1126,6 +1257,22 @@ func _pillar_mats() -> Array:
 			cap.emission_enabled = true
 			cap.emission = Color("8a4ad0")
 			cap.emission_energy_multiplier = 0.6
+		# Pics : pierre naine aux runes cyan, bornes enneigées, braises de la forge du Colosse.
+		"col", "congeres", "chariot", "lac_gele", "aurore":
+			body.albedo_color = Color(0.9, 0.95, 1.05)
+			cap.albedo_color = Color("f4f8ff")
+		"porte_naine", "sentinelle", "portes", "forteresse":
+			body.albedo_color = Color(0.8, 0.85, 1.0)
+			cap.albedo_color = Color("8fe3f2")
+			cap.emission_enabled = true
+			cap.emission = Color("4ab8e0")
+			cap.emission_energy_multiplier = 0.6
+		"colosse":
+			body.albedo_color = Color(0.7, 0.72, 0.85)
+			cap.albedo_color = Color("ff9a4a")
+			cap.emission_enabled = true
+			cap.emission = Color("e8701a")
+			cap.emission_energy_multiplier = 0.7
 		"lisiere":
 			body.albedo_color = Color(0.85, 0.6, 0.42)
 			cap.albedo_color = Color("8a6a3a")
@@ -1170,7 +1317,7 @@ func _build_foliage() -> void:
 		return
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(sc) + 11
-	var glow: Array = WorldArt.FOLIAGE_GLOW.get(sc, [])
+	var glow: Array = WorldArt.FOLIAGE_GLOW.get(sc, WorldArt.FOLIAGE_GLOW_Z4.get(sc, []))
 	var items: Array = [] ## [position, taille, image]
 	# Bords du terrain : herbes hautes, fleurs, touffes, cailloux.
 	for i in range(90):
@@ -1223,6 +1370,8 @@ func _build_ambience() -> void:
 		_build_hills_ambience()
 	if WorldArt.zone == 3:
 		_build_swamp_ambience()
+	if WorldArt.zone == 4:
+		_build_frost_ambience()
 	if sc in ["lisiere", "sentier", "clairiere", "fougeres", "source", "sylvarche", "roncier"]:
 		var lv := CPUParticles3D.new()
 		lv.amount = 26
