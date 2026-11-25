@@ -409,7 +409,11 @@ func _build_terrain() -> void:
 		# Forêt Cendrée : sapins et arbres morts calcinés ; au Pardon, des feuillus repoussent.
 		"lisiere_cendree": [2, 2, 2, 1, 1, 4], "couloirs": [3, 3, 3, 0, 0, 3], "ailes": [1, 1, 1, 0, 0, 4], "coulee": [0, 0, 0, 0, 0, 5],
 		"drake": [1, 1, 0, 0, 0, 4], "braisemont": [1, 1, 1, 1, 1, 3], "nid": [1, 1, 1, 0, 0, 3], "autels": [0, 0, 0, 0, 0, 4],
-		"citadelle": [0, 0, 0, 0, 0, 3], "antre": [0, 0, 0, 0, 0, 3], "pardon": [2, 2, 2, 3, 3, 2]}.get(sc, [1, 1, 1, 0, 0, 0])
+		"citadelle": [0, 0, 0, 0, 0, 3], "antre": [0, 0, 0, 0, 0, 3], "pardon": [2, 2, 2, 3, 3, 2],
+		# Cité Engloutie : forêts d'algues, coraux morts (l'arbre mort, bleui).
+		"quais": [0, 0, 0, 3, 3, 1], "grand_canal": [0, 0, 0, 3, 3, 1], "marees": [0, 0, 0, 5, 5, 1], "statues": [0, 0, 0, 3, 3, 1],
+		"kraken": [0, 0, 0, 4, 4, 2], "cloche": [0, 0, 0, 3, 3, 1], "sirenes": [0, 0, 0, 5, 5, 0], "archives": [0, 0, 0, 2, 2, 2],
+		"palais": [0, 0, 0, 3, 3, 1], "leviathan": [0, 0, 0, 2, 2, 3]}.get(sc, [1, 1, 1, 0, 0, 0])
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_colors = true
@@ -424,7 +428,8 @@ func _build_terrain() -> void:
 		"pilotis": 44, "mares": 40, "brume": 56, "gue_morts": 34, "croc": 40, "saules": 60, "barque": 40, "sorciere": 50, "refuge": 36, "hydre": 38,
 		"col": 80, "congeres": 70, "porte_naine": 50, "lac_gele": 56, "sentinelle": 36, "aurore": 60, "chariot": 76, "portes": 36, "forteresse": 30, "colosse": 20,
 		"dunes": 10, "mirage": 14, "oasis": 46, "miroirs": 10, "scarabee": 10, "caravane_sable": 14, "spectres": 12, "sceaux": 10, "college": 12, "sphinx": 12,
-		"lisiere_cendree": 50, "couloirs": 90, "ailes": 40, "coulee": 18, "drake": 26, "braisemont": 30, "nid": 40, "autels": 24, "citadelle": 14, "antre": 12, "pardon": 56}.get(sc, 90)
+		"lisiere_cendree": 50, "couloirs": 90, "ailes": 40, "coulee": 18, "drake": 26, "braisemont": 30, "nid": 40, "autels": 24, "citadelle": 14, "antre": 12, "pardon": 56,
+		"quais": 30, "grand_canal": 26, "marees": 70, "statues": 30, "kraken": 50, "cloche": 34, "sirenes": 66, "archives": 20, "palais": 28, "leviathan": 30}.get(sc, 90)
 	var dmin: float = {"lisiere": 10.0, "sentier": 6.2, "clairiere": 9.0, "roncier": 7.0, "fougeres": 8.0, "cercle": 7.5, "source": 9.0, "coeur": 6.8, "sylvarche": 7.5}.get(sc, 10.0)
 	var ty := -0.7 if floor_set else -2.5
 	for i in range(tree_n):
@@ -637,6 +642,9 @@ func _build_scene_props() -> void:
 		return
 	if WorldArt.zone == 6:
 		_build_cinder_props()
+		return
+	if WorldArt.zone == 7:
+		_build_abyss_props()
 		return
 	var sc := WorldArt.scene
 	var rng := RandomNumberGenerator.new()
@@ -1338,6 +1346,226 @@ func _build_cinder_props() -> void:
 				_prop(stump, _side_spot(rng), rng.randf_range(1.0, 1.4))
 
 
+## Cité Engloutie (zone 7) : coraux, anémones, bénitiers, lanternes des quais, épaves et ancres, canaux,
+## statues d'Archivistes, cloches de plongée, étagères noyées, arches de corail, tentacules, os du Léviathan.
+func _build_abyss_props() -> void:
+	var sc := WorldArt.scene
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(sc) + 7
+	var corals := [WorldArt.coral_texture(Color("e87aa0")), WorldArt.coral_texture(Color("ff9a6a")), WorldArt.coral_texture(Color("b07cff"))]
+	for i in range(10 if sc in ["sirenes", "marees"] else 6):
+		_prop(corals[i % 3], _side_spot(rng), rng.randf_range(1.0, 1.5))
+	var clam := WorldArt.giant_clam_texture()
+	for i in range(5 if sc == "sirenes" else 2):
+		var cp := _side_spot(rng)
+		_prop(clam, cp, 1.3)
+		_prop_light(cp, 0.4, Color("e8f4ff"), 0.6, 2.5)
+	match sc:
+		"quais", "grand_canal", "cloche":
+			var lamp := WorldArt.quay_lamp_texture()
+			for i in range(8):
+				var side := -1.0 if i % 2 == 0 else 1.0
+				var lp := Vector2(4.5 + side * 5.6, 1.0 + float(i / 2) * 4.4)
+				_prop(lamp, lp, 1.5)
+				_prop_light(lp, 1.2, Color("6ad8f0"), 0.9, 3.0)
+			if sc == "grand_canal":
+				for side2: float in [-1.0, 1.0]:
+					var water := MeshInstance3D.new()
+					var wm := PlaneMesh.new()
+					wm.size = Vector2(3.2, 22.0)
+					water.mesh = wm
+					var mat := StandardMaterial3D.new()
+					mat.albedo_color = Color(0.06, 0.22, 0.28, 0.85)
+					mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+					mat.roughness = 0.1
+					mat.metallic_specular = 0.9
+					water.material_override = mat
+					water.position = w3(Vector2(4.5 + side2 * 7.4, 8.0), -0.57)
+					add_child(water)
+			else:
+				var boat := WorldArt.boat_texture()
+				for i in range(2):
+					_prop(boat, _side_spot(rng), 1.6, Color(0.6, 0.8, 0.95))
+				var anchor := WorldArt.anchor_texture()
+				for i in range(3):
+					_prop(anchor, _side_spot(rng), 1.3)
+			if sc == "cloche":
+				var bell := WorldArt.diving_bell_texture()
+				for x: float in [-1.4, 10.4]:
+					_prop(bell, Vector2(x, 9.0), 1.9)
+					_prop_light(Vector2(x, 9.0), 1.0, Color("ffd070"), 1.0, 3.0)
+		"marees", "kraken":
+			var boat2 := WorldArt.boat_texture()
+			for i in range(3):
+				_prop(boat2, _side_spot(rng), 1.7, Color(0.55, 0.75, 0.9))
+			var anchor2 := WorldArt.anchor_texture()
+			for i in range(3):
+				_prop(anchor2, _side_spot(rng), 1.3)
+			if sc == "kraken":
+				var tent := WorldArt.tentacle_texture()
+				for i in range(6):
+					var side3 := -1.0 if i % 2 == 0 else 1.0
+					_prop(tent, Vector2(4.5 + side3 * rng.randf_range(6.0, 8.5), 2.0 + float(i) * 2.4), rng.randf_range(1.6, 2.2))
+		"statues", "palais", "archives":
+			var statue := WorldArt.archivist_statue_texture()
+			for i in range(8 if sc == "statues" else 4):
+				var side4 := -1.0 if i % 2 == 0 else 1.0
+				var stp := Vector2(4.5 + side4 * rng.randf_range(5.7, 6.4), 1.0 + float(i / 2) * (4.0 if sc == "statues" else 7.0))
+				_prop(statue, stp, 1.8)
+				_prop_light(stp, 1.4, Color("8fe3f2"), 0.5, 2.0)
+			var col := WorldArt.sand_column_texture()
+			for i in range(4):
+				_prop(col, _side_spot(rng), 1.8, Color(0.6, 0.75, 0.95))
+			if sc == "palais":
+				var arch := WorldArt.coral_arch_texture()
+				for x2: float in [-1.6, 10.6]:
+					for y2: float in [3.0, 11.0]:
+						_prop(arch, Vector2(x2, y2), 1.9)
+				var lamp2 := WorldArt.quay_lamp_texture()
+				for x3: float in [-0.6, 9.6]:
+					_prop(lamp2, Vector2(x3, 14.0), 1.6)
+					_prop_light(Vector2(x3, 14.0), 1.2, Color("6ad8f0"), 1.0, 3.0)
+			if sc == "archives":
+				var shelf := WorldArt.sunken_shelf_texture()
+				for i in range(10):
+					var side5 := -1.0 if i % 2 == 0 else 1.0
+					_prop(shelf, Vector2(4.5 + side5 * rng.randf_range(6.2, 8.5), 0.5 + float(i / 2) * 3.4), 1.8)
+		"sirenes":
+			var arch2 := WorldArt.coral_arch_texture()
+			for i in range(3):
+				_prop(arch2, _side_spot(rng), 1.8)
+			for i in range(4):
+				_prop_light(_side_spot(rng), 0.8, Color("ff8ab8"), 0.8, 3.5)
+		"leviathan":
+			var rib := WorldArt.ribcage_texture()
+			for i in range(6):
+				_prop(rib, _side_spot(rng), rng.randf_range(2.0, 2.8), Color(0.75, 0.85, 0.9))
+			var skull := WorldArt.big_skull_texture()
+			for i in range(2):
+				_prop(skull, _side_spot(rng), 2.4, Color(0.7, 0.8, 0.88))
+			var tent2 := WorldArt.tentacle_texture()
+			for i in range(4):
+				_prop(tent2, _side_spot(rng), rng.randf_range(2.0, 2.6))
+
+
+## Cité Engloutie : neige marine qui dérive, rayons de la surface, bancs de poissons ; méduses (sirènes,
+## palais), pages qui flottent (archives).
+func _build_abyss_ambience() -> void:
+	var sc := WorldArt.scene
+	var snow := CPUParticles3D.new()
+	snow.amount = 60
+	snow.lifetime = 10.0
+	snow.preprocess = 10.0
+	snow.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	snow.emission_box_extents = Vector3(10.0, 2.5, 12.0)
+	snow.position = Vector3(4.5, 3.0, -8.0)
+	snow.direction = Vector3(0.3, -0.2, 0.0)
+	snow.spread = 40.0
+	snow.initial_velocity_min = 0.05
+	snow.initial_velocity_max = 0.2
+	snow.gravity = Vector3(0.02, -0.02, 0.0)
+	snow.mesh = _particle_mesh(0.04)
+	var sg := Gradient.new()
+	sg.set_color(0, Color(0.85, 0.95, 1.0, 0.0))
+	sg.set_color(1, Color(0.85, 0.95, 1.0, 0.0))
+	sg.add_point(0.5, Color(0.9, 0.97, 1.0, 0.6))
+	snow.color_ramp = sg
+	add_child(snow)
+	# Rayons de la surface : de longs voiles obliques, à peine visibles, qui ondulent.
+	if sc != "leviathan":
+		for i in range(5):
+			var ray := MeshInstance3D.new()
+			var q := QuadMesh.new()
+			q.size = Vector2(1.4, 12.0)
+			ray.mesh = q
+			var rm := StandardMaterial3D.new()
+			rm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			rm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			rm.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+			rm.albedo_color = Color(0.5, 0.85, 1.0, 0.08)
+			rm.cull_mode = BaseMaterial3D.CULL_DISABLED
+			ray.material_override = rm
+			ray.position = Vector3(-1.0 + float(i) * 2.8, 4.0, -4.0 - float(i % 3) * 5.0)
+			ray.rotation_degrees = Vector3(0.0, 0.0, 18.0)
+			add_child(ray)
+			var tw := create_tween().set_loops()
+			tw.tween_property(rm, "albedo_color:a", 0.14, 2.0 + float(i) * 0.4)
+			tw.tween_property(rm, "albedo_color:a", 0.04, 2.0 + float(i) * 0.4)
+	# Bancs de poissons qui traversent au loin, de part et d'autre.
+	for side: float in [-1.0, 1.0]:
+		var fish := CPUParticles3D.new()
+		fish.amount = 24
+		fish.lifetime = 9.0
+		fish.preprocess = 9.0
+		fish.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+		fish.emission_box_extents = Vector3(0.6, 0.6, 1.2)
+		fish.position = Vector3(4.5 + side * 9.0, 2.2, -10.0)
+		fish.direction = Vector3(0.0, 0.0, 1.0)
+		fish.spread = 6.0
+		fish.initial_velocity_min = 1.1
+		fish.initial_velocity_max = 1.4
+		fish.gravity = Vector3.ZERO
+		var fq := QuadMesh.new()
+		fq.size = Vector2(0.14, 0.05)
+		var fm := StandardMaterial3D.new()
+		fm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		fm.vertex_color_use_as_albedo = true
+		fm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		fm.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+		fq.material = fm
+		fish.mesh = fq
+		var fg := Gradient.new()
+		fg.set_color(0, Color(0.6, 0.8, 0.9, 0.0))
+		fg.set_color(1, Color(0.6, 0.8, 0.9, 0.0))
+		fg.add_point(0.15, Color(0.7, 0.88, 0.95, 0.8))
+		fg.add_point(0.85, Color(0.7, 0.88, 0.95, 0.8))
+		fish.color_ramp = fg
+		add_child(fish)
+	if sc in ["sirenes", "palais", "archives", "leviathan"]:
+		var jelly := CPUParticles3D.new()
+		jelly.amount = 14
+		jelly.lifetime = 12.0
+		jelly.preprocess = 12.0
+		jelly.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+		jelly.emission_box_extents = Vector3(10.0, 1.0, 11.0)
+		jelly.position = Vector3(4.5, 0.5, -8.0)
+		jelly.direction = Vector3(0.0, 1.0, 0.0)
+		jelly.spread = 10.0
+		jelly.initial_velocity_min = 0.15
+		jelly.initial_velocity_max = 0.3
+		jelly.gravity = Vector3.ZERO
+		jelly.mesh = _particle_mesh(0.22)
+		var jg := Gradient.new()
+		var jc := Color("ff8ab8") if sc == "sirenes" else Color("8fe3f2")
+		jg.set_color(0, Color(jc, 0.0))
+		jg.set_color(1, Color(jc, 0.0))
+		jg.add_point(0.3, Color(jc, 0.5))
+		jg.add_point(0.7, Color(jc.lightened(0.3), 0.4))
+		jelly.color_ramp = jg
+		add_child(jelly)
+	if sc == "archives":
+		var pages := CPUParticles3D.new()
+		pages.amount = 16
+		pages.lifetime = 10.0
+		pages.preprocess = 10.0
+		pages.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+		pages.emission_box_extents = Vector3(10.0, 1.5, 11.0)
+		pages.position = Vector3(4.5, 1.5, -8.0)
+		pages.spread = 180.0
+		pages.initial_velocity_min = 0.05
+		pages.initial_velocity_max = 0.15
+		pages.gravity = Vector3(0.0, 0.02, 0.0)
+		pages.angular_velocity_min = -40.0
+		pages.angular_velocity_max = 40.0
+		pages.mesh = _particle_mesh(0.12)
+		var pg := Gradient.new()
+		pg.set_color(0, Color(0.95, 0.9, 0.8, 0.0))
+		pg.set_color(1, Color(0.95, 0.9, 0.8, 0.0))
+		pg.add_point(0.5, Color(0.95, 0.92, 0.82, 0.7))
+		pages.color_ramp = pg
+		add_child(pages)
+
+
 ## Forêt Cendrée : cendre qui tombe, étincelles au-dessus de la lave, ombre d'ailes qui balaie l'arène.
 func _build_cinder_ambience() -> void:
 	var sc := WorldArt.scene
@@ -1593,6 +1821,16 @@ func _pillar_mats() -> Array:
 		"pardon":
 			body.albedo_color = Color(0.6, 0.55, 0.55)
 			cap.albedo_color = Color("6aa83a")
+		# Cité Engloutie : pierre bleutée coiffée de corail rose, ou de runes cyan des Archivistes.
+		"quais", "grand_canal", "marees", "kraken", "cloche", "sirenes":
+			body.albedo_color = Color(0.75, 0.88, 1.0)
+			cap.albedo_color = Color("8a4a6a")
+		"statues", "archives", "palais", "leviathan":
+			body.albedo_color = Color(0.72, 0.82, 0.98)
+			cap.albedo_color = Color("2a6a80")
+			cap.emission_enabled = true
+			cap.emission = Color("1a7a90")
+			cap.emission_energy_multiplier = 0.35
 		"colosse":
 			body.albedo_color = Color(0.7, 0.72, 0.85)
 			cap.albedo_color = Color("ff9a4a")
@@ -1702,6 +1940,8 @@ func _build_ambience() -> void:
 		_build_desert_ambience()
 	if WorldArt.zone == 6:
 		_build_cinder_ambience()
+	if WorldArt.zone == 7:
+		_build_abyss_ambience()
 	if sc in ["lisiere", "sentier", "clairiere", "fougeres", "source", "sylvarche", "roncier"]:
 		var lv := CPUParticles3D.new()
 		lv.amount = 26

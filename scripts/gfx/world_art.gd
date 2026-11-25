@@ -524,7 +524,45 @@ static func ground_texture(healed: bool = false) -> ImageTexture:
 				if (x + (y - y_top) / 6 * 7) % 23 == 0:
 					c4 = Color("2a2018")
 				_px(img, x, y, c4.darkened(0.08) if (x * 13 + y * 7) % 5 == 0 else c4)
+	if scene in ABYSS_SCENES:
+		_abyss_floor(img, rng, scene, w, h)
 	return _tex(img, true)
+
+
+## Fond de la Cité Engloutie (après la teinte, couleurs finales) : sable pâle en rides, coquillages, éclats de
+## corail rose, reflets de la surface (caustiques) ; runes des Archivistes aux archives, os au Léviathan.
+static func _abyss_floor(img: Image, rng: RandomNumberGenerator, scene: String, w: int, h: int) -> void:
+	for i in range(w * h / 110):
+		var sx := rng.randi_range(0, w - 1)
+		var sy := rng.randi_range(0, h - 1)
+		_px(img, sx, sy, Color("c8c0a0") if rng.randf() < 0.6 else Color("e8dcc0"))
+	for i in range(w * h / 500):
+		var cx := rng.randi_range(0, w - 1)
+		var cy := rng.randi_range(int(2.0 * PX_PER_M), h - 1)
+		var cc: Color = [Color("e87aa0"), Color("ff9a6a"), Color("b07cff"), Color("f2e8d8")][rng.randi() % 4]
+		_px(img, cx, cy, cc)
+		_px(img, cx + 1, cy, cc.darkened(0.3))
+	# Caustiques : la lumière de la surface ondule sur le fond.
+	for i in range(w * h / 900):
+		var p := Vector2(rng.randf_range(0.0, float(w)), rng.randf_range(0.0, float(h)))
+		for k in range(10):
+			var q := p + Vector2(float(k), sin(float(k) * 0.9) * 2.0)
+			_px(img, int(q.x), int(q.y), Color(0.7, 0.95, 1.0, 0.35))
+	match scene:
+		"archives":
+			for i in range(10):
+				var ry := rng.randi_range(int(2.0 * PX_PER_M), h - int(2.0 * PX_PER_M))
+				var rx := rng.randi_range(0, w - 24)
+				for k in range(rng.randi_range(8, 20)):
+					_px(img, rx + k, ry, Color("8fe3f2") if k % 3 != 0 else Color("2a3a5a"))
+		"leviathan", "kraken":
+			for i in range(14):
+				var bx := rng.randi_range(0, w - 12)
+				var by := rng.randi_range(int(2.0 * PX_PER_M), h - 4)
+				for k in range(rng.randi_range(6, 12)):
+					_px(img, bx + k, by, Color("d8d0b8"))
+				_px(img, bx - 1, by - 1, Color("d8d0b8"))
+				_px(img, bx - 1, by + 1, Color("d8d0b8"))
 
 
 static func _cobbles(img: Image, rng: RandomNumberGenerator, r: Rect2i, tile: int) -> void:
@@ -1314,7 +1352,11 @@ const LEVEL_SCENE := {
 	"z05_l06": "caravane_sable", "z05_l07": "spectres", "z05_l08": "sceaux", "z05_l09": "college", "z05_l10": "sphinx",
 	"z06_l01": "lisiere_cendree", "z06_l02": "couloirs", "z06_l03": "ailes", "z06_l04": "coulee", "z06_l05": "drake",
 	"z06_l06": "braisemont", "z06_l07": "nid", "z06_l08": "autels", "z06_l09": "citadelle", "z06_l10": "antre", "z06_r01": "pardon",
+	"z07_l01": "quais", "z07_l02": "grand_canal", "z07_l03": "marees", "z07_l04": "statues", "z07_l05": "kraken",
+	"z07_l06": "cloche", "z07_l07": "sirenes", "z07_l08": "archives", "z07_l09": "palais", "z07_l10": "leviathan",
 }
+## Cité Engloutie (zone 7) : forêts d'algues au lieu d'arbres.
+const ABYSS_SCENES := ["quais", "grand_canal", "marees", "statues", "kraken", "cloche", "sirenes", "archives", "palais", "leviathan"]
 ## Forêt Cendrée (zone 6) : coulées de lave de part et d'autre.
 const LAVA_SCENES := ["coulee", "antre", "drake"]
 ## Désert de Verre (zone 5) : lieux du Collège oublié (dalles, colonnes, verre).
@@ -1430,6 +1472,19 @@ static func scene_palette(s: String) -> Dictionary:
 			return {"grass": Color("35593f"), "path": "grass", "mist": Color("c87a3a"), "moss": Color("4a6a48"), "motes": Color(1.0, 0.8, 0.35), "warm_h": 0.05, "lift": 1.05}
 		"autels":
 			return {"grass": Color("2a3a30"), "path": "cobbles", "mist": Color("6a3a50"), "moss": Color("34443a"), "motes": Color(0.9, 0.4, 0.6), "warm_h": 0.05, "lift": 0.85}
+		# Zone 7, Cité Engloutie : la teinte des abysses change l'herbe en algues et la pierre en pierre bleutée.
+		"quais", "cloche", "grand_canal":
+			return {"grass": Color("35593f"), "path": "cobbles", "mist": Color("4fa8c8"), "moss": Color("4a6a48"), "motes": Color(0.75, 0.95, 1.0), "warm_h": 0.5, "lift": 1.0}
+		"statues", "palais":
+			return {"grass": Color("3a5a44"), "path": "cobbles", "mist": Color("6ab8d0"), "moss": Color("4a6a48"), "motes": Color(0.7, 1.0, 0.95), "warm_h": 0.5, "lift": 1.05}
+		"marees", "kraken":
+			return {"grass": Color("2f5a3a"), "path": "grass", "mist": Color("2a7aa0"), "moss": Color("3f6a44"), "motes": Color(0.7, 1.0, 0.9), "warm_h": 0.5, "lift": 0.9}
+		"sirenes":
+			return {"grass": Color("35593f"), "path": "grass", "mist": Color("8a7ad0"), "moss": Color("4a6a48"), "motes": Color(0.95, 0.75, 1.0), "warm_h": 0.5, "lift": 0.95}
+		"archives":
+			return {"grass": Color("2a4436"), "path": "cobbles", "mist": Color("4a6aa0"), "moss": Color("34503a"), "motes": Color(0.8, 0.9, 1.0), "warm_h": 0.5, "lift": 0.85}
+		"leviathan":
+			return {"grass": Color("23402e"), "path": "grass", "mist": Color("1a4a6a"), "moss": Color("2e4a36"), "motes": Color(0.5, 0.9, 1.0), "warm_h": 0.5, "lift": 0.75}
 	return {}
 
 
@@ -1658,7 +1713,9 @@ const FOLIAGE_N := 12 ## images de 16×16 dans la planche de végétation
 const FOLIAGE_GLOW_Z4 := {"porte_naine": [9], "sentinelle": [9], "portes": [9], "forteresse": [9], "colosse": [8, 9], "aurore": [8], "lac_gele": [8],
 	"dunes": [8], "mirage": [8], "scarabee": [8], "caravane_sable": [8], "spectres": [8, 9], "miroirs": [8], "sceaux": [8, 9], "college": [8], "sphinx": [8, 9],
 	"lisiere_cendree": [8], "couloirs": [8], "ailes": [8], "drake": [8], "pardon": [8, 9], "coulee": [8, 9], "antre": [8, 9],
-	"braisemont": [8], "citadelle": [8], "nid": [8, 9], "autels": [8, 9]}
+	"braisemont": [8], "citadelle": [8], "nid": [8, 9], "autels": [8, 9],
+	"quais": [8, 9], "grand_canal": [8, 9], "marees": [8], "statues": [8, 9], "kraken": [8], "cloche": [8, 9], "sirenes": [8, 9],
+	"archives": [8, 9], "palais": [8, 9], "leviathan": [8]}
 const FOLIAGE_GLOW := {"sentier": [9], "fougeres": [9], "cercle": [8, 9], "coeur": [8], "sylvarche": [9], "pylones": [8], "repaire": [9],
 	"pilotis": [9], "barque": [9], "mares": [8], "sorciere": [8], "gue_morts": [9], "refuge": [9], "saules": [9]}
 
@@ -1722,6 +1779,8 @@ static func _flower_cols(s: String) -> Array:
 			return [Color("e85a8a"), Color("f2e28b")]
 		"lisiere_cendree", "couloirs", "ailes", "drake", "pardon", "coulee", "antre", "braisemont", "citadelle", "nid", "autels":
 			return [Color("ff8a3a"), Color("ffd060")]
+		"quais", "grand_canal", "marees", "statues", "kraken", "cloche", "sirenes", "archives", "palais", "leviathan":
+			return [Color("e87aa0"), Color("8fe3f2")]
 	return [Color("f4f0ff"), Color("f2e28b")]
 
 
@@ -1825,6 +1884,41 @@ static func foliage_atlas(s: String) -> ImageTexture:
 
 static func _scene_detail(img: Image, ox: int, s: String, which: int, rng: RandomNumberGenerator, fc: Array) -> void:
 	match s + str(which):
+		"quais0", "grand_canal0", "marees0", "statues0", "kraken0", "cloche0", "sirenes0", "archives0", "palais0", "leviathan0":
+			# Anémone : pied rose, tentacules qui luisent.
+			var anem := Color("8fe3f2") if s in ["archives", "statues", "leviathan"] else Color("ff8ab8")
+			for y in range(11, 16):
+				for x in range(6, 11):
+					_px(img, ox + x, y, Color("a84a6a") if x < 9 else Color("c86a8a"))
+			for k in range(7):
+				var a := lerpf(-1.2, 1.2, float(k) / 6.0)
+				var p := Vector2(8.5, 11.0)
+				for d in range(5):
+					p += Vector2(sin(a) * 0.9, -0.8)
+					_px(img, ox + int(p.x), int(p.y), anem if d > 2 else anem.darkened(0.25))
+		"quais1", "grand_canal1", "statues1", "cloche1", "palais1":
+			# Étoile de mer orange.
+			for k in range(5):
+				var a2 := float(k) / 5.0 * TAU - PI * 0.5
+				for d in range(5):
+					_px(img, ox + 8 + int(cos(a2) * float(d)), 11 + int(sin(a2) * float(d) * 0.8), Color("ff8a4a") if d < 3 else Color("e8603a"))
+			_px(img, ox + 8, 11, Color("ffd0a0"))
+		"sirenes1", "archives1":
+			# Perle dans sa coquille entrouverte (elle luit).
+			for y in range(9, 15):
+				for x in range(3, 14):
+					if Vector2(float(x) - 8.5, (float(y) - 12.0) * 1.8).length() <= 5.5:
+						_px(img, ox + x, y, Color("e8dcc8") if y > 11 else Color("c8b8a8"))
+			_px(img, ox + 8, 11, Color("ffffff"))
+			_px(img, ox + 9, 11, Color("e8f4ff"))
+			_px(img, ox + 8, 10, Color("e8f4ff"))
+		"marees1", "kraken1", "leviathan1":
+			# Coquillage spiralé.
+			for y in range(9, 15):
+				for x in range(5, 12):
+					if Vector2(float(x) - 8.0, float(y) - 12.0).length() <= 3.5:
+						_px(img, ox + x, y, Color("e8d0b0") if (x + y) % 3 else Color("b89070"))
+			_px(img, ox + 8, 12, Color("8a6a50"))
 		"lisiere_cendree0", "couloirs0", "ailes0", "drake0", "pardon0", "coulee0", "antre0", "braisemont0", "citadelle0", "nid0", "autels0":
 			# Braise qui couve sur une souche calcinée (elle luit).
 			for y in range(9, 16):
@@ -2285,7 +2379,8 @@ static func tree_atlas(s: String) -> ImageTexture:
 		leaf = [Color("2a2a22"), Color("3a3a2a"), Color("5a5a3a")]
 	var willow: bool = s in ["pilotis", "mares", "brume", "gue_morts", "croc", "saules", "barque", "sorciere", "refuge", "hydre"]
 	var palm: bool = s in ["oasis", "dunes", "mirage", "scarabee", "caravane_sable", "spectres", "miroirs", "sceaux", "college", "sphinx"]
-	for v in range(2 if not (willow or palm) else 0):
+	var kelp: bool = s in ABYSS_SCENES
+	for v in range(2 if not (willow or palm or kelp) else 0):
 		var ox := (3 + v) * fw
 		var cx2 := ox + fw / 2
 		for y in range(fh - 18, fh):
@@ -2327,6 +2422,24 @@ static func tree_atlas(s: String) -> ImageTexture:
 					_px(img, int(p.x), int(p.y) + 1, Color("5a8a3a"))
 			_px(img, int(top.x), int(top.y) + 2, Color("c86a2a"))
 			_px(img, int(top.x) + 1, int(top.y) + 2, Color("a84a1a"))
+	if kelp:
+		# Forêt d'algues : longues frondes ondulées, flotteurs ronds, de la base au sommet du cadre.
+		for v in range(2):
+			var oxk := (3 + v) * fw
+			for st in range(3 + v):
+				var bx := oxk + 6 + st * 6 + rng.randi_range(-1, 1)
+				var ph := rng.randf_range(0.0, TAU)
+				var topk := rng.randi_range(2, 14)
+				for y in range(topk, fh):
+					var xk := bx + int(sin(float(y) * 0.18 + ph) * 2.5)
+					_px(img, xk, y, Color("2a5a2a"))
+					if y % 4 == 0:
+						var side := -1 if (y / 4) % 2 == 0 else 1
+						for d in range(1, 5):
+							_px(img, xk + side * d, y - d / 2, Color("4a8a3a") if d < 3 else Color("6aa84a"))
+					if y % 11 == 5:
+						_px(img, xk + 1, y, Color("8ac850"))
+						_px(img, xk + 1, y - 1, Color("8ac850"))
 	if willow:
 		# Saules pleureurs du marais : tronc tordu, dôme de feuillage, longues mèches qui tombent.
 		var wl := [Color("1e2e24"), Color("2e4434"), Color("4a6a4a")]
@@ -3190,4 +3303,213 @@ static func lava_texture() -> ImageTexture:
 				img.set_pixel(xi, yi, Color("ffd060"))
 			d = d.rotated(rng.randf_range(-0.6, 0.6))
 			p += d
+	return _tex(img)
+
+
+
+# ---------------------------------------------------------------- zone 7 · objets des combats (couleurs finales)
+
+## Corail branchu (rose, orange ou violet).
+static func coral_texture(col: Color) -> ImageTexture:
+	var img := _sprite(22, 22)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(col.r * 255.0) * 7 + int(col.b * 255.0)
+	for br in range(6):
+		var p := Vector2(11.0 + rng.randf_range(-2.0, 2.0), 21.0)
+		var a := -PI * 0.5 + rng.randf_range(-0.9, 0.9)
+		for d in range(rng.randi_range(9, 17)):
+			_px(img, int(p.x), int(p.y), col if d % 4 else col.lightened(0.25))
+			_px(img, int(p.x) + 1, int(p.y), col.darkened(0.25))
+			a += rng.randf_range(-0.25, 0.25)
+			p += Vector2.from_angle(a)
+		_px(img, int(p.x), int(p.y), col.lightened(0.45))
+	return _tex(img)
+
+
+## Ancre rouillée, à moitié enfoncée dans le sable.
+static func anchor_texture() -> ImageTexture:
+	var img := _sprite(20, 26)
+	var rust := Color("8a5a3a")
+	for y in range(3, 22):
+		_px(img, 10, y, rust)
+		_px(img, 9, y, rust.darkened(0.3))
+	for x in range(5, 16):
+		_px(img, x, 7, rust)
+	for a in range(12):
+		var ang := lerpf(0.1, PI - 0.1, float(a) / 11.0)
+		_px(img, 10 + int(cos(ang) * 8.0), 20 + int(sin(ang) * 4.0), rust)
+	for dx: int in [-8, 8]:
+		_px(img, 10 + dx, 19, rust.lightened(0.2))
+		_px(img, 10 + dx + signi(dx), 18, rust.lightened(0.2))
+	for a2 in range(10):
+		var ang2 := float(a2) / 10.0 * TAU
+		_px(img, 10 + int(cos(ang2) * 2.0), 2 + int(sin(ang2) * 2.0), rust)
+	for y in range(22, 26):
+		for x in range(2, 18):
+			_px(img, x, y, Color("c8c0a0") if (x + y) % 3 else Color("a8a080"))
+	_px(img, 11, 12, Color("4a8a3a"))
+	_px(img, 11, 13, Color("4a8a3a"))
+	return _tex(img)
+
+
+## Statue d'Archiviste : capuche, longue robe, un livre ouvert dont la rune luit ; pierre usée, algues.
+static func archivist_statue_texture() -> ImageTexture:
+	var img := _sprite(20, 44)
+	var st := [Color("4a5a6a"), Color("6a7a8a"), Color("8a9aaa")]
+	for y in range(36, 44):
+		for x in range(3, 17):
+			_px(img, x, y, st[0] if y > 40 else st[1])
+	for y in range(12, 36):
+		var half := 3 + (y - 12) / 4
+		for x in range(-half, half + 1):
+			_px(img, 10 + x, y, st[2] if x > half / 2 else (st[0] if x < -half / 2 else st[1]))
+	for y in range(3, 13):
+		var hh := 4 - absi(y - 8) / 2
+		for x in range(-hh, hh + 1):
+			_px(img, 10 + x, y, st[1] if x > 0 else st[0])
+	for x in range(8, 13):
+		_px(img, x, 9, Color("1a2030"))
+	for x in range(6, 15):
+		_px(img, x, 20, Color("e8dcc0"))
+		_px(img, x, 21, Color("c8bca0"))
+	_px(img, 10, 20, Color("8fe3f2"))
+	_px(img, 10, 19, Color("8fe3f2"))
+	for y in range(26, 40):
+		if y % 3 == 0:
+			_px(img, 5 + (y % 2), y, Color("3a7a5a"))
+	return _tex(img)
+
+
+## Bénitier géant entrouvert, sa perle qui luit.
+static func giant_clam_texture() -> ImageTexture:
+	var img := _sprite(24, 16)
+	for y in range(6, 16):
+		for x in range(1, 23):
+			if Vector2(float(x) - 12.0, (float(y) - 11.0) * 2.0).length() <= 11.0:
+				_px(img, x, y, Color("8a9ab0") if x % 4 else Color("6a7a90"))
+	for y in range(0, 7):
+		for x in range(2, 22):
+			if Vector2(float(x) - 12.0, (float(y) - 6.0) * 2.2).length() <= 10.0:
+				_px(img, x, y, Color("a8b8c8") if x % 4 else Color("8a9ab0"))
+	for x in range(4, 20):
+		_px(img, x, 7, Color("e87aa0"))
+	for y in range(6, 10):
+		for x in range(10, 14):
+			_px(img, x, y, Color("f4f8ff"))
+	_px(img, 11, 7, Color("ffffff"))
+	return _tex(img)
+
+
+## Cloche de plongée des Archivistes : bronze vert-de-gris, hublots allumés, chaîne.
+static func diving_bell_texture() -> ImageTexture:
+	var img := _sprite(26, 32)
+	for y in range(8, 30):
+		var half := 6 + (y - 8) / 3
+		for x in range(-half, half + 1):
+			var c := Color("6a8a6a") if x > half / 3 else (Color("3a5a4a") if x < -half / 2 else Color("4a6a5a"))
+			_px(img, 13 + x, y, c)
+	for y in range(5, 9):
+		for x in range(10, 17):
+			_px(img, x, y, Color("4a6a5a"))
+	for y in range(0, 5):
+		_px(img, 13, y, Color("5a5a5a"))
+	for hx: int in [8, 13, 18]:
+		for yy in range(17, 21):
+			for xx in range(hx - 1, hx + 2):
+				_px(img, xx, yy, Color("ffe08a"))
+		_px(img, hx, 18, Color("fff6d0"))
+	for x in range(3, 24):
+		_px(img, x, 29, Color("2a3a30"))
+		_px(img, x, 30, Color("3a5a4a"))
+	return _tex(img)
+
+
+## Étagère des archives noyées : livres de travers, une page qui flotte au-dessus.
+static func sunken_shelf_texture() -> ImageTexture:
+	var img := _sprite(26, 34)
+	var wood := Color("3a4a5a")
+	for y in range(4, 34):
+		_px(img, 2, y, wood)
+		_px(img, 23, y, wood)
+	for sy: int in [12, 22, 32]:
+		for x in range(2, 24):
+			_px(img, x, sy, wood.lightened(0.15))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7088
+	for sy2: int in [12, 22, 32]:
+		var x := 3
+		while x < 22:
+			var bw := rng.randi_range(1, 3)
+			var bh := rng.randi_range(5, 8)
+			var bc: Color = [Color("6a3a4a"), Color("3a5a6a"), Color("6a6a3a"), Color("4a3a6a")][rng.randi() % 4]
+			if rng.randf() < 0.15:
+				x += 2
+				continue
+			for yy in range(sy2 - bh, sy2):
+				for xx in range(x, mini(22, x + bw)):
+					_px(img, xx, yy, bc)
+			x += bw + (1 if rng.randf() < 0.3 else 0)
+	for x in range(8, 14):
+		_px(img, x, 2 + (x % 2), Color("e8dcc0"))
+	_px(img, 11, 1, Color("8fe3f2"))
+	return _tex(img)
+
+
+## Arche de corail et de nacre (le palais).
+static func coral_arch_texture() -> ImageTexture:
+	var img := _sprite(36, 40)
+	for side: int in [0, 1]:
+		var px := 4 if side == 0 else 28
+		for y in range(12, 40):
+			for x in range(px, px + 5):
+				_px(img, x, y, Color("5a6a8a") if x < px + 3 else Color("7a8aaa"))
+	for a in range(40):
+		var ang := lerpf(PI, TAU, float(a) / 39.0)
+		for r in range(13, 18):
+			_px(img, 18 + int(cos(ang) * float(r)), 14 + int(sin(ang) * float(r) * 0.9), Color("7a8aaa") if r > 15 else Color("5a6a8a"))
+	for k in range(9):
+		var ang2 := lerpf(PI * 1.1, PI * 1.9, float(k) / 8.0)
+		_px(img, 18 + int(cos(ang2) * 18.0), 14 + int(sin(ang2) * 17.0), Color("e87aa0"))
+		_px(img, 18 + int(cos(ang2) * 19.0), 14 + int(sin(ang2) * 18.0), Color("ff9ab8"))
+	for y in range(0, 4):
+		for x in range(15, 22):
+			if absi(x - 18) <= y + 1:
+				_px(img, x, y, Color("f2e8d8"))
+	return _tex(img)
+
+
+## Lanterne des quais : poteau de pierre, globe de verre bleu qui luit.
+static func quay_lamp_texture() -> ImageTexture:
+	var img := _sprite(10, 32)
+	for y in range(10, 32):
+		_px(img, 4, y, Color("4a5a6a"))
+		_px(img, 5, y, Color("6a7a8a"))
+	for y in range(2, 10):
+		for x in range(2, 8):
+			if Vector2(float(x) - 4.5, float(y) - 6.0).length() <= 3.2:
+				_px(img, x, y, Color("8fe3f2") if y < 6 else Color("4ab8d0"))
+	_px(img, 4, 4, Color("ffffff"))
+	for x in range(2, 8):
+		_px(img, x, 10, Color("3a4a5a"))
+	return _tex(img)
+
+
+## Tentacule géant qui sort du sable et s'enroule, ventouses pâles.
+static func tentacle_texture() -> ImageTexture:
+	var img := _sprite(26, 46)
+	var pts: Array[Vector2] = []
+	for k in range(40):
+		var f := float(k) / 39.0
+		pts.append(Vector2(13.0 + sin(f * 4.2) * 6.0 * f, 45.0 - f * 40.0))
+	for k in range(pts.size()):
+		var f2 := float(k) / float(pts.size() - 1)
+		var r := lerpf(5.0, 1.0, f2)
+		for y in range(-int(r), int(r) + 1):
+			for x in range(-int(r), int(r) + 1):
+				if x * x + y * y <= int(r * r):
+					_px(img, int(pts[k].x) + x, int(pts[k].y) + y, Color("4a2a5a") if x < 0 else Color("6a3a7a"))
+		if k % 4 == 0 and r > 2.0:
+			_px(img, int(pts[k].x) + int(r) - 1, int(pts[k].y), Color("e8c8d8"))
+	for x in range(4, 22):
+		_px(img, x, 45, Color("c8c0a0"))
 	return _tex(img)
