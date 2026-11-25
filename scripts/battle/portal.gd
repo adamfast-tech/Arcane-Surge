@@ -107,9 +107,14 @@ func color() -> Color:
 	return Color("d93cf2")
 
 
-## Actif : traversable (ni mirage dissipé, ni absent).
+## Zone 7 : sous l'eau à marée haute, ou avalé par le Léviathan : le portail n'a plus d'effet.
+var submerged := false
+var swallowed := false
+
+
+## Actif : traversable (ni mirage dissipé, ni absent, ni sous l'eau, ni avalé).
 func active() -> bool:
-	return hidden_t <= 0.0 and revealed_t <= 0.0
+	return hidden_t <= 0.0 and revealed_t <= 0.0 and not submerged and not swallowed
 
 
 ## Retourne true si le portail était négatif et vient d'être purifié.

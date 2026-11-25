@@ -1,0 +1,115 @@
+{
+  "id": "z07_l08",
+  "name": "Les Archives Noyées",
+  "zone": 7,
+  "number": "7-8",
+  "global_level": 68,
+  "type": "Purification",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx",
+    "ignara"
+  ],
+  "desc": "Les portes des Archives du Temps sont scellées par la corruption. Fais passer des invocations de Lumière par les deux sceaux (ou lance Purifier) pour exposer le Nexus. Une Sirène veille, et la marée noie le premier rang.",
+  "par_time": 220,
+  "nexus": {
+    "hp": 15000
+  },
+  "towers": [
+    {
+      "x": 1.4,
+      "y": 14.1,
+      "hp": 440
+    },
+    {
+      "x": 7.6,
+      "y": 14.1,
+      "hp": 440
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "x": 1.7,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "foudre"
+    },
+    {
+      "kind": "elem",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "lumiere",
+      "motion": "slide",
+      "range": 2.6,
+      "speed": 0.45
+    },
+    {
+      "kind": "mult",
+      "x": 7.3,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 2
+    },
+    {
+      "kind": "corrupt",
+      "x": 2.0,
+      "y": 10.4,
+      "width": 2.2,
+      "seal": true,
+      "purity": 8
+    },
+    {
+      "kind": "add",
+      "x": 4.5,
+      "y": 10.4,
+      "width": 1.8,
+      "value": 5
+    },
+    {
+      "kind": "corrupt",
+      "x": 7.0,
+      "y": 10.4,
+      "width": 2.2,
+      "seal": true,
+      "purity": 8
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 8,
+    "budget_per_level": 2,
+    "local_level": 8,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "fishman": 6,
+      "thunder_eel": 3,
+      "naga_archer": 0.6,
+      "coral_guard": 0.6
+    }
+  },
+  "initial_enemies": [
+    {
+      "kind": "siren",
+      "x": 4.5,
+      "y": 13.3
+    }
+  ],
+  "corrupt_spawn": "fishman",
+  "tide": {
+    "first": 26,
+    "low": 26,
+    "high": 8,
+    "move": 5,
+    "low_y": 2.0,
+    "high_y": 5.6
+  }
+}

@@ -4,7 +4,7 @@
 
 ## 1. Catalogue
 
-- **222 objets** : 6 panoplies de zone de 36 pièces chacune, plus 6 uniques :
+- **259 objets** : 7 panoplies de zone de 36 pièces chacune, plus 7 uniques (dont l'Œuf de cendre, acte 6) :
   - Bâton de la Première Sève, Croc de Gharok, Enclume-Cœur, Couronne de l'Énigme (choix et exploits de l'histoire) ;
   - Hache du Serment Brisé et Fiole des Trois Venins : légendaires de boss. Une chance sur huit à chaque victoire contre Gharok (2-10) ou l'Hydre (3-10), multipliée par la difficulté, une seule fois (`boss_unique` dans progression.json).
 - Chaque zone a son butin (`loot_pool`), couvrant tous les emplacements : 8 armes, 4 mains secondaires, 4 têtes, 4 armures, 4 gants, 4 bottes, 2 médaillons, 4 anneaux, 2 charmes.
@@ -24,6 +24,7 @@
 | 3 Marais Murmurants | Cendres, os, Aube | Faux des Cendres (Ombre), Rapière de l'Aube (Lumière), Crâne de liche, Chapeau de sorcière, Masque à bec, Œil de brume |
 | 4 Pics Gelés | Nains, givre, runes | Marteau runique, Glaive de givre (Givre), Arbalète naine, Cor des montagnes, Couronne runique, Clochette de glace |
 | 5 Désert de Verre | Soleil, verre, Collège | Cimeterre des dunes (Feu), Glaive solaire, Crâne de cristal, Chapeau d'érudit, Turban de nomade, Œil du sphinx |
+| 7 Cité Engloutie | Corail, perles, tridents | Trident des abysses, Harpon du chasseur de Léviathan, Conque des marées, Couronne de perles, Dent de Léviathan (étape 17.1) |
 | 6 Forêt Cendrée | Dragons, braise, écailles | Épée en écailles de drake, Marteau de magma, Faux du phénix, Crâne de drake, Heaume à cornes de drake, Plume de phénix (étape 16.1) |
 
 Les objets des sauvegardes existantes gardent leurs stats : seule leur icône change.
@@ -32,7 +33,7 @@ Les objets des sauvegardes existantes gardent leurs stats : seule leur icône ch
 
 - Chaque base porte un visuel `art` :
   - `t` : le type, parmi 60 (rapière, fléau, glaive, cimeterre, cor, crâne, chapeau, bandeau, brigandine, brassards, collier, talisman, totem, dé, cloche, œil, et bâton, baguette, sceptre, masse, arc, arbalète, épée, dague, faux, hache, marteau, lance, orbe, bouclier, carquois, tome, lanterne, miroir, capuche, couronne, heaume, masque, coiffe némès, robe, tunique, mailles, cuirasse, manteau, gants, gantelets, bandes, bottes, sandales, grèves, médaillon, pendentif, anneau, chevalière, fiole, plume, croc, cristal, sablier, enclume) ;
-  - `m` : la matière (bois, bois sombre, bois-lune, fer, acier, or, bronze, cuivre, argent, os, cristal, givre, obsidienne, cuir, fourrure, pierre, braise, écailles) ;
+  - `m` : la matière (bois, bois sombre, bois-lune, fer, acier, or, bronze, cuivre, argent, os, cristal, givre, obsidienne, cuir, fourrure, pierre, braise, écailles, corail, perle) ;
   - `c` : la teinte (tissu, cuir, ruban) ;
   - `g` : la gemme.
 - `ItemArt` dessine l'icône en pixel-art coloré (24×24, ombrée, contour), agrandie au plus proche voisin. La rareté se lit au cadre.
@@ -148,7 +149,7 @@ On y accède par une nouvelle salle d'Havre-Aube, par le bouton « Forge » de l
 ## 6. Vérifications
 
 `tools/ui_smoke.gd` (`_gear_ok`) contrôle :
-- les 222 icônes (36 par zone) et les 16 runes, avec leurs 4 effets ;
+- les 259 icônes (36 par zone) et les 16 runes, avec leurs 4 effets ;
 - la Fiole des Trois Venins, tombée une seule fois en 60 victoires contre l'Hydre ;
 - Pyr gravée sur l'arme (Sorts de Feu en combat) ;
 - Kaor sur un heaume (POU) ;

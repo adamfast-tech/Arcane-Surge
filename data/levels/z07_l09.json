@@ -1,0 +1,116 @@
+{
+  "id": "z07_l09",
+  "name": "Le Palais du Léviathan",
+  "zone": 7,
+  "number": "7-9",
+  "global_level": 69,
+  "type": "Siège",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx",
+    "ignara"
+  ],
+  "desc": "Le palais englouti où dort le Léviathan. Deux Nexus, une tour au centre, des Horreurs des abysses, la marée et un courant dans la cour.",
+  "par_time": 190,
+  "nexus": {
+    "hp": 15000
+  },
+  "nexi": [
+    {
+      "x": 2.4,
+      "y": 14.9
+    },
+    {
+      "x": 6.6,
+      "y": 14.9
+    }
+  ],
+  "towers": [
+    {
+      "x": 4.5,
+      "y": 14.0,
+      "hp": 640
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "foudre"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 2,
+      "motion": "slide",
+      "range": 1.6,
+      "speed": 0.5
+    },
+    {
+      "kind": "add",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 5
+    },
+    {
+      "kind": "mult",
+      "x": 2.4,
+      "y": 10.4,
+      "width": 2.0,
+      "value": 2
+    },
+    {
+      "kind": "elem",
+      "x": 6.6,
+      "y": 10.4,
+      "width": 2.0,
+      "element": "nature"
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 9,
+    "budget_per_level": 2,
+    "local_level": 9,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "fishman": 6,
+      "thunder_eel": 3,
+      "naga_archer": 1,
+      "coral_guard": 1,
+      "tide_mage": 0.5,
+      "titan_crab": 0.5,
+      "abyss_horror": 0.15
+    }
+  },
+  "tide": {
+    "first": 22,
+    "low": 22,
+    "high": 12,
+    "move": 5,
+    "low_y": 2.0,
+    "high_y": 6.0
+  },
+  "currents": [
+    {
+      "y": 8.4,
+      "h": 1.4,
+      "dir": 1,
+      "speed": 0.8,
+      "flip": 18
+    }
+  ],
+  "initial_enemies": []
+}

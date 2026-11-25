@@ -757,6 +757,9 @@ func _run() -> void:
 	if not _zone6_ok():
 		quit(1)
 		return
+	if not _zone7_ok():
+		quit(1)
+		return
 	if not await _gear_ok():
 		quit(1)
 		return
@@ -1427,7 +1430,7 @@ func _gear_ok() -> bool:
 	for id in bases.keys():
 		if ItemArt.item(str(id), 48) == null:
 			errs.append("icône %s" % id)
-	for z in range(1, 7):
+	for z in range(1, 8):
 		if ((db["loot_pool"] as Dictionary).get(str(z), []) as Array).size() < 36:
 			errs.append("butin de zone %d" % z)
 	var fams: Dictionary = db["runes"]["families"]
@@ -1908,4 +1911,120 @@ func _act6_ok() -> bool:
 		push_error("acte 6 : " + " · ".join(errs))
 		return false
 	print("acte 6 : scènes, Marque (choix, résistance, trahison), combat (brisé, achevé, épargné), 6-R, Héritage, exil OK")
+	return true
+
+
+## Zone 7 · Cité Engloutie : marée (portails noyés), eau (vitesse), courants, tourbillon, vague, portail avalé.
+func _zone7_ok() -> bool:
+	var errs: Array[String] = []
+	for k in ["fishman", "thunder_eel", "titan_crab", "naga_archer", "coral_guard", "tide_mage", "siren", "abyss_horror", "young_kraken", "leviathan", "diving_bell"]:
+		if SpriteAtlas.single(k) == null:
+			errs.append("sprite " + k)
+	var ids: Array = GameData.level_index()["levels"]
+	for i in range(1, 11):
+		if not ids.has("z07_l%02d" % i):
+			errs.append("niveau z07_l%02d" % i)
+	if StoryArt.plate("cite", Vector2i(320, 180)) == null:
+		errs.append("planche cite")
+	# Marée : les portails du premier rang se noient à marée haute, puis reviennent.
+	var s := BattleSim.new()
+	s.setup(GameData.level("z07_l03"), GameData.party(), 3, {"solo": true})
+	var low_active := 0
+	for p in s.portals:
+		if p.y < 6.0 and p.active():
+			low_active += 1
+	s.tide_t = 0.0
+	s._update_tide()
+	for k in range(int(5.5 / BattleSim.TICK)):
+		s._update_tide()
+	var high_active := 0
+	for p in s.portals:
+		if p.y < 6.0 and p.active():
+			high_active += 1
+	var high := s.tide_state == "high"
+	s.tide_t = 0.0
+	s._update_tide()
+	for k in range(int(5.5 / BattleSim.TICK)):
+		s._update_tide()
+	var back := 0
+	for p in s.portals:
+		if p.y < 6.0 and p.active():
+			back += 1
+	if not (low_active >= 3 and high and high_active == 0 and back == low_active):
+		errs.append("marée basse %d, haute %s/%d, retour %d" % [low_active, high, high_active, back])
+	# L'eau : invocation ralentie, homme-poisson plus rapide.
+	s.tide_state = "high"
+	s.tide_y = 6.0
+	var a := s._spawn_familiar(s.player(), Vector2(4.5, 3.0))
+	var f := s._spawn_enemy("fishman", Vector2(4.5, 4.0))
+	var cr := s._spawn_enemy("titan_crab", Vector2(5.5, 4.0))
+	s._flush()
+	if not (is_equal_approx(s._water(a), BattleSim.WATER_SLOW) and is_equal_approx(s._water(f), BattleSim.WATER_HASTE) and is_equal_approx(s._water(cr), 1.0)):
+		errs.append("eau %s/%s/%s" % [s._water(a), s._water(f), s._water(cr)])
+	# Tourbillon : il attire et blesse les invocations, pas les ennemis.
+	var near := s._spawn_familiar(s.player(), Vector2(6.5, 8.0))
+	var inside := s._spawn_familiar(s.player(), Vector2(4.6, 8.0))
+	inside.hp = 500.0
+	inside.max_hp = 500.0
+	var foe := s._spawn_enemy("fishman", Vector2(4.4, 8.1))
+	s._flush()
+	s.add_whirlpool(Vector2(4.5, 8.0), 2.0, 5.0)
+	var d0 := near.pos.distance_to(Vector2(4.5, 8.0))
+	var fh := foe.hp
+	for k in range(int(1.0 / BattleSim.TICK)):
+		s._update_whirlpools()
+	var pulled := near.pos.distance_to(Vector2(4.5, 8.0)) < d0 - 0.5
+	var hurt := inside.hp < 500.0 and is_equal_approx(foe.hp, fh)
+	if not (pulled and hurt):
+		errs.append("tourbillon attire %s, blesse %s" % [pulled, hurt])
+	s.terrain.sim = null
+	# Courant : il emporte les unités de sa rangée, puis s'inverse.
+	var c := BattleSim.new()
+	c.setup(GameData.level("z07_l02"), GameData.party(), 4, {"solo": true})
+	var u := c._spawn_familiar(c.player(), Vector2(4.5, 7.6))
+	c._flush()
+	var p1 := c._current_push(u)
+	c.currents[0]["t"] = 0.0
+	c._update_currents()
+	var p2 := c._current_push(u)
+	if not (p1 > 0.0 and p2 < 0.0):
+		errs.append("courant %s puis %s" % [p1, p2])
+	c.terrain.sim = null
+	# Léviathan : vague qui repousse, tentacule, portail avalé puis rendu.
+	var b := BattleSim.new()
+	b.setup(GameData.level("z07_l10"), GameData.party(), 5, {"solo": true})
+	b._flush()
+	var w := b._spawn_familiar(b.player(), Vector2(4.5, 9.0))
+	b._flush()
+	b._boss_ability({"type": "row_sweep", "delay": 0.0, "dmg": 1, "width": 1.6, "barrier": 0.0, "wave": true, "push": 2.6})
+	var tg: Dictionary = b.telegraphs.back()
+	tg["rect"] = Rect2(0.0, 8.2, BattleSim.W, 1.6)
+	tg["t"] = 0.0
+	w.hp = 999.0
+	b._update_telegraphs()
+	var pushed := w.pos.y < 7.0
+	var act0 := 0
+	for p in b.portals:
+		if p.active():
+			act0 += 1
+	b._boss_ability({"type": "swallow", "dur": 2.0})
+	var act1 := 0
+	for p in b.portals:
+		if p.active():
+			act1 += 1
+	for k in range(int(2.2 / BattleSim.TICK)):
+		b._update_gate_curses()
+	var act2 := 0
+	for p in b.portals:
+		if p.active():
+			act2 += 1
+	b._boss_ability({"type": "lane_strike", "delay": 1.0, "dmg": 10, "width": 1.4, "tentacle": true})
+	var tent := bool(b.telegraphs.back().get("tentacle", false))
+	if not (pushed and act1 < act0 and act2 == act0 and tent):
+		errs.append("vague %s, avalé %d->%d->%d, tentacule %s" % [pushed, act0, act1, act2, tent])
+	b.terrain.sim = null
+	if not errs.is_empty():
+		push_error("zone 7 : " + " · ".join(errs))
+		return false
+	print("zone 7 : marée, eau, tourbillon, courants, vague, portail avalé OK")
 	return true

@@ -103,9 +103,31 @@ static func _cinder(img: Image, lift: float = 1.0) -> void:
 			img.set_pixel(x, y, out)
 
 
-## Recoloriage du décor selon la zone (2 : jour, 3 : marais, 4 : glace, 5 : désert, 6 : cendres).
+## Zone 7 : Cité Engloutie. Herbe -> algues turquoise, pierre -> pierre bleutée couverte de corail.
+static func _abyss(img: Image, lift: float = 1.0) -> void:
+	for y in range(img.get_height()):
+		for x in range(img.get_width()):
+			var c := img.get_pixel(x, y)
+			if c.a <= 0.0:
+				continue
+			var h := c.h
+			var out: Color
+			if c.s > 0.12 and h > 0.18 and h < 0.5:
+				out = Color.from_hsv(0.46 + (h - 0.18) * 0.1, clampf(c.s * 0.6 + 0.2, 0.0, 0.7), clampf(c.v * 0.95 * lift + 0.04, 0.0, 0.7), c.a)
+				if (x * 11 + y * 7) % 89 == 0:
+					out = Color.from_hsv(0.95, 0.5, 0.85, c.a)
+			elif h >= 0.5 and h < 0.9 or c.s <= 0.12:
+				out = Color.from_hsv(0.56, clampf(c.s * 0.4 + 0.2, 0.0, 0.5), clampf(c.v * 0.9 * lift + 0.03, 0.0, 0.65), c.a)
+			else:
+				out = Color.from_hsv(0.5, clampf(c.s * 0.6, 0.0, 0.7), clampf(c.v, 0.0, 1.0), c.a)
+			img.set_pixel(x, y, out)
+
+
+## Recoloriage du décor selon la zone (2 : jour, 3 : marais, 4 : glace, 5 : désert, 6 : cendres, 7 : abysses).
 static func _zone_tint(img: Image, warm_h: float = 0.115, lift: float = 1.0) -> void:
 	match zone:
+		7:
+			_abyss(img, lift)
 		6:
 			_cinder(img, lift)
 		2:
@@ -509,6 +531,8 @@ static func backdrop(size: Vector2i) -> ImageTexture:
 		return _backdrop_desert(size)
 	if zone == 6:
 		return _backdrop_ash(size)
+	if zone == 7:
+		return _backdrop_abyss(size)
 	var w := maxi(8, size.x)
 	var h := maxi(8, size.y)
 	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
@@ -874,6 +898,59 @@ static func _backdrop_ash(size: Vector2i) -> ImageTexture:
 	img.fill_rect(Rect2i(0, int(h * 0.62), w, h - int(h * 0.62)), Color("1e1412"))
 	for i in range(int(w * h / 260.0)):
 		_px(img, rng.randi_range(0, w - 1), rng.randi_range(int(h * 0.3), h - 1), Color(1.0, rng.randf_range(0.4, 0.8), 0.2, rng.randf_range(0.3, 0.9)))
+	return _tex(img)
+
+
+## Zone 7 : sous la mer, rayons de lumière venus de la surface, tours englouties, bulles, bancs de poissons.
+static func _backdrop_abyss(size: Vector2i) -> ImageTexture:
+	var w := maxi(8, size.x)
+	var h := maxi(8, size.y)
+	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7707
+	var stops := [[0.0, Color("1a6a8a")], [0.25, Color("0e4a6a")], [0.55, Color("082a44")], [1.0, Color("041224")]]
+	for y in range(h):
+		var k := float(y) / float(h - 1)
+		var c: Color = stops[0][1]
+		for i in range(stops.size() - 1):
+			var a: Array = stops[i]
+			var b: Array = stops[i + 1]
+			if k >= float(a[0]) and k <= float(b[0]):
+				c = (a[1] as Color).lerp(b[1], (k - float(a[0])) / (float(b[0]) - float(a[0])))
+		img.fill_rect(Rect2i(0, y, w, 1), c)
+	# Rayons de lumière obliques depuis la surface.
+	for r in range(6):
+		var x0 := rng.randi_range(0, w)
+		var ww := rng.randi_range(6, 18)
+		for y in range(int(h * 0.6)):
+			var a := 0.07 * (1.0 - float(y) / (h * 0.6))
+			for dx in range(ww):
+				_px(img, x0 + dx + y / 3, y, Color(0.7, 0.95, 1.0, a))
+	# Tours englouties et dômes de la cité.
+	for i in range(maxi(5, w / 60)):
+		var tx := rng.randi_range(0, w)
+		var tb := int(h * 0.62) + rng.randi_range(-4, 6)
+		var th := rng.randi_range(int(h * 0.1), int(h * 0.26))
+		var tw := rng.randi_range(5, 10)
+		img.fill_rect(Rect2i(tx, tb - th, tw, th), Color("0a2236"))
+		_disc(img, tx + tw / 2, tb - th, tw / 2 + 1, Color("0c2840"))
+		for k in range(3):
+			_px(img, tx + tw / 2, tb - th + 6 + k * 7, Color("4fe3d2"))
+	_ridge(img, rng, int(h * 0.62), int(h * 0.02), Color("061a2a"), Color("1a4a5a"))
+	img.fill_rect(Rect2i(0, int(h * 0.64), w, h - int(h * 0.64)), Color("051624"))
+	# Bancs de poissons, bulles, coraux.
+	for i in range(4):
+		var fx := rng.randi_range(0, w)
+		var fy := rng.randi_range(int(h * 0.15), int(h * 0.45))
+		for k in range(8):
+			_px(img, fx + k * 3 + rng.randi_range(-1, 1), fy + rng.randi_range(-2, 2), Color(0.6, 0.85, 0.95, 0.6))
+	for i in range(int(w * h / 300.0)):
+		_px(img, rng.randi_range(0, w - 1), rng.randi_range(0, h - 1), Color(0.8, 0.95, 1.0, rng.randf_range(0.15, 0.5)))
+	for i in range(maxi(6, w / 25)):
+		var cx := rng.randi_range(0, w)
+		var cb := int(h * 0.64) + rng.randi_range(0, 6)
+		for k in range(rng.randi_range(4, 9)):
+			_px(img, cx + rng.randi_range(-2, 2), cb - k, Color("e86a8a") if i % 2 == 0 else Color("ff9a6a"))
 	return _tex(img)
 
 

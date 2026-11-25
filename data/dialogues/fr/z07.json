@@ -1,0 +1,224 @@
+{
+  "characters": {
+    "narrateur": {
+      "name": "",
+      "color": "A99FD0"
+    },
+    "porteur": {
+      "name": "{pseudo}",
+      "title": "Canalisateur",
+      "title_flag": {
+        "s1.sceau_echo": "Porteur d'Écho"
+      },
+      "color": "4FE3D2",
+      "portrait": "porteur"
+    },
+    "sylwen": {
+      "name": "Sylwen",
+      "title": "Vigiles Sylvestres",
+      "color": "8FD16A",
+      "portrait": "sylwen",
+      "loyalty": true
+    },
+    "brann": {
+      "name": "Brann",
+      "title": "Bastion d'Argent",
+      "color": "B8C6E8",
+      "portrait": "brann",
+      "loyalty": true,
+      "title_flag": {
+        "s1.honneur_forgecoeur": "Héritier de Forgecœur"
+      }
+    },
+    "krag": {
+      "name": "Krag",
+      "title": "Enfants de la Fureur",
+      "color": "E8703A",
+      "portrait": "krag",
+      "loyalty": true,
+      "loyalty_if": "s1.krag_allie"
+    },
+    "nyx": {
+      "name": "Nyx",
+      "title": "Cercle des Cendres",
+      "color": "C87CF0",
+      "portrait": "nyx",
+      "loyalty": true,
+      "loyalty_if": "s1.nyx_allie"
+    },
+    "ignara": {
+      "name": "Ignara",
+      "title": "Fille des cendres",
+      "color": "FF9B4A",
+      "portrait": "ignara",
+      "loyalty": true,
+      "loyalty_if": "s1.ignara_allie"
+    },
+    "voix": {
+      "name": "Voix inconnue",
+      "title": "???",
+      "color": "B07CFF",
+      "portrait": "voix"
+    }
+  },
+  "scenes": {},
+  "barks": {
+    "start": [
+      {
+        "who": "brann",
+        "text": "De l'eau jusqu'aux genoux, et des poissons qui ont des lances. Je regrette déjà le désert."
+      },
+      {
+        "who": "sylwen",
+        "text": "Surveille la marée : quand elle monte, le premier rang de portails se noie."
+      },
+      {
+        "who": "sylwen",
+        "text": "Ils sont de Givre et de Foudre. La Foudre contre le Givre, la Nature contre la Foudre."
+      },
+      {
+        "who": "krag",
+        "text": "Je ne sais pas nager. Alors on gagne vite.",
+        "if": "s1.krag_allie"
+      },
+      {
+        "who": "nyx",
+        "text": "Toute une cité noyée… Combien d'âmes sous ces eaux ?",
+        "mood": "triste"
+      },
+      {
+        "who": "ignara",
+        "text": "De l'eau. Partout. Je vous préviens : je ne suis pas d'humeur.",
+        "if": "s1.ignara_allie",
+        "mood": "colere"
+      }
+    ],
+    "barrier_low": [
+      {
+        "who": "brann",
+        "text": "La Barrière prend l'eau ! Tiens bon !"
+      },
+      {
+        "who": "sylwen",
+        "text": "Ils passent sous la marée ! Ralentis-les !"
+      },
+      {
+        "who": "krag",
+        "text": "Qu'ils viennent se noyer contre nous !",
+        "if": "s1.krag_allie"
+      },
+      {
+        "who": "ignara",
+        "text": "Si la Barrière tombe, je mets le feu à cet océan.",
+        "if": "s1.ignara_allie"
+      }
+    ],
+    "half": [
+      {
+        "who": "sylwen",
+        "text": "À moitié ! La marée tourne, nous aussi."
+      },
+      {
+        "who": "brann",
+        "text": "La moitié. Et ma barbe est trempée."
+      },
+      {
+        "who": "nyx",
+        "text": "À moitié noyés. Comme eux."
+      }
+    ],
+    "boss_phase": [
+      {
+        "who": "sylwen",
+        "text": "Attention aux tentacules ! Sors tes troupes du couloir !"
+      },
+      {
+        "who": "brann",
+        "text": "Il prépare un tourbillon. Envoie nos troupes ailleurs."
+      },
+      {
+        "who": "ignara",
+        "text": "Il avale nos portails ! Vise ceux qui restent.",
+        "if": "s1.ignara_allie"
+      }
+    ],
+    "echo": [
+      {
+        "who": "sylwen",
+        "text": "Le Sceau répond… même sous la mer."
+      }
+    ],
+    "ultimate": [
+      {
+        "who": "brann",
+        "text": "Ça, c'est une lame de fond !",
+        "mood": "joie"
+      }
+    ],
+    "crowd": [
+      {
+        "who": "nyx",
+        "text": "Une armée sous la mer. Les poissons n'en reviennent pas.",
+        "mood": "joie"
+      }
+    ],
+    "escort_low": [
+      {
+        "who": "brann",
+        "text": "La cloche ! Protège la cloche !"
+      },
+      {
+        "who": "sylwen",
+        "text": "La cloche des Archivistes est touchée !"
+      }
+    ]
+  },
+  "barks_level": {
+    "z07_l02": {
+      "start": [
+        {
+          "who": "sylwen",
+          "text": "Des courants ! Ils emportent nos troupes de côté : vise en conséquence."
+        }
+      ]
+    },
+    "z07_l03": {
+      "start": [
+        {
+          "who": "brann",
+          "text": "La grande marée. Le premier rang sera sous l'eau plus longtemps."
+        }
+      ]
+    },
+    "z07_l05": {
+      "start": [
+        {
+          "who": "sylwen",
+          "text": "Un kraken ! Ses tentacules frappent des couloirs entiers, et son encre cache tout.",
+          "mood": "surpris"
+        }
+      ]
+    },
+    "z07_l07": {
+      "start": [
+        {
+          "who": "nyx",
+          "text": "Ce chant… Ne l'écoute pas. Abats les Sirènes d'abord."
+        }
+      ]
+    },
+    "z07_l10": {
+      "start": [
+        {
+          "who": "sylwen",
+          "text": "Le Léviathan… Il garde les Archives depuis la Fracture.",
+          "mood": "surpris"
+        },
+        {
+          "who": "brann",
+          "text": "Quand il creuse son tourbillon, éloigne nos troupes du centre !"
+        }
+      ]
+    }
+  }
+}

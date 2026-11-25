@@ -1,0 +1,202 @@
+{
+  "id": "z07_l10",
+  "name": "Le Léviathan",
+  "zone": 7,
+  "number": "7-10",
+  "global_level": 70,
+  "type": "Boss",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx",
+    "ignara"
+  ],
+  "objective": "boss",
+  "desc": "Le Léviathan, gardien des Archives du Temps. Ses vagues repoussent tes troupes, ses tentacules saisissent des couloirs ; à marée haute il avale des portails, et à la fin il creuse un tourbillon au centre. Il craint la Nature.",
+  "par_time": 300,
+  "boss": {
+    "kind": "leviathan",
+    "hp": 30000,
+    "x": 4.5,
+    "y": 13.8,
+    "phases": [
+      [
+        {
+          "type": "row_sweep",
+          "cd": 13,
+          "delay": 1.6,
+          "dmg": 40,
+          "width": 1.6,
+          "barrier": 0.5,
+          "wave": true,
+          "push": 2.6,
+          "log": "%s soulève une vague déferlante !"
+        },
+        {
+          "type": "lane_strike",
+          "cd": 10,
+          "delay": 1.4,
+          "dmg": 54,
+          "width": 1.4,
+          "count": 1,
+          "barrier": 1.0,
+          "tentacle": true,
+          "log": "Des tentacules jaillissent de l'eau !"
+        },
+        {
+          "type": "summon",
+          "cd": 18,
+          "kind": "fishman",
+          "count": 4
+        }
+      ],
+      [
+        {
+          "type": "lane_strike",
+          "cd": 9,
+          "delay": 1.4,
+          "dmg": 56,
+          "width": 1.4,
+          "count": 2,
+          "barrier": 1.0,
+          "tentacle": true,
+          "log": "Des tentacules jaillissent de l'eau !"
+        },
+        {
+          "type": "swallow",
+          "cd": 14,
+          "dur": 10
+        },
+        {
+          "type": "row_sweep",
+          "cd": 14,
+          "delay": 1.6,
+          "dmg": 40,
+          "width": 1.6,
+          "barrier": 0.5,
+          "wave": true,
+          "push": 2.6,
+          "log": "%s soulève une vague déferlante !"
+        },
+        {
+          "type": "summon",
+          "cd": 22,
+          "kind": "tide_mage",
+          "count": 1
+        }
+      ],
+      [
+        {
+          "type": "whirlpool",
+          "cd": 20,
+          "dur": 10,
+          "r": 2.0,
+          "center": true
+        },
+        {
+          "type": "row_sweep",
+          "cd": 12,
+          "delay": 1.6,
+          "dmg": 44,
+          "width": 1.6,
+          "barrier": 0.5,
+          "wave": true,
+          "push": 2.6,
+          "log": "%s soulève une vague déferlante !"
+        },
+        {
+          "type": "lane_strike",
+          "cd": 9,
+          "delay": 1.4,
+          "dmg": 58,
+          "width": 1.4,
+          "count": 1,
+          "barrier": 1.0,
+          "tentacle": true,
+          "log": "Des tentacules jaillissent de l'eau !"
+        },
+        {
+          "type": "swallow",
+          "cd": 16,
+          "dur": 10
+        }
+      ]
+    ],
+    "on_phase": [
+      [],
+      [],
+      [
+        {
+          "type": "whirlpool",
+          "dur": 10,
+          "r": 2.0,
+          "center": true
+        }
+      ]
+    ]
+  },
+  "towers": [],
+  "portals": [
+    {
+      "kind": "elem",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "nature"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 1.8,
+      "value": 2,
+      "motion": "slide",
+      "range": 1.4,
+      "speed": 0.5
+    },
+    {
+      "kind": "elem",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "foudre"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 10.6,
+      "width": 2.2,
+      "value": 2,
+      "motion": "slide",
+      "range": 2.4,
+      "speed": 0.4
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      9,
+      13
+    ],
+    "budget_base": 8,
+    "budget_per_level": 2,
+    "local_level": 10,
+    "growth": 0.03,
+    "spawn_y": 14.6,
+    "pool": {
+      "fishman": 5,
+      "thunder_eel": 2,
+      "naga_archer": 0.8
+    }
+  },
+  "tide": {
+    "first": 20,
+    "low": 20,
+    "high": 12,
+    "move": 5,
+    "low_y": 2.0,
+    "high_y": 6.0
+  },
+  "initial_enemies": []
+}

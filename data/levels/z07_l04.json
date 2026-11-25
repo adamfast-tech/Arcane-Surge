@@ -1,0 +1,105 @@
+{
+  "id": "z07_l04",
+  "name": "La Place des Statues",
+  "zone": 7,
+  "number": "7-4",
+  "global_level": 64,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx",
+    "ignara"
+  ],
+  "desc": "Une place bordée de statues d'Archivistes. La marée et un courant se disputent tes troupes ; les Crabes titans encaissent tout.",
+  "par_time": 150,
+  "nexus": {
+    "hp": 34000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 420
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 420
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "nature"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 1.8,
+      "value": 2
+    },
+    {
+      "kind": "add",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 5
+    },
+    {
+      "kind": "mult",
+      "x": 2.4,
+      "y": 10.4,
+      "width": 2.0,
+      "value": 2
+    },
+    {
+      "kind": "elem",
+      "x": 6.6,
+      "y": 10.4,
+      "width": 2.0,
+      "element": "foudre"
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 14,
+    "budget_per_level": 3,
+    "local_level": 4,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "fishman": 5,
+      "thunder_eel": 2,
+      "titan_crab": 0.7,
+      "naga_archer": 0.6
+    }
+  },
+  "tide": {
+    "first": 20,
+    "low": 20,
+    "high": 12,
+    "move": 5,
+    "low_y": 2.0,
+    "high_y": 6.0
+  },
+  "currents": [
+    {
+      "y": 9.0,
+      "h": 1.4,
+      "dir": -1,
+      "speed": 0.8,
+      "flip": 18
+    }
+  ],
+  "initial_enemies": []
+}

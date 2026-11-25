@@ -195,4 +195,6 @@ iOS (iPhone 16 Pro Max, iPad), Android, PC (16:9, 16:10).
 16. Acte 6 :
     - 16.1 ✅ zone 6 jouable, Forêt Cendrée : 10 niveaux (51 à 60), dragons et démons de feu, incendies en couloirs que le Givre éteint, passages de dragons annoncés, Phénix qui renaissent, Drake ancien et Wyrm de cendre (vol, œufs) ; panoplie de 36 objets — [`design/37-zone6.md`](design/37-zone6.md)
     - 16.2 ✅ narration de l'acte 6 : 22 dialogues, Ignara 5ᵉ compagnon, la Mère-Dragon et le Wyrm de cendre ; choix 6-7 (le phénix), 6-9 (pacte ou vol de l'Œuf de cendre) et ✦ 6-10 : la Marque du Wyrm (trahison du compagnon le moins loyal, épargné ou achevé), quête 6-R « Les Cendres du Pardon » et Héritage de cendre, ou exil ; 2ᵉ Fragment de Morvaen — [`design/38-narration-zone6.md`](design/38-narration-zone6.md)
-17. Saison 2 : zones 11–15, niveau max 150, L'Ourdisseur (fils semés en saison 1)
+17. Acte 7 :
+    - 17.1 ✅ zone 7 jouable, Cité Engloutie : 10 niveaux (61 à 70), créatures abyssales, marées qui noient les portails du premier rang, courants latéraux, tourbillons, Kraken juvénile et Léviathan (vagues, tentacules, portails avalés) ; panoplie de 36 objets — [`design/39-zone7.md`](design/39-zone7.md)
+18. Saison 2 : zones 11–15, niveau max 150, L'Ourdisseur (fils semés en saison 1)

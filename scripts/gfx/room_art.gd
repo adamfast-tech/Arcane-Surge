@@ -5,7 +5,7 @@ extends RefCounted
 ## comme en paysage, les côtés se remplissent (râteliers, étagères, pierres…) selon la largeur.
 ## La Carte reprend les planches de zone de StoryArt.
 
-const ZONE_PLATES := {1: "foret", 2: "steppe", 3: "marais", 4: "pics", 5: "dunes", 6: "cendres"}
+const ZONE_PLATES := {1: "foret", 2: "steppe", 3: "marais", 4: "pics", 5: "dunes", 6: "cendres", 7: "cite"}
 const KINDS := ["forge", "armurerie", "entrainement", "meditation", "bibliotheque", "cercle", "archives", "atelier", "creation", "camp"]
 
 static var _cache: Dictionary = {}

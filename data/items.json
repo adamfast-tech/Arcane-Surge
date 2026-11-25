@@ -3373,6 +3373,531 @@
         "c": "black",
         "g": "ff6a2a"
       }
+    },
+    "trident_abysses": {
+      "name": "Trident des abysses",
+      "slot": "weapon",
+      "stats": {
+        "pou": 6,
+        "des": 3
+      },
+      "element": "givre",
+      "art": {
+        "t": "lance",
+        "m": "coral",
+        "c": "teal",
+        "g": "4fe3d2"
+      },
+      "zone": 7
+    },
+    "baton_maree": {
+      "name": "Bâton de la marée",
+      "slot": "weapon",
+      "stats": {
+        "pou": 5,
+        "esp": 4
+      },
+      "element": "givre",
+      "art": {
+        "t": "baton",
+        "m": "darkwood",
+        "c": "teal",
+        "g": "8fe0ff"
+      },
+      "zone": 7
+    },
+    "arc_corail": {
+      "name": "Arc de corail",
+      "slot": "weapon",
+      "stats": {
+        "pou": 5,
+        "cel": 4
+      },
+      "art": {
+        "t": "arc",
+        "m": "coral",
+        "c": "red",
+        "g": "ff8a9a"
+      },
+      "zone": 7
+    },
+    "sceptre_perle": {
+      "name": "Sceptre de la Perle noire",
+      "slot": "weapon",
+      "stats": {
+        "pou": 5,
+        "esp": 4
+      },
+      "element": "ombre",
+      "art": {
+        "t": "sceptre",
+        "m": "silver",
+        "g": "2a2040"
+      },
+      "zone": 7
+    },
+    "cimeterre_naga": {
+      "name": "Cimeterre naga",
+      "slot": "weapon",
+      "stats": {
+        "pou": 6,
+        "cel": 3
+      },
+      "element": "foudre",
+      "art": {
+        "t": "cimeterre",
+        "m": "steel",
+        "c": "teal",
+        "g": "fff06a"
+      },
+      "zone": 7
+    },
+    "harpon_leviathan": {
+      "name": "Harpon du chasseur de Léviathan",
+      "slot": "weapon",
+      "stats": {
+        "pou": 7,
+        "des": 2
+      },
+      "art": {
+        "t": "lance",
+        "m": "iron",
+        "c": "brown",
+        "g": "c8d0e0"
+      },
+      "zone": 7
+    },
+    "faux_ecume": {
+      "name": "Faux d'écume",
+      "slot": "weapon",
+      "stats": {
+        "pou": 6,
+        "esp": 3
+      },
+      "element": "givre",
+      "art": {
+        "t": "faux",
+        "m": "pearl",
+        "c": "white",
+        "g": "bff6ff"
+      },
+      "zone": 7
+    },
+    "dague_anguille": {
+      "name": "Dague-anguille",
+      "slot": "weapon",
+      "stats": {
+        "pou": 5,
+        "cel": 4
+      },
+      "element": "foudre",
+      "art": {
+        "t": "dague",
+        "m": "steel",
+        "c": "blue",
+        "g": "fff06a"
+      },
+      "zone": 7
+    },
+    "bouclier_carapace": {
+      "name": "Bouclier-carapace",
+      "slot": "offhand",
+      "stats": {
+        "vig": 6,
+        "pou": 2
+      },
+      "art": {
+        "t": "bouclier",
+        "m": "coral",
+        "c": "red",
+        "g": "ffd0a0"
+      },
+      "zone": 7
+    },
+    "conque_marees": {
+      "name": "Conque des marées",
+      "slot": "offhand",
+      "stats": {
+        "esp": 5,
+        "cel": 3
+      },
+      "art": {
+        "t": "cor",
+        "m": "pearl",
+        "g": "4fe3d2"
+      },
+      "zone": 7
+    },
+    "orbe_abyssal": {
+      "name": "Orbe abyssal",
+      "slot": "offhand",
+      "stats": {
+        "esp": 6,
+        "pou": 2
+      },
+      "art": {
+        "t": "orbe",
+        "m": "crystal",
+        "g": "2a6ab8"
+      },
+      "zone": 7
+    },
+    "tome_archives": {
+      "name": "Tome des Archives noyées",
+      "slot": "offhand",
+      "stats": {
+        "esp": 5,
+        "des": 3
+      },
+      "art": {
+        "t": "tome",
+        "m": "leather",
+        "c": "teal",
+        "g": "f2c46b"
+      },
+      "zone": 7
+    },
+    "heaume_corail": {
+      "name": "Heaume de corail",
+      "slot": "head",
+      "stats": {
+        "vig": 5,
+        "pou": 3
+      },
+      "art": {
+        "t": "heaume",
+        "m": "coral",
+        "g": "ff8a9a"
+      },
+      "zone": 7
+    },
+    "couronne_perles": {
+      "name": "Couronne de perles",
+      "slot": "head",
+      "stats": {
+        "esp": 5,
+        "des": 3
+      },
+      "art": {
+        "t": "couronne",
+        "m": "pearl",
+        "g": "bff6ff"
+      },
+      "zone": 7
+    },
+    "capuche_maree": {
+      "name": "Capuche des marées",
+      "slot": "head",
+      "stats": {
+        "esp": 4,
+        "cel": 4
+      },
+      "art": {
+        "t": "capuche",
+        "m": "leather",
+        "c": "teal",
+        "g": "4fe3d2"
+      },
+      "zone": 7
+    },
+    "masque_naga": {
+      "name": "Masque naga",
+      "slot": "head",
+      "stats": {
+        "pou": 4,
+        "cel": 4
+      },
+      "art": {
+        "t": "masque",
+        "m": "silver",
+        "g": "8fe36a"
+      },
+      "zone": 7
+    },
+    "cuirasse_carapace": {
+      "name": "Cuirasse-carapace",
+      "slot": "armor",
+      "stats": {
+        "vig": 7,
+        "pou": 2
+      },
+      "art": {
+        "t": "cuirasse",
+        "m": "coral",
+        "c": "red",
+        "g": "ffd0a0"
+      },
+      "zone": 7
+    },
+    "robe_archiviste": {
+      "name": "Robe d'archiviste",
+      "slot": "armor",
+      "stats": {
+        "esp": 6,
+        "vig": 3
+      },
+      "art": {
+        "t": "robe",
+        "m": "leather",
+        "c": "teal",
+        "g": "f2c46b"
+      },
+      "zone": 7
+    },
+    "manteau_ecume": {
+      "name": "Manteau d'écume",
+      "slot": "armor",
+      "stats": {
+        "cel": 5,
+        "esp": 4
+      },
+      "art": {
+        "t": "manteau",
+        "m": "leather",
+        "c": "white",
+        "g": "bff6ff"
+      },
+      "zone": 7
+    },
+    "mailles_ecailles": {
+      "name": "Mailles d'écailles",
+      "slot": "armor",
+      "stats": {
+        "vig": 5,
+        "des": 4
+      },
+      "art": {
+        "t": "mailles",
+        "m": "silver",
+        "c": "teal",
+        "g": "4fe3d2"
+      },
+      "zone": 7
+    },
+    "gantelets_crabe": {
+      "name": "Gantelets de crabe",
+      "slot": "hands",
+      "stats": {
+        "pou": 5,
+        "vig": 3
+      },
+      "art": {
+        "t": "gantelets",
+        "m": "coral",
+        "g": "ff8a9a"
+      },
+      "zone": 7
+    },
+    "gants_plongeur": {
+      "name": "Gants de plongeur",
+      "slot": "hands",
+      "stats": {
+        "cel": 4,
+        "des": 4
+      },
+      "art": {
+        "t": "gants",
+        "m": "leather",
+        "c": "teal"
+      },
+      "zone": 7
+    },
+    "brassards_naga": {
+      "name": "Brassards naga",
+      "slot": "hands",
+      "stats": {
+        "vig": 4,
+        "pou": 4
+      },
+      "art": {
+        "t": "brassards",
+        "m": "silver",
+        "g": "8fe36a"
+      },
+      "zone": 7
+    },
+    "bandes_algues": {
+      "name": "Bandes d'algues",
+      "slot": "hands",
+      "stats": {
+        "esp": 5,
+        "cel": 3
+      },
+      "art": {
+        "t": "bandes",
+        "m": "leather",
+        "c": "green"
+      },
+      "zone": 7
+    },
+    "bottes_plongeur": {
+      "name": "Bottes de plongeur",
+      "slot": "feet",
+      "stats": {
+        "vig": 4,
+        "cel": 4
+      },
+      "art": {
+        "t": "bottes",
+        "m": "iron",
+        "c": "brown"
+      },
+      "zone": 7
+    },
+    "greves_corail": {
+      "name": "Grèves de corail",
+      "slot": "feet",
+      "stats": {
+        "vig": 5,
+        "des": 3
+      },
+      "art": {
+        "t": "greves",
+        "m": "coral",
+        "g": "ff8a9a"
+      },
+      "zone": 7
+    },
+    "sandales_ecume": {
+      "name": "Sandales d'écume",
+      "slot": "feet",
+      "stats": {
+        "cel": 5,
+        "esp": 3
+      },
+      "art": {
+        "t": "sandales",
+        "m": "leather",
+        "c": "white"
+      },
+      "zone": 7
+    },
+    "bottes_sirene": {
+      "name": "Bottes de sirène",
+      "slot": "feet",
+      "stats": {
+        "cel": 6,
+        "des": 2
+      },
+      "art": {
+        "t": "bottes",
+        "m": "leather",
+        "c": "teal"
+      },
+      "zone": 7
+    },
+    "collier_perles": {
+      "name": "Collier de perles",
+      "slot": "amulet",
+      "stats": {
+        "esp": 5,
+        "des": 3
+      },
+      "art": {
+        "t": "collier",
+        "m": "pearl",
+        "g": "bff6ff"
+      },
+      "zone": 7
+    },
+    "pendentif_abysses": {
+      "name": "Pendentif des abysses",
+      "slot": "amulet",
+      "stats": {
+        "vig": 4,
+        "esp": 4
+      },
+      "art": {
+        "t": "pendentif",
+        "m": "silver",
+        "g": "2a6ab8"
+      },
+      "zone": 7
+    },
+    "anneau_perle": {
+      "name": "Anneau de perle",
+      "slot": "ring",
+      "stats": {
+        "esp": 5,
+        "pou": 3
+      },
+      "art": {
+        "t": "anneau",
+        "m": "silver",
+        "g": "bff6ff"
+      },
+      "zone": 7
+    },
+    "chevaliere_archives": {
+      "name": "Chevalière des Archives",
+      "slot": "ring",
+      "stats": {
+        "esp": 4,
+        "des": 4
+      },
+      "art": {
+        "t": "chevaliere",
+        "m": "gold",
+        "g": "4fe3d2"
+      },
+      "zone": 7
+    },
+    "anneau_corail": {
+      "name": "Anneau de corail",
+      "slot": "ring",
+      "stats": {
+        "vig": 5,
+        "cel": 3
+      },
+      "art": {
+        "t": "anneau",
+        "m": "coral",
+        "g": "ff8a9a"
+      },
+      "zone": 7
+    },
+    "bague_marees": {
+      "name": "Bague des marées",
+      "slot": "ring",
+      "stats": {
+        "cel": 4,
+        "des": 4
+      },
+      "art": {
+        "t": "anneau",
+        "m": "pearl",
+        "g": "4fe3d2"
+      },
+      "zone": 7
+    },
+    "oeil_abysses": {
+      "name": "Œil des abysses",
+      "slot": "charm",
+      "stats": {
+        "esp": 5,
+        "des": 3
+      },
+      "art": {
+        "t": "oeil",
+        "m": "crystal",
+        "c": "blue",
+        "g": "4fe3d2"
+      },
+      "zone": 7
+    },
+    "dent_leviathan": {
+      "name": "Dent de Léviathan",
+      "slot": "charm",
+      "stats": {
+        "pou": 5,
+        "des": 3
+      },
+      "art": {
+        "t": "croc",
+        "m": "bone",
+        "g": "4fe3d2"
+      },
+      "zone": 7
     }
   },
   "loot_pool": {
@@ -3603,6 +4128,44 @@
       "bague_cendres",
       "plume_phenix",
       "croc_wyverne"
+    ],
+    "7": [
+      "trident_abysses",
+      "baton_maree",
+      "arc_corail",
+      "sceptre_perle",
+      "cimeterre_naga",
+      "harpon_leviathan",
+      "faux_ecume",
+      "dague_anguille",
+      "bouclier_carapace",
+      "conque_marees",
+      "orbe_abyssal",
+      "tome_archives",
+      "heaume_corail",
+      "couronne_perles",
+      "capuche_maree",
+      "masque_naga",
+      "cuirasse_carapace",
+      "robe_archiviste",
+      "manteau_ecume",
+      "mailles_ecailles",
+      "gantelets_crabe",
+      "gants_plongeur",
+      "brassards_naga",
+      "bandes_algues",
+      "bottes_plongeur",
+      "greves_corail",
+      "sandales_ecume",
+      "bottes_sirene",
+      "collier_perles",
+      "pendentif_abysses",
+      "anneau_perle",
+      "chevaliere_archives",
+      "anneau_corail",
+      "bague_marees",
+      "oeil_abysses",
+      "dent_leviathan"
     ]
   },
   "materials": {
@@ -3641,6 +4204,12 @@
     },
     "braise_vive": {
       "name": "Braise vive"
+    },
+    "perle_abyssale": {
+      "name": "Perle abyssale"
+    },
+    "corail_noir": {
+      "name": "Corail noir"
     }
   },
   "starter": [

@@ -1,0 +1,92 @@
+{
+  "id": "z07_l03",
+  "name": "Les Marées Hautes",
+  "zone": 7,
+  "number": "7-3",
+  "global_level": 63,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx",
+    "ignara"
+  ],
+  "desc": "La grande marée : l'eau monte plus haut et plus longtemps. Les Gardes de corail bloquent de face, les Mages des marées engourdissent tes invocations.",
+  "par_time": 180,
+  "nexus": {
+    "hp": 34000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 420
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 420
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "foudre"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 2
+    },
+    {
+      "kind": "elem",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "nature"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 10.4,
+      "width": 2.2,
+      "value": 2,
+      "motion": "slide",
+      "range": 2.0,
+      "speed": 0.45
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 16,
+    "budget_per_level": 4,
+    "local_level": 3,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "fishman": 5,
+      "thunder_eel": 2,
+      "coral_guard": 0.7,
+      "tide_mage": 0.4
+    }
+  },
+  "tide": {
+    "first": 16,
+    "low": 16,
+    "high": 14,
+    "move": 5,
+    "low_y": 2.0,
+    "high_y": 6.2
+  },
+  "initial_enemies": []
+}

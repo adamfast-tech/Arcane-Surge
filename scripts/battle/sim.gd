@@ -227,6 +227,16 @@ var fire_by: Dictionary = {} ## PV brûlés par origine du feu (incendie, magma,
 var _fire_seq := 0
 var dragon_cfg: Dictionary = {} ## {first, every, warn, dmg, band, patches}
 var dragon_t := 0.0
+## Zone 7 : Cité Engloutie (docs/design/39-zone7.md) : marées, courants, tourbillons.
+const WATER_SLOW := 0.75 ## tes invocations dans l'eau
+const WATER_HASTE := 1.2 ## les créatures aquatiques dans l'eau
+var tide_cfg: Dictionary = {} ## {first, low, high, move, low_y, high_y}
+var tide_state := "" ## low, rising, high, falling
+var tide_t := 0.0
+var tide_y := 0.0 ## niveau de l'eau : tout ce qui est sous cette rangée est sous l'eau
+var currents: Array[Dictionary] = [] ## {y, h, dir, speed, flip, t}
+var whirlpools: Array[Dictionary] = [] ## {pos, r, t, pull, dps}
+var whirl_dps := 8.0 ## PV perdus par seconde au cœur d'un tourbillon (invocations)
 ## Acte 6 : la Marque du Wyrm (06-monde §4.1). Le compagnon marqué combat aux côtés du Wyrm en phase 3.
 var flags_in: Array = [] ## drapeaux de l'histoire reçus au départ
 var traitor_id := "" ## compagnon passé au Wyrm ("" sinon)
@@ -398,6 +408,15 @@ func _setup_zone_mechanics() -> void:
 	dragon_cfg = level.get("dragons", {})
 	if not dragon_cfg.is_empty():
 		dragon_t = float(dragon_cfg.get("first", 14.0))
+	tide_cfg = level.get("tide", {})
+	if not tide_cfg.is_empty():
+		tide_state = "low"
+		tide_y = float(tide_cfg.get("low_y", 2.0))
+		tide_t = float(tide_cfg.get("first", tide_cfg.get("low", 20.0)))
+	for cd in level.get("currents", []):
+		currents.append({"y": float(cd["y"]), "h": float(cd.get("h", 1.4)), "dir": float(cd.get("dir", 1.0)),
+			"speed": float(cd.get("speed", 0.8)), "flip": float(cd.get("flip", 0.0)), "t": float(cd.get("flip", 0.0))})
+	whirl_dps = 8.0 * diff
 	for ld in level.get("lava", []):
 		add_fire_patch(Vector2(float(ld["x"]), float(ld["y"])), float(ld.get("r", 1.0)), 0.0, "magma")
 	for md in level.get("mirrors", []):
@@ -847,6 +866,8 @@ func step() -> void:
 	_update_avalanche()
 	_update_wildfire()
 	_update_dragons()
+	_update_tide()
+	_update_currents()
 	_update_daynight()
 	_update_riddle()
 	_update_gate_curses()
@@ -859,6 +880,7 @@ func step() -> void:
 	_update_fog()
 	_update_stumps()
 	_update_fires()
+	_update_whirlpools()
 	terrain.update()
 	_resolve_contacts()
 	_ranged_attacks()
@@ -1010,10 +1032,10 @@ func _move_units() -> void:
 		var sf := u.speed_factor()
 		if sf <= 0.0:
 			continue
-		sf *= _slide(u)
+		sf *= _slide(u) * _water(u)
 		if u.pos.y > HOMING_Y:
 			u.vx = clampf((_homing_target_x(u) - u.pos.x) * 1.5, -1.8, 1.8)
-		u.pos.x = clampf(u.pos.x + u.vx * sf * TICK + _wind_push(u) * TICK, 0.2, W - 0.2)
+		u.pos.x = clampf(u.pos.x + u.vx * sf * TICK + (_wind_push(u) + _current_push(u)) * TICK, 0.2, W - 0.2)
 		u.pos.y = minf(H - 0.2, u.pos.y + u.speed * sf * TICK)
 	for e in enemies:
 		e.prev_pos = e.pos
@@ -1024,12 +1046,12 @@ func _move_units() -> void:
 			continue
 		if e.hold_y > 0.0 and e.pos.y <= e.hold_y:
 			continue
-		var sf_e := e.speed_factor() * _slide(e)
+		var sf_e := e.speed_factor() * _slide(e) * _water(e)
 		if escort != null and escort.alive and e.pos.y > escort.pos.y and e.pos.y - escort.pos.y < 4.0:
 			# Les ennemis convergent vers la Lanterne de l'Aube.
 			e.pos.x = clampf(e.pos.x + clampf(escort.pos.x - e.pos.x, -0.9, 0.9) * sf_e * TICK, 0.3, W - 0.3)
 		e.pos.y = terrain.block_y(e, e.pos.y - e.speed * sf_e * TICK) if not terrain.walls.is_empty() else e.pos.y - e.speed * sf_e * TICK
-		e.pos.x = clampf(e.pos.x + _wind_push(e) * TICK, 0.3, W - 0.3)
+		e.pos.x = clampf(e.pos.x + (_wind_push(e) + _current_push(e)) * TICK, 0.3, W - 0.3)
 
 
 func _homing_target_x(u: Unit) -> float:
@@ -1868,6 +1890,10 @@ func _boss_ability(ab: Dictionary) -> void:
 				_telegraph(Rect2(0.0, y - hw, W, hw * 2.0), float(ab.get("delay", 1.5)), float(ab.get("dmg", 40)), float(ab.get("barrier", 2.0)))
 				if bool(ab.get("sun", false)):
 					telegraphs.back()["sun"] = true
+				if bool(ab.get("wave", false)):
+					# Vague déferlante : elle repousse tes invocations vers la Barrière.
+					telegraphs.back()["wave"] = true
+					telegraphs.back()["push"] = float(ab.get("push", 2.5))
 				if bool(ab.get("dragon", false)):
 					# Mitraillage d'un dragon : la rangée garde des foyers.
 					telegraphs.back()["dragon"] = true
@@ -1885,6 +1911,8 @@ func _boss_ability(ab: Dictionary) -> void:
 				if bool(ab.get("fire", false)):
 					# Souffle de feu : le couloir reste en flammes.
 					telegraphs.back()["fire"] = true
+				if bool(ab.get("tentacle", false)):
+					telegraphs.back()["tentacle"] = true
 			_log(str(ab.get("log", "%s charge !")) % boss_name)
 		"summon":
 			var kind := str(ab.get("kind", "mushroom"))
@@ -1987,6 +2015,25 @@ func _boss_ability(ab: Dictionary) -> void:
 			_start_riddle(ab)
 		"traitor":
 			_spawn_traitor()
+		"whirlpool":
+			var none_f: Array[float] = []
+			var wp := Vector2(W * 0.5, 7.5) if bool(ab.get("center", false)) else Vector2(_target_lane(none_f), clampf(_target_row(none_f), 4.0, 10.0))
+			add_whirlpool(wp, float(ab.get("r", 1.8)), float(ab.get("dur", 8.0)))
+			_log("%s creuse un tourbillon : il aspire tes invocations !" % boss_name)
+		"swallow":
+			# Le Léviathan avale un portail (à marée haute, il en avale deux).
+			var n_sw := 2 if tide_state == "high" else 1
+			var cands: Array[Portal] = []
+			for pt in portals:
+				if pt.active() and not pt.is_negative() and not pt.is_seal:
+					cands.append(pt)
+			for k in range(mini(n_sw, cands.size())):
+				var pt: Portal = cands[rng.randi() % cands.size()]
+				cands.erase(pt)
+				pt.swallowed = true
+				_gate_curses.append({"portal": pt, "t": float(ab.get("dur", 10.0)), "kind": pt.kind, "value": pt.value, "element": pt.element, "swallowed": true})
+				_event({"t": "ring", "pos": Vector2(pt.x, pt.y), "r": 1.6, "color": "2A6AB8", "dur": 0.8})
+			_log("%s avale un portail !" % boss_name)
 		"take_off":
 			boss.airborne_t = float(ab.get("dur", 8.0))
 			_log("%s s'envole : seuls les tirs et les sorts l'atteignent !" % boss_name)
@@ -2072,6 +2119,8 @@ func _update_gate_curses() -> void:
 				pt.mirage = false
 				pt.revealed_t = 0.0
 				pt.hidden_t = 0.0
+			if bool(gc.get("swallowed", false)):
+				pt.swallowed = false
 			pt.flash_t = 0.4
 			_event({"t": "ring", "pos": Vector2(pt.x, pt.y), "r": 1.2, "color": "8FD0FF", "dur": 0.5})
 			_gate_curses.remove_at(i)
@@ -2114,10 +2163,15 @@ func _update_telegraphs() -> void:
 			continue
 		var r: Rect2 = tg["rect"]
 		var aval := bool(tg.get("avalanche", false))
+		var push := float(tg.get("push", 0.0))
 		for a in allies:
 			if a.alive and r.has_point(a.pos):
 				var dmg := float(tg["dmg"]) * 100.0 / (100.0 + a.defense)
 				_damage(a, dmg * (0.4 if a.role == "escort" else 1.0), "")
+				if push > 0.0 and a.alive and a.role != "escort":
+					# Vague déferlante : l'invocation est rejetée vers la Barrière.
+					a.pos.y = maxf(BARRIER_Y + 0.6, a.pos.y - push)
+					a.prev_pos = a.pos
 				if aval and a.alive:
 					a.slow_stacks = maxi(a.slow_stacks, 4)
 					a.slow_t = maxf(a.slow_t, 1.5)
@@ -2132,6 +2186,8 @@ func _update_telegraphs() -> void:
 			_event({"t": "shake"})
 		if float(tg["barrier"]) > 0.0:
 			_hurt_barrier(float(tg["barrier"]))
+		if bool(tg.get("wave", false)):
+			_event({"t": "wave", "y": r.get_center().y, "dur": 0.9})
 		if bool(tg.get("dragon", false)):
 			# Passage de dragon : des foyers restent sur la rangée mitraillée.
 			for k in range(int(tg.get("patches", 2))):
@@ -4177,3 +4233,117 @@ func _traitor_damage(tgt: Unit, amount: float) -> bool:
 	_event({"t": "text", "pos": tgt.pos + Vector2(0.0, 0.8), "text": "À TERRE", "color": "FFD070"})
 	_event({"t": "ring", "pos": tgt.pos, "r": 1.4, "color": "FFD070", "dur": 0.7})
 	return false
+
+
+# ---------------------------------------------------------------- zone 7 · Cité Engloutie
+
+## Marée : basse, puis elle monte (annoncée), reste haute, redescend. Sous l'eau, les portails n'agissent plus.
+func _update_tide() -> void:
+	if tide_cfg.is_empty():
+		return
+	tide_t -= TICK
+	var low_y := float(tide_cfg.get("low_y", 2.0))
+	var high_y := float(tide_cfg.get("high_y", 6.0))
+	var move := maxf(0.5, float(tide_cfg.get("move", 5.0)))
+	match tide_state:
+		"rising":
+			tide_y = minf(high_y, tide_y + (high_y - low_y) / move * TICK)
+		"falling":
+			tide_y = maxf(low_y, tide_y - (high_y - low_y) / move * TICK)
+	if tide_t <= 0.0:
+		match tide_state:
+			"low":
+				tide_state = "rising"
+				tide_t = move
+				_event({"t": "text", "pos": Vector2(W * 0.5, high_y + 0.6), "text": "LA MARÉE MONTE !", "color": "8FE0FF"})
+				_log("La marée monte : les portails du premier rang vont être noyés.")
+			"rising":
+				tide_state = "high"
+				tide_t = float(tide_cfg.get("high", 12.0))
+				tide_y = high_y
+			"high":
+				tide_state = "falling"
+				tide_t = move
+				_log("La marée redescend.")
+			_:
+				tide_state = "low"
+				tide_t = float(tide_cfg.get("low", 20.0))
+				tide_y = low_y
+	for p in portals:
+		var was := p.submerged
+		p.submerged = p.y < tide_y - 0.2
+		if p.submerged != was:
+			p.flash_t = 0.3
+
+
+## Dans l'eau : tes invocations ralentissent, les créatures aquatiques accélèrent.
+func _water(u: Unit) -> float:
+	if tide_cfg.is_empty() or u.pos.y >= tide_y or u.role in ["boss", "escort"]:
+		return 1.0
+	if u.team == 0:
+		return WATER_SLOW
+	return WATER_HASTE if bool((units_db.get(u.kind, {}) as Dictionary).get("aquatic", false)) else 1.0
+
+
+## Courants latéraux : une rangée qui emporte les unités d'un côté, puis de l'autre.
+func _update_currents() -> void:
+	for c in currents:
+		if float(c["flip"]) <= 0.0:
+			continue
+		c["t"] = float(c["t"]) - TICK
+		if float(c["t"]) <= 0.0:
+			c["t"] = float(c["flip"])
+			c["dir"] = -float(c["dir"])
+			_event({"t": "text", "pos": Vector2(W * 0.5, float(c["y"]) + 0.5), "text": "LE COURANT S'INVERSE", "color": "8FE0FF"})
+
+
+func _current_push(u: Unit) -> float:
+	if currents.is_empty() or u.hold_y > 0.0 or u.role in ["boss", "banniere", "rune", "tete"] or u.speed <= 0.0:
+		return 0.0
+	for c in currents:
+		if absf(u.pos.y - float(c["y"])) <= float(c["h"]) * 0.5:
+			return float(c["dir"]) * float(c["speed"]) / maxf(1.0, u.weight * 0.6)
+	return 0.0
+
+
+## Tourbillon : il aspire les invocations proches et blesse celles qui sont en son cœur (les ennemis l'ignorent).
+func add_whirlpool(pos: Vector2, r: float, dur: float) -> void:
+	whirlpools.append({"pos": pos, "r": r, "t": dur, "pull": 1.4})
+	_event({"t": "ring", "pos": pos, "r": r, "color": "4FA8C8", "dur": 0.8})
+
+
+func _update_whirlpools() -> void:
+	var i := 0
+	while i < whirlpools.size():
+		var wp: Dictionary = whirlpools[i]
+		wp["t"] = float(wp["t"]) - TICK
+		if float(wp["t"]) <= 0.0:
+			whirlpools.remove_at(i)
+			continue
+		var c: Vector2 = wp["pos"]
+		var r := float(wp["r"])
+		for a in allies:
+			if not a.alive or a.role == "escort":
+				continue
+			var d := a.pos.distance_to(c)
+			if d > r * 1.8:
+				continue
+			if d > 0.05:
+				# Aspiration en spirale vers le centre.
+				var to := (c - a.pos) / d
+				var side := Vector2(-to.y, to.x)
+				a.pos += (to * float(wp["pull"]) + side * 0.6) * TICK
+			if d <= r * 0.6:
+				_damage(a, whirl_dps * TICK, "")
+		i += 1
+
+
+func tide_label() -> String:
+	match tide_state:
+		"rising":
+			return "La marée monte"
+		"high":
+			return "Marée haute : le premier rang est noyé (%d s)" % int(ceil(tide_t))
+		"falling":
+			return "La marée redescend"
+	return ""

@@ -16,11 +16,12 @@ const ZONE_BLURB := {
 	4: "Niveaux 31 à 40 · acte 4, les Runes : bêtes des montagnes et élémentaires de givre, glace qui fait glisser, avalanches, Portes naines « Forge ».",
 	5: "Niveaux 41 à 50 · acte 5, le Désert de Verre : cycle du soleil et de la lune, mirages, miroirs qui renvoient les tirs, et le Sphinx et ses énigmes.",
 	6: "Niveaux 51 à 60 · acte 6, le Sang : dragons et démons de feu, incendies que le Givre éteint, et le Wyrm de cendre.",
+	7: "Niveaux 61 à 70 · acte 7, les Archives : créatures abyssales, marées qui noient les portails, courants, et le Léviathan.",
 }
 
 
 ## Ambiance de chaque zone sur la carte (option « Enrichie »).
-const ZONE_MOOD := {1: "mist", 2: "steppe", 3: "swamp", 4: "snow", 5: "desert", 6: "cinder"}
+const ZONE_MOOD := {1: "mist", 2: "steppe", 3: "swamp", 4: "snow", 5: "desert", 6: "cinder", 7: "abyss"}
 static var _fog: Shader
 
 

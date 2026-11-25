@@ -1029,6 +1029,10 @@ func _update_hud() -> void:
 		_set_text(hint_label, "Énigme : %d s pour répondre" % int(ceil(float(sim.riddle["t"]))))
 	elif sim.boss != null and sim.boss.alive and sim.boss.airborne_t > 0.0:
 		_set_text(hint_label, "%s en vol : seuls les tirs et les sorts l'atteignent (%d s)" % [sim.boss_name, int(ceil(sim.boss.airborne_t))])
+	elif sim.tide_state in ["rising", "high"]:
+		_set_text(hint_label, sim.tide_label())
+	elif not sim.whirlpools.is_empty():
+		_set_text(hint_label, "Tourbillon : il aspire tes invocations, envoie-les ailleurs")
 	elif sim.wildfires_active() > 0:
 		_set_text(hint_label, "Incendie : il brûle tes invocations — éteins-le au Givre")
 	elif not sim.daynight_cfg.is_empty():

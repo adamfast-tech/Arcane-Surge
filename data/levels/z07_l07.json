@@ -1,0 +1,103 @@
+{
+  "id": "z07_l07",
+  "name": "Le Chant des Sirènes",
+  "zone": 7,
+  "number": "7-7",
+  "global_level": 67,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx",
+    "ignara"
+  ],
+  "desc": "Deux Sirènes chantent sur les toits noyés : elles soignent le Nexus et leurs alliés. La marée monte sans prévenir.",
+  "par_time": 170,
+  "nexus": {
+    "hp": 30000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 420
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 420
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "nature"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 2,
+      "motion": "slide",
+      "range": 1.6,
+      "speed": 0.5
+    },
+    {
+      "kind": "elem",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "foudre"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 10.4,
+      "width": 2.2,
+      "value": 2
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 13,
+    "budget_per_level": 3,
+    "local_level": 7,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "fishman": 5,
+      "thunder_eel": 2.5,
+      "naga_archer": 1,
+      "titan_crab": 0.5
+    }
+  },
+  "initial_enemies": [
+    {
+      "kind": "siren",
+      "x": 2.6,
+      "y": 13.3
+    },
+    {
+      "kind": "siren",
+      "x": 6.4,
+      "y": 13.3
+    }
+  ],
+  "tide": {
+    "first": 18,
+    "low": 18,
+    "high": 12,
+    "move": 5,
+    "low_y": 2.0,
+    "high_y": 6.0
+  }
+}

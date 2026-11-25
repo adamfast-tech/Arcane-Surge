@@ -1,0 +1,94 @@
+{
+  "id": "z07_l01",
+  "name": "Les Quais Engloutis",
+  "zone": 7,
+  "number": "7-1",
+  "global_level": 61,
+  "type": "Assaut",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx",
+    "ignara"
+  ],
+  "desc": "La Cité Engloutie, sous les eaux depuis la Fracture. Des hommes-poissons et des anguilles-foudre remontent des quais. La marée monte et descend : à marée haute, les portails du premier rang sont sous l'eau, et inactifs. Les ennemis sont de Givre et de Foudre : la Foudre bat le Givre, la Nature bat la Foudre.",
+  "par_time": 180,
+  "nexus": {
+    "hp": 36000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 420
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 420
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "foudre"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 2.0,
+      "value": 2,
+      "motion": "slide",
+      "range": 1.6,
+      "speed": 0.5
+    },
+    {
+      "kind": "elem",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "nature"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 10.4,
+      "width": 2.2,
+      "value": 2,
+      "motion": "slide",
+      "range": 2.2,
+      "speed": 0.45
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 19,
+    "budget_per_level": 5,
+    "local_level": 1,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "fishman": 5,
+      "thunder_eel": 2.5,
+      "naga_archer": 0.5
+    }
+  },
+  "tide": {
+    "first": 24,
+    "low": 24,
+    "high": 10,
+    "move": 5,
+    "low_y": 2.0,
+    "high_y": 5.6
+  },
+  "initial_enemies": []
+}

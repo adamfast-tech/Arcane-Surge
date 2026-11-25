@@ -44,6 +44,12 @@
       "rare": 42,
       "epique": 20,
       "legendaire": 2
+    },
+    "7": {
+      "commun": 30,
+      "rare": 44,
+      "epique": 23,
+      "legendaire": 3
     }
   },
   "boss_rarity": {
@@ -71,6 +77,11 @@
       "rare": 34,
       "epique": 60,
       "legendaire": 6
+    },
+    "7": {
+      "rare": 28,
+      "epique": 64,
+      "legendaire": 8
     }
   },
   "materials": {
@@ -133,6 +144,16 @@
         0,
         2
       ]
+    },
+    "7": {
+      "perle_abyssale": [
+        1,
+        3
+      ],
+      "corail_noir": [
+        0,
+        2
+      ]
     }
   },
   "upgrade": {
@@ -166,6 +187,10 @@
       ],
       "6": [
         3,
+        4
+      ],
+      "7": [
+        4,
         4
       ]
     }

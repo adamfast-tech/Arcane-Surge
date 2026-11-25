@@ -36,6 +36,8 @@ static func plate(kind: String, size: Vector2i) -> ImageTexture:
 			_desert(img, rng, kind)
 		"cendres", "coulee", "braisemont", "nid", "autels", "citadelle", "caldeira", "antre":
 			_cendres(img, rng, kind)
+		"cite":
+			_cite(img, rng, kind)
 		_:
 			_forest(img, rng, kind)
 	var tex := ImageTexture.create_from_image(img)
@@ -1234,6 +1236,70 @@ static func _cendres_cave(img: Image, rng: RandomNumberGenerator, kind: String) 
 			_px(img, gx, gy2, Color("ff6a2a"))
 			_px(img, gx + 3, gy2, Color("ff6a2a"))
 	_fireflies(img, rng, int(w * h / 700.0), int(h * 0.1), h - 2, Color("ffb050") if mother else Color("ff6a2a"))
+
+
+# ---------------------------------------------------------------- acte 7 · Cité Engloutie
+
+## La Cité Engloutie : lumière de la surface en rayons, tours et arches noyées, statues d'Archivistes, algues, bulles.
+static func _cite(img: Image, rng: RandomNumberGenerator, _kind: String) -> void:
+	var w := img.get_width()
+	var h := img.get_height()
+	_sky(img, rng, [[0.0, Color("2a8aa8")], [0.2, Color("146a8a")], [0.5, Color("0a3a5a")], [1.0, Color("041428")]], 0.0)
+	# Surface ondulante et rayons de lumière.
+	for x in range(w):
+		_px(img, x, 2 + int(sin(float(x) * 0.2) * 1.5), Color(0.8, 0.95, 1.0, 0.5))
+	for r in range(5):
+		var x0 := rng.randi_range(-20, w)
+		var ww := rng.randi_range(5, 14)
+		for y in range(int(h * 0.7)):
+			var a := 0.08 * (1.0 - float(y) / (h * 0.7))
+			for dx in range(ww):
+				_px(img, x0 + dx + y / 4, y, Color(0.75, 0.95, 1.0, a))
+	# Tours et dômes engloutis.
+	var base := int(h * 0.66)
+	for i in range(maxi(4, w / 45)):
+		var tx := rng.randi_range(0, w)
+		var th := rng.randi_range(int(h * 0.15), int(h * 0.4))
+		var tw := rng.randi_range(8, 16)
+		img.fill_rect(Rect2i(tx, base - th, tw, th), Color("0c2a40"))
+		_disc(img, tx + tw / 2, base - th, tw / 2 + 2, Color("0e3048"))
+		for k in range(th / 8):
+			_px(img, tx + tw / 2, base - th + 4 + k * 8, Color("4fe3d2"))
+		# Algues accrochées.
+		for k in range(rng.randi_range(2, 5)):
+			var sx := tx + rng.randi_range(0, tw)
+			for d in range(rng.randi_range(4, 12)):
+				_px(img, sx + int(sin(float(d) * 0.6) * 1.2), base - th + d, Color("2a8a6a"))
+	# Arche centrale et statue d'Archiviste.
+	var ax := w / 2
+	var aw := int(w * 0.22)
+	for k in range(-aw, aw + 1):
+		var yy := base - int(h * 0.22) + int(float(k * k) / float(aw * aw) * h * 0.06)
+		img.fill_rect(Rect2i(ax + k, yy, 1, 3), Color("123a54"))
+	img.fill_rect(Rect2i(ax - aw, base - int(h * 0.16), 5, int(h * 0.16)), Color("123a54"))
+	img.fill_rect(Rect2i(ax + aw - 4, base - int(h * 0.16), 5, int(h * 0.16)), Color("123a54"))
+	var sx0 := ax - 3
+	img.fill_rect(Rect2i(sx0, base - int(h * 0.12), 7, int(h * 0.12)), Color("1a4a5a"))
+	_disc(img, ax, base - int(h * 0.12) - 3, 3, Color("1a4a5a"))
+	_px(img, ax - 1, base - int(h * 0.12) - 3, Color("8fe0ff"))
+	_px(img, ax + 1, base - int(h * 0.12) - 3, Color("8fe0ff"))
+	# Fond marin, coraux, bulles, poissons.
+	for y in range(base, h):
+		img.fill_rect(Rect2i(0, y, w, 1), Color("0a2a3a").lerp(Color("041420"), float(y - base) / float(maxi(1, h - base))))
+	for i in range(maxi(8, w / 14)):
+		var cx := rng.randi_range(0, w)
+		var cb := base + rng.randi_range(2, int((h - base) * 0.6))
+		for d in range(rng.randi_range(3, 8)):
+			_px(img, cx + rng.randi_range(-1, 1), cb - d, [Color("e86a8a"), Color("ff9a6a"), Color("4fe3d2")][i % 3])
+	for i in range(int(w * h / 500.0)):
+		var bx := rng.randi_range(0, w - 1)
+		var by := rng.randi_range(0, h - 1)
+		_px(img, bx, by, Color(0.85, 0.97, 1.0, rng.randf_range(0.2, 0.6)))
+	for k in range(3):
+		var fx := rng.randi_range(0, w)
+		var fy := rng.randi_range(int(h * 0.2), int(h * 0.5))
+		for j in range(6):
+			_px(img, fx + j * 4, fy + rng.randi_range(-2, 2), Color(0.7, 0.9, 1.0, 0.7))
 
 
 static func icon(kind: String, col: Color) -> ImageTexture:

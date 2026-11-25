@@ -58,6 +58,9 @@ var swamp := false ## Zone 3 : Marais Murmurants au crépuscule.
 var frost := false ## Zone 4 : Pics Gelés, nuit d'aurore boréale.
 var desert := false ## Zone 5 : Désert de Verre ; la lumière suit le cycle soleil/lune de la simulation.
 var cinder := false ## Zone 6 : Forêt Cendrée, ciel de fumée rougeoyant, incendies et dragons.
+var abyss := false ## Zone 7 : Cité Engloutie, lumière bleue sous-marine, marée, courants, tourbillons.
+var _water: MeshInstance3D
+var _water_mat: StandardMaterial3D
 var _fire_nodes: Dictionary = {} ## id du foyer -> {root, ground, mat, flames}
 var _dragons: Array[Dictionary] = [] ## passages de dragons en cours : {spr, shadow, y, age, dur, dir}
 var _boss_lift := 0.0 ## hauteur du boss en vol (Drake ancien, Wyrm de cendre)
@@ -81,6 +84,7 @@ func setup(s: BattleSim, f: Font, forest_healed: bool = false) -> void:
 	frost = WorldArt.zone == 4
 	desert = WorldArt.zone == 5
 	cinder = WorldArt.zone == 6
+	abyss = WorldArt.zone == 7
 	_billboard = load("res://shaders/billboard_atlas.gdshader")
 	_stone_mat = _triplanar(WorldArt.stone_texture(), 0.55)
 	_build_environment()
@@ -184,6 +188,9 @@ func _build_environment() -> void:
 	elif cinder:
 		_env.ambient_light_color = Color("c8806a")
 		_env.ambient_light_energy = 0.95
+	elif abyss:
+		_env.ambient_light_color = Color("6aa8c8")
+		_env.ambient_light_energy = 1.0
 	_env.fog_enabled = true
 	_env.fog_mode = Environment.FOG_MODE_DEPTH
 	_env.fog_light_color = Color("26405a") if healed else Color("2d2c5e")
@@ -197,6 +204,8 @@ func _build_environment() -> void:
 		_env.fog_light_color = Color("c89a5a")
 	elif cinder:
 		_env.fog_light_color = Color("5a2a1e")
+	elif abyss:
+		_env.fog_light_color = Color("0e4a6a")
 	_env.fog_depth_begin = 40.0
 	_env.fog_depth_end = 80.0
 	_env.glow_enabled = true
@@ -210,6 +219,8 @@ func _build_environment() -> void:
 	moon.light_color = Color("fff0d0") if day else (Color("d0c8e8") if swamp else (Color("c8f0ff") if frost else Color("b4c0ff")))
 	if cinder:
 		moon.light_color = Color("ffb890")
+	elif abyss:
+		moon.light_color = Color("a8e8ff")
 	moon.light_energy = 1.1
 	moon.rotation_degrees = Vector3(-55.0, -35.0, 0.0)
 	add_child(moon)
@@ -293,6 +304,8 @@ func _build_terrain() -> void:
 		layers = [[-1.3, Color("eaf4fb"), 0.45, Vector2(0.018, 0.004)], [-2.8, Color("7fb7e0"), 0.55, Vector2(-0.012, 0.006)]]
 	elif cinder:
 		layers = [[-1.3, Color("6a3a30"), 0.5, Vector2(0.01, 0.006)], [-2.8, Color("3a2020"), 0.6, Vector2(-0.008, 0.008)]]
+	elif abyss:
+		layers = [[-1.3, Color("4fa8c8"), 0.45, Vector2(0.014, 0.004)], [-2.8, Color("1a5a7a"), 0.6, Vector2(-0.01, 0.006)]]
 	for l in layers:
 		var mi := MeshInstance3D.new()
 		var mp := PlaneMesh.new()
@@ -438,6 +451,19 @@ func _build_props() -> void:
 		ff.amount = 90
 		ff.initial_velocity_max = 0.9
 		ff.gravity = Vector3(0.35, 0.02, 0.0)
+	if abyss:
+		# Bulles qui montent vers la surface.
+		ramp = Gradient.new()
+		ramp.set_color(0, Color(0.8, 0.95, 1.0, 0.0))
+		ramp.set_color(1, Color(0.8, 0.95, 1.0, 0.0))
+		ramp.add_point(0.3, Color(0.85, 0.97, 1.0, 0.8))
+		ramp.add_point(0.8, Color(0.7, 0.9, 1.0, 0.6))
+		ff.amount = 100
+		ff.direction = Vector3(0.0, 1.0, 0.0)
+		ff.spread = 15.0
+		ff.initial_velocity_min = 0.3
+		ff.initial_velocity_max = 0.7
+		ff.gravity = Vector3(0.03, 0.2, 0.0)
 	if cinder:
 		# Braises qui montent de la forêt en feu.
 		ramp = Gradient.new()
@@ -963,6 +989,8 @@ func _process(delta: float) -> void:
 		_update_fires(delta)
 	if not _dragons.is_empty():
 		_update_dragons(delta)
+	if not sim.tide_cfg.is_empty():
+		_update_water()
 	if sim.boss != null:
 		_boss_lift = move_toward(_boss_lift, 1.8 if (sim.boss.alive and sim.boss.airborne_t > 0.0) else 0.0, delta * 2.4)
 	_update_towers()
@@ -1004,7 +1032,7 @@ func _update_portals() -> void:
 			root.position.y = 0.04 * sin(t * 3.0 + float(p.id))
 			root.scale = Vector3.ONE * (1.0 - 0.6 * clampf(1.0 - p.revealed_t / 1.2, 0.0, 1.0) if p.revealed_t > 0.0 else 1.0)
 		var col := p.color()
-		var dim := (p.kind == "add" and not p.ready) or (p.kind == "sub" and p.charges <= 0)
+		var dim := (p.kind == "add" and not p.ready) or (p.kind == "sub" and p.charges <= 0) or p.submerged or p.swallowed
 		var a := 0.3 + 0.08 * sin(t * 4.0 + float(p.id))
 		if dim:
 			a = 0.1
@@ -1262,7 +1290,38 @@ func _draw_fx(delta: float) -> void:
 		var tcol := Color(0.85, 0.95, 1.0) if bool(tg.get("avalanche", false)) else (Color(1.0, 0.82, 0.35) if bool(tg.get("sun", false)) else Color(1.0, 0.25, 0.3))
 		if bool(tg.get("dragon", false)) or bool(tg.get("fire", false)):
 			tcol = Color(1.0, 0.55, 0.15)
+		elif bool(tg.get("wave", false)):
+			tcol = Color(0.55, 0.9, 1.0)
+		elif bool(tg.get("tentacle", false)):
+			tcol = Color(0.75, 0.45, 0.95)
 		_rect(lines, tg["rect"], Color(tcol, 0.45 + 0.5 * pulse), true)
+	# Zone 7 : courants (flèches qui défilent) et tourbillons (spirales).
+	for c in sim.currents:
+		var cy := float(c["y"])
+		var dir := float(c["dir"])
+		var off := fposmod(t * float(c["speed"]) * 1.4, 1.2)
+		var x := -0.6 + off
+		while x < BattleSim.W:
+			var a := Vector2(x if dir > 0.0 else BattleSim.W - x, cy)
+			var b := a + Vector2(0.5 * dir, 0.0)
+			lines.append([w3(a, 0.05), w3(b, 0.05), Color(0.6, 0.95, 1.0, 0.8)])
+			lines.append([w3(a + Vector2(0.0, 0.06), 0.05), w3(b + Vector2(0.0, 0.06), 0.05), Color(0.6, 0.95, 1.0, 0.5)])
+			lines.append([w3(b, 0.05), w3(b + Vector2(-0.18 * dir, 0.12), 0.05), Color(0.6, 0.95, 1.0, 0.55)])
+			lines.append([w3(b, 0.05), w3(b + Vector2(-0.18 * dir, -0.12), 0.05), Color(0.6, 0.95, 1.0, 0.55)])
+			x += 1.2
+	for wp in sim.whirlpools:
+		var wc: Vector2 = wp["pos"]
+		var wr := float(wp["r"])
+		for arm in range(3):
+			var prev := wc
+			for k in range(24):
+				var ang := t * 3.0 + float(arm) * TAU / 3.0 + float(k) * 0.32
+				var rr := wr * float(k) / 23.0
+				var pnt := wc + Vector2(cos(ang), sin(ang)) * rr
+				if k > 0:
+					lines.append([w3(prev, 0.06), w3(pnt, 0.06), Color(0.5, 0.85, 1.0, 0.75)])
+				prev = pnt
+		_ring(lines, wc, wr, Color(0.4, 0.75, 1.0, 0.6), 0.06)
 	# Plaies de l'Hydre : cercle orange qui se resserre (brûle-les avant 5 s).
 	for st in sim.stumps:
 		var left := clampf(float(st["t"]) / BattleSim.STUMP_TIME, 0.0, 1.0)
@@ -1432,3 +1491,23 @@ func _update_dragons(delta: float) -> void:
 		(d["spr"] as Sprite3D).position = w3(Vector2(x, float(d["y"])), 3.2 + sin(k * PI) * 0.6)
 		(d["shadow"] as MeshInstance3D).position = w3(Vector2(x, float(d["y"])), 0.04)
 		i += 1
+
+
+# ---------------------------------------------------------------- zone 7 · Cité Engloutie
+
+## Marée : une nappe d'eau translucide couvre l'arène jusqu'au niveau de la marée.
+func _update_water() -> void:
+	if _water == null:
+		_water = MeshInstance3D.new()
+		var pm := PlaneMesh.new()
+		pm.size = Vector2(BattleSim.W + 4.0, 1.0)
+		_water.mesh = pm
+		_water_mat = _unshaded(Color(0.2, 0.6, 0.8, 0.28), true)
+		_water.material_override = _water_mat
+		add_child(_water)
+	var top := lerpf(_water.get_meta("y", sim.tide_y), sim.tide_y, 0.2)
+	_water.set_meta("y", top)
+	var h := maxf(0.05, top + 2.0)
+	(_water.mesh as PlaneMesh).size = Vector2(BattleSim.W + 4.0, h)
+	_water.position = w3(Vector2(BattleSim.W * 0.5, top - h * 0.5), 0.09 + 0.02 * sin(t * 1.6))
+	_water_mat.albedo_color = Color(0.25, 0.65, 0.85, 0.24 + 0.04 * sin(t * 2.2))

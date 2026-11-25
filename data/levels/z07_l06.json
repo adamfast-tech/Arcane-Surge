@@ -1,0 +1,115 @@
+{
+  "id": "z07_l06",
+  "name": "La Cloche des Archivistes",
+  "zone": 7,
+  "number": "7-6",
+  "global_level": 66,
+  "type": "Escorte",
+  "party": [
+    "brann",
+    "sylwen",
+    "krag",
+    "nyx",
+    "ignara"
+  ],
+  "objective": "escort",
+  "desc": "Une cloche de plongée des Archivistes doit traverser la place jusqu'aux portes des Archives. Les anguilles la guettent en embuscade, et un courant la pousse de côté.",
+  "par_time": 180,
+  "nexus": {
+    "hp": 32000
+  },
+  "escort": {
+    "kind": "diving_bell",
+    "x": 4.5,
+    "y": 1.6,
+    "goal_y": 12.4,
+    "speed": 0.13,
+    "hp": 22000
+  },
+  "towers": [
+    {
+      "x": 1.6,
+      "y": 14.2,
+      "hp": 420
+    },
+    {
+      "x": 7.4,
+      "y": 14.2,
+      "hp": 420
+    }
+  ],
+  "portals": [
+    {
+      "kind": "elem",
+      "x": 2.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "foudre"
+    },
+    {
+      "kind": "mult",
+      "x": 4.5,
+      "y": 5.0,
+      "width": 1.8,
+      "value": 2,
+      "motion": "slide",
+      "range": 1.2,
+      "speed": 0.5
+    },
+    {
+      "kind": "elem",
+      "x": 7.0,
+      "y": 5.0,
+      "width": 2.0,
+      "element": "nature"
+    },
+    {
+      "kind": "mult",
+      "x": 2.4,
+      "y": 10.4,
+      "width": 2.0,
+      "value": 2
+    },
+    {
+      "kind": "mult",
+      "x": 6.6,
+      "y": 10.4,
+      "width": 2.0,
+      "value": 2
+    }
+  ],
+  "waves": {
+    "first": 3,
+    "interval": [
+      7,
+      10
+    ],
+    "budget_base": 12,
+    "budget_per_level": 3,
+    "local_level": 6,
+    "growth": 0.035,
+    "spawn_y": 14.6,
+    "pool": {
+      "fishman": 6,
+      "thunder_eel": 3,
+      "naga_archer": 0.6,
+      "coral_guard": 0.6
+    }
+  },
+  "currents": [
+    {
+      "y": 8.6,
+      "h": 1.4,
+      "dir": 1,
+      "speed": 0.7,
+      "flip": 20
+    }
+  ],
+  "ambush": {
+    "every": 22,
+    "count": 2,
+    "kind": "thunder_eel",
+    "ahead": 2.6
+  },
+  "initial_enemies": []
+}
