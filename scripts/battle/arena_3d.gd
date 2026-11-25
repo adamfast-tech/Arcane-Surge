@@ -405,7 +405,11 @@ func _build_terrain() -> void:
 		# Désert : palmiers à l'oasis, quelques-uns ailleurs, arbres morts.
 		"dunes": [0, 0, 0, 1, 1, 2], "mirage": [0, 0, 0, 2, 2, 1], "oasis": [0, 0, 0, 5, 5, 0], "miroirs": [0, 0, 0, 1, 1, 1],
 		"scarabee": [0, 0, 0, 1, 1, 3], "caravane_sable": [0, 0, 0, 2, 2, 1], "spectres": [0, 0, 0, 1, 1, 3], "sceaux": [0, 0, 0, 1, 1, 1],
-		"college": [0, 0, 0, 1, 1, 1], "sphinx": [0, 0, 0, 1, 1, 2]}.get(sc, [1, 1, 1, 0, 0, 0])
+		"college": [0, 0, 0, 1, 1, 1], "sphinx": [0, 0, 0, 1, 1, 2],
+		# Forêt Cendrée : sapins et arbres morts calcinés ; au Pardon, des feuillus repoussent.
+		"lisiere_cendree": [2, 2, 2, 1, 1, 4], "couloirs": [3, 3, 3, 0, 0, 3], "ailes": [1, 1, 1, 0, 0, 4], "coulee": [0, 0, 0, 0, 0, 5],
+		"drake": [1, 1, 0, 0, 0, 4], "braisemont": [1, 1, 1, 1, 1, 3], "nid": [1, 1, 1, 0, 0, 3], "autels": [0, 0, 0, 0, 0, 4],
+		"citadelle": [0, 0, 0, 0, 0, 3], "antre": [0, 0, 0, 0, 0, 3], "pardon": [2, 2, 2, 3, 3, 2]}.get(sc, [1, 1, 1, 0, 0, 0])
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_colors = true
@@ -419,7 +423,8 @@ func _build_terrain() -> void:
 		"route": 22, "moulins": 40, "pylones": 16, "gue": 36, "repaire": 18, "orage": 20, "caravane": 22, "rebouteux": 26, "traite": 26, "fort": 16,
 		"pilotis": 44, "mares": 40, "brume": 56, "gue_morts": 34, "croc": 40, "saules": 60, "barque": 40, "sorciere": 50, "refuge": 36, "hydre": 38,
 		"col": 80, "congeres": 70, "porte_naine": 50, "lac_gele": 56, "sentinelle": 36, "aurore": 60, "chariot": 76, "portes": 36, "forteresse": 30, "colosse": 20,
-		"dunes": 10, "mirage": 14, "oasis": 46, "miroirs": 10, "scarabee": 10, "caravane_sable": 14, "spectres": 12, "sceaux": 10, "college": 12, "sphinx": 12}.get(sc, 90)
+		"dunes": 10, "mirage": 14, "oasis": 46, "miroirs": 10, "scarabee": 10, "caravane_sable": 14, "spectres": 12, "sceaux": 10, "college": 12, "sphinx": 12,
+		"lisiere_cendree": 50, "couloirs": 90, "ailes": 40, "coulee": 18, "drake": 26, "braisemont": 30, "nid": 40, "autels": 24, "citadelle": 14, "antre": 12, "pardon": 56}.get(sc, 90)
 	var dmin: float = {"lisiere": 10.0, "sentier": 6.2, "clairiere": 9.0, "roncier": 7.0, "fougeres": 8.0, "cercle": 7.5, "source": 9.0, "coeur": 6.8, "sylvarche": 7.5}.get(sc, 10.0)
 	var ty := -0.7 if floor_set else -2.5
 	for i in range(tree_n):
@@ -629,6 +634,9 @@ func _build_scene_props() -> void:
 		return
 	if WorldArt.zone == 5:
 		_build_desert_props()
+		return
+	if WorldArt.zone == 6:
+		_build_cinder_props()
 		return
 	var sc := WorldArt.scene
 	var rng := RandomNumberGenerator.new()
@@ -1231,6 +1239,169 @@ func _build_desert_ambience() -> void:
 			add_child(gl)
 
 
+## Forêt Cendrée (zone 6) : troncs calcinés, incendies, coulées de lave, os de dragon, nids de phénix,
+## autels du Wyrm, remparts de basalte, campement des réfugiés.
+func _build_cinder_props() -> void:
+	var sc := WorldArt.scene
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(sc) + 6
+	var charred := WorldArt.charred_tree_texture()
+	for i in range({"couloirs": 12, "lisiere_cendree": 10, "pardon": 6}.get(sc, 7)):
+		_prop(charred, _side_spot(rng), rng.randf_range(1.6, 2.4))
+	var stone := WorldArt.ash_stone_texture()
+	for i in range(5):
+		_prop(stone, _side_spot(rng), rng.randf_range(1.0, 1.5), Color(0.6, 0.55, 0.55))
+	if sc in WorldArt.LAVA_SCENES:
+		for side: float in [-1.0, 1.0]:
+			var lava := MeshInstance3D.new()
+			var lm := PlaneMesh.new()
+			lm.size = Vector2(3.0, 22.0)
+			lava.mesh = lm
+			var mat := StandardMaterial3D.new()
+			var lt := WorldArt.lava_texture()
+			mat.albedo_texture = lt
+			mat.emission_enabled = true
+			mat.emission_texture = lt
+			mat.emission_energy_multiplier = 1.4
+			mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+			mat.uv1_scale = Vector3(1.0, 7.0, 1.0)
+			mat.roughness = 0.8
+			lava.material_override = mat
+			lava.position = w3(Vector2(4.5 + side * 7.3, 8.0), -0.57)
+			add_child(lava)
+			for k in range(3):
+				_prop_light(Vector2(4.5 + side * 7.0, 2.0 + float(k) * 6.0), 0.4, Color("ff6a1a"), 1.2, 5.0)
+	match sc:
+		"lisiere_cendree", "couloirs":
+			_hills_fires(rng, 4 if sc == "lisiere_cendree" else 8)
+			if sc == "couloirs":
+				# Murs de flammes qui bordent les couloirs.
+				var flame := WorldArt.flame_texture()
+				for i in range(16):
+					var side2 := -1.0 if i % 2 == 0 else 1.0
+					var f := _prop(flame, Vector2(4.5 + side2 * rng.randf_range(5.8, 6.4), float(i / 2) * 2.2), 1.3, Color(1.5, 1.2, 1.0))
+					f.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		"ailes", "drake":
+			var skull := WorldArt.big_skull_texture()
+			for i in range(3 if sc == "ailes" else 5):
+				_prop(skull, _side_spot(rng), rng.randf_range(1.8, 2.4), Color(0.85, 0.75, 0.7))
+			var rib := WorldArt.ribcage_texture()
+			for i in range(3):
+				_prop(rib, _side_spot(rng), rng.randf_range(1.8, 2.4), Color(0.85, 0.75, 0.7))
+			_hills_fires(rng, 2)
+		"braisemont":
+			var tent := WorldArt.tent_texture(Color("8a7a6a"), Color("a84a2a"))
+			for i in range(4):
+				_prop(tent, _side_spot(rng), 1.8)
+			var cart := WorldArt.cart_texture(true)
+			for i in range(3):
+				_prop(cart, _side_spot(rng), 1.6)
+			_hills_fires(rng, 3)
+		"nid":
+			var nest := WorldArt.phoenix_nest_texture()
+			for i in range(6):
+				var np := _side_spot(rng)
+				_prop(nest, np, rng.randf_range(1.4, 1.9), Color(1.3, 1.15, 1.0))
+				_prop_light(np, 0.6, Color("ffb040"), 1.0, 3.5)
+		"autels", "antre":
+			var altar := WorldArt.wyrm_altar_texture()
+			for i in range(6 if sc == "autels" else 3):
+				var ap := _side_spot(rng)
+				_prop(altar, ap, 1.7)
+				_prop_light(ap, 0.8, Color("e84a6a"), 0.9, 3.5)
+			var banner := WorldArt.banner_pole_texture(Color("6a1a2a"), true)
+			for x: float in [-1.4, 10.4]:
+				_prop(banner, Vector2(x, 13.0), 1.8)
+			if sc == "antre":
+				var skull2 := WorldArt.big_skull_texture()
+				for i in range(4):
+					_prop(skull2, _side_spot(rng), rng.randf_range(2.0, 2.6), Color(0.75, 0.65, 0.6))
+		"citadelle":
+			var wall := WorldArt.basalt_wall_texture()
+			for i in range(10):
+				var side3 := -1.0 if i % 2 == 0 else 1.0
+				var wp := Vector2(4.5 + side3 * rng.randf_range(6.5, 8.0), 1.0 + float(i / 2) * 3.6)
+				_prop(wall, wp, 2.0)
+				if i % 3 == 0:
+					_prop_light(wp, 1.2, Color("ff8a3a"), 0.8, 3.0)
+			var brazier := WorldArt.brazier_texture()
+			for x2: float in [-1.0, 10.0]:
+				for y2: float in [4.0, 12.0]:
+					_prop(brazier, Vector2(x2, y2), 1.5)
+					_prop_light(Vector2(x2, y2), 1.0, Color("ff9a4a"), 1.0, 3.5)
+			var banner2 := WorldArt.banner_pole_texture(Color("8a2a1a"), false)
+			for i in range(4):
+				_prop(banner2, _side_spot(rng), 1.8)
+		"pardon":
+			var stump := WorldArt.charred_tree_texture()
+			for i in range(4):
+				_prop(stump, _side_spot(rng), rng.randf_range(1.0, 1.4))
+
+
+## Forêt Cendrée : cendre qui tombe, étincelles au-dessus de la lave, ombre d'ailes qui balaie l'arène.
+func _build_cinder_ambience() -> void:
+	var sc := WorldArt.scene
+	var ash := CPUParticles3D.new()
+	ash.amount = 30 if sc == "pardon" else 70
+	ash.lifetime = 8.0
+	ash.preprocess = 8.0
+	ash.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	ash.emission_box_extents = Vector3(10.0, 0.5, 12.0)
+	ash.position = Vector3(4.5, 6.0, -8.0)
+	ash.direction = Vector3(0.2, -1.0, 0.0)
+	ash.spread = 25.0
+	ash.initial_velocity_min = 0.3
+	ash.initial_velocity_max = 0.6
+	ash.gravity = Vector3(0.08, -0.06, 0.0)
+	ash.angular_velocity_min = -90.0
+	ash.angular_velocity_max = 90.0
+	ash.mesh = _particle_mesh(0.06)
+	var ag := Gradient.new()
+	ag.set_color(0, Color(0.55, 0.52, 0.5, 0.0))
+	ag.set_color(1, Color(0.4, 0.38, 0.36, 0.0))
+	ag.add_point(0.2, Color(0.6, 0.57, 0.55, 0.8))
+	ag.add_point(0.8, Color(0.45, 0.42, 0.4, 0.7))
+	ash.color_ramp = ag
+	add_child(ash)
+	if sc in WorldArt.LAVA_SCENES:
+		for side: float in [-1.0, 1.0]:
+			var sp := CPUParticles3D.new()
+			sp.amount = 30
+			sp.lifetime = 1.2
+			sp.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+			sp.emission_box_extents = Vector3(1.3, 0.0, 10.0)
+			sp.position = w3(Vector2(4.5 + side * 7.3, 8.0), -0.5)
+			sp.direction = Vector3(0.0, 1.0, 0.0)
+			sp.spread = 20.0
+			sp.initial_velocity_min = 0.8
+			sp.initial_velocity_max = 1.8
+			sp.gravity = Vector3(0.0, -2.0, 0.0)
+			sp.mesh = _particle_mesh(0.07)
+			var sg := Gradient.new()
+			sg.set_color(0, Color(1.0, 0.85, 0.4, 1.0))
+			sg.set_color(1, Color(1.0, 0.3, 0.05, 0.0))
+			sp.color_ramp = sg
+			add_child(sp)
+	if sc in ["ailes", "nid", "citadelle", "drake"]:
+		# Un dragon passe au-dessus : son ombre glisse sur l'arène, toutes les quelques secondes.
+		var shadow := Sprite3D.new()
+		shadow.texture = FxArt.flash()
+		shadow.shaded = false
+		shadow.transparent = true
+		shadow.modulate = Color(0.05, 0.02, 0.02, 0.4)
+		shadow.pixel_size = 0.22
+		shadow.rotation_degrees = Vector3(-90.0, 0.0, 0.0)
+		shadow.scale = Vector3(1.8, 1.0, 1.0)
+		add_child(shadow)
+		var a := w3(Vector2(-12.0, 4.0), 0.05)
+		var b := w3(Vector2(22.0, 13.0), 0.05)
+		shadow.position = a
+		var tw := create_tween().set_loops()
+		tw.tween_property(shadow, "position", b, 3.2)
+		tw.tween_interval(7.0)
+		tw.tween_callback(func() -> void: shadow.position = a)
+
+
 ## Feux de camp : flamme, lueur qui danse, fumée.
 func _hills_fires(rng: RandomNumberGenerator, n: int) -> void:
 	var flame := WorldArt.flame_texture()
@@ -1406,6 +1577,22 @@ func _pillar_mats() -> Array:
 			cap.emission_enabled = true
 			cap.emission = Color("e8a040")
 			cap.emission_energy_multiplier = 0.5
+		# Forêt Cendrée : basalte noir, braises au sommet ; marque du Wyrm aux autels ; mousse neuve au Pardon.
+		"lisiere_cendree", "couloirs", "ailes", "drake", "coulee", "antre", "nid", "braisemont", "citadelle":
+			body.albedo_color = Color(0.55, 0.48, 0.48)
+			cap.albedo_color = Color("4a2a20")
+			cap.emission_enabled = true
+			cap.emission = Color("a8380c")
+			cap.emission_energy_multiplier = 0.45
+		"autels":
+			body.albedo_color = Color(0.5, 0.45, 0.55)
+			cap.albedo_color = Color("4a1a2a")
+			cap.emission_enabled = true
+			cap.emission = Color("a01a40")
+			cap.emission_energy_multiplier = 0.5
+		"pardon":
+			body.albedo_color = Color(0.6, 0.55, 0.55)
+			cap.albedo_color = Color("6aa83a")
 		"colosse":
 			body.albedo_color = Color(0.7, 0.72, 0.85)
 			cap.albedo_color = Color("ff9a4a")
@@ -1513,6 +1700,8 @@ func _build_ambience() -> void:
 		_build_frost_ambience()
 	if WorldArt.zone == 5:
 		_build_desert_ambience()
+	if WorldArt.zone == 6:
+		_build_cinder_ambience()
 	if sc in ["lisiere", "sentier", "clairiere", "fougeres", "source", "sylvarche", "roncier"]:
 		var lv := CPUParticles3D.new()
 		lv.amount = 26

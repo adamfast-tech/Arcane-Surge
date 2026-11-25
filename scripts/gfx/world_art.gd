@@ -410,6 +410,36 @@ static func ground_texture(healed: bool = false) -> ImageTexture:
 				var gy2 := rng.randi_range(int(2.0 * PX_PER_M), h - int(2.0 * PX_PER_M))
 				for k in range(rng.randi_range(5, 10)):
 					_px(img, gx2 + k, gy2 + (k % 3), Color("e8a040"))
+		"lisiere_cendree", "couloirs", "ailes", "drake", "pardon", "nid":
+			# Cendres, braises qui couvent, troncs calcinés tombés.
+			for i in range(w * h / 70):
+				_px(img, rng.randi_range(0, w - 1), rng.randi_range(0, h - 1), Color("ff8a3a") if rng.randf() < 0.25 else Color("6a6a6a"))
+			for i in range(8):
+				var lx3 := rng.randi_range(0, w - 30)
+				var ly3 := rng.randi_range(int(2.0 * PX_PER_M), h - int(2.0 * PX_PER_M))
+				for k in range(rng.randi_range(12, 26)):
+					_px(img, lx3 + k, ly3 + k / 8, Color("1a1410"))
+					_px(img, lx3 + k, ly3 + k / 8 + 1, Color("2a2018"))
+		"coulee", "antre":
+			# Fissures de lave dans la roche noire.
+			for v6 in range(24):
+				var p6 := Vector2(rng.randf_range(0.0, float(w)), rng.randf_range(0.0, float(h)))
+				var d6 := Vector2.from_angle(rng.randf_range(0.0, TAU))
+				for k in range(34):
+					_px(img, int(p6.x), int(p6.y), Color("ff6a1a") if k % 3 != 0 else Color("ffd060"))
+					d6 = d6.rotated(rng.randf_range(-0.5, 0.5))
+					p6 += d6
+		"braisemont", "citadelle", "autels":
+			# Dalles noircies, marque du Wyrm gravée (autels).
+			for i in range(w * h / 90):
+				_px(img, rng.randi_range(0, w - 1), rng.randi_range(0, h - 1), Color("3a3a3a"))
+			if scene == "autels":
+				for i in range(8):
+					var mx := rng.randi_range(10, w - 10)
+					var my := rng.randi_range(int(2.0 * PX_PER_M), h - int(2.0 * PX_PER_M))
+					for a in range(16):
+						var ang := float(a) / 16.0 * TAU
+						_px(img, mx + int(cos(ang) * 5.0), my + int(sin(ang) * 3.0), Color("d83a6a"))
 		"traite":
 			# Herbe foulée par les deux camps, fleurs des prés.
 			for i in range(w * h / 80):
@@ -1282,7 +1312,11 @@ const LEVEL_SCENE := {
 	"z04_l06": "aurore", "z04_l07": "chariot", "z04_l08": "portes", "z04_l09": "forteresse", "z04_l10": "colosse",
 	"z05_l01": "dunes", "z05_l02": "mirage", "z05_l03": "oasis", "z05_l04": "miroirs", "z05_l05": "scarabee",
 	"z05_l06": "caravane_sable", "z05_l07": "spectres", "z05_l08": "sceaux", "z05_l09": "college", "z05_l10": "sphinx",
+	"z06_l01": "lisiere_cendree", "z06_l02": "couloirs", "z06_l03": "ailes", "z06_l04": "coulee", "z06_l05": "drake",
+	"z06_l06": "braisemont", "z06_l07": "nid", "z06_l08": "autels", "z06_l09": "citadelle", "z06_l10": "antre", "z06_r01": "pardon",
 }
+## Forêt Cendrée (zone 6) : coulées de lave de part et d'autre.
+const LAVA_SCENES := ["coulee", "antre", "drake"]
 ## Désert de Verre (zone 5) : lieux du Collège oublié (dalles, colonnes, verre).
 const COLLEGE_SCENES := ["sceaux", "college", "sphinx", "miroirs"]
 ## Pics Gelés (zone 4) : lieux taillés par les nains (pavés, runes cyan).
@@ -1385,6 +1419,17 @@ static func scene_palette(s: String) -> Dictionary:
 			return {"grass": Color("2f4a36"), "path": "cobbles", "mist": Color("e8d8b0"), "moss": Color("3f5a3a"), "motes": Color(0.7, 1.0, 1.0), "lift": 1.0}
 		"spectres":
 			return {"grass": Color("2a4436"), "path": "grass", "mist": Color("a8b0d8"), "moss": Color("34503a"), "motes": Color(0.75, 0.85, 1.0), "lift": 0.8}
+		# Zone 6, Forêt Cendrée : couleurs du Bois, que la teinte des Cendres change en cendre et braise.
+		"lisiere_cendree", "couloirs", "ailes", "drake", "pardon":
+			return {"grass": Color("35593f"), "path": "dirt", "mist": Color("8a5a48"), "moss": Color("4a6a48"), "motes": Color(1.0, 0.6, 0.25), "warm_h": 0.05, "lift": 1.0}
+		"coulee", "antre":
+			return {"grass": Color("2a4436"), "path": "dirt", "mist": Color("a04a2a"), "moss": Color("34503a"), "motes": Color(1.0, 0.5, 0.2), "warm_h": 0.05, "lift": 0.9}
+		"braisemont", "citadelle":
+			return {"grass": Color("2f4a36"), "path": "cobbles", "mist": Color("8a6050"), "moss": Color("3f5a3a"), "motes": Color(1.0, 0.65, 0.3), "warm_h": 0.05, "lift": 1.0}
+		"nid":
+			return {"grass": Color("35593f"), "path": "grass", "mist": Color("c87a3a"), "moss": Color("4a6a48"), "motes": Color(1.0, 0.8, 0.35), "warm_h": 0.05, "lift": 1.05}
+		"autels":
+			return {"grass": Color("2a3a30"), "path": "cobbles", "mist": Color("6a3a50"), "moss": Color("34443a"), "motes": Color(0.9, 0.4, 0.6), "warm_h": 0.05, "lift": 0.85}
 	return {}
 
 
@@ -1611,7 +1656,9 @@ static func _backdrop_scene(img: Image, rng: RandomNumberGenerator, s: String) -
 
 const FOLIAGE_N := 12 ## images de 16×16 dans la planche de végétation
 const FOLIAGE_GLOW_Z4 := {"porte_naine": [9], "sentinelle": [9], "portes": [9], "forteresse": [9], "colosse": [8, 9], "aurore": [8], "lac_gele": [8],
-	"dunes": [8], "mirage": [8], "scarabee": [8], "caravane_sable": [8], "spectres": [8, 9], "miroirs": [8], "sceaux": [8, 9], "college": [8], "sphinx": [8, 9]}
+	"dunes": [8], "mirage": [8], "scarabee": [8], "caravane_sable": [8], "spectres": [8, 9], "miroirs": [8], "sceaux": [8, 9], "college": [8], "sphinx": [8, 9],
+	"lisiere_cendree": [8], "couloirs": [8], "ailes": [8], "drake": [8], "pardon": [8, 9], "coulee": [8, 9], "antre": [8, 9],
+	"braisemont": [8], "citadelle": [8], "nid": [8, 9], "autels": [8, 9]}
 const FOLIAGE_GLOW := {"sentier": [9], "fougeres": [9], "cercle": [8, 9], "coeur": [8], "sylvarche": [9], "pylones": [8], "repaire": [9],
 	"pilotis": [9], "barque": [9], "mares": [8], "sorciere": [8], "gue_morts": [9], "refuge": [9], "saules": [9]}
 
@@ -1673,6 +1720,8 @@ static func _flower_cols(s: String) -> Array:
 			return [Color("e8a040"), Color("ffd080")]
 		"oasis":
 			return [Color("e85a8a"), Color("f2e28b")]
+		"lisiere_cendree", "couloirs", "ailes", "drake", "pardon", "coulee", "antre", "braisemont", "citadelle", "nid", "autels":
+			return [Color("ff8a3a"), Color("ffd060")]
 	return [Color("f4f0ff"), Color("f2e28b")]
 
 
@@ -1776,6 +1825,49 @@ static func foliage_atlas(s: String) -> ImageTexture:
 
 static func _scene_detail(img: Image, ox: int, s: String, which: int, rng: RandomNumberGenerator, fc: Array) -> void:
 	match s + str(which):
+		"lisiere_cendree0", "couloirs0", "ailes0", "drake0", "pardon0", "coulee0", "antre0", "braisemont0", "citadelle0", "nid0", "autels0":
+			# Braise qui couve sur une souche calcinée (elle luit).
+			for y in range(9, 16):
+				for x in range(5, 11):
+					_px(img, ox + x, y, Color("2a1e18") if x > 6 else Color("1a1410"))
+			for x in range(5, 11):
+				_px(img, ox + x, 9, Color("ff8a3a") if x % 2 else Color("ffd060"))
+			_px(img, ox + 8, 8, Color("ffd060"))
+		"lisiere_cendree1", "couloirs1", "ailes1", "drake1", "braisemont1", "citadelle1":
+			# Écaille de dragon tombée, rouge sombre.
+			for y in range(8, 15):
+				var hw6 := 4 - absi(y - 11)
+				for x in range(-hw6 - 1, hw6 + 2):
+					_px(img, ox + 8 + x, y, Color("8a2a1a") if x < 1 else Color("c84a2a"))
+			_px(img, ox + 8, 10, Color("ffb060"))
+		"pardon1":
+			# Pousse verte qui sort des cendres (elle luit à peine).
+			_blade(img, ox, 8, 15, 7, -0.3, Color("3a6a2a"), Color("8ae050"))
+			_blade(img, ox, 9, 15, 5, 0.4, Color("3a6a2a"), Color("8ae050"))
+		"coulee1", "antre1":
+			# Rocher de basalte fendu de lave (il luit).
+			for y in range(-5, 6):
+				for x in range(-7, 8):
+					if pow(float(x) / 7.0, 2.0) + pow(float(y) / 5.0, 2.0) <= 1.0:
+						_px(img, ox + 8 + x, 10 + y, Color("2a2224") if x < 2 else Color("3a3034"))
+			for y in range(6, 15):
+				_px(img, ox + 8 + (y % 3) - 1, y, Color("ff6a1a"))
+		"nid1":
+			# Œuf de phénix dans son nid de brindilles (il luit).
+			for y in range(5, 13):
+				for x in range(5, 12):
+					if Vector2(float(x) - 8.0, (float(y) - 9.0) * 0.8).length() <= 3.6:
+						_px(img, ox + x, y, Color("ffd060") if x < 9 else Color("ff8a3a"))
+			for x in range(3, 14):
+				_px(img, ox + x, 13, Color("6a4a2a"))
+				_px(img, ox + x, 14, Color("4a3220"))
+		"autels1":
+			# Bougie rituelle des cultistes (elle luit).
+			for y in range(8, 16):
+				_px(img, ox + 8, y, Color("e8d8c8"))
+				_px(img, ox + 7, y, Color("c8b8a8"))
+			_px(img, ox + 8, 7, Color("ff8a3a"))
+			_px(img, ox + 8, 6, Color("ffd060"))
 		"dunes0", "mirage0", "scarabee0", "caravane_sable0", "spectres0", "miroirs0", "sceaux0", "college0", "sphinx0":
 			# Éclat de verre planté dans le sable (il luit).
 			for y in range(4, 16):
@@ -3004,4 +3096,98 @@ static func broken_statue_texture() -> ImageTexture:
 		_px(img, 16, y, Color("4a3a28"))
 	for x in range(10, 16):
 		_px(img, x, 15, Color("8a6a40"))
+	return _tex(img)
+
+
+
+# ---------------------------------------------------------------- zone 6 · objets des combats (couleurs finales)
+
+## Tronc calciné, branches noires, braises dans les fentes.
+static func charred_tree_texture() -> ImageTexture:
+	var img := _sprite(20, 44)
+	for y in range(8, 44):
+		var half := 1 + (y - 8) / 12
+		for x in range(-half, half + 1):
+			_px(img, 10 + x, y, Color("1a1412") if x < 1 else Color("2a2220"))
+	for br in [[14, -1, 8, -6], [20, 1, 8, -5], [11, -1, 5, -8], [26, 1, 6, -4]]:
+		var p := Vector2(10, br[0])
+		for k in range(int(br[2])):
+			_px(img, int(p.x), int(p.y), Color("1a1412"))
+			p += Vector2(float(br[1]) * 0.9, float(br[3]) / float(br[2]))
+	for y: int in [18, 27, 35]:
+		_px(img, 10, y, Color("ff6a1a"))
+		_px(img, 10, y + 1, Color("ffb050"))
+	return _tex(img)
+
+
+## Autel du Wyrm : bloc d'obsidienne, marque gravée qui rougeoie, flammes.
+static func wyrm_altar_texture() -> ImageTexture:
+	var img := _sprite(22, 24)
+	for y in range(10, 24):
+		for x in range(2, 20):
+			_px(img, x, y, Color("1e1a22") if x < 12 else Color("2e2834"))
+	for a in range(20):
+		var ang := float(a) / 20.0 * TAU
+		_px(img, 11 + int(cos(ang) * 4.0), 16 + int(sin(ang) * 3.0), Color("d83a6a"))
+	for k in range(7):
+		_px(img, 5 + k * 2, 9 - (k % 3), Color("ff8a3a") if k % 2 else Color("ffd060"))
+	return _tex(img)
+
+
+## Nid de phénix : brindilles en couronne, flammes et un œuf qui luit.
+static func phoenix_nest_texture() -> ImageTexture:
+	var img := _sprite(28, 18)
+	for y in range(8, 18):
+		var half := 13 - absi(y - 12)
+		for x in range(-half, half + 1):
+			_px(img, 14 + x, y, Color("6a4a2a") if (x + y) % 3 else Color("4a3220"))
+	for y in range(2, 10):
+		for x in range(10, 18):
+			if Vector2(float(x) - 14.0, (float(y) - 6.0) * 0.8).length() <= 4.0:
+				_px(img, x, y, Color("ffd060") if x < 15 else Color("ff8a3a"))
+	for k in range(6):
+		_px(img, 4 + k * 4, 7 - (k % 2), Color("ff6a1a"))
+	return _tex(img)
+
+
+## Rempart de basalte de la citadelle draconide, une meurtrière allumée.
+static func basalt_wall_texture() -> ImageTexture:
+	var img := _sprite(32, 30)
+	for y in range(6, 30):
+		for x in range(0, 32):
+			var c := Color("2a2428") if ((x / 8 + y / 6) % 2 == 0) else Color("3a3238")
+			if y % 6 == 0 or x % 8 == 0:
+				c = Color("1a1418")
+			_px(img, x, y, c)
+	for x in range(0, 32, 6):
+		for y in range(2, 6):
+			for xx in range(x, x + 3):
+				_px(img, xx, y, Color("2a2428"))
+	for y in range(14, 20):
+		_px(img, 15, y, Color("ff8a3a"))
+		_px(img, 16, y, Color("ffd060"))
+	return _tex(img)
+
+
+## Coulée de lave : croûte noire, veines orange et jaunes (couleur et lueur).
+static func lava_texture() -> ImageTexture:
+	var img := Image.create_empty(48, 48, false, Image.FORMAT_RGBA8)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 6066
+	for y in range(48):
+		for x in range(48):
+			var n := 0.5 + 0.5 * sin(float(x) * 0.35 + float(y) * 0.13) * cos(float(y) * 0.29 - float(x) * 0.08)
+			img.set_pixel(x, y, Color("1e1414").lerp(Color("3a2420"), n))
+	for v in range(14):
+		var p := Vector2(rng.randf_range(0.0, 48.0), rng.randf_range(0.0, 48.0))
+		var d := Vector2.from_angle(rng.randf_range(0.0, TAU))
+		for k in range(rng.randi_range(14, 30)):
+			var xi := posmod(int(p.x), 48)
+			var yi := posmod(int(p.y), 48)
+			img.set_pixel(xi, yi, Color("ff6a1a"))
+			img.set_pixel(posmod(xi + 1, 48), yi, Color("c83a10"))
+			if k % 4 == 0:
+				img.set_pixel(xi, yi, Color("ffd060"))
+			d = d.rotated(rng.randf_range(-0.6, 0.6))
+			p += d
 	return _tex(img)
