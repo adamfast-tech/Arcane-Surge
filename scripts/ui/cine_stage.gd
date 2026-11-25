@@ -31,7 +31,7 @@ const MAX_FIGURES := 4
 ## Vocabulaire des indications (vérifié par tools/ui_smoke.gd).
 const CAMS := ["zoom", "zoom_out", "reset", "punch", "shake", "tremble", "pan_left", "pan_right", "pan_up", "push", "pull", "kick", "focus"]
 const FXS := ["flash", "white", "fade", "lightning", "sparkles", "embers", "bloom", "ring", "rays", "bolt", "beam", "crack",
-	"seal", "spiral", "flux", "gate", "arrow", "swarm", "clang", "steam", "thorns", "glitter", "hooves", "drip", "ferns", "lanes", "timestop", "flicker", "wind", "eyes",
+	"seal", "spiral", "flux", "gate", "arrow", "swarm", "clang", "steam", "thorns", "glitter", "hooves", "drip", "ferns", "lanes", "timestop", "flicker", "wind", "eyes", "veins", "fountain",
 	"slash", "wisps", "charge", "burst", "leaves", "dust", "shock"]
 const ACTS := ["jump", "hop", "shake", "hurt", "attack", "droop", "kneel", "glow", "fall", "exit", "enter", "rise", "turn", "step", "cast", "echo"]
 const SUBJECT_ACTS := ["roar", "hit", "fall", "glow", "rise", "fade", "appear"]
@@ -625,6 +625,24 @@ func _effect(spec: String) -> void:
 				var left := i % 2 == 0
 				pairs.append(Vector2(randf_range(0.02, 0.2) if left else randf_range(0.8, 0.98), randf_range(0.45, 0.85)))
 			ey["pts"] = pairs
+		"veins":
+			# La corruption rampe : des veines violettes se ramifient sur le sol depuis le repère.
+			var vn := _add_fx("veins", anchor if anchor != "auto" else "ground", col if col_s != "" else Color("b07cff"), "light", 4.0)
+			var branches: Array = []
+			for i in range(8):
+				var dir := -1.0 if i % 2 == 0 else 1.0
+				var pts4 := PackedVector2Array([Vector2.ZERO])
+				var p4 := Vector2.ZERO
+				for j in range(10):
+					p4 += Vector2(dir * randf_range(8.0, 20.0), randf_range(-5.0, 5.0) + float(i / 2) * 1.5)
+					pts4.append(p4)
+				branches.append(pts4)
+			vn["br"] = branches
+		"fountain":
+			# La Source rejaillit : un jet d'eau claire qui monte et retombe en gouttes.
+			var fo := _add_fx("emit_fountain", anchor if anchor != "auto" else "ground", col if col_s != "" else Color("9fe3ff"), "light", 4.0)
+			fo["rate"] = 170.0
+			_fx_set(_add_fx("ring", anchor if anchor != "auto" else "ground", col if col_s != "" else Color("9fe3ff"), "light", 1.0), "sq", 0.3)
 		"hooves":
 			# Martèlement au loin : le sol bat, la poussière saute, à intervalles réguliers.
 			var hv := _add_fx("hooves", "ground", Color("d8c8b0"), "back", 3.2)
@@ -1259,6 +1277,10 @@ func _emit(e: Dictionary) -> void:
 		"emit_embers_at":
 			_part({"p": c + Vector2(randf_range(-1.0, 1.0) * sh * 0.05, -sh * 0.05), "v": Vector2(randf_range(-12, 12), randf_range(-60, -30)),
 				"max": randf_range(0.8, 1.4), "col": col.lerp(Color.WHITE, randf() * 0.4), "size": 1.0, "layer": "light", "sway": 10.0, "kind": "sq"})
+		"emit_fountain":
+			_part({"p": c + Vector2(randf_range(-10, 10), 0.0), "v": Vector2(randf_range(-90, 90), -randf_range(480, 660)), "max": randf_range(1.6, 2.2),
+				"col": col.lerp(Color.WHITE, randf() * 0.5), "size": 2.0 if randf() < 0.5 else 1.0, "layer": "light", "grav": Vector2(0, 560), "drag": 0.2,
+				"kind": "sq"})
 		"emit_drip":
 			var top := c + Vector2(randf_range(-1.0, 1.0) * sh * 0.3, -sh * randf_range(0.25, 0.45))
 			_part({"p": top, "v": Vector2(0.0, randf_range(10, 30)), "max": randf_range(0.9, 1.4), "col": col.lightened(0.2), "size": 1.0,
@@ -1575,6 +1597,20 @@ func _draw_fx(ci: CanvasItem, e: Dictionary, k: float) -> void:
 				ci.draw_circle(ep + Vector2(3.0, 0.5), 6.0, Color(col, a14 * on2 * 0.18))
 				ci.draw_rect(Rect2(ep.floor(), Vector2(2, 1)), ec2)
 				ci.draw_rect(Rect2(ep.floor() + Vector2(5, 0), Vector2(2, 1)), ec2)
+		"veins":
+			var brs: Array = e["br"]
+			var grow2 := clampf(t / 1.8, 0.0, 1.0)
+			var a15 := minf(1.0, (dur - t) / 0.8) * (0.75 + 0.25 * sin(_t * 5.0))
+			var sc2 := _sh() * k / 110.0
+			for b in brs:
+				var bp: PackedVector2Array = b
+				var n3 := int(grow2 * float(bp.size() - 1)) + 1
+				var seg := PackedVector2Array()
+				for j in range(mini(n3 + 1, bp.size())):
+					seg.append((c + bp[j] * sc2).floor())
+				if seg.size() >= 2:
+					ci.draw_polyline(seg, Color(col, a15 * 0.35), 3.0)
+					ci.draw_polyline(seg, Color(col.lightened(0.3), a15), 1.0)
 		"lanes":
 			var xs: PackedVector2Array = e["pts"]
 			var gy := (_anchor_pos("ground") * k).y

@@ -85,12 +85,15 @@ CUES = [
     ("z01_l07_outro", "Regardez, au loin", {"fx": "bloom@sky:c8b8ff", "cam": "focus:sky", "grade": "cold"}),
     ("z01_l07_outro", "La Tour du Croissant. Mon grand-père", {"grade": "cold"}),
     ("z01_l07_outro", "Elle se rapproche…", {"cam": "pull", "grade": "dark"}),
-    # 1-8 : la Source des Lucioles.
-    ("z01_l08_intro", "La Source des Lucioles…", {"cam": "pan_right"}),
+    # 1-8 : la Source des Lucioles, scellée par la corruption (veines violettes), puis qui rejaillit.
+    ("z01_l08_intro", "La Source des Lucioles…", {"fx": "veins@ground:b07cff", "cam": "push", "grade": "violet"}),
+    ("z01_l08_intro", "Purifie les deux sceaux", {"cam": "reset", "grade": "none"}),
     ("z01_l08_intro", "Toi, tu purifies avec la Lumière", {"act": {"brann": "attack"}}),
-    ("z01_l08_outro", "L'eau de la Source jaillit", {"fx": ["flash:9ff0ff", "sparkles:9ff0ff"], "cam": "reset"}),
-    ("z01_l08_outro", "De la Sylvarche. L'arbre-mère", {"cam": "zoom"}),
-    ("z01_l08_outro", "Un arbre t'a appris", {"cam": "reset"}),
+    ("z01_l08_outro", "L'eau de la Source jaillit", {"fx": ["fountain@ground:9fe3ff", "swarm@center:fff3b0"], "grade": "dawn", "cam": "push"}),
+    ("z01_l08_outro", "Les Veines respirent…", {"cam": "pan_right", "grade": "none"}),
+    ("z01_l08_outro", "De la Sylvarche. L'arbre-mère", {"cam": "focus:sylwen", "grade": "violet"}),
+    ("z01_l08_outro", "Un arbre t'a appris", {"cam": "reset", "grade": "none"}),
+    ("z01_l08_outro", "À écouter, Brann.", {"act": {"sylwen": "rise"}}),
     # 1-9 : le Cœur de la Forêt, les fées captives.
     ("z01_l09_intro", "Le Cœur de la Forêt", {"cam": "pan_left"}),
     ("z01_l09_intro", "Qui ose… entrer", {"fx": "flash:d93cf2", "cam": ["tremble", "zoom"]}),

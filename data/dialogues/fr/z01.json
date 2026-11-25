@@ -190,8 +190,8 @@
       "art": "source",
       "cast": ["porteur", "sylwen", "brann"],
       "lines": [
-        {"cam": "pan_right", "who": "sylwen", "mood": "triste", "text": "La Source des Lucioles… Elle nourrissait tout le Bois. Le Surge l'a scellée de runes noires."},
-        {"who": "sylwen", "text": "Purifie les deux sceaux pour atteindre le Nexus. Et abats d'abord les dryades : elles le soignent."},
+        {"fx": "veins@ground:b07cff", "cam": "push", "grade": "violet", "who": "sylwen", "mood": "triste", "text": "La Source des Lucioles… Elle nourrissait tout le Bois. Le Surge l'a scellée de runes noires."},
+        {"cam": "reset", "grade": "none", "who": "sylwen", "text": "Purifie les deux sceaux pour atteindre le Nexus. Et abats d'abord les dryades : elles le soignent."},
         {"act": {"brann": "attack"}, "who": "brann", "mood": "joie", "text": "Toi, tu purifies avec la Lumière. Moi, je tape. Chacun sa façon de purifier."}
       ]
     },
@@ -199,11 +199,11 @@
       "art": "source",
       "cast": ["porteur", "sylwen", "brann"],
       "lines": [
-        {"fx": ["flash:9ff0ff", "sparkles:9ff0ff"], "cam": "reset", "who": "narrateur", "text": "L'eau de la Source jaillit de nouveau, claire et scintillante. Des lucioles s'élèvent par milliers."},
-        {"who": "sylwen", "text": "Les Veines respirent… Mais la corruption vient d'ailleurs. Du cœur de la forêt."},
-        {"cam": "zoom", "who": "sylwen", "mood": "triste", "text": "De la Sylvarche. L'arbre-mère des elfes. Celle qui m'a tout appris."},
-        {"cam": "reset", "who": "brann", "mood": "surpris", "text": "Un arbre t'a appris à tirer à l'arc ? Les elfes m'étonneront toujours."},
-        {"who": "sylwen", "text": "À écouter, Brann. Elle m'a appris à écouter."}
+        {"fx": ["fountain@ground:9fe3ff", "swarm@center:fff3b0"], "grade": "dawn", "cam": "push", "who": "narrateur", "text": "L'eau de la Source jaillit de nouveau, claire et scintillante. Des lucioles s'élèvent par milliers."},
+        {"cam": "pan_right", "grade": "none", "who": "sylwen", "text": "Les Veines respirent… Mais la corruption vient d'ailleurs. Du cœur de la forêt."},
+        {"cam": "focus:sylwen", "grade": "violet", "who": "sylwen", "mood": "triste", "text": "De la Sylvarche. L'arbre-mère des elfes. Celle qui m'a tout appris."},
+        {"cam": "reset", "grade": "none", "who": "brann", "mood": "surpris", "text": "Un arbre t'a appris à tirer à l'arc ? Les elfes m'étonneront toujours."},
+        {"act": {"sylwen": "rise"}, "who": "sylwen", "text": "À écouter, Brann. Elle m'a appris à écouter."}
       ]
     },
 
