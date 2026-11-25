@@ -9,6 +9,7 @@ uniform float desat : hint_range(0.0, 1.0) = 0.0;
 uniform vec4 rim_col : source_color = vec4(0.0);
 uniform float silhouette : hint_range(0.0, 1.0) = 0.0;
 uniform vec4 sil_col : source_color = vec4(0.05, 0.03, 0.1, 1.0);
+uniform float bottom_fade = 0.22;
 
 void fragment() {
 	vec4 c = texture(TEXTURE, UV);
@@ -21,5 +22,7 @@ void fragment() {
 	c.rgb += rim_col.rgb * rim_col.a * edge;
 	c.rgb *= 1.0 - dark;
 	c.rgb = mix(c.rgb, flash_col.rgb, flash);
+	// Le bas du buste se fond (il passe derrière le panneau ; sans panneau, pas de bord coupé).
+	c.a *= smoothstep(1.0, 1.0 - bottom_fade, UV.y);
 	COLOR = c * COLOR;
 }

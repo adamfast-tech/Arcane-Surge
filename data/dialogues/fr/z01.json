@@ -17,7 +17,7 @@
       "art": "fracture",
       "grade": "night",
       "lines": [
-        {"subject": "portrait:morvaen", "subject_tint": "9a8ac8", "fx": ["fade", "circle@subject:b07cff", "charge@subject:b07cff"], "cam": "push", "grade": "night", "who": "narrateur", "text": "Valdrune. Il y a trois cents ans, l'archimage Morvaen tenta un sortilège que nul n'aurait dû tenter."},
+        {"subject": "portrait:morvaen", "subject_tint": "9a8ac8", "fx": ["fade", "spiral@subject:b07cff", "charge@subject:b07cff"], "cam": "push", "grade": "night", "who": "narrateur", "text": "Valdrune. Il y a trois cents ans, l'archimage Morvaen tenta un sortilège que nul n'aurait dû tenter."},
         {"subject": "", "fx": ["white", "crack@sky:d93cf2", "shock@ground:d93cf2"], "cam": ["kick", "pull"], "grade": "violet", "who": "narrateur", "text": "La trame du monde se déchira. On appelle cette blessure la Fracture."},
         {"fx": ["wisps@ground:b07cff", "rays@sky:d93cf2"], "cam": ["reset", "pan_right"], "who": "narrateur", "art": "surge", "text": "Depuis, la magie brute des Veines déferle par vagues incontrôlées : l'Arcane Surge."},
         {"fx": ["charge@center:d93cf2", "ring@center:d93cf2"], "cam": "focus:center", "grade": "red", "who": "narrateur", "art": "nexus", "text": "Là où elle s'accumule naissent les Nexus, des cœurs corrompus qui enfantent des monstres."},
@@ -34,7 +34,7 @@
         {"fx": ["bloom@sky:b07cff", "bolt@center:d93cf2"], "cam": "kick", "who": "ancien", "mood": "surpris", "text": "Debout ! Le ciel est devenu violet au-dessus du bois… Le Surge frappe Lysbourg !"},
         {"fx": "wisps@center:b07cff", "cam": "pan_right", "who": "ancien", "mood": "triste", "text": "Un Nexus a germé près du vieux pont. Ses créatures marchent déjà sur le village."},
         {"act": {"porteur": "cast"}, "fx": "charge@porteur:4fe3d2", "cam": "focus:porteur", "who": "porteur", "mood": "colere", "text": "Je peux les arrêter. Le Surge n'est qu'une énergie de plus : il suffit de la canaliser."},
-        {"fx": "circle@center:f2c46b", "cam": "reset", "who": "ancien", "text": "Alors canalise ! Les portes runiques du chemin amplifieront ton flux. Vise-les !"},
+        {"fx": "gate@center:f2c46b", "cam": "reset", "who": "ancien", "text": "Alors canalise ! Les portes runiques du chemin amplifieront ton flux. Vise-les !"},
         {"act": {"porteur": "exit"}, "fx": "burst@porteur:4fe3d2", "cam": "push", "who": "ancien", "mood": "colere", "text": "Et tant que la Barrière tient, le village tient. Va !"}
       ]
     },
@@ -53,19 +53,19 @@
       "art": "foret",
       "cast": ["porteur"],
       "lines": [
-        {"cam": "punch", "act": {"porteur": "hurt"}, "who": "sylwen", "mood": "colere", "text": "Halte ! Un pas de plus et… Oh. C'est toi qui as brisé le Nexus de Lysbourg ?"},
-        {"who": "sylwen", "text": "Je suis Sylwen, des Vigiles Sylvestres. Le Bois souffre depuis trois nuits."},
-        {"fx": "sparkles:fff3b0", "who": "sylwen", "text": "Les lucioles fuient le Surge. Fais passer ton flux à travers elles : elles te rendront du mana."},
-        {"who": "sylwen", "mood": "joie", "text": "Je couvre ton flanc droit. Mes flèches iront où ta magie ne va pas."}
+        {"fx": "arrow@porteur", "act": {"porteur": "hurt"}, "emote": {"porteur": "!"}, "who": "sylwen", "mood": "colere", "text": "Halte ! Un pas de plus et… Oh. C'est toi qui as brisé le Nexus de Lysbourg ?"},
+        {"cam": "focus:sylwen", "who": "sylwen", "text": "Je suis Sylwen, des Vigiles Sylvestres. Le Bois souffre depuis trois nuits."},
+        {"fx": "swarm@center:fff3b0", "cam": "reset", "who": "sylwen", "text": "Les lucioles fuient le Surge. Fais passer ton flux à travers elles : elles te rendront du mana."},
+        {"act": {"sylwen": "step"}, "who": "sylwen", "mood": "joie", "text": "Je couvre ton flanc droit. Mes flèches iront où ta magie ne va pas."}
       ]
     },
     "z01_l02_outro": {
       "art": "foret",
       "cast": ["porteur", "sylwen"],
       "lines": [
-        {"who": "sylwen", "mood": "joie", "text": "Joli travail. Tu canalises comme une rivière en crue : fort, mais pas toujours droit."},
-        {"cam": "zoom", "who": "sylwen", "mood": "triste", "text": "Les Nexus poussent plus vite qu'avant. Quelque chose les nourrit, au cœur de la forêt."},
-        {"cam": "reset", "who": "sylwen", "text": "Allons à la Clairière brisée. Un… collègue y tient la position. Bruyamment."}
+        {"fx": "swarm@porteur:fff3b0", "who": "sylwen", "mood": "joie", "text": "Joli travail. Tu canalises comme une rivière en crue : fort, mais pas toujours droit."},
+        {"fx": "wisps@center:b07cff", "cam": "push", "grade": "violet", "who": "sylwen", "mood": "triste", "text": "Les Nexus poussent plus vite qu'avant. Quelque chose les nourrit, au cœur de la forêt."},
+        {"act": {"sylwen": "rise"}, "emote": {"sylwen": "dots"}, "cam": "reset", "grade": "none", "who": "sylwen", "text": "Allons à la Clairière brisée. Un… collègue y tient la position. Bruyamment."}
       ]
     },
 
@@ -135,7 +135,7 @@
       "lines": [
         {"act": {"subject": "rise"}, "fx": "sparkles:cfe6ff", "who": "narrateur", "subject_tint": "CFE6FF", "text": "La corruption s'échappe des bois du Cerf en volutes violettes. Il se relève, apaisé."},
         {"act": {"subject": "glow"}, "cam": "zoom", "who": "cerf", "text": "Canalisateur… Le Sceau attendait une main comme la tienne. Il est à toi, désormais."},
-        {"act": {"porteur": "cast"}, "fx": ["beam@porteur:9ff0ff", "white"], "cam": "focus:porteur", "who": "narrateur", "text": "Une lumière brûle ta paume, puis s'y grave : un cercle runique traversé d'une ligne. Le Sceau d'Écho."},
+        {"act": {"porteur": "glow"}, "fx": ["beam@porteur:9ff0ff", "seal@porteur:9ff0ff", "white"], "cam": "focus:porteur", "who": "narrateur", "text": "Une lumière brûle ta paume, puis s'y grave : un cercle runique traversé d'une ligne. Le Sceau d'Écho."},
         {"effects": {"set": ["s1.sceau_echo"]}},
         {"who": "cerf", "text": "Avec lui, tu entendras les échos du temps. Le dernier qui l'a porté a voulu tout réparer…"},
         {"cam": "zoom_out", "who": "cerf", "mood": "triste", "text": "…et il a tout brisé. Ne l'oublie jamais."},

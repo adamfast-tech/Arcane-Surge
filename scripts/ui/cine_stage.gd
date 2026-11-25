@@ -30,7 +30,8 @@ const MAX_FIGURES := 4
 
 ## Vocabulaire des indications (vérifié par tools/ui_smoke.gd).
 const CAMS := ["zoom", "zoom_out", "reset", "punch", "shake", "tremble", "pan_left", "pan_right", "pan_up", "push", "pull", "kick", "focus"]
-const FXS := ["flash", "white", "fade", "lightning", "sparkles", "embers", "bloom", "ring", "rays", "circle", "bolt", "beam", "crack",
+const FXS := ["flash", "white", "fade", "lightning", "sparkles", "embers", "bloom", "ring", "rays", "bolt", "beam", "crack",
+	"seal", "spiral", "flux", "gate", "arrow", "swarm",
 	"slash", "wisps", "charge", "burst", "leaves", "dust", "shock"]
 const ACTS := ["jump", "hop", "shake", "hurt", "attack", "droop", "kneel", "glow", "fall", "exit", "enter", "rise", "turn", "step", "cast"]
 const SUBJECT_ACTS := ["roar", "hit", "fall", "glow", "rise", "fade", "appear"]
@@ -416,7 +417,7 @@ func set_mouth(talk: int, blink: bool) -> void:
 ## Indications de mise en scène d'une réplique :
 ## « cam » : push, pull, focus:<repère>, kick, tremble, pan_left, pan_right, pan_up, reset (et zoom, zoom_out,
 ##   punch, shake, conservés) ;
-## « fx » : « effet[@repère][:RRGGBB] » — bloom, ring, shock, rays, circle, bolt, beam, crack, slash, wisps,
+## « fx » : « effet[@repère][:RRGGBB] » — bloom, ring, shock, rays, bolt, beam, crack, slash, wisps, seal, spiral, flux, gate,
 ##   charge, burst, embers, leaves, dust, fade, white (et flash, lightning, sparkles) ;
 ##   repères : un personnage, subject, center, sky, ground, left, right ;
 ## « act » : {qui: action} — jump, hop, shake, hurt, attack, droop, kneel, glow, fall, exit, enter, rise, turn,
@@ -530,9 +531,40 @@ func _effect(spec: String) -> void:
 				_dust(_anchor_pos("ground"), 14)
 		"rays":
 			_add_fx("rays", anchor, col, "light", 3.0)
-		"circle":
-			var c := _add_fx("circle", anchor, col, "light", 2.6)
-			c["r"] = sh * (0.32 if anchor in ["center", "sky", "subject", "auto"] else 0.2)
+		"seal":
+			# Le Sceau d'Écho se grave : un cercle traversé d'une ligne, et ses échos dans le temps.
+			var se := _add_fx("seal", anchor, col, "light", 3.4)
+			se["r"] = sh * 0.12
+			if _figs.has(anchor):
+				se["off"] = Vector2(0.0, sh * 0.22) ## sur la main, devant la poitrine
+			_fx_set(_add_fx("bloom", anchor, col, "light", 2.0), "off", se.get("off", Vector2.ZERO))
+		"spiral":
+			# Le sortilège de Morvaen : un cadran dont les aiguilles tournent à rebours, des bras de lumière qui s'enroulent.
+			_fx_set(_add_fx("spiral", anchor, col, "light", 4.0), "r", sh * 0.34)
+		"flux":
+			# Le Surge canalisé : des rubans d'énergie convergent vers celui qui canalise.
+			_fx_set(_add_fx("flux", anchor, col, "light", 1.8), "r", sh * 0.55)
+		"arrow":
+			# Flèche de semonce : partie de celui qui parle, elle se plante aux pieds du repère et vibre.
+			var ar := _add_fx("arrow", anchor, col if col_s != "" else Color("e8dcc0"), "front", 2.4)
+			var from := Vector2(size.x * 1.05, sh * 0.3)
+			if _figs.has(_speaker):
+				var sf: Dictionary = _figs[_speaker]
+				from = sf["head"] if (sf["head"] as Vector2) != Vector2.ZERO else Vector2(size.x * (1.05 if float(sf["side"]) > 0.0 else -0.05), sh * 0.35)
+			ar["from"] = from
+			ar["off"] = Vector2(0.0, sh * 0.3)
+			ar["landed"] = false
+		"swarm":
+			# Essaim de lucioles qui tourne autour du repère.
+			var sw := _add_fx("swarm", anchor, col if col_s != "" else Color("fff3b0"), "light", 4.0)
+			var seeds := PackedVector2Array()
+			for i in range(26):
+				seeds.append(Vector2(randf() * TAU, randf_range(0.5, 1.0)))
+			sw["pts"] = seeds
+			sw["r"] = sh * 0.22
+		"gate":
+			# Les portes runiques du chemin : une arche qui se dessine, ses runes s'allument une à une.
+			_fx_set(_add_fx("gate", anchor, col, "light", 2.8), "r", sh * 0.2)
 		"bolt", "lightning":
 			_add_fx("bolt", anchor, col if col_s != "" else Color("cfe0ff"), "light", 0.45)
 			_fx_set(_add_fx("bloom", anchor, col if col_s != "" else Color("cfe0ff"), "light", 0.6), "r", sh * 0.5)
@@ -652,7 +684,7 @@ func _act(id: String, what: String) -> void:
 			var e := _add_fx("emit_motes", id, col, "light", 1.6)
 			e["rate"] = 40.0
 			if what == "cast":
-				_fx_set(_add_fx("circle", id, col, "light", 2.2), "r", _sh() * 0.2)
+				_fx_set(_add_fx("flux", id, col, "light", 1.8), "r", _sh() * 0.55)
 	f["act"] = what
 	f["act_t"] = 0.0
 	f["slashed"] = false
@@ -957,6 +989,8 @@ func _update_figures(delta: float) -> void:
 		m.set_shader_parameter("rim_col", rim)
 		m.set_shader_parameter("desat", desat)
 		f["head"] = b2 + Vector2(0.0, -fs.y * 0.62 * s2 * cs)
+		f["bottom"] = b2
+		f["S"] = fs.y * s2 * cs * sy
 
 
 func _spawn_ghost(r: TextureRect, col: Color) -> void:
@@ -1089,7 +1123,7 @@ func _update_fx(delta: float) -> void:
 func _fx_pos(e: Dictionary) -> Vector2:
 	if e.has("at"):
 		return e["at"]
-	return _anchor_pos(str(e["anchor"]))
+	return _anchor_pos(str(e["anchor"])) + (e.get("off", Vector2.ZERO) as Vector2)
 
 
 ## Une particule pour un émetteur.
@@ -1253,27 +1287,126 @@ func _draw_fx(ci: CanvasItem, e: Dictionary, k: float) -> void:
 				var w := 0.05 + 0.02 * sin(_t * 3.0 + float(i))
 				ci.draw_primitive(PackedVector2Array([c, c + Vector2.from_angle(ang - w) * big, c + Vector2.from_angle(ang + w) * big]),
 					PackedColorArray([Color(col, a3 * 0.3), Color(col, 0.0), Color(col, 0.0)]), PackedVector2Array())
-		"circle":
-			var rr2 := float(e["r"]) * k
-			var p := clampf(t / 0.7, 0.0, 1.0)
-			var a4 := minf(1.0, (dur - t) / 0.5)
-			var rot2 := t * 0.7
+		"seal":
+			var r0 := float(e["r"]) * k
+			var p := clampf(t / 0.9, 0.0, 1.0)
+			var a4 := minf(1.0, (dur - t) / 0.6)
 			var cc := Color(col, a4)
-			ci.draw_arc(c, rr2, rot2, rot2 + p * TAU, 64, Color(col, a4 * 0.35), 3.0)
-			ci.draw_arc(c, rr2, rot2, rot2 + p * TAU, 64, cc, 1.0)
-			ci.draw_arc(c, rr2 * 1.08, -rot2, -rot2 - p * TAU, 64, Color(col, a4 * 0.5), 1.0)
-			ci.draw_arc(c, rr2 * 0.7, -rot2 * 1.3, -rot2 * 1.3 + p * TAU, 48, cc, 1.0)
-			if p > 0.4:
-				var q := clampf((p - 0.4) / 0.6, 0.0, 1.0)
-				for tri in range(2):
-					var pts := PackedVector2Array()
-					for j in range(4):
-						pts.append(c + Vector2.from_angle(rot2 * 0.8 + float(tri) * PI / 3.0 + float(j) * TAU / 3.0) * rr2 * 0.7)
-					ci.draw_polyline(pts, Color(col, a4 * q), 1.0)
-				for j in range(12):
-					var rp := c + Vector2.from_angle(-rot2 * 1.6 + float(j) * TAU / 12.0) * rr2 * 0.86
-					ci.draw_rect(Rect2(rp.floor(), Vector2(2, 1) if j % 2 == 0 else Vector2(1, 2)), Color(col.lightened(0.4), a4 * q))
-			ci.draw_circle(c, rr2 * 0.18 * (1.0 + 0.2 * sin(_t * 6.0)), Color(col.lightened(0.5), a4 * 0.35))
+			# Échos : copies du Sceau qui s'élargissent et pâlissent, l'une après l'autre.
+			for j in range(4):
+				var et := fmod(t - 0.35 * float(j), 1.4)
+				if t > 0.9 + 0.35 * float(j) and et >= 0.0:
+					var eu := et / 1.4
+					var er := r0 * (1.0 + eu * 1.8)
+					var ec := Color(col, a4 * 0.5 * (1.0 - eu))
+					ci.draw_arc(c, er, 0.0, TAU, 40, ec, 1.0)
+					var ed := Vector2.from_angle(-PI / 3.0) * er * 1.25
+					ci.draw_line((c - ed).floor(), (c + ed).floor(), ec, 1.0)
+			ci.draw_arc(c, r0, -PI * 0.5, -PI * 0.5 + p * TAU, 40, Color(col, a4 * 0.35), 3.0)
+			ci.draw_arc(c, r0, -PI * 0.5, -PI * 0.5 + p * TAU, 40, Color(Color.WHITE, a4), 1.0)
+			if t > 0.6:
+				var q := clampf((t - 0.6) / 0.4, 0.0, 1.0)
+				var d := Vector2.from_angle(-PI / 3.0) * r0 * 1.25
+				ci.draw_line((c - d).floor(), (c - d + d * 2.0 * q).floor(), Color(col, a4 * 0.4), 3.0)
+				ci.draw_line((c - d).floor(), (c - d + d * 2.0 * q).floor(), cc, 1.0)
+			ci.draw_circle(c, r0 * 0.25 * (1.0 + 0.25 * sin(_t * 8.0)), Color(Color.WHITE, a4 * 0.5))
+		"spiral":
+			var r1 := float(e["r"]) * k
+			var a5 := minf(1.0, t / 0.6) * minf(1.0, (dur - t) / 0.8)
+			# Cadran du temps : douze marques qui tournent lentement, deux aiguilles qui tournent à rebours.
+			for j in range(12):
+				var ang := -t * 0.3 + float(j) * TAU / 12.0
+				var p0 := c + Vector2.from_angle(ang) * r1 * 0.92
+				var p1 := c + Vector2.from_angle(ang) * r1 * (0.8 if j % 3 == 0 else 0.86)
+				ci.draw_line(p0.floor(), p1.floor(), Color(col, a5 * 0.8), 1.0)
+			ci.draw_arc(c, r1, 0.0, TAU, 64, Color(col, a5 * 0.35), 1.0)
+			ci.draw_line(c.floor(), (c + Vector2.from_angle(-t * 4.0) * r1 * 0.55).floor(), Color(Color.WHITE, a5), 1.0)
+			ci.draw_line(c.floor(), (c + Vector2.from_angle(-t * 0.9) * r1 * 0.38).floor(), Color(col.lightened(0.4), a5), 2.0)
+			# Bras de lumière qui s'enroulent vers le centre.
+			for arm in range(3):
+				var pts := PackedVector2Array()
+				for j in range(24):
+					var f := float(j) / 23.0
+					var ang2 := float(arm) * TAU / 3.0 + f * 5.0 - t * 1.6
+					pts.append((c + Vector2.from_angle(ang2) * r1 * 0.75 * (1.0 - f)).floor())
+				ci.draw_polyline(pts, Color(col, a5 * 0.55), 1.0)
+		"flux":
+			var r2 := float(e["r"]) * k
+			var a6 := minf(1.0, t / 0.25) * minf(1.0, (dur - t) / 0.5)
+			for i in range(6):
+				var ang3 := float(i) * TAU / 6.0 + 0.4 + float(e["rot"])
+				var start := c + Vector2.from_angle(ang3) * r2
+				var perp := Vector2.from_angle(ang3 + PI * 0.5)
+				var pts2 := PackedVector2Array()
+				var head := clampf(t / 0.7, 0.0, 1.0)
+				for j in range(20):
+					var f2 := float(j) / 19.0 * head
+					var wave := sin(f2 * TAU * 1.5 - t * 9.0 + float(i)) * r2 * 0.08 * (1.0 - f2)
+					pts2.append((start.lerp(c, f2) + perp * wave).floor())
+				ci.draw_polyline(pts2, Color(col, a6 * 0.3), 3.0)
+				ci.draw_polyline(pts2, Color(col.lightened(0.4), a6 * 0.9), 1.0)
+			ci.draw_circle(c, r2 * 0.06 * (1.0 + 0.3 * sin(_t * 10.0)), Color(Color.WHITE, a6 * 0.6))
+		"arrow":
+			var to := _fx_pos(e)
+			var from: Vector2 = e["from"]
+			var fly := clampf(t / 0.2, 0.0, 1.0)
+			var pos := from.lerp(to, fly)
+			var dir := (to - from).normalized()
+			if fly >= 1.0 and not bool(e["landed"]):
+				e["landed"] = true
+				_dust(to, 8)
+				_kick_impulse(6.0)
+			var wob := 0.0 if fly < 1.0 else sin(t * 60.0) * 0.12 * maxf(0.0, 1.0 - (t - 0.2) / 0.5)
+			var d2 := dir.rotated(wob)
+			var a8 := minf(1.0, (dur - t) / 0.4)
+			var tip := (pos * k).floor()
+			var tail := tip - d2 * 22.0
+			ci.draw_line(tail, tip, Color(Color("8a5a2b"), a8), 2.0)
+			ci.draw_line(tip, tip - d2.rotated(0.55) * 5.0, Color(col, a8), 2.0)
+			ci.draw_line(tip, tip - d2.rotated(-0.55) * 5.0, Color(col, a8), 2.0)
+			ci.draw_line(tail, tail - d2.rotated(0.5) * 6.0, Color(Color("8fd16a"), a8), 2.0)
+			ci.draw_line(tail, tail - d2.rotated(-0.5) * 6.0, Color(Color("8fd16a"), a8), 2.0)
+			if fly < 1.0:
+				ci.draw_line(tail, tail - d2 * 30.0, Color(Color.WHITE, 0.35), 1.0)
+		"swarm":
+			var seeds2: PackedVector2Array = e["pts"]
+			var rs := float(e["r"]) * k
+			var a9 := minf(1.0, t / 0.5) * minf(1.0, (dur - t) / 0.8)
+			for i in range(seeds2.size()):
+				var sd := seeds2[i]
+				var ang4 := sd.x + t * (1.2 + sd.y)
+				var rr3 := rs * sd.y * (0.8 + 0.2 * sin(t * 2.0 + sd.x * 3.0))
+				var fp := c + Vector2(cos(ang4) * rr3, sin(ang4 * 1.3) * rr3 * 0.55)
+				var fl := 0.55 + 0.45 * sin(_t * 9.0 + sd.x * 7.0)
+				ci.draw_circle(fp, 2.0, Color(col, a9 * 0.18 * fl))
+				ci.draw_rect(Rect2(fp.floor(), Vector2.ONE), Color(col.lightened(0.3), a9 * fl))
+		"gate":
+			var gw := float(e["r"]) * k * 0.8
+			var gh := float(e["r"]) * k * 1.3
+			var a7 := minf(1.0, (dur - t) / 0.6)
+			var p2 := clampf(t / 0.9, 0.0, 1.0)
+			var base_y := c.y + gh * 0.5
+			var lx := c.x - gw * 0.5
+			var rx := c.x + gw * 0.5
+			var top := base_y - gh + gw * 0.5
+			var pil := clampf(p2 * 2.0, 0.0, 1.0)
+			var gc := Color(col, a7)
+			ci.draw_line(Vector2(lx, base_y).floor(), Vector2(lx, lerpf(base_y, top, pil)).floor(), gc, 1.0)
+			ci.draw_line(Vector2(rx, base_y).floor(), Vector2(rx, lerpf(base_y, top, pil)).floor(), gc, 1.0)
+			if p2 > 0.5:
+				var q2 := (p2 - 0.5) * 2.0
+				ci.draw_arc(Vector2(c.x, top), gw * 0.5, PI, PI + q2 * PI * 0.5, 16, gc, 1.0)
+				ci.draw_arc(Vector2(c.x, top), gw * 0.5, TAU, TAU - q2 * PI * 0.5, 16, gc, 1.0)
+			# Les runes du linteau et des piliers s'allument une à une.
+			for j in range(7):
+				var lit := clampf((t - 0.9 - float(j) * 0.12) / 0.2, 0.0, 1.0)
+				if lit <= 0.0:
+					continue
+				var rp := Vector2(lx + 2.0, base_y - 3.0 - float(j) * (gh - gw * 0.5) / 7.0) if j < 4 else Vector2(rx - 3.0, base_y - 3.0 - float(j - 4) * (gh - gw * 0.5) / 3.5)
+				ci.draw_rect(Rect2(rp.floor(), Vector2(1, 2)), Color(col.lightened(0.5), a7 * lit))
+			if t > 1.6:
+				var g2 := clampf((t - 1.6) / 0.4, 0.0, 1.0)
+				ci.draw_rect(Rect2(Vector2(lx + 1.0, top), Vector2(gw - 1.0, base_y - top)), Color(col, a7 * 0.12 * g2))
 		"bolt":
 			if t - float(e["gen"]) > 0.05:
 				e["gen"] = t
@@ -1326,23 +1459,36 @@ func _bolt_path(target: Vector2) -> PackedVector2Array:
 
 func _draw_emote(ci: CanvasItem, em: Dictionary, k: float) -> void:
 	var who := str(em["who"])
+	var kind := str(em["kind"])
+	var t := float(em["t"])
+	# Place sur la tête : veine de colère au coin du crâne, goutte sur la tempe (elle glisse), « ! » et « ? »
+	# au-dessus, note à côté du visage. Les portraits ont la tête centrée, le crâne vers 80 % de leur hauteur.
+	var spot := {"anger": Vector2(0.16, -0.8), "drop": Vector2(-0.21, -0.64), "!": Vector2(0.1, -0.98), "?": Vector2(0.1, -0.98),
+		"note": Vector2(0.27, -0.84), "dots": Vector2(0.0, -0.96)}
+	var sp: Vector2 = spot.get(kind, Vector2(0.1, -0.95))
 	var base := Vector2.ZERO
+	var big := 0.0
 	if _figs.has(who):
 		var f: Dictionary = _figs[who]
-		var side := float(f["side"])
-		var fs := _fig_scale() * 64.0
-		base = (f["head"] as Vector2) + Vector2(-side * fs * 0.3 - 16.0, -fs * 0.42)
+		var toward := -float(f["side"])
+		big = float(f.get("S", _fig_scale() * 64.0))
+		base = (f.get("bottom", f["head"]) as Vector2) + Vector2(toward * sp.x * big, sp.y * big)
 	elif not _pres.is_empty() and str(_pres["pid"]) == who:
-		base = _anchor_pos("subject") + Vector2(_sh() * 0.25, -_sh() * 0.25)
+		big = _sh() * 0.9
+		base = (_pres.get("center", _anchor_pos("subject")) as Vector2) + Vector2(sp.x * big * 0.6, (sp.y + 0.55) * big * 0.6)
 	else:
 		return
-	var t := float(em["t"])
+	if kind == "drop":
+		base.y += minf(t, 1.2) * big * 0.035
 	var pop := minf(1.0, t / 0.12)
 	var a := minf(1.0, (float(em["dur"]) - t) / 0.3)
 	var hop := -absf(sin(t * 9.0)) * 2.0 * maxf(0.0, 1.0 - t / 0.6)
 	var rows: Array = EMOTES[str(em["kind"])]
-	var px2 := 2.0 if px >= 4.0 else 3.0 ## un pixel de bulle = 2 pixels d'effet (8 pixels d'écran)
-	var o := (base * k).floor() + Vector2(0.0, hop * 2.0 - (1.0 - pop) * 6.0)
+	var px2 := clampf(roundf(big * k / 44.0), 1.0, 3.0) ## taille d'un pixel de bulle, selon la taille du buste
+	var pulse := 1.0 + (0.15 * absf(sin(t * 7.0)) if kind == "anger" else 0.0)
+	var dim := Vector2(float(str(rows[0]).length()), float(rows.size())) * px2 * pulse
+	var o := (base * k - dim * 0.5).floor() + Vector2(0.0, hop * 2.0 - (1.0 - pop) * 4.0)
+	px2 *= pulse
 	for y in range(rows.size()):
 		var row := str(rows[y])
 		for x in range(row.length()):

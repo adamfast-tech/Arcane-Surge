@@ -14,7 +14,7 @@ CAST = { "z01_l02_intro": P, "z01_l02_outro": PS, "z01_l03_intro": PS, "z01_l03_
 CUES = [
     # Prologue : Morvaen et son sortilège, la Fracture, le Surge, les Nexus ; le héros ; Lysbourg endormi.
     ("prologue", "Valdrune. Il y a trois cents ans", {"subject": "portrait:morvaen", "subject_tint": "9a8ac8",
-        "fx": ["fade", "circle@subject:b07cff", "charge@subject:b07cff"], "cam": "push", "grade": "night"}),
+        "fx": ["fade", "spiral@subject:b07cff", "charge@subject:b07cff"], "cam": "push", "grade": "night"}),
     ("prologue", "La trame du monde se déchira", {"subject": "", "fx": ["white", "crack@sky:d93cf2", "shock@ground:d93cf2"],
         "cam": ["kick", "pull"], "grade": "violet"}),
     ("prologue", "Depuis, la magie brute", {"fx": ["wisps@ground:b07cff", "rays@sky:d93cf2"], "cam": ["reset", "pan_right"]}),
@@ -26,16 +26,19 @@ CUES = [
     ("z01_l01_intro", "Debout ! Le ciel est devenu violet", {"fx": ["bloom@sky:b07cff", "bolt@center:d93cf2"], "cam": "kick"}),
     ("z01_l01_intro", "Un Nexus a germé", {"fx": "wisps@center:b07cff", "cam": "pan_right"}),
     ("z01_l01_intro", "Je peux les arrêter.", {"act": {"porteur": "cast"}, "fx": "charge@porteur:4fe3d2", "cam": "focus:porteur"}),
-    ("z01_l01_intro", "Alors canalise !", {"fx": "circle@center:f2c46b", "cam": "reset"}),
+    ("z01_l01_intro", "Alors canalise !", {"fx": "gate@center:f2c46b", "cam": "reset"}),
     ("z01_l01_intro", "Et tant que la Barrière tient", {"act": {"porteur": "exit"}, "fx": "burst@porteur:4fe3d2", "cam": "push"}),
     ("z01_l01_outro", "Le Nexus s'est brisé", {"act": {"porteur": "hop"}, "fx": ["rays@sky:f2c46b", "burst@center:f2c46b"]}),
     ("z01_l01_outro", "Mais regarde la forêt", {"fx": "wisps@center:b07cff", "cam": "pan_right", "grade": "violet"}),
     ("z01_l01_outro", "Les Vigiles Sylvestres gardent", {"cam": "reset", "grade": "dawn"}),
-    # 1-2 : Sylwen.
-    ("z01_l02_intro", "Halte ! Un pas de plus", {"cam": "punch", "act": {"porteur": "hurt"}}),
-    ("z01_l02_intro", "Les lucioles fuient le Surge", {"fx": "sparkles:fff3b0"}),
-    ("z01_l02_outro", "Les Nexus poussent plus vite", {"cam": "zoom"}),
-    ("z01_l02_outro", "Allons à la Clairière brisée", {"cam": "reset"}),
+    # 1-2 : Sylwen. Une flèche de semonce, l'essaim des lucioles.
+    ("z01_l02_intro", "Halte ! Un pas de plus", {"fx": "arrow@porteur", "act": {"porteur": "hurt"}, "emote": {"porteur": "!"}}),
+    ("z01_l02_intro", "Je suis Sylwen, des Vigiles", {"cam": "focus:sylwen"}),
+    ("z01_l02_intro", "Les lucioles fuient le Surge", {"fx": "swarm@center:fff3b0", "cam": "reset"}),
+    ("z01_l02_intro", "Je couvre ton flanc droit", {"act": {"sylwen": "step"}}),
+    ("z01_l02_outro", "Joli travail.", {"fx": "swarm@porteur:fff3b0"}),
+    ("z01_l02_outro", "Les Nexus poussent plus vite", {"fx": "wisps@center:b07cff", "cam": "push", "grade": "violet"}),
+    ("z01_l02_outro", "Allons à la Clairière brisée", {"act": {"sylwen": "rise"}, "emote": {"sylwen": "dots"}, "cam": "reset", "grade": "none"}),
     # 1-3 : Brann.
     ("z01_l03_intro", "Enfin des renforts !", {"act": {"brann": "attack"}, "cam": "shake"}),
     ("z01_l03_intro", "Il ronfle. Toute la nuit.", {"act": {"brann": "hurt"}}),
@@ -55,7 +58,7 @@ CUES = [
     ("z01_l05_intro", "Il baisse la tête", {"act": {"subject": "roar"}, "cam": ["shake", "reset"]}),
     ("z01_l05_outro", "La corruption s'échappe", {"act": {"subject": "rise"}, "fx": "sparkles:cfe6ff"}),
     ("z01_l05_outro", "Canalisateur… Le Sceau attendait", {"act": {"subject": "glow"}, "cam": "zoom"}),
-    ("z01_l05_outro", "Une lumière brûle ta paume", {"act": {"porteur": "cast"}, "fx": ["beam@porteur:9ff0ff", "white"], "cam": "focus:porteur"}),
+    ("z01_l05_outro", "Une lumière brûle ta paume", {"act": {"porteur": "glow"}, "fx": ["beam@porteur:9ff0ff", "seal@porteur:9ff0ff", "white"], "cam": "focus:porteur"}),
     ("z01_l05_outro", "…et il a tout brisé.", {"cam": "zoom_out"}),
     ("z01_l05_outro", "Il est parti… Un Sceau d'Écho", {"fx": "sparkles:cfe6ff", "cam": "reset"}),
     # 1-6 : les fées sombres, le premier Écho.
