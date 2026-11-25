@@ -207,6 +207,55 @@ static func ground_texture(healed: bool = false) -> ImageTexture:
 		var x := rng.randi_range(0, w - 1)
 		var y := rng.randi_range(int(3.0 * PX_PER_M), h - 1)
 		_px(img, x, y, flowers[rng.randi_range(0, flowers.size() - 1)])
+	# Détails du sol propres au lieu (zone 1).
+	match scene if zone == 1 else "":
+		"lisiere":
+			# Ornières de charrettes le long du chemin.
+			for rx in [int((3.8 - GROUND_MIN.x) * PX_PER_M), int((5.2 - GROUND_MIN.x) * PX_PER_M)]:
+				for y in range(int(3.0 * PX_PER_M), h - int(2.0 * PX_PER_M)):
+					_px(img, rx + int(sin(float(y) * 0.05) * 1.5), y, Color("2a2218"))
+		"clairiere":
+			# Feuilles mortes et éclats de bois.
+			var lc := [Color("8a5a2a"), Color("a8702a"), Color("c88a3a"), Color("6a4a2a")]
+			for i in range(w * h / 45):
+				_px(img, rng.randi_range(0, w - 1), rng.randi_range(0, h - 1), lc[rng.randi_range(0, 3)])
+		"roncier", "sylvarche":
+			# Vrilles de ronces (ou racines) qui traversent le sol.
+			for v2 in range(22):
+				var p2 := Vector2(rng.randf_range(0.0, float(w)), rng.randf_range(0.0, float(h)))
+				var d2 := Vector2.from_angle(rng.randf_range(0.0, TAU))
+				for k in range(60):
+					_px(img, int(p2.x), int(p2.y), Color("2a1430") if scene == "roncier" else Color("3a2a22"))
+					if k % 5 == 0:
+						_px(img, int(p2.x) + 1, int(p2.y), Color("8e62e0") if scene == "roncier" else Color("5a4030"))
+					d2 = d2.rotated(rng.randf_range(-0.3, 0.3))
+					p2 += d2
+		"fougeres":
+			# Pousses de fougère et reflets de lune.
+			for i in range(w * h / 70):
+				var fx := rng.randi_range(0, w - 1)
+				var fy := rng.randi_range(0, h - 1)
+				_px(img, fx, fy, Color("3f7a4a"))
+				_px(img, fx + 1, fy - 1, Color("5f9a5a"))
+			for i in range(w * h / 120):
+				_px(img, rng.randi_range(0, w - 1), rng.randi_range(0, h - 1), Color("b8c8ff"))
+		"cercle":
+			# Fleurs de fée, roses et blanches.
+			for i in range(w * h / 28):
+				_px(img, rng.randi_range(0, w - 1), rng.randi_range(int(2.0 * PX_PER_M), h - 1), Color("f7a8e0") if rng.randf() < 0.6 else Color("ffe8f8"))
+		"source":
+			# Flaques claires.
+			for i in range(18):
+				var pc := Vector2i(rng.randi_range(0, w - 1), rng.randi_range(int(2.0 * PX_PER_M), h - int(2.0 * PX_PER_M)))
+				_disc(img, pc.x, pc.y, rng.randi_range(2, 5), Color("2f6a7a"))
+				_px(img, pc.x - 1, pc.y - 1, Color("9ff0ff"))
+		"coeur":
+			# Éclats de cristal et veines du Surge partout.
+			for v3 in range(30):
+				var p3 := Vector2(rng.randf_range(0.0, float(w)), rng.randf_range(0.0, float(h)))
+				for k in range(50):
+					_px(img, int(p3.x), int(p3.y), Color("5b3a8a") if k % 6 != 0 else Color("d98cff"))
+					p3 += Vector2(rng.randf_range(-1.0, 1.0), rng.randf_range(-1.0, 1.0))
 	# Veines corrompues dans la zone ennemie.
 	for v in range(10):
 		var p := Vector2(rng.randf_range(0.0, float(w)), rng.randf_range(0.0, 3.0 * PX_PER_M))

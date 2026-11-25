@@ -102,7 +102,8 @@ func setup(s: BattleSim, f: Font, forest_healed: bool = false) -> void:
 	add_child(_spell_fx)
 	_terrain_view = TerrainView.new()
 	add_child(_terrain_view)
-	_terrain_view.setup(sim, _stone_mat, _moss_cap, _spell_fx)
+	var pm := _pillar_mats()
+	_terrain_view.setup(sim, pm[0], pm[1], _spell_fx)
 	cam = Camera3D.new()
 	cam.fov = FOV
 	cam.near = 0.5
@@ -206,6 +207,15 @@ func _build_environment() -> void:
 		_env.fog_light_color = Color("5a2a1e")
 	elif abyss:
 		_env.fog_light_color = Color("0e4a6a")
+	if WorldArt.zone == 1 and WorldArt.scene != "" and WorldArt.scene != "pont" and not healed:
+		# Lumière propre au lieu : chaude à la lisière, bleue sous la lune des fougères, rose au cercle des fées,
+		# violette là où le Surge s'est enraciné.
+		var amb: Dictionary = {"lisiere": ["c8a8a0", "4a3a50"], "sentier": ["8890c8", "2a3a4e"], "clairiere": ["90a8b8", "2d3c4e"],
+			"roncier": ["9a78c0", "3a2450"], "fougeres": ["9ab0e8", "2a3a6a"], "cercle": ["c890c8", "4a2a50"], "source": ["80b8c8", "1f4050"],
+			"coeur": ["b070d0", "3a1a50"], "sylvarche": ["9070b8", "2a1a40"]}
+		var pair: Array = amb.get(WorldArt.scene, ["7078c0", "2d2c5e"])
+		_env.ambient_light_color = Color(str(pair[0]))
+		_env.fog_light_color = Color(str(pair[1]))
 	_env.fog_depth_begin = 40.0
 	_env.fog_depth_end = 80.0
 	_env.glow_enabled = true
@@ -585,11 +595,11 @@ func _build_scene_props() -> void:
 				wm.size = Vector2(4.0, 14.0)
 				water.mesh = wm
 				var mat := StandardMaterial3D.new()
-				mat.albedo_color = Color(0.25, 0.6, 0.7, 0.8)
+				mat.albedo_color = Color(0.12, 0.3, 0.38, 0.75)
 				mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 				mat.emission_enabled = true
-				mat.emission = Color("2f8f9a")
-				mat.emission_energy_multiplier = 0.35
+				mat.emission = Color("1f5a66")
+				mat.emission_energy_multiplier = 0.18
 				mat.roughness = 0.2
 				water.material_override = mat
 				water.position = w3(Vector2(4.5 + side5 * 7.6, 8.0), 0.02)
@@ -609,6 +619,50 @@ func _build_scene_props() -> void:
 			var root := WorldArt.root_texture()
 			for i in range(14):
 				_prop(root, _side_spot(rng), rng.randf_range(1.2, 2.0))
+
+
+## Piliers du bord du chemin selon le lieu (zone 1) : poteaux de bois, souches, pierres maudites, pierres de fée,
+## cristaux, bois de la Sylvarche ; ailleurs, la pierre et sa mousse.
+func _pillar_mats() -> Array:
+	if WorldArt.zone != 1 or WorldArt.scene == "" or WorldArt.scene == "pont":
+		return [_stone_mat, _moss_cap]
+	var body := _triplanar(WorldArt.stone_texture(), 0.55)
+	var cap := StandardMaterial3D.new()
+	cap.roughness = 1.0
+	match WorldArt.scene:
+		"lisiere":
+			body.albedo_color = Color(0.85, 0.6, 0.42)
+			cap.albedo_color = Color("8a6a3a")
+		"clairiere", "sylvarche":
+			body.albedo_color = Color(0.62, 0.45, 0.38) if WorldArt.scene == "clairiere" else Color(0.45, 0.36, 0.42)
+			cap.albedo_color = Color("c8a070") if WorldArt.scene == "clairiere" else Color("5a3a6a")
+		"roncier":
+			body.albedo_color = Color(0.6, 0.52, 0.72)
+			cap.albedo_color = Color("5a2a6a")
+			cap.emission_enabled = true
+			cap.emission = Color("8e3ac8")
+			cap.emission_energy_multiplier = 0.4
+		"cercle":
+			body.albedo_color = Color(1.05, 1.0, 1.1)
+			cap.albedo_color = Color("f7a8e0")
+			cap.emission_enabled = true
+			cap.emission = Color("ff9ce8")
+			cap.emission_energy_multiplier = 0.8
+		"coeur":
+			body.albedo_color = Color(0.75, 0.5, 1.0)
+			body.emission_enabled = true
+			body.emission = Color("6a2a9a")
+			body.emission_energy_multiplier = 0.35
+			cap.albedo_color = Color("ffb0ff")
+			cap.emission_enabled = true
+			cap.emission = Color("d93cf2")
+			cap.emission_energy_multiplier = 0.9
+		"source":
+			body.albedo_color = Color(0.7, 0.85, 0.95)
+			cap.albedo_color = Color("3f8a7a")
+		_:
+			cap.albedo_color = Color("3f6a3a")
+	return [body, cap]
 
 
 func _side_spot(rng: RandomNumberGenerator) -> Vector2:

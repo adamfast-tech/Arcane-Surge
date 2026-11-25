@@ -32,6 +32,23 @@ Le chantier avance niveau par niveau. **Version 2 du moteur** (bustes, calques d
 
 Placement : la tête au centre de l'écran (le corps peut déborder du cadre), les pieds au sol derrière le panneau et les bustes.
 
+## Combats de la zone 1 : un lieu par niveau
+
+Chaque niveau se joue dans le lieu de ses cinématiques (`WorldArt.LEVEL_SCENE`, `WorldArt.scene`). Hors du pont (1-7), l'arène est **au sol de la forêt** : plus de chaussée au-dessus du vide, l'herbe arrive au niveau du chemin, la brume reste au ras du sol.
+
+| Niveau | Lieu | Sol, bords et décor |
+|---|---|---|
+| 1-1 | Lisière de Lysbourg | Route de terre et ornières ; poteaux de bois ; chaumières aux fenêtres allumées, lanternes ; lumière chaude ; toits du village sur l'horizon |
+| 1-2 | Sentier des lucioles | Chemin de terre ; sapins serrés ; lanternes et une nuée de lucioles |
+| 1-3 | Clairière brisée | Herbe foulée, feuilles mortes ; souches pour piliers ; souches éclatées et troncs couchés ; arbres écartés |
+| 1-4 | Roncier | Vrilles de ronces sur le sol ; pierres violettes ; buissons d'épines, deux pierres runiques allumées ; lueur violette |
+| 1-5 | Clairière aux fougères | Herbe, pousses et reflets de lune ; grandes fougères ; lumière bleue de la lune |
+| 1-6 | Cercle des fées | Chemin moussu, fleurs roses ; pierres de fée lumineuses ; deux anneaux de champignons lumineux ; aurore rose |
+| 1-7 | Pont des ruines | La chaussée de pierre au-dessus du vide, la Tour du Croissant à l'horizon |
+| 1-8 | La Source | Flaques ; pierres mouillées ; nappes d'eau et roseaux de part et d'autre |
+| 1-9 | Cœur corrompu | Veines du Surge et éclats de cristal ; piliers de cristal lumineux ; cristaux violets ; arbres teintés de violet |
+| 1-10 | Domaine de la Sylvarche | Racines sur le sol et sur les bords ; bois sombre ; l'arbre-mère sur l'horizon |
+
 ## Indications (données)
 
 Facultatives, sur une réplique (`cam`, `fx`, `act`, `grade`, `emote`) ou dans l'en-tête d'une scène (`cast`, `grade`, `cam`). `cam` et `fx` acceptent une valeur ou une liste.
