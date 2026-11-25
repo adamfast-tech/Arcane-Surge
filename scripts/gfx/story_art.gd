@@ -28,7 +28,7 @@ static func plate(kind: String, size: Vector2i) -> ImageTexture:
 			_ambre(img, rng, kind)
 		"marais", "cercle", "hydre", "refuge", "pilotis", "mares", "brume", "gue_morts", "croc", "barque", "sorciere":
 			_marais(img, rng, kind)
-		"pics", "porte", "lac", "forteresse", "colosse":
+		"pics", "porte", "lac", "forteresse", "colosse", "col", "congeres", "sentinelle", "aurore", "chariot", "portes":
 			_pics(img, rng, kind)
 		"forge":
 			_forge(img, rng)
@@ -1022,7 +1022,7 @@ static func _pics(img: Image, rng: RandomNumberGenerator, kind: String) -> void:
 		_colosse(img, rng)
 		return
 	_sky(img, rng, [[0.0, Color("0c1226")], [0.4, Color("1e3458")], [0.62, Color("6a8ab0")], [0.75, Color("c8dcec")], [1.0, Color("e8f2fa")]], 0.9)
-	if kind == "lac":
+	if kind in ["lac", "aurore"]:
 		# Aurore boréale : rubans verts et violets qui ondulent.
 		for band in range(3):
 			var col := Color("5ff0a8") if band != 1 else Color("b07cff")
@@ -1092,7 +1092,81 @@ static func _pics(img: Image, rng: RandomNumberGenerator, kind: String) -> void:
 			for k in range(7):
 				var a := PI + float(k) * PI / 6.0
 				_rune(img, cx + int(cos(a) * aw * 0.86), top + aw + int(sin(a) * aw * 0.86), Color("ffb050") if k % 2 == 0 else Color("8fe3f2"))
-		"lac":
+		"col", "chariot":
+			# La route du col en lacets entre les sapins ; statues naines qui la gardent ; (chariot) le chariot runique.
+			var p := Vector2(w * 0.15, h - 1)
+			for st in range(int(h * 0.5)):
+				var t := float(st) / (h * 0.5)
+				p = Vector2(w * (0.5 + 0.28 * sin(t * 5.0)), h - 1 - st * 0.75)
+				for dx in range(-int(6.0 - 4.0 * t), int(6.0 - 4.0 * t) + 1):
+					_px(img, int(p.x) + dx, int(p.y), Color("9aa8bc"))
+			for k in range(2):
+				var sx := int(w * (0.18 + 0.64 * float(k)))
+				var sy := ground + int(h * 0.04)
+				img.fill_rect(Rect2i(sx - 5, sy - 22, 10, 22), Color("4a5272"))
+				_disc(img, sx, sy - 25, 5, Color("5a6282"))
+				img.fill_rect(Rect2i(sx - 6, sy - 30, 12, 2), Color("f0f6ff"))
+				_px(img, sx - 2, sy - 25, Color("8fe3f2"))
+				_px(img, sx + 2, sy - 25, Color("8fe3f2"))
+			for i in range(maxi(4, int(w / 40.0))):
+				var tx := rng.randi_range(0, w)
+				if absf(float(tx) - w * 0.5) < w * 0.14:
+					continue
+				var th := rng.randi_range(int(h * 0.1), int(h * 0.2))
+				var base := rng.randi_range(ground + 4, h - 2)
+				_pine(img, tx, base, th, Color("1e3a3a"), Color("cfe8f0"))
+			if kind == "chariot":
+				var cx := int(w * 0.5)
+				var cy := ground + int(h * 0.02)
+				img.fill_rect(Rect2i(cx - 14, cy - 10, 28, 9), Color("5a3a22"))
+				img.fill_rect(Rect2i(cx - 15, cy - 11, 30, 2), Color("8a8a98"))
+				for k2 in range(3):
+					_glow_px(img, cx - 8 + k2 * 8, cy - 6, 4, Color("8fe3f2"), 0.5)
+					_px(img, cx - 8 + k2 * 8, cy - 6, Color("c8f8ff"))
+				for wx: int in [cx - 9, cx + 9]:
+					_disc(img, wx, cy, 3, Color("2a2a38"))
+		"congeres":
+			# Les congères : de grandes vagues de neige figées au-dessus du chemin, prêtes à rompre.
+			for k in range(4):
+				var cx2 := int(w * (0.1 + 0.27 * float(k)))
+				var cy2 := ground - int(h * 0.02)
+				var rw := int(w * 0.18)
+				for y in range(int(h * 0.1)):
+					var half := int(float(rw) * sqrt(maxf(0.0, 1.0 - pow(float(y) / (h * 0.1), 2.0))))
+					img.fill_rect(Rect2i(cx2 - half, cy2 - y, half * 2, 1), Color("f4f8ff") if y > 2 else Color("c8d8ec"))
+				for d in range(rw):
+					_px(img, cx2 - rw / 2 + d, cy2 - int(h * 0.1) + 2 + int(sin(float(d) * 0.3) * 2.0), Color("9ab0cc"))
+			for i in range(int(w / 6.0)):
+				var gx := rng.randi_range(0, w)
+				var gy := rng.randi_range(int(h * 0.2), ground)
+				for d in range(rng.randi_range(6, 18)):
+					_px(img, gx + d, gy, Color(1, 1, 1, 0.3))
+		"sentinelle", "portes":
+			# Le seuil de la forteresse : deux grandes portes de pierre, sceaux de givre ; (sentinelle) la statue
+			# immense de la Garde, marteau levé.
+			var cx3 := int(w * 0.5)
+			var wall := int(h * 0.3)
+			img.fill_rect(Rect2i(int(w * 0.08), wall, int(w * 0.84), ground - wall), Color("2e3652"))
+			var gw := int(w * 0.16)
+			img.fill_rect(Rect2i(cx3 - gw, int(h * 0.36), gw * 2, ground - int(h * 0.36)), Color("141c34"))
+			img.fill_rect(Rect2i(cx3 - 1, int(h * 0.36), 2, ground - int(h * 0.36)), Color("0a1020"))
+			for k in range(6):
+				var ry := int(h * 0.4) + k * int(h * 0.035)
+				img.fill_rect(Rect2i(cx3 - gw + 4, ry, gw * 2 - 8, 1), Color("8a8a98"))
+			for k in range(2):
+				var sx2 := cx3 + (-1 if k == 0 else 1) * gw / 2
+				_glow_px(img, sx2, int(h * 0.48), int(w * 0.05), Color("4a6aff"), 0.45)
+				_px(img, sx2, int(h * 0.48), Color("c8d8ff"))
+			if kind == "sentinelle":
+				for side: int in [-1, 1]:
+					var sx3: int = cx3 + side * int(w * 0.32)
+					img.fill_rect(Rect2i(sx3 - 9, int(h * 0.26), 18, ground - int(h * 0.26)), Color("3a4466"))
+					_disc(img, sx3, int(h * 0.24), 8, Color("4a5476"))
+					_px(img, sx3 - 3, int(h * 0.24), Color("8fe3f2"))
+					_px(img, sx3 + 3, int(h * 0.24), Color("8fe3f2"))
+					img.fill_rect(Rect2i(sx3 + side * 10, int(h * 0.14), 4, int(h * 0.14)), Color("2a3048"))
+					img.fill_rect(Rect2i(sx3 + side * 10 - 6, int(h * 0.12), 16, 8), Color("4a5272"))
+		"lac", "aurore":
 			# Lac gelé : un miroir bleuté, des silhouettes figées sous la glace.
 			var lake := int(h * 0.7)
 			img.fill_rect(Rect2i(0, lake, w, h - lake), Color("9ec4dc"))

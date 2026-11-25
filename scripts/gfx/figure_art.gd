@@ -16,6 +16,7 @@ const SPEC := {
 	"voix": [96, 146, 0.84, false, Vector2(48, 33), false],
 	"lanterne": [40, 104, 0.42, false, Vector2(14, 32), false],
 	"varg": [96, 152, 0.72, false, Vector2(48, 34), false],
+	"orrin": [96, 140, 0.7, false, Vector2(48, 34), false],
 	"gharok": [112, 168, 0.88, false, Vector2(48, 36), false],
 }
 const OX := 16 ## le portrait (64 px) est posé au milieu d'une image de 96 px
@@ -76,10 +77,12 @@ static func texture(id: String, mood: String = "neutre", talk: int = 0, blink: b
 				_robe(img, hi, 6.0, 0.3, false)
 			"varg":
 				_varg(img, hi)
+			"orrin":
+				_robe(img, hi, 7.0, 0.25, false)
 			"gharok":
 				_gharok(img, hi)
 		img.blend_rect(hi, Rect2i(0, 0, 64, 64), Vector2i(OX, 0))
-		if id == "voix":
+		if id == "voix" or id == "orrin":
 			# La Voix n'a pas de pieds : son ombre se dissout vers le sol.
 			for y in range(84, img.get_height()):
 				var k := 1.0 - float(y - 84) / float(img.get_height() - 84)
