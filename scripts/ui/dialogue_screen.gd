@@ -344,10 +344,10 @@ func _set_art(kind: String) -> void:
 
 
 func _set_subject(name: String) -> void:
-	if name == _subject:
+	if name == _subject and name != "":
 		return
 	_subject = name
-	stage.set_subject(name)
+	stage.set_subject(name) ## "" efface aussi une présence venue d'une réplique (la Voix…)
 
 
 func _show_line(l: Dictionary) -> void:

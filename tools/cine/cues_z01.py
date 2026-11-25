@@ -68,12 +68,14 @@ CUES = [
     ("z01_l05_outro", "Avec lui, tu entendras les échos du temps", {"act": {"porteur": "echo"}, "cam": "reset"}),
     ("z01_l05_outro", "…et il a tout brisé.", {"cam": "pull", "grade": "dark"}),
     ("z01_l05_outro", "Il est parti… Un Sceau d'Écho", {"fx": "glitter@subject:cfe6ff", "cam": "reset", "grade": "none"}),
-    # 1-6 : les fées sombres, le premier Écho.
-    ("z01_l06_intro", "Des tireuses, des porte-boucliers", {"act": {"subject": "roar"}}),
-    ("z01_l06_intro", "Et toi, surveille ton Sceau", {"act": {"porteur": "glow"}}),
-    ("z01_l06_outro", "Un instant, le monde s'est figé", {"fx": "white", "act": {"porteur": "glow"}, "cam": "zoom"}),
-    ("z01_l06_outro", "Encore un Porteur…", {"fx": "flash:6a3aa8", "cam": "tremble"}),
-    ("z01_l06_outro", "Hé ! Ton visage a perdu", {"cam": "reset"}),
+    # 1-6 : les fées sombres ; le premier Écho (le temps se fige), la Voix.
+    ("z01_l06_intro", "Des tireuses, des porte-boucliers", {"subject_tint": "9a7ab8", "act": {"subject": "roar"}, "fx": "glitter@subject:8a4aa8", "grade": "violet"}),
+    ("z01_l06_intro", "Les boucliers, je m'en charge", {"act": {"brann": "step"}, "fx": "clang@brann", "grade": "none"}),
+    ("z01_l06_intro", "Et toi, surveille ton Sceau", {"fx": "seal@porteur:6fdccf", "cam": "focus:porteur"}),
+    ("z01_l06_outro", "Un instant, le monde s'est figé", {"act": {"porteur": "echo"}, "fx": "timestop@porteur", "grade": "cold", "cam": "push"}),
+    ("z01_l06_outro", "Encore un Porteur…", {"fx": "wisps@subject:6a3aa8", "grade": "dark", "cam": "reset"}),
+    ("z01_l06_outro", "Hé ! Ton visage a perdu", {"subject": "", "grade": "none"}),
+    ("z01_l06_outro", "Les Échos sont des fragments", {"cam": "reset"}),
     # 1-7 : la Lanterne de l'Aube, la Tour du Croissant.
     ("z01_l07_intro", "Les villageois portent la Lanterne", {"act": {"subject": "glow"}, "fx": "sparkles:ffd070"}),
     ("z01_l07_intro", "Mais elle est fragile.", {"cam": "zoom"}),

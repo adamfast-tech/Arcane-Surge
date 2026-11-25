@@ -148,19 +148,19 @@
       "subject": "pixie",
       "cast": ["porteur", "sylwen", "brann"],
       "lines": [
-        {"act": {"subject": "roar"}, "who": "sylwen", "mood": "surpris", "text": "Des tireuses, des porte-boucliers… Les fées sombres s'organisent. C'est nouveau."},
-        {"who": "brann", "text": "Les boucliers, je m'en charge. Les machins qui volent, c'est ton affaire, l'elfe."},
-        {"act": {"porteur": "glow"}, "who": "sylwen", "text": "Et toi, surveille ton Sceau. S'il s'éveille pendant le combat… écoute-le."}
+        {"subject_tint": "9a7ab8", "act": {"subject": "roar"}, "fx": "glitter@subject:8a4aa8", "grade": "violet", "who": "sylwen", "mood": "surpris", "text": "Des tireuses, des porte-boucliers… Les fées sombres s'organisent. C'est nouveau."},
+        {"act": {"brann": "step"}, "fx": "clang@brann", "grade": "none", "who": "brann", "text": "Les boucliers, je m'en charge. Les machins qui volent, c'est ton affaire, l'elfe."},
+        {"fx": "seal@porteur:6fdccf", "cam": "focus:porteur", "who": "sylwen", "text": "Et toi, surveille ton Sceau. S'il s'éveille pendant le combat… écoute-le."}
       ]
     },
     "z01_l06_outro": {
       "art": "foret",
       "cast": ["porteur", "sylwen", "brann"],
       "lines": [
-        {"fx": "white", "act": {"porteur": "glow"}, "cam": "zoom", "who": "narrateur", "text": "Un instant, le monde s'est figé. Tu as vu d'autres versions de cette bataille, d'autres choix, d'autres fins."},
-        {"fx": "flash:6a3aa8", "cam": "tremble", "who": "voix", "text": "Encore un Porteur… Combien de temps avant que toi aussi, tu veuilles tout changer ?"},
-        {"cam": "reset", "who": "brann", "mood": "surpris", "text": "Hé ! Ton visage a perdu toutes ses couleurs. Tu as entendu quelque chose ?"},
-        {"who": "sylwen", "text": "Les Échos sont des fragments d'autres lignes du temps. Prends ce qui t'aide. Méfie-toi du reste."}
+        {"act": {"porteur": "echo"}, "fx": "timestop@porteur", "grade": "cold", "cam": "push", "who": "narrateur", "text": "Un instant, le monde s'est figé. Tu as vu d'autres versions de cette bataille, d'autres choix, d'autres fins."},
+        {"fx": "wisps@subject:6a3aa8", "grade": "dark", "cam": "reset", "who": "voix", "text": "Encore un Porteur… Combien de temps avant que toi aussi, tu veuilles tout changer ?"},
+        {"subject": "", "grade": "none", "who": "brann", "mood": "surpris", "text": "Hé ! Ton visage a perdu toutes ses couleurs. Tu as entendu quelque chose ?"},
+        {"cam": "reset", "who": "sylwen", "text": "Les Échos sont des fragments d'autres lignes du temps. Prends ce qui t'aide. Méfie-toi du reste."}
       ]
     },
 

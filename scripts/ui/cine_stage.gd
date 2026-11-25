@@ -31,7 +31,7 @@ const MAX_FIGURES := 4
 ## Vocabulaire des indications (vérifié par tools/ui_smoke.gd).
 const CAMS := ["zoom", "zoom_out", "reset", "punch", "shake", "tremble", "pan_left", "pan_right", "pan_up", "push", "pull", "kick", "focus"]
 const FXS := ["flash", "white", "fade", "lightning", "sparkles", "embers", "bloom", "ring", "rays", "bolt", "beam", "crack",
-	"seal", "spiral", "flux", "gate", "arrow", "swarm", "clang", "steam", "thorns", "glitter", "hooves", "drip", "ferns", "lanes",
+	"seal", "spiral", "flux", "gate", "arrow", "swarm", "clang", "steam", "thorns", "glitter", "hooves", "drip", "ferns", "lanes", "timestop",
 	"slash", "wisps", "charge", "burst", "leaves", "dust", "shock"]
 const ACTS := ["jump", "hop", "shake", "hurt", "attack", "droop", "kneel", "glow", "fall", "exit", "enter", "rise", "turn", "step", "cast", "echo"]
 const SUBJECT_ACTS := ["roar", "hit", "fall", "glow", "rise", "fade", "appear"]
@@ -593,6 +593,14 @@ func _effect(spec: String) -> void:
 			# Couloirs de danger : des bandes rouges clignotent au sol, là où la bête va charger.
 			var ln := _add_fx("lanes", "ground", col if col_s != "" else Color("ff4a3a"), "back", 2.6)
 			ln["pts"] = PackedVector2Array([Vector2(randf_range(0.22, 0.36), 0), Vector2(randf_range(0.45, 0.55), 0), Vector2(randf_range(0.64, 0.78), 0)])
+		"timestop":
+			# Le monde se fige (un Écho) : bandes de distorsion qui glissent, onde lente autour du repère.
+			var ts := _add_fx("timestop", anchor, col if col_s != "" else Color("9ff0ff"), "light", 2.6)
+			var bands := PackedVector2Array()
+			for i in range(9):
+				bands.append(Vector2(randf(), randf_range(1.0, 5.0)))
+			ts["pts"] = bands
+			_fx_set(_add_fx("ring", anchor, col if col_s != "" else Color("9ff0ff"), "light", 2.4), "R", sh * 1.2)
 		"hooves":
 			# Martèlement au loin : le sol bat, la poussière saute, à intervalles réguliers.
 			var hv := _add_fx("hooves", "ground", Color("d8c8b0"), "back", 3.2)
@@ -1494,6 +1502,19 @@ func _draw_fx(ci: CanvasItem, e: Dictionary, k: float) -> void:
 					var sp2 := pts3[j]
 					var sd2 := 1.0 if j % 2 == 0 else -1.0
 					ci.draw_line(sp2, sp2 + Vector2(sd2 * 3.0, -2.0), Color(col.lightened(0.3), a11), 1.0)
+		"timestop":
+			var bands2: PackedVector2Array = e["pts"]
+			var a13 := minf(1.0, t / 0.15) * minf(1.0, (dur - t) / 0.6)
+			var W := size.x * k
+			var H := _sh() * k
+			for i in range(bands2.size()):
+				var bd := bands2[i]
+				var by := fmod(bd.x * H + t * (8.0 + float(i) * 3.0), H)
+				var off2 := sin(t * 23.0 + float(i) * 5.0) * 6.0
+				var on := sin(t * 17.0 + float(i) * 2.3) > -0.2
+				if on:
+					ci.draw_rect(Rect2(off2, by, W, bd.y), Color(col, a13 * 0.13))
+					ci.draw_rect(Rect2(off2 + W * 0.1 * float(i % 3), by, W * 0.25, 1.0), Color(Color.WHITE, a13 * 0.35))
 		"lanes":
 			var xs: PackedVector2Array = e["pts"]
 			var gy := (_anchor_pos("ground") * k).y
