@@ -21,6 +21,8 @@ const SPEC := {
 	"gharok": [112, 168, 0.88, false, Vector2(48, 36), false],
 	"mere_dragon": [200, 176, 0.98, false, Vector2(100, 34), false],
 	"wyrm": [200, 176, 1.0, false, Vector2(100, 34), false],
+	"leviathan": [200, 176, 1.0, false, Vector2(100, 34), false],
+	"ourdisseur": [96, 146, 0.84, false, Vector2(48, 33), false],
 }
 const OX := 16 ## le portrait (64 px) est posé au milieu d'une image de 96 px
 const SOX := 38 ## le Sphinx : son portrait au milieu d'une image de 140 px
@@ -90,13 +92,26 @@ static func texture(id: String, mood: String = "neutre", talk: int = 0, blink: b
 				_gharok(img, hi)
 			"mere_dragon", "wyrm":
 				_dragon(img, id == "wyrm")
+			"leviathan":
+				_leviathan(img)
+			"ourdisseur":
+				_robe(img, hi, 6.0, 0.3, false)
 		var hox := OX
 		if id == "sphinx":
 			hox = SOX
-		elif id in ["mere_dragon", "wyrm"]:
+		elif id in ["mere_dragon", "wyrm", "leviathan"]:
 			hox = DOX
 		img.blend_rect(hi, Rect2i(0, 0, 64, 64), Vector2i(hox, 0))
-		if id == "voix" or id == "orrin":
+		if id == "ourdisseur":
+			# L'Ourdisseur : sa robe se défait en fils qui pendent jusqu'au sol, violets et turquoise.
+			for k in range(11):
+				var fx := 22 + k * 5
+				var col := Color("4fe3d2") if k % 3 == 0 else Color("b8a0e8")
+				for y in range(70, img.get_height() - 2):
+					var xx := fx + int(sin(float(y) * 0.12 + float(k)) * 2.0)
+					if y % 7 != k % 7:
+						PortraitArt._px(img, xx, y, Color(col, 0.85))
+		if id == "voix" or id == "orrin" or id == "ourdisseur":
 			# La Voix n'a pas de pieds : son ombre se dissout vers le sol.
 			for y in range(84, img.get_height()):
 				var k := 1.0 - float(y - 84) / float(img.get_height() - 84)
@@ -448,3 +463,61 @@ static func _dragon(img: Image, wyrm: bool) -> void:
 			var gy := 90 + (i * 53) % 76
 			if img.get_pixel(gx, gy).a > 0.5:
 				PortraitArt._px(img, gx, gy, Color("ffe8a0"))
+
+
+
+## Le Léviathan, serpent des abysses : le long cou plonge sous la tête du portrait et s'enroule en grands
+## anneaux de part et d'autre ; nageoires pectorales déployées, épines dorsales, points de lumière ;
+## la Marée noire du Surge le ronge (taches d'encre aux reflets violets).
+static func _leviathan(img: Image) -> void:
+	var cx := float(DOX) + 32.0
+	var hide := PortraitArt._ramp(["122a40", "1e4a6e", "2e6a94", "4a8ab8"])
+	var belly := PortraitArt._ramp(["3a6a7a", "6aa0a8", "a0d0d0"])
+	var fin := PortraitArt._ramp(["14505e", "2a8a98", "5ac8c8"])
+	# Anneaux : le corps sort du sol et y replonge en arches, de part et d'autre du cou, épines sur le dos.
+	for hump in [[-44.0, 22.0, 44.0, 11.0], [-82.0, 14.0, 30.0, 8.0], [44.0, 22.0, 44.0, 11.0], [82.0, 14.0, 30.0, 8.0]]:
+		var hc := cx + float(hump[0])
+		var hr := float(hump[1])
+		var hh := float(hump[2])
+		var th := float(hump[3])
+		var arc: Array[Vector2] = []
+		for k in range(13):
+			var a := lerpf(PI, TAU, float(k) / 12.0)
+			arc.append(Vector2(hc + cos(a) * hr, 174.0 + sin(a) * hh))
+		for k in range(arc.size() - 1):
+			_limb(img, arc[k], arc[k + 1], th, th, hide)
+		for k in range(2, arc.size() - 2, 2):
+			var sp: Vector2 = arc[k]
+			var up := (sp - Vector2(hc, 174.0)).normalized()
+			PortraitArt._poly(img, PackedVector2Array([sp + up * th * 0.6 + up.orthogonal() * 3.0, sp + up * th * 0.6 - up.orthogonal() * 3.0, sp + up * (th + 8.0)]), fin)
+	# Nageoires pectorales.
+	for side2: float in [-1.0, 1.0]:
+		var root := Vector2(cx + side2 * 16.0, 98.0)
+		PortraitArt._poly(img, PackedVector2Array([root, root + Vector2(side2 * 40.0, -18.0), root + Vector2(side2 * 46.0, 6.0), root + Vector2(side2 * 30.0, 18.0)]), fin, -0.1 * side2)
+		for r in range(3):
+			PortraitArt._line(img, root, root + Vector2(side2 * (40.0 - float(r) * 5.0), -14.0 + float(r) * 12.0), Color("8ae8e0"), 1)
+	# Le cou qui descend du menton et plonge dans le sol.
+	var neck: Array[Vector2] = [Vector2(cx, 52.0), Vector2(cx + 6.0, 84.0), Vector2(cx - 4.0, 120.0), Vector2(cx + 2.0, 150.0), Vector2(cx, 176.0)]
+	for k in range(neck.size() - 1):
+		_limb(img, neck[k], neck[k + 1], 12.0 + float(k) * 2.5, 12.0 + float(k + 1) * 2.5, hide)
+	for k in range(14):
+		var y := 60 + k * 8
+		var f := float(y - 52) / 124.0
+		var nx := cx + sin(f * 5.0) * 4.0
+		var half := 5.0 + f * 7.0
+		PortraitArt._poly(img, PackedVector2Array([Vector2(nx - half, float(y)), Vector2(nx + half, float(y)), Vector2(nx + half - 1.0, float(y + 6)), Vector2(nx - half + 1.0, float(y + 6))]), belly)
+	# Points de lumière et Marée noire.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7010
+	for i in range(40):
+		var gx := rng.randi_range(int(cx) - 90, int(cx) + 90)
+		var gy := rng.randi_range(60, 172)
+		if img.get_pixel(gx, gy).a > 0.5:
+			PortraitArt._px(img, gx, gy, Color("aef8ff"))
+	for i in range(7):
+		var tx := rng.randi_range(int(cx) - 80, int(cx) + 80)
+		var ty := rng.randi_range(90, 160)
+		for yy in range(-4, 5):
+			for xx in range(-6, 7):
+				if Vector2(float(xx), float(yy) * 1.5).length() <= 6.0 - rng.randf() * 2.0 and img.get_pixel(tx + xx, ty + yy).a > 0.5:
+					PortraitArt._px(img, tx + xx, ty + yy, Color("120a1e") if (xx + yy) % 4 else Color("5a2a8a"))

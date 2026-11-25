@@ -5,7 +5,7 @@ Le module de la zone définit :
     SCENE = {scene: {"cast": [...], "grade": "..."}}   (en-tête de scène ; CAST = {scene: [...]} accepté aussi)
     CUES = [(scene, extrait_du_texte, {"cam": ..., "fx": ..., "act": ..., "grade": ..., "emote": ..., ...})]
 Chaque réplique visée est réécrite : ses anciennes indications (cam, fx, act, grade, emote) sont remplacées
-par les nouvelles. Relancer le script ne change rien."""
+par les nouvelles (les répliques des branches d'un choix aussi). Relancer le script ne change rien."""
 import json, sys, importlib.util
 
 CUE_KEYS = ("cam", "fx", "act", "grade", "emote", "title")
@@ -50,9 +50,22 @@ for sid, snip, cues in m.CUES:
     line = block[o:e]
     comma = line.endswith(',')
     obj = json.loads(line[:-1] if comma else line)
-    rest = {k: v for k, v in obj.items() if k not in CUE_KEYS and k not in cues}
-    out = dict(cues)
-    out.update(rest)
+
+    def cued(d):
+        rest = {k: v for k, v in d.items() if k not in CUE_KEYS and k not in cues}
+        out = dict(cues)
+        out.update(rest)
+        return out
+
+    if snip in str(obj.get("text", "")):
+        out = cued(obj)
+    else:
+        # Réplique d'une branche de choix (« options » → « then ») : elle est sur la ligne du choix.
+        hits = [(oi, ti) for oi, opt in enumerate(obj.get("options", [])) for ti, t in enumerate(opt.get("then", [])) if snip in str(t.get("text", ""))]
+        assert len(hits) == 1, (sid, snip, hits)
+        oi, ti = hits[0]
+        obj["options"][oi]["then"][ti] = cued(obj["options"][oi]["then"][ti])
+        out = obj
     block = block[:o] + json.dumps(out, ensure_ascii=False) + (',' if comma else '') + block[e:]
     s = s[:a] + block + s[b:]
 

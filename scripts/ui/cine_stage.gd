@@ -23,6 +23,7 @@ const PLATE_MOOD := {
 	"cendres": "cinder", "coulee": "cinder", "braisemont": "cinder", "nid": "cinder", "autels": "arcane", "citadelle": "cinder",
 	"caldeira": "forge", "antre": "cinder", "lisiere_cendree": "cinder", "couloirs": "cinder", "ailes": "cinder", "drake": "cinder", "pardon": "dawn",
 	"cite": "abyss", "quais": "abyss", "canal": "abyss", "statues": "abyss", "archives": "arcane", "palais": "abyss", "abysse": "abyss",
+	"marees": "abyss", "kraken": "abyss", "cloche": "abyss", "portes_archives": "arcane", "sirenes": "abyss", "fil": "arcane", "fosse": "abyss",
 }
 ## Décors où des feuilles tombent.
 const LEAFY := ["foret", "foret_gueri", "source", "pont", "collines", "lysbourg", "sylvarche", "sentier", "clairiere", "fougeres", "cercle_fees", "roncier"]
@@ -30,7 +31,7 @@ const LEAFY := ["foret", "foret_gueri", "source", "pont", "collines", "lysbourg"
 const PRESENCE := ["cerf", "sylvarche", "voix", "wyrm", "mere_dragon", "leviathan", "ourdisseur", "sphinx", "orrin", "morvaen", "varg", "gharok"]
 ## Sujets de scène (sprites de combat) montrés par leur portrait.
 const SUBJECT_PORTRAIT := {"stag": "cerf", "sylvarche": "sylvarche", "pixie": "fee", "varg": "varg", "gharok": "gharok", "glass_sphinx": "sphinx",
-	"mere_dragon": "mere_dragon", "ash_wyrm": "wyrm"}
+	"mere_dragon": "mere_dragon", "ash_wyrm": "wyrm", "leviathan": "leviathan"}
 const MAX_FIGURES := 4
 ## Deux personnages au plus à l'écran : celui qui parle et celui à qui il répond, un de chaque côté.
 const MAX_VISIBLE := 2
@@ -44,7 +45,8 @@ const FXS := ["flash", "white", "fade", "lightning", "sparkles", "embers", "bloo
 	"bubbles", "fogbank", "lanterns", "ripples", "bonerise", "chains", "jaws", "ashring", "heads", "moths", "whispers",
 	"blizzard", "avalanche", "icecrack", "runes", "anvil", "aurora", "breath", "doors", "spectral",
 	"sandstorm", "heatwave", "mirage", "glint", "sundisk", "hourglass", "riddle", "pages",
-	"firewall", "ashfall", "wingshadow", "lavaflow", "eggglow", "phoenix", "wyrmmark", "dragonfire", "ashswirl"]
+	"firewall", "ashfall", "wingshadow", "lavaflow", "eggglow", "phoenix", "wyrmmark", "dragonfire", "ashswirl",
+	"current", "tide", "tentacles", "ink", "song", "threads", "bellring", "nacre", "blacktide"]
 const ACTS := ["jump", "hop", "shake", "hurt", "attack", "droop", "kneel", "glow", "fall", "exit", "enter", "rise", "turn", "step", "cast", "echo"]
 const SUBJECT_ACTS := ["roar", "hit", "fall", "glow", "rise", "fade", "appear"]
 const GRADES := {"none": "ffffff", "night": "8c98d8", "violet": "c8a0f0", "warm": "ffd8ac", "dawn": "ffe6cc", "cold": "b8d6ff",
@@ -683,7 +685,7 @@ func _effect(spec: String) -> void:
 		"shatter":
 			# La cage vole en éclats : barreaux en morceaux, poussière de lumière.
 			for e9 in _fx.duplicate():
-				if str(e9["kind"]) in ["cage", "sigils", "bars", "chains", "heads", "wyrmmark"]:
+				if str(e9["kind"]) in ["cage", "sigils", "bars", "chains", "heads", "wyrmmark", "blacktide"]:
 					_fx.erase(e9)
 			var sp3 := _anchor_pos(anchor)
 			for i in range(40):
@@ -964,6 +966,52 @@ func _effect(spec: String) -> void:
 			# Un tourbillon de cendres dorées monte autour du repère.
 			var asw := _add_fx("emit_ashswirl", anchor, col if col_s != "" else Color("ffd070"), "light", 3.5)
 			asw["rate"] = 70.0
+		# Cité Engloutie (zone 7).
+		"current":
+			# Un courant traverse la scène : longs filets d'eau claire et bulles emportées de côté.
+			_add_fx("current", "center", col if col_s != "" else Color("bff0ff"), "front", 3.5)
+		"tide":
+			# La marée monte : l'eau s'élève depuis le bas de la scène, sa surface ondule, puis redescend.
+			_add_fx("tide", "ground", col if col_s != "" else Color("4fa8c8"), "front", 4.0)
+			_trem = maxf(_trem, 0.3)
+		"tentacles":
+			# Des tentacules jaillissent du sol, se tordent, puis replongent.
+			var tn := _add_fx("tentacles", "ground", col if col_s != "" else Color("6a3a7a"), "back", 3.6)
+			var tps := PackedVector2Array()
+			for i in range(5):
+				tps.append(Vector2(randf_range(0.05, 0.95), randf_range(0.6, 1.0)))
+			tn["pts"] = tps
+			_kick_impulse(7.0)
+			_dust(_anchor_pos("ground"), 10)
+		"ink":
+			# Un nuage d'encre se répand et masque tout un instant.
+			var ik := _add_fx("emit_ink", anchor if anchor != "auto" else "subject", col if col_s != "" else Color("140a1e"), "front", 2.2)
+			ik["rate"] = 40.0
+		"song":
+			# Le chant des Sirènes : des ondes sinueuses roses partent du repère, des notes de lumière scintillent.
+			_add_fx("song", anchor, col if col_s != "" else Color("ff9ad0"), "light", 4.0)
+			var sg2 := _add_fx("emit_glitter", anchor, col if col_s != "" else Color("ffb0e0"), "light", 3.5)
+			sg2["rate"] = 18.0
+		"threads":
+			# Les fils des Archives : des milliers de fils lumineux tendus du sol à la voûte ; un fil se distingue.
+			var thr := _add_fx("threads", "center", col if col_s != "" else Color("ffe08a"), "light", 5.0)
+			var xs := PackedVector2Array()
+			for i in range(46):
+				xs.append(Vector2(randf(), randf()))
+			thr["pts"] = xs
+		"bellring":
+			# La cloche sonne : trois coups graves, des ondes qui roulent dans l'eau.
+			var bl := _add_fx("bellring", anchor if anchor != "auto" else "subject", col if col_s != "" else Color("ffe08a"), "light", 2.8)
+			bl["beat"] = -1
+		"nacre":
+			# Une bulle de nacre se forme autour de chacun : reflets irisés, un éclat qui tourne.
+			for who in _figs.keys():
+				_fx_set(_add_fx("nacre", str(who), col if col_s != "" else Color("e8f4ff"), "light", 3.5), "r", sh * 0.24)
+			if _figs.is_empty():
+				_fx_set(_add_fx("nacre", "center", col if col_s != "" else Color("e8f4ff"), "light", 3.5), "r", sh * 0.24)
+		"blacktide":
+			# La Marée noire du Surge : des volutes d'encre violette ondulent autour du repère (jusqu'à « shatter »).
+			_fx_set(_add_fx("blacktide", anchor, col if col_s != "" else Color("5a2a8a"), "back", 8.0), "r", sh * 0.32)
 		# Désert de Verre (zone 5).
 		"sandstorm":
 			# Tempête de sable : voiles dorés en travers de la scène, l'air jaunit.
@@ -1617,6 +1665,15 @@ func _update_fx(delta: float) -> void:
 				var rg3 := _add_fx("ring", "", e["col"], "light", 0.4)
 				rg3["at"] = _fx_pos(e)
 				rg3["R"] = _sh() * 0.15
+		if kind == "bellring":
+			var beat5 := int(float(e["t"]) / 0.8)
+			if beat5 != int(e["beat"]) and beat5 < 3:
+				e["beat"] = beat5
+				_kick_v += Vector2(0.0, 70.0)
+				for q in range(2):
+					var rg5 := _add_fx("ring", "", e["col"], "light", 1.1 + 0.3 * float(q))
+					rg5["at"] = _fx_pos(e)
+					rg5["R"] = _sh() * (0.45 + 0.25 * float(q))
 		if kind == "drums":
 			# Rythme : boum… boum… BOUM (le troisième plus fort).
 			var beat2 := int(float(e["t"]) / 0.55)
@@ -1727,6 +1784,9 @@ func _emit(e: Dictionary) -> void:
 		"emit_glint":
 			_part({"p": Vector2(randf() * size.x, ground_y - randf_range(0.0, sh * 0.35)), "v": Vector2.ZERO, "max": randf_range(0.4, 0.8),
 				"col": col, "size": 1.0, "layer": "light", "kind": "star"})
+		"emit_ink":
+			_part({"p": c + Vector2(randf_range(-1, 1) * sh * 0.1, randf_range(-1, 1) * sh * 0.08), "v": Vector2.from_angle(randf() * TAU) * randf_range(60, 200),
+				"max": randf_range(1.4, 2.2), "col": col.lerp(Color("2a1a3a"), randf() * 0.5), "size": randf_range(18.0, 36.0), "layer": "front", "drag": 1.6, "kind": "puff"})
 		"emit_ashfall":
 			var ember := randf() < 0.22
 			_part({"p": Vector2(randf() * size.x, top_y + randf_range(-10.0, sh * 0.1)), "v": Vector2(randf_range(-10, 20), randf_range(30, 60)),
@@ -2095,6 +2155,102 @@ func _draw_fx(ci: CanvasItem, e: Dictionary, k: float) -> void:
 						ci.draw_rect(Rect2(op.floor() - Vector2.ONE, Vector2(2, 2)), Color(Color.WHITE, ta))
 					else:
 						ci.draw_rect(Rect2(op.floor(), Vector2.ONE), Color(col, ta * 0.6))
+		"current":
+			var W17 := size.x * k
+			var H17 := size.y * k
+			var ca := minf(1.0, t / 0.6) * minf(1.0, (dur - t) / 0.8)
+			for i in range(40):
+				var cx5 := fmod(float(i) * 61.7 + t * (220.0 + float(i % 4) * 50.0), W17 + 80.0) - 40.0
+				var cy5 := (top_y * k) + fmod(float(i) * 31.3, H17 * 0.8) + sin(_t * 2.0 + float(i)) * 4.0
+				var pts15 := PackedVector2Array()
+				for q in range(6):
+					pts15.append(Vector2(cx5 - float(q) * 5.0, cy5 + sin(float(q) * 0.9 + _t * 4.0) * 1.5).floor())
+				ci.draw_polyline(pts15, Color(col, ca * 0.35), 1.0)
+				if i % 5 == 0:
+					ci.draw_arc(Vector2(cx5 + 6.0, cy5 - 3.0).floor(), 1.5, 0.0, TAU, 8, Color(col, ca * 0.7), 1.0)
+		"tide":
+			var W18 := size.x * k
+			var H18 := size.y * k
+			var lv := sin(PI * clampf(t / dur, 0.0, 1.0))
+			var surf := (ground_y - _sh() * 0.55 * lv) * k
+			var pts16 := PackedVector2Array()
+			for q in range(33):
+				var qx2 := W18 * float(q) / 32.0
+				pts16.append(Vector2(qx2, surf + sin(_t * 3.0 + float(q) * 0.7) * 2.5 * k * 4.0).floor())
+			var poly := pts16.duplicate()
+			poly.append(Vector2(W18, H18))
+			poly.append(Vector2(0.0, H18))
+			ci.draw_colored_polygon(poly, Color(col, 0.22 * lv))
+			ci.draw_polyline(pts16, Color(Color("d8f8ff"), 0.6 * lv), 1.0)
+		"tentacles":
+			var tg := _sh() * k
+			var tu := t / dur
+			var up := _ease_out(clampf(tu / 0.25, 0.0, 1.0)) * (1.0 - _ease_in(clampf((tu - 0.75) / 0.25, 0.0, 1.0)))
+			var base15 := (ground_y + _sh() * 0.03) * k
+			var tpts: PackedVector2Array = e["pts"]
+			for i in range(tpts.size()):
+				var tx := tpts[i].x * size.x * k
+				var hgt := tg * 0.55 * tpts[i].y * up
+				var prev := Vector2(tx, base15)
+				for q in range(1, 13):
+					var f := float(q) / 12.0
+					var curl := sin(_t * 2.2 + float(i) * 1.3 + f * 3.0) * tg * 0.06 * f + (f * f * tg * 0.08 * (1.0 if i % 2 == 0 else -1.0))
+					var p := Vector2(tx + curl, base15 - hgt * f)
+					var wid := maxf(1.0, tg * 0.035 * (1.0 - f * 0.8))
+					ci.draw_line(prev, p, col, wid)
+					if q % 3 == 0 and wid > 2.0:
+						ci.draw_circle(p + Vector2(wid * 0.4, 0.0), wid * 0.22, Color("e8c8d8"))
+					prev = p
+		"song":
+			var sr5 := _sh() * k * 0.5
+			var sa5 := minf(1.0, t / 0.4) * minf(1.0, (dur - t) / 0.8)
+			for q in range(3):
+				var ph2 := fmod(t / 1.2 + float(q) / 3.0, 1.0)
+				var rr6 := sr5 * (0.15 + ph2)
+				var pts17 := PackedVector2Array()
+				for a6 in range(41):
+					var ang7 := float(a6) / 40.0 * TAU
+					var wob := 1.0 + 0.06 * sin(ang7 * 6.0 + _t * 4.0)
+					pts17.append(c + Vector2(cos(ang7), sin(ang7) * 0.55) * rr6 * wob)
+				ci.draw_polyline(pts17, Color(col, sa5 * (1.0 - ph2) * 0.6), 1.0)
+		"threads":
+			var W19 := size.x * k
+			var ta := minf(1.0, t / 1.0) * minf(1.0, (dur - t) / 1.0)
+			var xs2: PackedVector2Array = e["pts"]
+			var pal3: Array = [Color("4fe3d2"), Color("8fe0ff"), Color("e86a8a"), Color("b07cff")]
+			for i in range(xs2.size()):
+				var tx2 := xs2[i].x * W19
+				var c6: Color = pal3[i % 4]
+				var fl2 := 0.35 + 0.25 * sin(_t * 2.0 + xs2[i].y * 9.0)
+				ci.draw_line(Vector2(tx2, top_y * k), Vector2(tx2 + sin(_t * 0.6 + float(i)) * 2.0, ground_y * k), Color(c6, ta * fl2), 1.0)
+			var beat6 := pow(maxf(0.0, sin(_t * 3.2)), 3.0)
+			var gx3 := W19 * 0.5
+			for i in range(5):
+				ci.draw_line(Vector2(gx3, top_y * k), Vector2(gx3, ground_y * k), Color(col, ta * (0.08 + 0.06 * beat6)), 1.0 + float(i) * 2.0)
+			ci.draw_line(Vector2(gx3, top_y * k), Vector2(gx3, ground_y * k), Color(Color("fff6d0"), ta), 1.0)
+		"nacre":
+			var nr := float(e["r"]) * k
+			var na := minf(1.0, t / 0.5) * minf(1.0, (dur - t) / 0.8)
+			var nc := c + Vector2(0.0, nr * 0.35)
+			for q in range(24):
+				var a8 := float(q) / 24.0 * TAU
+				var hue := fmod(float(q) / 24.0 + _t * 0.2, 1.0)
+				ci.draw_line(nc + Vector2.from_angle(a8) * nr, nc + Vector2.from_angle(a8 + TAU / 24.0) * nr, Color(Color.from_hsv(hue, 0.25, 1.0), na * 0.7), 1.0)
+			ci.draw_circle(nc, nr, Color(col, na * 0.06))
+			var hl := nc + Vector2.from_angle(-2.2 + sin(_t) * 0.3) * nr * 0.7
+			ci.draw_circle(hl, 2.0, Color(Color.WHITE, na * 0.8))
+		"blacktide":
+			var br6 := float(e["r"]) * k
+			var ba3 := minf(1.0, t / 0.8) * minf(1.0, (dur - t) / 0.8)
+			for q in range(9):
+				var a9 := float(q) / 9.0 * TAU + _t * 0.3
+				var pts18 := PackedVector2Array()
+				for d in range(10):
+					var f3 := float(d) / 9.0
+					var ang8 := a9 + sin(_t * 1.5 + float(q) + f3 * 3.0) * 0.5
+					pts18.append(c + Vector2.from_angle(ang8) * br6 * (0.3 + f3 * 0.9) * Vector2(1.0, 0.8))
+				ci.draw_polyline(pts18, Color(Color("120a1e"), ba3 * 0.8), 3.0)
+				ci.draw_polyline(pts18, Color(col, ba3 * 0.5), 1.0)
 		"firewall":
 			var W14 := size.x * k
 			var fa := minf(1.0, t / 0.5) * minf(1.0, (dur - t) / 0.8)

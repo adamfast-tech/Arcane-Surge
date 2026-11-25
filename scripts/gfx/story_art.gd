@@ -38,7 +38,7 @@ static func plate(kind: String, size: Vector2i) -> ImageTexture:
 			_cendres(img, rng, kind)
 		"pardon":
 			_pardon(img, rng)
-		"cite", "quais", "canal", "statues", "archives", "palais", "abysse":
+		"cite", "quais", "canal", "statues", "archives", "palais", "abysse", "marees", "kraken", "cloche", "portes_archives", "sirenes", "fil", "fosse":
 			_cite(img, rng, kind)
 		_:
 			_forest(img, rng, kind)
@@ -1866,7 +1866,7 @@ static func _cendres_cave(img: Image, rng: RandomNumberGenerator, kind: String) 
 static func _cite(img: Image, rng: RandomNumberGenerator, kind: String) -> void:
 	var w := img.get_width()
 	var h := img.get_height()
-	if kind in ["archives", "abysse"]:
+	if kind in ["archives", "abysse", "kraken", "fil", "fosse"]:
 		_cite_deep(img, rng, kind)
 		return
 	_sky(img, rng, [[0.0, Color("2a8aa8")], [0.2, Color("146a8a")], [0.5, Color("0a3a5a")], [1.0, Color("041428")]], 0.0)
@@ -1953,21 +1953,155 @@ static func _cite(img: Image, rng: RandomNumberGenerator, kind: String) -> void:
 				_disc(img, sx, sb - 25, 3, Color("2a5a6a") if k != 2 else Color("1a2a34"))
 				_px(img, sx + 3, sb - 14, Color("4fe3d2"))
 		"palais":
-			# Façade du palais aux colonnes de nacre.
-			var pw := int(w * 0.6)
-			img.fill_rect(Rect2i(w / 2 - pw / 2, int(h * 0.42), pw, int(h * 0.3)), Color("123a54"))
+			# Le palais du gardien : façade de nacre à trois dômes, arches de corail, fenêtres turquoise,
+			# grand portail lumineux, escalier qui descend vers le spectateur.
+			var pw := int(w * 0.64)
+			var px0 := w / 2 - pw / 2
+			var pb := int(h * 0.74)
+			var ph := int(h * 0.3)
+			img.fill_rect(Rect2i(px0, pb - ph, pw, ph), Color("143e58"))
+			for k in range(7):
+				var cx2 := px0 + 4 + k * (pw - 8) / 6
+				img.fill_rect(Rect2i(cx2, pb - ph + 6, 3, ph - 6), Color("bfd8e0"))
+				_px(img, cx2 + 1, pb - ph + 5, Color("e8f4ff"))
 			for k in range(6):
-				img.fill_rect(Rect2i(w / 2 - pw / 2 + 4 + k * (pw - 8) / 5, int(h * 0.44), 3, int(h * 0.28)), Color("bfd8e0"))
-			for yy in range(8):
-				img.fill_rect(Rect2i(w / 2 - pw / 2 - 6 + yy, int(h * 0.42) - 8 + yy, pw + 12 - yy * 2, 1), Color("1a4a64"))
-			_glow_px(img, w / 2, int(h * 0.58), int(minf(w, h) * 0.12), Color("4fe3d2"), 0.3)
+				var wx := px0 + 8 + k * (pw - 8) / 6
+				for yy in range(pb - ph + 12, pb - ph + 22):
+					img.fill_rect(Rect2i(wx, yy, maxi(2, (pw - 8) / 6 - 10), 1), Color("4fe3d2").lerp(Color("1a6a7a"), float(yy - pb + ph - 12) / 10.0))
+			for d in [[0.5, 0.16], [0.24, 0.1], [0.76, 0.1]]:
+				var dx := int(w * float(d[0]))
+				var dr := int(w * float(d[1]) * 0.5)
+				for yy in range(dr):
+					var half := int(sqrt(float(dr * dr - yy * yy)))
+					img.fill_rect(Rect2i(dx - half, pb - ph - yy, half * 2, 1), Color("1e5070").lerp(Color("2a6a8a"), float(yy) / float(maxi(1, dr))))
+				_px(img, dx, pb - ph - dr - 1, Color("e8f4ff"))
+				img.fill_rect(Rect2i(dx, pb - ph - dr - 6, 1, 5), Color("bfd8e0"))
+			var gw := int(pw * 0.18)
+			img.fill_rect(Rect2i(w / 2 - gw / 2, pb - int(ph * 0.6), gw, int(ph * 0.6)), Color("4fe3d2"))
+			for yy in range(gw / 2):
+				var half2 := int(sqrt(float((gw / 2) * (gw / 2) - yy * yy)))
+				img.fill_rect(Rect2i(w / 2 - half2, pb - int(ph * 0.6) - yy, half2 * 2, 1), Color("4fe3d2"))
+			_glow_px(img, w / 2, pb - int(ph * 0.4), int(minf(w, h) * 0.16), Color("4fe3d2"), 0.35)
+			for k in range(5):
+				var sw := gw + k * int(w * 0.05)
+				img.fill_rect(Rect2i(w / 2 - sw / 2, pb + k * 3, sw, 3), Color("1a4a64").lerp(Color("0e2a3e"), float(k) / 5.0))
+			for side: int in [-1, 1]:
+				for k in range(9):
+					var ax2 := w / 2 + side * (pw / 2 + 4)
+					_px(img, ax2 + side * int(sin(float(k) * 0.5) * 3.0), pb - k * 4, Color("e87aa0"))
+		"marees":
+			# La grande marée : le courant couche les algues, soulève le sable ; au loin, une ombre respire.
+			_glow_px(img, int(w * 0.75), int(h * 0.4), int(w * 0.25), Color("02060c"), 0.5)
+			for i in range(maxi(30, w / 4)):
+				var sy := rng.randi_range(int(h * 0.1), int(h * 0.9))
+				var sx := rng.randi_range(-20, w)
+				var ln := rng.randi_range(10, 40)
+				for d in range(ln):
+					_px(img, sx + d, sy + int(sin(float(d) * 0.2 + float(i)) * 1.5), Color(0.7, 0.95, 1.0, 0.25))
+			for i in range(maxi(10, w / 20)):
+				var kx := rng.randi_range(0, w)
+				var kb := int(h * 0.9) + rng.randi_range(-4, 4)
+				for d in range(rng.randi_range(14, 30)):
+					_px(img, kx + d / 2 + int(sin(float(d) * 0.4) * 1.5), kb - d, Color("2a8a6a") if d % 3 else Color("4ab88a"))
+			for y in range(int(h * 0.8), h):
+				for i in range(w / 8):
+					_px(img, rng.randi_range(0, w), y, Color(0.8, 0.75, 0.6, 0.3))
+		"cloche":
+			# La cloche de plongée des Archivistes, suspendue à ses chaînes au-dessus des quais, hublots allumés.
+			img.fill_rect(Rect2i(0, int(h * 0.78), w, 4), Color("1a3a4a"))
+			var bx2 := w / 2
+			var bt := int(h * 0.26)
+			var bh := int(h * 0.34)
+			for side: int in [-1, 1]:
+				for y in range(0, bt):
+					if y % 3 != 2:
+						_px(img, bx2 + side * 6 + side * y / 10, y, Color("5a6a6a"))
+			for yy in range(bh):
+				var half3 := int(float(bh) * (0.12 + 0.48 * sqrt(float(yy + 1) / float(bh))))
+				var c3 := Color("2a5a4a").lerp(Color("4a7a5a"), float(yy) / float(bh))
+				img.fill_rect(Rect2i(bx2 - half3, bt + yy, half3 * 2, 1), c3)
+				_px(img, bx2 + half3 - 1, bt + yy, Color("8ab88a"))
+			img.fill_rect(Rect2i(bx2 - int(float(bh) * 0.7), bt + bh, int(float(bh) * 1.4), 3), Color("1a3a2a"))
+			for k in range(3):
+				var hx := bx2 - int(bh * 0.3) + k * int(bh * 0.3)
+				var hy := bt + int(bh * 0.6)
+				_disc(img, hx, hy, maxi(2, bh / 14), Color("ffe08a"))
+				_glow_px(img, hx, hy, bh / 6, Color("ffd070"), 0.3)
+		"portes_archives":
+			# Les portes des Archives : deux battants immenses gravés de fils, scellés par la corruption violette ;
+			# des Archivistes immobiles de part et d'autre.
+			var dw := int(w * 0.34)
+			var dt := int(h * 0.2)
+			var db := int(h * 0.8)
+			img.fill_rect(Rect2i(w / 2 - dw / 2 - 6, dt - 6, dw + 12, db - dt + 6), Color("0c2234"))
+			for side: int in [-1, 1]:
+				var x0 := w / 2 if side > 0 else w / 2 - dw / 2
+				img.fill_rect(Rect2i(x0, dt, dw / 2 - 1, db - dt), Color("1a4a5a"))
+				for k in range(5):
+					var lx := x0 + 3 + k * (dw / 2 - 6) / 4
+					for y in range(dt + 4, db - 4, 2):
+						_px(img, lx + int(sin(float(y) * 0.1 + float(k)) * 1.5), y, Color(0.31, 0.89, 0.82, 0.55))
+			img.fill_rect(Rect2i(w / 2 - 1, dt, 2, db - dt), Color("05101a"))
+			for v in range(8):
+				var p := Vector2(w / 2, rng.randi_range(dt, db))
+				var d := Vector2.from_angle(rng.randf_range(0.0, TAU))
+				for k in range(rng.randi_range(10, 24)):
+					_px(img, int(p.x), int(p.y), Color("b07cff") if k % 3 else Color("e0b0ff"))
+					d = d.rotated(rng.randf_range(-0.6, 0.6))
+					p += d
+			_glow_px(img, w / 2, (dt + db) / 2, dw / 2, Color("b07cff"), 0.25)
+			for k in range(6):
+				var sx3 := int(w * (0.08 + 0.13 * float(k if k < 3 else k + 1)))
+				var sb3 := int(h * 0.86)
+				img.fill_rect(Rect2i(sx3 - 3, sb3 - 20, 7, 20), Color("2a4a5a"))
+				_disc(img, sx3, sb3 - 23, 3, Color("2a4a5a"))
+				_px(img, sx3 - 1, sb3 - 23, Color("ffe08a"))
+				_px(img, sx3 + 1, sb3 - 23, Color("ffe08a"))
+		"sirenes":
+			# Le récif des Sirènes : arches de corail rose, bénitiers géants et leurs perles, rochers où chantent
+			# des silhouettes à queue de poisson, lumière rose.
+			_glow_px(img, w / 2, int(h * 0.5), int(w * 0.4), Color("ff8ab8"), 0.15)
+			for i in range(maxi(6, w / 40)):
+				var cx4 := rng.randi_range(0, w)
+				var cb4 := int(h * 0.8) + rng.randi_range(-6, 6)
+				for br in range(5):
+					var p4 := Vector2(cx4, cb4)
+					var a4 := -PI * 0.5 + rng.randf_range(-0.8, 0.8)
+					for d in range(rng.randi_range(8, 22)):
+						_px(img, int(p4.x), int(p4.y), Color("e87aa0") if d % 4 else Color("ffb0c8"))
+						a4 += rng.randf_range(-0.2, 0.2)
+						p4 += Vector2.from_angle(a4)
+			for k in range(3):
+				var rx := int(w * (0.2 + 0.3 * float(k)))
+				var rb := int(h * 0.76)
+				for yy in range(int(h * 0.12)):
+					var half4 := int(float(h) * 0.07) - yy / 3
+					img.fill_rect(Rect2i(rx - half4, rb - yy, half4 * 2, 1), Color("123048"))
+				var top4 := rb - int(h * 0.12)
+				img.fill_rect(Rect2i(rx - 2, top4 - 12, 4, 10), Color("2a6a7a"))
+				_disc(img, rx, top4 - 15, 3, Color("2a6a7a"))
+				for d in range(8):
+					_px(img, rx + 2 + d, top4 - 2 + d / 3, Color("2a8a8a"))
+				_px(img, rx + 10, top4 + 1, Color("4ab8a8"))
+				_px(img, rx + 11, top4 + 2, Color("4ab8a8"))
+				for n in range(3):
+					_px(img, rx - 6 - n * 4, top4 - 18 - n * 3, Color("ffb0d8"))
+			for k in range(4):
+				var clx := int(w * (0.1 + 0.27 * float(k)))
+				var cly := int(h * 0.9)
+				for yy in range(-5, 3):
+					for xx in range(-9, 10):
+						if Vector2(float(xx), float(yy) * 1.7).length() <= 9.0:
+							_px(img, clx + xx, cly + yy, Color("8a9ab0") if yy > -1 else Color("a8b8c8"))
+				_disc(img, clx, cly - 1, 2, Color("f4f8ff"))
+				_glow_px(img, clx, cly - 1, 6, Color("e8f4ff"), 0.4)
 
 
 ## Profondeurs : la salle des fils (archives) et la fosse du Léviathan (abysse).
 static func _cite_deep(img: Image, rng: RandomNumberGenerator, kind: String) -> void:
 	var w := img.get_width()
 	var h := img.get_height()
-	var hall := kind == "archives"
+	var hall := kind == "archives" or kind == "fil"
 	_sky(img, rng, [[0.0, Color("06142a") if hall else Color("020810")], [0.6, Color("0a2440") if hall else Color("041020")], [1.0, Color("040c18")]], 0.0)
 	if hall:
 		# Des milliers de fils de corail lumineux tendus du sol à la voûte, un fil noir au centre.
@@ -1976,10 +2110,67 @@ static func _cite_deep(img: Image, rng: RandomNumberGenerator, kind: String) -> 
 			var col: Color = [Color("4fe3d2"), Color("8fe0ff"), Color("e86a8a"), Color("b07cff")][rng.randi_range(0, 3)]
 			for y in range(0, h, 2):
 				_px(img, x + int(sin(float(y) * 0.05 + float(i)) * 2.0), y, Color(col, rng.randf_range(0.25, 0.6)))
-		for y in range(h):
-			_px(img, w / 2, y, Color("0a0010"))
-			_px(img, w / 2 + 1, y, Color("2a0a3a"))
-		_glow_px(img, w / 2, int(h * 0.5), int(minf(w, h) * 0.15), Color("b07cff"), 0.25)
+		if kind == "fil":
+			# Ta ligne : un fil d'or, tiède, plus brillant que tous les autres.
+			for y in range(h):
+				_px(img, w / 2 + int(sin(float(y) * 0.04) * 2.0), y, Color("ffe08a"))
+				_px(img, w / 2 + 1 + int(sin(float(y) * 0.04) * 2.0), y, Color("fff6d0"))
+			_glow_px(img, w / 2, int(h * 0.5), int(minf(w, h) * 0.2), Color("ffd070"), 0.3)
+		else:
+			for y in range(h):
+				_px(img, w / 2, y, Color("0a0010"))
+				_px(img, w / 2 + 1, y, Color("2a0a3a"))
+			_glow_px(img, w / 2, int(h * 0.5), int(minf(w, h) * 0.15), Color("b07cff"), 0.25)
+	elif kind == "kraken":
+		# L'antre du kraken : grotte noire, tentacules qui sortent des parois, nuages d'encre, deux yeux jaunes.
+		for side: int in [0, 1]:
+			for y in range(h):
+				var k := float(y) / float(h)
+				var xe := int(w * (0.18 + 0.08 * sin(k * 6.0 + float(side))))
+				if side == 0:
+					img.fill_rect(Rect2i(0, y, xe, 1), Color("061420"))
+				else:
+					img.fill_rect(Rect2i(w - xe, y, xe, 1), Color("061420"))
+		for t in range(6):
+			var side2 := -1 if t % 2 == 0 else 1
+			var p := Vector2(0.0 if side2 < 0 else float(w), rng.randf_range(h * 0.2, h * 0.9))
+			var a := 0.0 if side2 < 0 else PI
+			var r := float(minf(w, h)) * 0.04
+			for d in range(int(w * 0.3)):
+				a += sin(float(d) * 0.08 + float(t)) * 0.06
+				p += Vector2.from_angle(a)
+				var rr := r * (1.0 - float(d) / (w * 0.3))
+				for yy in range(-int(rr), int(rr) + 1):
+					_px(img, int(p.x), int(p.y) + yy, Color("3a1e4a") if yy < 0 else Color("5a2e6a"))
+				if d % 6 == 0 and rr > 2.0:
+					_px(img, int(p.x), int(p.y) + int(rr), Color("e8c8d8"))
+		for i in range(10):
+			_glow_px(img, rng.randi_range(0, w), rng.randi_range(int(h * 0.1), h), int(minf(w, h) * 0.1), Color("0a0612"), 0.5)
+		for side3: int in [-1, 1]:
+			var ex := w / 2 + side3 * int(w * 0.06)
+			_glow_px(img, ex, int(h * 0.4), 8, Color("ffd040"), 0.5)
+			_disc(img, ex, int(h * 0.4), 2, Color("fff0a0"))
+	elif kind == "fosse":
+		# La fosse du Léviathan, sans ses yeux (il s'y tient en personne) : parois de roche, lueur turquoise
+		# au fond, points de lumière vivante, bulles.
+		_glow_px(img, w / 2, int(h * 0.7), int(minf(w, h) * 0.35), Color("1a6a7a"), 0.35)
+		for side4: int in [0, 1]:
+			for y in range(h):
+				var k4 := float(y) / float(h)
+				var xe4 := int(w * (0.14 + 0.07 * sin(k4 * 7.0 + float(side4) * 2.0)))
+				if side4 == 0:
+					img.fill_rect(Rect2i(0, y, xe4, 1), Color("030a12"))
+					_px(img, xe4, y, Color("0e2a3a"))
+				else:
+					img.fill_rect(Rect2i(w - xe4, y, xe4, 1), Color("030a12"))
+					_px(img, w - xe4 - 1, y, Color("0e2a3a"))
+		for i in range(int(w * h / 400.0)):
+			_px(img, rng.randi_range(0, w - 1), rng.randi_range(0, h - 1), Color(0.6, 0.95, 1.0, rng.randf_range(0.15, 0.6)))
+		for i in range(maxi(6, w / 30)):
+			var gx4 := rng.randi_range(0, w)
+			var gy4 := rng.randi_range(int(h * 0.2), h)
+			_disc(img, gx4, gy4, 1, Color("aef8ff"))
+			_glow_px(img, gx4, gy4, 4, Color("4fe3d2"), 0.3)
 	else:
 		# La fosse : deux yeux immenses s'allument dans le noir, des bulles montent.
 		var ey := int(h * 0.45)

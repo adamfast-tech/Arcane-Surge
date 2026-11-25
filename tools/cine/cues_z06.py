@@ -128,3 +128,15 @@ CUES = [
     ("z06_r01_outro", "Elle ne me brûle plus", {"act": {"traitre": "rise"}, "fx": "embers", "grade": "dawn"}),
     ("z06_r01_outro", "loyauté 60", {"fx": "renewal", "cam": "reset"}),
 ]
+# Répliques des branches des choix.
+CUES += [
+    ("z06_l07_outro", "Le phénix s'envole vers la Montagne", {"act": {"subject": "rise"}, "fx": ["phoenix@subject", "embers"], "grade": "gold"}),
+    ("z06_l07_outro", "Les plumes brûlent encore", {"fx": "bloom@porteur:ffb050", "cam": "focus:porteur"}),
+    ("z06_l09_outro", "Alors j'irai mordre le Wyrm", {"act": {"subject": "roar"}, "fx": "dragonfire@subject", "cam": "shake"}),
+    ("z06_l09_outro", "Tu saisis l'Œuf", {"fx": "eggglow@porteur", "grade": "red", "cam": "focus:porteur"}),
+    ("z06_l09_outro", "Voleur. Les miens", {"act": {"subject": "roar"}, "fx": "firewall", "cam": "shake"}),
+    ("z06_l10_outro", "Tu tends la main", {"act": {"porteur": "step"}, "grade": "dawn"}),
+    ("z06_l10_outro", "s'éloigne dans les cendres", {"act": {"traitre": "exit"}, "fx": "ashfall"}),
+    ("z06_l10_outro", "La rune se fend en deux", {"fx": ["shatter@center:ff8a3a", "white"], "cam": "kick"}),
+    ("z06_l10_outro", "Tu refermes la main sur un éclat brûlant", {"fx": "wyrmmark@porteur", "grade": "red", "cam": "focus:porteur"}),
+]
