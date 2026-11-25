@@ -69,6 +69,9 @@ var _boss_lift := 0.0 ## hauteur du boss en vol (Drake ancien, Wyrm de cendre)
 var _sun: DirectionalLight3D
 var _day_k := 1.0 ## 1 = plein jour, 0 = nuit (transition douce)
 var _fog_nodes: Array[Dictionary] = []
+var _storm := false ## Collines d'Ambre sous l'orage (2-6, 2-10) : pluie, éclairs
+var _storm_t := 3.0
+var _bolt_k := 0.0
 var _kick: Array[float] = [] ## recul de chaque lanceur quand il tire (1 → 0)
 var _dt := 0.0
 ## Hauteur de vol des tirs de classe (au-dessus du sol).
@@ -214,6 +217,12 @@ func _build_environment() -> void:
 		_env.fog_light_color = Color("5a2a1e")
 	elif abyss:
 		_env.fog_light_color = Color("0e4a6a")
+	_storm = WorldArt.scene in WorldArt.STORM_SCENES
+	if _storm:
+		# Orage sur les Collines : lumière grise et froide, brume sombre.
+		_env.ambient_light_color = Color("9a98b0")
+		_env.ambient_light_energy = 0.8
+		_env.fog_light_color = Color("4a4a5e")
 	if WorldArt.zone == 1 and WorldArt.scene != "" and WorldArt.scene != "pont" and not healed:
 		# Lumière propre au lieu : chaude à la lisière, bleue sous la lune des fougères, rose au cercle des fées,
 		# violette là où le Surge s'est enraciné.
@@ -240,6 +249,9 @@ func _build_environment() -> void:
 	elif abyss:
 		moon.light_color = Color("a8e8ff")
 	moon.light_energy = 1.1
+	if _storm:
+		moon.light_color = Color("b8c0e0")
+		moon.light_energy = 0.55
 	moon.rotation_degrees = Vector3(-55.0, -35.0, 0.0)
 	add_child(moon)
 	_sun = moon
@@ -296,8 +308,8 @@ func _build_terrain() -> void:
 	add_child(top)
 	# Murs de la chaussée et piles du pont qui plongent dans la brume.
 	var c := WorldArt.GROUND_MIN + WorldArt.GROUND_SIZE * 0.5
-	# Zone 1 : chaque niveau a son lieu ; seul le pont (1-7) est une chaussée au-dessus du vide.
-	var sc := WorldArt.scene if WorldArt.zone == 1 else ""
+	# Zones 1 et 2 : chaque niveau a son lieu ; seul le pont (1-7) est une chaussée au-dessus du vide.
+	var sc := WorldArt.scene
 	var floor_set := sc != "" and sc != "pont"
 	var pal := WorldArt.scene_palette(sc)
 	_box(Vector3(WorldArt.GROUND_SIZE.x, 2.6, WorldArt.GROUND_SIZE.y), w3(c, -1.31), _stone_mat)
@@ -309,7 +321,7 @@ func _build_terrain() -> void:
 	var rock := _triplanar(WorldArt.rock_texture(), 0.4)
 	var moss := _triplanar(WorldArt.moss_texture(), 0.5)
 	if floor_set:
-		moss.albedo_color = (pal["moss"] as Color).lerp(Color("3f6a3a"), 0.5).lightened(0.15)
+		moss.albedo_color = (pal["moss"] as Color).lerp(Color("3f6a3a"), 0.5).lightened(0.15) if WorldArt.zone == 1 else (pal["moss"] as Color).lightened(0.35)
 	for side in [-1, 1]:
 		var cx := 4.5 + float(side) * 14.5
 		if floor_set:
@@ -341,7 +353,8 @@ func _build_terrain() -> void:
 	if floor_set:
 		# Brume du sol de la forêt, de part et d'autre seulement : le portail derrière le Nexus garde sa
 		# brume profonde (les deux nappes d'origine, plus bas).
-		var side_mist := [[-0.22, (pal["mist"] as Color).lerp(Color("8a8ad0"), 0.4), 0.45, Vector2(0.012, 0.004)], [-0.48, (pal["mist"] as Color).darkened(0.35), 0.55, Vector2(-0.008, 0.006)]]
+		var mist_base: Color = (pal["mist"] as Color).lerp(Color("8a8ad0"), 0.4) if WorldArt.zone == 1 else (pal["mist"] as Color)
+		var side_mist := [[-0.22, mist_base, 0.45 if WorldArt.zone == 1 else 0.3, Vector2(0.012, 0.004)], [-0.48, (pal["mist"] as Color).darkened(0.35), 0.55 if WorldArt.zone == 1 else 0.4, Vector2(-0.008, 0.006)]]
 		for l2 in side_mist:
 			for sx: float in [-15.5, 24.5]:
 				var smi := MeshInstance3D.new()
@@ -376,7 +389,11 @@ func _build_terrain() -> void:
 	var frames := 3 if not floor_set else 6
 	var weights: Array = {"lisiere": [2, 2, 1, 4, 4, 0], "sentier": [4, 4, 4, 1, 0, 0], "clairiere": [2, 2, 1, 4, 3, 2],
 		"roncier": [3, 3, 3, 0, 0, 4], "fougeres": [3, 3, 3, 2, 2, 0], "cercle": [3, 3, 2, 1, 1, 3], "source": [2, 3, 2, 3, 3, 0],
-		"coeur": [3, 3, 3, 0, 1, 3], "sylvarche": [3, 3, 2, 1, 2, 2]}.get(sc, [1, 1, 1, 0, 0, 0])
+		"coeur": [3, 3, 3, 0, 1, 3], "sylvarche": [3, 3, 2, 1, 2, 2],
+		# Collines d'Ambre : arbres isolés, vergers près des moulins, arbres morts sous l'orage.
+		"route": [0, 0, 0, 3, 2, 2], "moulins": [0, 0, 0, 4, 4, 1], "pylones": [0, 0, 0, 1, 1, 4], "gue": [0, 0, 0, 3, 3, 1],
+		"repaire": [0, 0, 0, 1, 1, 3], "orage": [0, 0, 0, 1, 0, 5], "caravane": [0, 0, 0, 3, 2, 2], "rebouteux": [0, 0, 0, 2, 2, 2],
+		"traite": [0, 0, 0, 3, 3, 1], "fort": [0, 0, 0, 0, 1, 5]}.get(sc, [1, 1, 1, 0, 0, 0])
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_colors = true
@@ -386,8 +403,9 @@ func _build_terrain() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 808
 	# Densité des arbres selon le lieu : clairsemés à la lisière, serrés sur le sentier.
-	var tree_n: int = {"lisiere": 30, "sentier": 120, "clairiere": 44, "roncier": 80, "fougeres": 58, "cercle": 66, "source": 60, "coeur": 84, "sylvarche": 70}.get(sc, 90)
-	var dmin: float = {"lisiere": 10.0, "sentier": 6.2, "clairiere": 9.0, "roncier": 7.0, "fougeres": 8.0, "cercle": 7.5, "source": 9.0, "coeur": 6.8, "sylvarche": 7.5}.get(sc, 6.0)
+	var tree_n: int = {"lisiere": 30, "sentier": 120, "clairiere": 44, "roncier": 80, "fougeres": 58, "cercle": 66, "source": 60, "coeur": 84, "sylvarche": 70,
+		"route": 22, "moulins": 40, "pylones": 16, "gue": 36, "repaire": 18, "orage": 20, "caravane": 22, "rebouteux": 26, "traite": 26, "fort": 16}.get(sc, 90)
+	var dmin: float = {"lisiere": 10.0, "sentier": 6.2, "clairiere": 9.0, "roncier": 7.0, "fougeres": 8.0, "cercle": 7.5, "source": 9.0, "coeur": 6.8, "sylvarche": 7.5}.get(sc, 10.0)
 	var ty := -0.7 if floor_set else -2.5
 	for i in range(tree_n):
 		var side := -1.0 if i % 2 == 0 else 1.0
@@ -559,7 +577,7 @@ func _build_props() -> void:
 		ramp.add_point(0.5, Color(1.0, 0.92, 0.75, 0.75))
 		ff.initial_velocity_max = 0.5
 		ff.gravity = Vector3(0.12, 0.0, 0.0)
-	var pal2 := WorldArt.scene_palette(WorldArt.scene if WorldArt.zone == 1 else "")
+	var pal2 := WorldArt.scene_palette(WorldArt.scene)
 	if not pal2.is_empty():
 		# Lucioles à la couleur du lieu, nombreuses sur le sentier.
 		var mc: Color = pal2["motes"]
@@ -568,7 +586,12 @@ func _build_props() -> void:
 		ramp.set_color(1, Color(mc, 0.0))
 		ramp.add_point(0.2, Color(mc, 1.0))
 		ramp.add_point(0.8, Color(mc.lightened(0.2), 0.9))
-		ff.amount = {"sentier": 110, "cercle": 70, "coeur": 60, "sylvarche": 60, "source": 50, "lisiere": 24}.get(WorldArt.scene, 40)
+		ff.amount = {"sentier": 110, "cercle": 70, "coeur": 60, "sylvarche": 60, "source": 50, "lisiere": 24,
+			"pylones": 70, "repaire": 50, "fort": 60, "rebouteux": 50}.get(WorldArt.scene, 40)
+		if WorldArt.zone == 2 and WorldArt.scene in ["repaire", "fort", "pylones"]:
+			# Braises des feux de camp, étincelles d'ambre : elles montent.
+			ff.gravity = Vector3(0.05, 0.25, 0.0)
+			ff.initial_velocity_max = 0.45
 	ff.color_ramp = ramp
 	add_child(ff)
 	_build_scene_props()
@@ -578,7 +601,10 @@ func _build_props() -> void:
 
 ## Objets propres au lieu du combat (zone 1) : sur les bords, au sol de la forêt.
 func _build_scene_props() -> void:
-	if WorldArt.zone != 1:
+	if WorldArt.scene == "":
+		return
+	if WorldArt.zone == 2:
+		_build_hills_props()
 		return
 	var sc := WorldArt.scene
 	var rng := RandomNumberGenerator.new()
@@ -670,15 +696,250 @@ func _build_scene_props() -> void:
 				_prop(root, _side_spot(rng), rng.randf_range(1.2, 2.0))
 
 
+## Collines d'Ambre (zone 2) : les objets du lieu, sur les bords du terrain (docs/design/41-cinematiques.md).
+func _build_hills_props() -> void:
+	var sc := WorldArt.scene
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(sc) + 2
+	match sc:
+		"route":
+			var burnt := WorldArt.cart_texture(true)
+			for i in range(3):
+				var cp := _side_spot(rng)
+				_prop(burnt, cp, 1.6)
+				_chimneys.append(w3(cp, -0.2))
+			var stone := WorldArt.milestone_texture()
+			for i in range(5):
+				_prop(stone, _side_spot(rng), 1.5)
+		"moulins":
+			var mill := WorldArt.windmill_texture()
+			for i in range(4):
+				var side := -1.0 if i % 2 == 0 else 1.0
+				_prop(mill, Vector2(4.5 + side * rng.randf_range(8.0, 9.5), 2.0 + float(i / 2) * 9.0 + rng.randf_range(-1.0, 1.0)), 2.4)
+			var hay := WorldArt.haystack_texture()
+			for i in range(8):
+				_prop(hay, _side_spot(rng), rng.randf_range(1.3, 1.7))
+		"pylones":
+			var spire := WorldArt.amber_spire_texture()
+			for i in range(10):
+				var sp := _side_spot(rng)
+				_prop(spire, sp, rng.randf_range(1.2, 2.0), Color(1.25, 1.1, 1.0))
+				if i % 2 == 0:
+					_prop_light(sp, 1.2, Color("ffa040"), 1.0, 3.5)
+		"gue":
+			# La rivière passe de part et d'autre du gué : eau claire, roseaux, totems du clan au passage.
+			for side2: float in [-1.0, 1.0]:
+				var water := MeshInstance3D.new()
+				var wm := PlaneMesh.new()
+				wm.size = Vector2(5.0, 40.0)
+				water.mesh = wm
+				var mat := StandardMaterial3D.new()
+				mat.albedo_color = Color(0.25, 0.5, 0.58, 0.8)
+				mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+				mat.roughness = 0.15
+				mat.metallic_specular = 0.8
+				water.material_override = mat
+				water.position = w3(Vector2(4.5 + side2 * 7.8, 8.0), -0.62)
+				add_child(water)
+			var totem := WorldArt.totem_texture(false)
+			for x: float in [-1.4, 10.4]:
+				_prop(totem, Vector2(x, 12.5), 1.4)
+		"repaire":
+			var tent := WorldArt.tent_texture(Color("8a6a48"), Color("4a3420"))
+			for i in range(6):
+				_prop(tent, _side_spot(rng), rng.randf_range(1.6, 2.0))
+			var pal := WorldArt.palisade_texture()
+			for i in range(8):
+				var side3 := -1.0 if i % 2 == 0 else 1.0
+				_prop(pal, Vector2(4.5 + side3 * 9.2, 1.0 + float(i / 2) * 4.6), 1.8)
+			var crate := WorldArt.crate_texture(true)
+			for i in range(5):
+				var cp2 := _side_spot(rng)
+				_prop(crate, cp2, 1.4, Color(1.15, 1.0, 1.2))
+				if i % 2 == 0:
+					_prop_light(cp2, 0.6, Color("d98cff"), 0.7, 2.5)
+			_hills_fires(rng, 2)
+		"orage":
+			var storm_totem := WorldArt.totem_texture(true)
+			for i in range(6):
+				var tp := _side_spot(rng)
+				_prop(storm_totem, tp, rng.randf_range(1.3, 1.7))
+				_prop_light(tp, 1.6, Color("9fe0ff"), 0.8, 3.0)
+			var tent2 := WorldArt.tent_texture(Color("5a5a6a"), Color("2a2a30"))
+			for i in range(3):
+				_prop(tent2, _side_spot(rng), 1.7)
+		"caravane":
+			var wagon := WorldArt.cart_texture(false)
+			for i in range(4):
+				_prop(wagon, _side_spot(rng), 1.7)
+			var crate2 := WorldArt.crate_texture(false)
+			for i in range(6):
+				_prop(crate2, _side_spot(rng), 1.2)
+			var stone2 := WorldArt.milestone_texture()
+			for i in range(3):
+				_prop(stone2, _side_spot(rng), 1.5)
+			var mill2 := WorldArt.windmill_texture()
+			_prop(mill2, Vector2(-4.0, 16.0), 2.4)
+		"rebouteux":
+			var tent3 := WorldArt.tent_texture(Color("8a8a5a"), Color("4a4a2a"))
+			for i in range(4):
+				_prop(tent3, _side_spot(rng), 1.8)
+			var rack := WorldArt.rack_texture()
+			for i in range(6):
+				_prop(rack, _side_spot(rng), 1.4)
+			_hills_fires(rng, 2)
+		"traite":
+			# Les deux camps face à face : la Prévôté (bleu) à gauche, les clans (rouge) à droite.
+			for side4: float in [-1.0, 1.0]:
+				var blue := side4 < 0.0
+				var tent4 := WorldArt.tent_texture(Color("3a6ad0") if blue else Color("c83a2a"), Color("e8dcc0") if blue else Color("4a2018"))
+				var flag := WorldArt.banner_pole_texture(Color("3a6ad0") if blue else Color("c83a2a"), false)
+				for k in range(3):
+					_prop(tent4, Vector2(4.5 + side4 * rng.randf_range(7.0, 9.0), 2.0 + float(k) * 5.5), 1.9)
+				for k2 in range(4):
+					_prop(flag, Vector2(4.5 + side4 * 5.7, 1.0 + float(k2) * 4.2), 1.3)
+		"fort":
+			var pal2 := WorldArt.palisade_texture()
+			for i in range(14):
+				var side5 := -1.0 if i % 2 == 0 else 1.0
+				_prop(pal2, Vector2(4.5 + side5 * 8.6, -0.5 + float(i / 2) * 2.7), 2.0)
+			var tower := WorldArt.watchtower_texture()
+			for i in range(4):
+				var side6 := -1.0 if i % 2 == 0 else 1.0
+				var tw := Vector2(4.5 + side6 * 9.6, 3.0 + float(i / 2) * 9.0)
+				_prop(tower, tw, 2.2)
+				_prop_light(tw, 2.0, Color("ff9b4a"), 0.8, 3.5)
+			var skull := WorldArt.banner_pole_texture(Color("a82a2a"), true)
+			for i in range(4):
+				var side7 := -1.0 if i % 2 == 0 else 1.0
+				_prop(skull, Vector2(4.5 + side7 * 5.8, 2.0 + float(i / 2) * 7.0), 1.4)
+			_hills_fires(rng, 2)
+
+
+## Feux de camp : flamme, lueur qui danse, fumée.
+func _hills_fires(rng: RandomNumberGenerator, n: int) -> void:
+	var flame := WorldArt.flame_texture()
+	for i in range(n):
+		var side := -1.0 if i % 2 == 0 else 1.0
+		var fp := Vector2(4.5 + side * rng.randf_range(6.2, 7.5), rng.randf_range(3.0, 13.0))
+		var f := _prop(flame, fp, 1.5, Color(1.5, 1.25, 1.0))
+		f.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		var l := OmniLight3D.new()
+		l.light_color = Color("ff9b4a")
+		l.light_energy = 1.3
+		l.omni_range = 4.0
+		l.position = w3(fp, 0.2)
+		add_child(l)
+		_torch_lights.append(l)
+		_chimneys.append(w3(fp, 0.4))
+
+
+## Collines d'Ambre : brins et graines d'herbe sèche que le vent emporte ; pluie sous l'orage ; reflets du gué.
+func _build_hills_ambience() -> void:
+	var sc := WorldArt.scene
+	if _storm:
+		var rain := CPUParticles3D.new()
+		rain.amount = 260
+		rain.lifetime = 1.1
+		rain.preprocess = 1.1
+		rain.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+		rain.emission_box_extents = Vector3(12.0, 0.5, 13.0)
+		rain.position = Vector3(4.5, 7.0, -9.0)
+		rain.direction = Vector3(0.18, -1.0, 0.0)
+		rain.spread = 4.0
+		rain.initial_velocity_min = 7.0
+		rain.initial_velocity_max = 9.0
+		rain.gravity = Vector3(0.0, -4.0, 0.0)
+		var q := QuadMesh.new()
+		q.size = Vector2(0.02, 0.32)
+		var rm := StandardMaterial3D.new()
+		rm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		rm.vertex_color_use_as_albedo = true
+		rm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		rm.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+		q.material = rm
+		rain.mesh = q
+		var rg := Gradient.new()
+		rg.set_color(0, Color(0.75, 0.8, 0.95, 0.0))
+		rg.set_color(1, Color(0.75, 0.8, 0.95, 0.0))
+		rg.add_point(0.3, Color(0.8, 0.85, 1.0, 0.55))
+		rain.color_ramp = rg
+		add_child(rain)
+		return
+	var straw := CPUParticles3D.new()
+	straw.amount = 34 if sim.wind_cfg.is_empty() else 60
+	straw.lifetime = 7.0
+	straw.preprocess = 7.0
+	straw.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	straw.emission_box_extents = Vector3(10.0, 1.2, 11.0)
+	straw.position = Vector3(4.5, 1.6, -8.0)
+	straw.direction = Vector3(1.0, 0.1, 0.0)
+	straw.spread = 20.0
+	straw.initial_velocity_min = 0.4
+	straw.initial_velocity_max = 1.0
+	straw.gravity = Vector3(0.15, -0.03, 0.0)
+	straw.angular_velocity_min = -180.0
+	straw.angular_velocity_max = 180.0
+	straw.mesh = _particle_mesh(0.07)
+	var sg := Gradient.new()
+	sg.set_color(0, Color("e8c870"))
+	sg.set_color(1, Color("c8a050"))
+	sg.add_point(0.5, Color("f2e0a0"))
+	straw.color_initial_ramp = sg
+	add_child(straw)
+	if sc == "gue":
+		for side: float in [-1.0, 1.0]:
+			var gl := CPUParticles3D.new()
+			gl.amount = 26
+			gl.lifetime = 1.3
+			gl.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+			gl.emission_box_extents = Vector3(2.2, 0.0, 16.0)
+			gl.position = w3(Vector2(4.5 + side * 7.8, 8.0), -0.58)
+			gl.gravity = Vector3.ZERO
+			gl.initial_velocity_max = 0.0
+			gl.mesh = _particle_mesh(0.08)
+			var gr := Gradient.new()
+			gr.set_color(0, Color(1.0, 1.0, 0.9, 0.0))
+			gr.set_color(1, Color(1.0, 1.0, 0.9, 0.0))
+			gr.add_point(0.5, Color(1.0, 1.0, 0.95, 0.9))
+			gl.color_ramp = gr
+			add_child(gl)
+
+
 ## Piliers du bord du chemin selon le lieu (zone 1) : poteaux de bois, souches, pierres maudites, pierres de fée,
 ## cristaux, bois de la Sylvarche ; ailleurs, la pierre et sa mousse.
 func _pillar_mats() -> Array:
-	if WorldArt.zone != 1 or WorldArt.scene == "" or WorldArt.scene == "pont":
+	if WorldArt.scene == "" or WorldArt.scene == "pont":
 		return [_stone_mat, _moss_cap]
 	var body := _triplanar(WorldArt.stone_texture(), 0.55)
 	var cap := StandardMaterial3D.new()
 	cap.roughness = 1.0
 	match WorldArt.scene:
+		# Collines d'Ambre : poteaux de bois, pierre veinée d'ambre, totems, pieux de palissade.
+		"route", "caravane", "moulins", "rebouteux":
+			body.albedo_color = Color(0.95, 0.72, 0.5)
+			cap.albedo_color = Color("d8b060") if WorldArt.scene != "rebouteux" else Color("e8e0c8")
+		"pylones":
+			body.albedo_color = Color(0.9, 0.78, 0.62)
+			cap.albedo_color = Color("ffb050")
+			cap.emission_enabled = true
+			cap.emission = Color("e88a20")
+			cap.emission_energy_multiplier = 0.8
+		"gue":
+			body.albedo_color = Color(0.8, 0.85, 0.85)
+			cap.albedo_color = Color("6a7a40")
+		"repaire", "fort":
+			body.albedo_color = Color(0.6, 0.45, 0.35)
+			cap.albedo_color = Color("a82a2a")
+		"orage":
+			body.albedo_color = Color(0.55, 0.5, 0.5)
+			cap.albedo_color = Color("9fe0ff")
+			cap.emission_enabled = true
+			cap.emission = Color("6ac8ff")
+			cap.emission_energy_multiplier = 0.6
+		"traite":
+			body.albedo_color = Color(1.0, 0.92, 0.78)
+			cap.albedo_color = Color("f2c46b")
 		"lisiere":
 			body.albedo_color = Color(0.85, 0.6, 0.42)
 			cap.albedo_color = Color("8a6a3a")
@@ -718,7 +979,7 @@ func _pillar_mats() -> Array:
 ## détails du lieu, le long des bords du terrain, clairsemés sur le terrain, et partout sur le sol de la forêt.
 ## Elle ondule au vent ; certains détails luisent (champignons, cristaux, fleurs de lune).
 func _build_foliage() -> void:
-	var sc := WorldArt.scene if WorldArt.zone == 1 else ""
+	var sc := WorldArt.scene
 	if sc == "" or sc == "pont":
 		return
 	var rng := RandomNumberGenerator.new()
@@ -759,7 +1020,8 @@ func _build_foliage() -> void:
 	var mat := ShaderMaterial.new()
 	mat.shader = load("res://shaders/foliage.gdshader")
 	mat.set_shader_parameter("atlas", WorldArt.foliage_atlas(sc))
-	mat.set_shader_parameter("sway", 0.05)
+	# Le vent des steppes couche l'herbe plus fort quand il souffle sur le niveau.
+	mat.set_shader_parameter("sway", 0.12 if not sim.wind_cfg.is_empty() else (0.08 if WorldArt.zone == 2 else 0.05))
 	mat.set_shader_parameter("stretch", 1.0 / maxf(0.3, cos(deg_to_rad(PITCH_DEG))))
 	mi.material_override = mat
 	mi.custom_aabb = AABB(Vector3(-15.0, -2.0, -30.0), Vector3(40.0, 8.0, 40.0))
@@ -768,9 +1030,11 @@ func _build_foliage() -> void:
 
 ## Ambiance animée du lieu : feuilles qui tombent, fumée des cheminées, reflets sur l'eau ; les lueurs pulsent.
 func _build_ambience() -> void:
-	var sc := WorldArt.scene if WorldArt.zone == 1 else ""
+	var sc := WorldArt.scene
 	if sc == "" or sc == "pont":
 		return
+	if WorldArt.zone == 2:
+		_build_hills_ambience()
 	if sc in ["lisiere", "sentier", "clairiere", "fougeres", "source", "sylvarche", "roncier"]:
 		var lv := CPUParticles3D.new()
 		lv.amount = 26
@@ -1394,6 +1658,15 @@ func _process(delta: float) -> void:
 		_terrain_view.update(delta)
 	for pl in _pulse:
 		(pl[0] as OmniLight3D).light_energy = float(pl[1]) * (0.78 + 0.22 * sin(t * 2.1 + float(pl[2])))
+	if _storm and _sun != null:
+		# Orage : un éclair de temps en temps (le ciel blanchit, puis la lumière retombe).
+		_storm_t -= delta
+		if _storm_t <= 0.0:
+			_storm_t = randf_range(4.0, 9.0)
+			_bolt_k = 1.0
+			flash = maxf(flash, 0.12)
+		_bolt_k = maxf(0.0, _bolt_k - delta * 3.0)
+		_sun.light_energy = 0.55 + _bolt_k * (2.2 if fmod(_bolt_k, 0.3) > 0.12 else 0.8)
 	for l in _torch_lights:
 		l.light_energy = 1.25 + 0.25 * sin(t * 11.0 + l.position.x) + 0.1 * sin(t * 23.0)
 

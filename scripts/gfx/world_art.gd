@@ -171,7 +171,7 @@ static func _disc(img: Image, cx: int, cy: int, r: int, c: Color) -> void:
 static func ground_texture(healed: bool = false) -> ImageTexture:
 	var w := int(GROUND_SIZE.x * PX_PER_M)
 	var h := int(GROUND_SIZE.y * PX_PER_M)
-	var pal := scene_palette(scene) if zone == 1 else {}
+	var pal := scene_palette(scene)
 	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 4242
@@ -207,8 +207,8 @@ static func ground_texture(healed: bool = false) -> ImageTexture:
 		var x := rng.randi_range(0, w - 1)
 		var y := rng.randi_range(int(3.0 * PX_PER_M), h - 1)
 		_px(img, x, y, flowers[rng.randi_range(0, flowers.size() - 1)])
-	# Détails du sol propres au lieu (zone 1).
-	match scene if zone == 1 else "":
+	# Détails du sol propres au lieu.
+	match scene:
 		"lisiere":
 			# Ornières de charrettes le long du chemin.
 			for rx in [int((3.8 - GROUND_MIN.x) * PX_PER_M), int((5.2 - GROUND_MIN.x) * PX_PER_M)]:
@@ -256,6 +256,68 @@ static func ground_texture(healed: bool = false) -> ImageTexture:
 				for k in range(50):
 					_px(img, int(p3.x), int(p3.y), Color("5b3a8a") if k % 6 != 0 else Color("d98cff"))
 					p3 += Vector2(rng.randf_range(-1.0, 1.0), rng.randf_range(-1.0, 1.0))
+		"route", "caravane":
+			# Ornières de chariots, cailloux, et (caravane) traces de sabots.
+			for rx in [int((3.8 - GROUND_MIN.x) * PX_PER_M), int((5.2 - GROUND_MIN.x) * PX_PER_M)]:
+				for y in range(int(2.0 * PX_PER_M), h - int(2.0 * PX_PER_M)):
+					var ox := int(sin(float(y) * 0.05) * 1.5)
+					_px(img, rx + ox, y, Color("4a3a22"))
+					_px(img, rx + ox + 1, y, Color("5a4a2a"))
+			for i in range(w * h / 120):
+				_px(img, rng.randi_range(0, w - 1), rng.randi_range(0, h - 1), Color("a89870") if rng.randf() < 0.5 else Color("6a5a40"))
+			if scene == "caravane":
+				for i in range(80):
+					var hx := rng.randi_range(int((3.6 - GROUND_MIN.x) * PX_PER_M), int((5.4 - GROUND_MIN.x) * PX_PER_M))
+					var hy := rng.randi_range(int(2.0 * PX_PER_M), h - int(2.0 * PX_PER_M))
+					_px(img, hx, hy, Color("3a2e1e"))
+					_px(img, hx + 1, hy, Color("3a2e1e"))
+		"moulins":
+			# Rangs de chaume doré de part et d'autre (champs moissonnés).
+			for y in range(0, h, 3):
+				for x in range(0, w):
+					var lx := GROUND_MIN.x + float(x) / PX_PER_M
+					if (lx < 0.3 or lx > 8.7) and rng.randf() < 0.7:
+						_px(img, x, y, Color("c8a850") if rng.randf() < 0.6 else Color("a8883a"))
+		"pylones":
+			# Terre craquelée, veines d'ambre qui luisent.
+			for v4 in range(26):
+				var p4 := Vector2(rng.randf_range(0.0, float(w)), rng.randf_range(0.0, float(h)))
+				var d4 := Vector2.from_angle(rng.randf_range(0.0, TAU))
+				for k in range(40):
+					_px(img, int(p4.x), int(p4.y), Color("e8a040") if k % 4 != 0 else Color("ffd080"))
+					d4 = d4.rotated(rng.randf_range(-0.5, 0.5))
+					p4 += d4
+		"gue":
+			# Galets mouillés et boue près de l'eau.
+			for i in range(w * h / 60):
+				var gx := rng.randi_range(0, w - 1)
+				var lx2 := GROUND_MIN.x + float(gx) / PX_PER_M
+				if lx2 < 1.2 or lx2 > 7.8:
+					_px(img, gx, rng.randi_range(0, h - 1), Color("5a5040") if rng.randf() < 0.6 else Color("8a8070"))
+		"repaire", "fort":
+			# Boue piétinée, cendres et os.
+			for i in range(16):
+				var pc2 := Vector2i(rng.randi_range(0, w - 1), rng.randi_range(int(2.0 * PX_PER_M), h - int(2.0 * PX_PER_M)))
+				_disc(img, pc2.x, pc2.y, rng.randi_range(3, 7), Color("3a3020") if scene == "repaire" else Color("2a2620"))
+			for i in range(w * h / 260):
+				var bx := rng.randi_range(0, w - 1)
+				var by := rng.randi_range(0, h - 1)
+				_px(img, bx, by, Color("d8d0b8"))
+				_px(img, bx + 1, by, Color("c8c0a8"))
+		"orage":
+			# Boue sombre et flaques qui reflètent le ciel d'orage.
+			for i in range(22):
+				var pc3 := Vector2i(rng.randi_range(0, w - 1), rng.randi_range(int(2.0 * PX_PER_M), h - int(2.0 * PX_PER_M)))
+				_disc(img, pc3.x, pc3.y, rng.randi_range(2, 5), Color("3a3a40"))
+				_px(img, pc3.x - 1, pc3.y - 1, Color("8a8aa8"))
+		"rebouteux":
+			# Herbes coupées et petits os.
+			for i in range(w * h / 90):
+				_px(img, rng.randi_range(0, w - 1), rng.randi_range(0, h - 1), Color("8aa850") if rng.randf() < 0.7 else Color("d8d0b8"))
+		"traite":
+			# Herbe foulée par les deux camps, fleurs des prés.
+			for i in range(w * h / 80):
+				_px(img, rng.randi_range(0, w - 1), rng.randi_range(int(2.0 * PX_PER_M), h - 1), Color("e85a3a") if rng.randf() < 0.5 else Color("f2d04a"))
 	# Veines corrompues dans la zone ennemie.
 	for v in range(10):
 		var p := Vector2(rng.randf_range(0.0, float(w)), rng.randf_range(0.0, 3.0 * PX_PER_M))
@@ -317,7 +379,7 @@ static func ground_texture(healed: bool = false) -> ImageTexture:
 				_px(img, ex0 - 3 - k, y, Color("4f7a3a"))
 			if rng.randf() < 0.45:
 				_px(img, ex1 + 2 + k, y, Color("4f7a3a"))
-	_zone_tint(img)
+	_zone_tint(img, float(pal.get("warm_h", 0.115)), float(pal.get("lift", 1.0)))
 	return _tex(img, true)
 
 
@@ -698,7 +760,11 @@ static func _backdrop_day(size: Vector2i) -> ImageTexture:
 	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 2207
+	var storm := scene in STORM_SCENES
 	var stops := [[0.0, Color("3f86c8")], [0.3, Color("6fb0e0")], [0.48, Color("b8d8e8")], [0.58, Color("f0d8a0")], [1.0, Color("c89858")]]
+	if storm:
+		# Orage : ciel d'encre, lueur jaune sale sur l'horizon.
+		stops = [[0.0, Color("16161e")], [0.3, Color("2a2a3a")], [0.48, Color("4a4a58")], [0.58, Color("7a6a50")], [1.0, Color("5a4a34")]]
 	for y in range(h):
 		var k := float(y) / float(h - 1)
 		var c: Color = stops[0][1]
@@ -708,16 +774,36 @@ static func _backdrop_day(size: Vector2i) -> ImageTexture:
 			if k >= float(a[0]) and k <= float(b[0]):
 				c = (a[1] as Color).lerp(b[1], (k - float(a[0])) / (float(b[0]) - float(a[0])))
 		img.fill_rect(Rect2i(0, y, w, 1), c)
-	# Soleil et halo.
+	# Soleil et halo (caché par l'orage).
 	var sr := maxi(7, int(minf(w, h) * 0.05))
 	var sx := int(w * 0.24)
 	var sy := int(h * 0.1)
-	for r in range(sr * 4, sr, -1):
-		_disc(img, sx, sy, r, Color(1.0, 0.95, 0.75, 0.03))
-	_disc(img, sx, sy, sr, Color("fff2c0"))
-	_disc(img, sx, sy, int(sr * 0.7), Color("fffbe8"))
+	if not storm:
+		for r in range(sr * 4, sr, -1):
+			_disc(img, sx, sy, r, Color(1.0, 0.95, 0.75, 0.03))
+		_disc(img, sx, sy, sr, Color("fff2c0"))
+		_disc(img, sx, sy, int(sr * 0.7), Color("fffbe8"))
+	else:
+		# Nuages d'orage en rouleaux, et un éclair figé dans le lointain.
+		for i in range(int(w / 6.0)):
+			var cy2 := rng.randi_range(0, int(h * 0.3))
+			var cx2 := rng.randi_range(-30, w)
+			var r2 := rng.randi_range(6, 16)
+			_disc(img, cx2, cy2, r2, Color(0.12, 0.12, 0.16, 0.5))
+			_disc(img, cx2 + 2, cy2 + 2, r2 - 3, Color(0.22, 0.22, 0.3, 0.35))
+		var bx := float(w) * 0.42
+		var by := float(h) * 0.12
+		while by < h * 0.45:
+			var nx := bx + rng.randf_range(-6.0, 6.0)
+			var ny := by + rng.randf_range(4.0, 9.0)
+			for k in range(10):
+				var tt := float(k) / 9.0
+				_px(img, int(lerpf(bx, nx, tt)), int(lerpf(by, ny, tt)), Color("e8f0ff"))
+				_px(img, int(lerpf(bx, nx, tt)) + 1, int(lerpf(by, ny, tt)), Color(0.6, 0.7, 1.0, 0.5))
+			bx = nx
+			by = ny
 	# Nuages blancs en bandes.
-	for i in range(maxi(3, int(w / 40.0))):
+	for i in range(maxi(3, int(w / 40.0)) if not storm else 0):
 		var cy := rng.randi_range(int(h * 0.06), int(h * 0.36))
 		var cx := rng.randi_range(-40, w)
 		var len := rng.randi_range(30, 90)
@@ -741,8 +827,9 @@ static func _backdrop_day(size: Vector2i) -> ImageTexture:
 	img.fill_rect(Rect2i(fx - 6, fy - 22, 12, 3), fort)
 	img.fill_rect(Rect2i(fx, fy - 30, 1, 8), Color("3a2a20"))
 	img.fill_rect(Rect2i(fx + 1, fy - 30, 5, 3), Color("a82a2a"))
-	_ridge(img, rng, int(h * 0.5), int(h * 0.06), Color("b07a40"), Color("e8b060"))
-	_ridge(img, rng, int(h * 0.56), int(h * 0.05), Color("8a5a2a"), Color("c88a40"))
+	_ridge(img, rng, int(h * 0.5), int(h * 0.06), Color("b07a40") if not storm else Color("5a4a34"), Color("e8b060") if not storm else Color("7a6a48"))
+	_backdrop_hills(img, rng, scene)
+	_ridge(img, rng, int(h * 0.56), int(h * 0.05), Color("8a5a2a") if not storm else Color("3a3024"), Color("c88a40") if not storm else Color("5a4a34"))
 	# Brume de chaleur au pied des collines.
 	for i in range(int(w * h / 1100.0)):
 		var y := rng.randi_range(int(h * 0.55), h - 1)
@@ -1073,8 +1160,12 @@ static func _ridge(img: Image, rng: RandomNumberGenerator, base_y: int, amp: int
 const LEVEL_SCENE := {
 	"z01_l01": "lisiere", "z01_l02": "sentier", "z01_l03": "clairiere", "z01_l04": "roncier", "z01_l05": "fougeres",
 	"z01_l06": "cercle", "z01_l07": "pont", "z01_l08": "source", "z01_l09": "coeur", "z01_l10": "sylvarche",
+	"z02_l01": "route", "z02_l02": "moulins", "z02_l03": "pylones", "z02_l04": "gue", "z02_l05": "repaire",
+	"z02_l06": "orage", "z02_l07": "caravane", "z02_l08": "rebouteux", "z02_l09": "traite", "z02_l10": "fort",
 }
-static var scene := "" ## lieu du combat en cours (zone 1), "" ailleurs
+## Lieux d'orage (zone 2) : ciel noir, pluie, éclairs.
+const STORM_SCENES := ["orage", "fort"]
+static var scene := "" ## lieu du combat en cours (zones 1 et 2), "" ailleurs
 
 
 ## Couleurs d'un lieu : herbe, chemin, brume, lucioles.
@@ -1098,7 +1189,34 @@ static func scene_palette(s: String) -> Dictionary:
 			return {"grass": Color("2a2440"), "path": "dirt", "mist": Color("a050d0"), "moss": Color("3a2a4a"), "motes": Color(0.9, 0.5, 1.0)}
 		"sylvarche":
 			return {"grass": Color("2a2c3c"), "path": "dirt", "mist": Color("9060c8"), "moss": Color("332e44"), "motes": Color(0.85, 0.55, 1.0)}
+		# Zone 2, Collines d'Ambre : couleurs finales (la teinte de la zone les éclaircit à peine) ;
+		# warm_h : teinte de l'herbe sèche, lift : lumière (plus sombre sous l'orage).
+		"route":
+			return {"grass": Color("8a7a3e"), "path": "dirt", "mist": Color("e8d0a0"), "moss": Color("7a6a34"), "motes": Color(1.0, 0.9, 0.65), "warm_h": 0.115, "lift": 1.0}
+		"moulins":
+			return {"grass": Color("7e8a3e"), "path": "dirt", "mist": Color("e8e0b0"), "moss": Color("6a7a34"), "motes": Color(1.0, 0.97, 0.75), "warm_h": 0.15, "lift": 1.0}
+		"pylones":
+			return {"grass": Color("6e6234"), "path": "dirt", "mist": Color("f0c080"), "moss": Color("5e5430"), "motes": Color(1.0, 0.7, 0.3), "warm_h": 0.1, "lift": 0.95}
+		"gue":
+			return {"grass": Color("6a7a40"), "path": "grass", "mist": Color("c8d8d0"), "moss": Color("5a6a38"), "motes": Color(0.95, 0.95, 0.8), "warm_h": 0.14, "lift": 1.0}
+		"repaire":
+			return {"grass": Color("6a5a32"), "path": "dirt", "mist": Color("c8a080"), "moss": Color("5a4a2a"), "motes": Color(1.0, 0.6, 0.3), "warm_h": 0.1, "lift": 0.9}
+		"orage":
+			return {"grass": Color("4e5434"), "path": "dirt", "mist": Color("8a8aa0"), "moss": Color("3e4430"), "motes": Color(0.8, 0.85, 1.0), "warm_h": 0.13, "lift": 0.72}
+		"caravane":
+			return {"grass": Color("8a7a3e"), "path": "dirt", "mist": Color("e8d0a0"), "moss": Color("7a6a34"), "motes": Color(1.0, 0.9, 0.65), "warm_h": 0.12, "lift": 1.0}
+		"rebouteux":
+			return {"grass": Color("6e6e38"), "path": "dirt", "mist": Color("c8d0a0"), "moss": Color("5e5e30"), "motes": Color(0.8, 1.0, 0.6), "warm_h": 0.14, "lift": 0.95}
+		"traite":
+			return {"grass": Color("7e7a3c"), "path": "grass", "mist": Color("e8d8b0"), "moss": Color("6e6a34"), "motes": Color(1.0, 0.95, 0.7), "warm_h": 0.13, "lift": 1.0}
+		"fort":
+			return {"grass": Color("4a4630"), "path": "dirt", "mist": Color("7a7080"), "moss": Color("3a382a"), "motes": Color(1.0, 0.55, 0.25), "warm_h": 0.1, "lift": 0.72}
 	return {}
+
+
+## Le lieu se joue-t-il au sol (pas sur la chaussée au-dessus du vide) ?
+static func floor_scene() -> bool:
+	return scene != "" and scene != "pont"
 
 
 static func _sprite(w: int, h: int) -> Image:
@@ -1318,7 +1436,7 @@ static func _backdrop_scene(img: Image, rng: RandomNumberGenerator, s: String) -
 # ---------------------------------------------------------------- zone 1 · végétation et arbres des combats
 
 const FOLIAGE_N := 12 ## images de 16×16 dans la planche de végétation
-const FOLIAGE_GLOW := {"sentier": [9], "fougeres": [9], "cercle": [8, 9], "coeur": [8], "sylvarche": [9]}
+const FOLIAGE_GLOW := {"sentier": [9], "fougeres": [9], "cercle": [8, 9], "coeur": [8], "sylvarche": [9], "pylones": [8], "repaire": [9]}
 
 
 ## Couleurs de fleurs selon le lieu.
@@ -1342,6 +1460,20 @@ static func _flower_cols(s: String) -> Array:
 			return [Color("d98cff"), Color("ff9ce8")]
 		"sylvarche":
 			return [Color("b07cff"), Color("f4f0ff")]
+		"route", "caravane", "traite":
+			return [Color("e85a3a"), Color("f2d04a")]
+		"moulins":
+			return [Color("ff6a4a"), Color("f2e28b")]
+		"pylones":
+			return [Color("ffb050"), Color("ffd080")]
+		"gue":
+			return [Color("f2d04a"), Color("e87a4a")]
+		"repaire", "fort":
+			return [Color("c84a3a"), Color("8a6a3a")]
+		"orage":
+			return [Color("c8c8a0"), Color("8a8a6a")]
+		"rebouteux":
+			return [Color("a8d070"), Color("e8e0a0")]
 	return [Color("f4f0ff"), Color("f2e28b")]
 
 
@@ -1428,9 +1560,6 @@ static func foliage_atlas(s: String) -> ImageTexture:
 		for y in range(-int(pb[2]), int(pb[2]) + 1):
 			for x in range(-int(pb[2]) - 1, int(pb[2]) + 2):
 				_px(img, 112 + int(pb[0]) + x, int(pb[1]) + y, Color("5a5a70") if y < 0 else Color("3a3a4e"))
-	# 8, 9 : détails propres au lieu.
-	_scene_detail(img, 128, s, 0, rng, fc)
-	_scene_detail(img, 144, s, 1, rng, fc)
 	# 10 : herbes hautes.
 	for b in range(9):
 		_blade(img, 160, 3 + rng.randi_range(0, 10), 15, rng.randi_range(9, 14), rng.randf_range(-1.0, 1.0), gdark, glit.lightened(0.1))
@@ -1439,11 +1568,121 @@ static func foliage_atlas(s: String) -> ImageTexture:
 		_px(img, 176 + rng.randi_range(2, 13), rng.randi_range(11, 15), [Color("8a5a2a"), Color("a8702a"), Color("5a4030")][k % 3])
 	for x in range(3, 13):
 		_px(img, 176 + x, 13 - int(float(x - 3) * 0.3), Color("4a3428"))
+	# Teinte de la zone (herbe sèche des Collines), puis 8, 9 : détails propres au lieu, à leurs couleurs.
+	_zone_tint(img, float(pal.get("warm_h", 0.115)), float(pal.get("lift", 1.0)))
+	_scene_detail(img, 128, s, 0, rng, fc)
+	_scene_detail(img, 144, s, 1, rng, fc)
 	return _tex(img)
 
 
 static func _scene_detail(img: Image, ox: int, s: String, which: int, rng: RandomNumberGenerator, fc: Array) -> void:
 	match s + str(which):
+		"route0", "caravane1":
+			# Roue de chariot brisée.
+			for a in range(24):
+				var ang := float(a) / 24.0 * TAU
+				_px(img, ox + 8 + int(round(cos(ang) * 5.0)), 10 + int(round(sin(ang) * 5.0)), Color("6a4a2a"))
+			for a2 in range(4):
+				var ang2 := float(a2) / 4.0 * PI + 0.3
+				for r in range(5):
+					_px(img, ox + 8 + int(round(cos(ang2) * float(r))), 10 + int(round(sin(ang2) * float(r))), Color("8a6a3a"))
+		"route1", "caravane0":
+			# Borne de pierre.
+			for y in range(6, 16):
+				for x in range(5, 11):
+					_px(img, ox + x, y, Color("a89878") if x < 9 else Color("7a6a50"))
+			_px(img, ox + 7, 8, Color("5a4a38"))
+			_px(img, ox + 7, 10, Color("5a4a38"))
+		"moulins0":
+			# Gerbe de blé liée.
+			for k in range(9):
+				_blade(img, ox, 4 + k, 15, 10 - absi(k - 4), float(k - 4) * 0.25, Color("a8803a"), Color("f2d070"))
+			for x in range(5, 12):
+				_px(img, ox + x, 11, Color("6a4a2a"))
+		"moulins1":
+			# Botte de foin.
+			for y in range(8, 16):
+				for x in range(2, 14):
+					_px(img, ox + x, y, Color("d8b050") if (x + y) % 3 else Color("a8803a"))
+		"pylones0":
+			# Éclat d'ambre planté (il luit).
+			for y in range(3, 16):
+				var half := int(3.0 * (1.0 - absf(float(y) - 10.0) / 8.0)) + 1
+				for x in range(-half, half + 1):
+					_px(img, ox + 8 + x, y, Color("ffd080") if x == 0 else (Color("e8a040") if x > 0 else Color("a86020")))
+		"pylones1":
+			# Rocher fendu, veiné d'ambre.
+			for y in range(-5, 6):
+				for x in range(-7, 8):
+					if pow(float(x) / 7.0, 2.0) + pow(float(y) / 5.0, 2.0) <= 1.0:
+						_px(img, ox + 8 + x, 10 + y, Color("8a7458") if x > 0 else Color("5a4a38"))
+			for y in range(5, 15):
+				_px(img, ox + 8 + (y % 2), y, Color("ffb050"))
+		"gue0":
+			# Roseaux de la rive.
+			for k in range(7):
+				_blade(img, ox, 3 + k * 2, 15, 9 + (k % 3) * 2, float(k - 3) * 0.2, Color("4a5a2a"), Color("a8a050"))
+				_px(img, ox + 3 + k * 2, 15 - 9 - (k % 3) * 2, Color("6a4a2a"))
+		"gue1":
+			# Galets mouillés.
+			for pb in [[5, 12, 3], [10, 13, 2], [8, 9, 2]]:
+				for y in range(-int(pb[2]), int(pb[2]) + 1):
+					for x in range(-int(pb[2]) - 1, int(pb[2]) + 2):
+						_px(img, ox + int(pb[0]) + x, int(pb[1]) + y, Color("9a9a90") if y < 0 else Color("5a6060"))
+				_px(img, ox + int(pb[0]), int(pb[1]) - int(pb[2]), Color("e8f0f0"))
+		"repaire0", "fort1":
+			# Tas d'os et un crâne.
+			for k in range(8):
+				_px(img, ox + 3 + k, 14 - (k % 3), Color("d8d0b8"))
+				_px(img, ox + 4 + k, 15, Color("b8b098"))
+			for y in range(7, 12):
+				for x in range(6, 11):
+					_px(img, ox + x, y, Color("e8e0c8"))
+			_px(img, ox + 7, 9, Color("2a2018"))
+			_px(img, ox + 9, 9, Color("2a2018"))
+		"repaire1":
+			# Caisse d'ambre volée qui bourdonne de violet (elle luit).
+			for y in range(7, 16):
+				for x in range(3, 13):
+					_px(img, ox + x, y, Color("7a5a32") if (x + y) % 4 else Color("5a4024"))
+			for x in range(4, 12):
+				_px(img, ox + x, 9, Color("d98cff"))
+				_px(img, ox + x, 13, Color("b07cff"))
+		"orage0", "fort0":
+			# Lance brisée plantée.
+			for k in range(12):
+				_px(img, ox + 6 + k / 4, 15 - k, Color("5a4030"))
+			_px(img, ox + 9, 3, Color("a8a8b8"))
+			_px(img, ox + 9, 2, Color("d8d8e8"))
+		"orage1":
+			# Petit totem de tempête.
+			for y in range(4, 16):
+				for x in range(6, 10):
+					_px(img, ox + x, y, Color("4a3a30") if y % 4 else Color("6a5a48"))
+			_px(img, ox + 7, 6, Color("9fe0ff"))
+			_px(img, ox + 8, 6, Color("9fe0ff"))
+		"rebouteux0":
+			# Bottes d'herbes qui sèchent.
+			for k in range(6):
+				_blade(img, ox, 4 + k * 2, 15, 8, float(k - 3) * 0.15, Color("5a7a3a"), Color("a8d070"))
+			for x in range(4, 14):
+				_px(img, ox + x, 12, Color("8a6a3a"))
+		"rebouteux1":
+			# Crâne de bête, os en croix.
+			for k in range(9):
+				_px(img, ox + 3 + k, 6 + k, Color("d8d0b8"))
+				_px(img, ox + 12 - k, 6 + k, Color("d8d0b8"))
+			for y in range(5, 9):
+				for x in range(6, 10):
+					_px(img, ox + x, y, Color("e8e0c8"))
+		"traite0", "traite1":
+			# Petit fanion : bleu de la Prévôté (0), rouge des clans (1).
+			for y in range(3, 16):
+				_px(img, ox + 5, y, Color("6a4a2a"))
+			var fc2 := Color("3a6ad0") if which == 0 else Color("c83a2a")
+			for y in range(3, 9):
+				for x in range(6, 13 - (y - 3) / 2):
+					_px(img, ox + x, y, fc2 if (x + y) % 5 else fc2.lightened(0.2))
 		"lisiere0":
 			# Botte de foin.
 			for y in range(8, 16):
@@ -1573,6 +1812,13 @@ static func tree_atlas(s: String) -> ImageTexture:
 		leaf = [Color("2a1a40"), Color("4a2a6a"), Color("7a4aa8")]
 	elif s == "clairiere":
 		leaf = [Color("2a3a1e"), Color("4a5a2a"), Color("8a8a3a")]
+	elif s in ["moulins", "gue", "traite"]:
+		# Vergers et rives : feuillage encore vert, doré par le soleil.
+		leaf = [Color("2f4a26"), Color("4f6a36"), Color("8f9a4a")]
+	elif s in ["route", "caravane", "pylones", "repaire", "rebouteux"]:
+		leaf = [Color("4a3a1a"), Color("7a6a2a"), Color("b89a3a")]
+	elif s in STORM_SCENES:
+		leaf = [Color("2a2a22"), Color("3a3a2a"), Color("5a5a3a")]
 	for v in range(2):
 		var ox := (3 + v) * fw
 		var cx2 := ox + fw / 2
@@ -1627,6 +1873,9 @@ static func tree_atlas(s: String) -> ImageTexture:
 				p += Vector2(float(br[1]) * 0.9, float(br[3]) / float(br[2]))
 			if violet:
 				_px(img, int(p.x), int(p.y), Color("b07cff"))
+	var tp := scene_palette(s)
+	if tp.has("warm_h"):
+		_zone_tint(img, float(tp["warm_h"]), float(tp.get("lift", 1.0)))
 	return _tex(img)
 
 
@@ -1689,3 +1938,325 @@ static func _ground_richness(img: Image, rng: RandomNumberGenerator, x0: int, x1
 			var a2 := 0.22 * (1.0 - float(k) / 7.0)
 			for x in [k, w - 1 - k]:
 				img.set_pixel(x, y, _pget(img, x, y).darkened(a2))
+
+
+# ---------------------------------------------------------------- zone 2 · objets des combats (couleurs finales)
+
+## Moulin à vent : tour de pierre chaulée, toit de bois, quatre ailes de toile.
+static func windmill_texture() -> ImageTexture:
+	var img := _sprite(30, 46)
+	for y in range(18, 46):
+		var half := int(lerpf(4.0, 7.0, float(y - 18) / 28.0))
+		for x in range(-half, half + 1):
+			_px(img, 15 + x, y, Color("e8dcc0") if x > -half + 2 else Color("b8a888"))
+	for y in range(12, 19):
+		var half2 := 8 - (y - 12)
+		for x in range(-half2, half2 + 1):
+			_px(img, 15 + x, y, Color("8a5a3a") if x < 0 else Color("a8704a"))
+	img.fill_rect(Rect2i(13, 38, 4, 8), Color("5a3a22"))
+	_px(img, 15, 28, Color("4a3a30"))
+	for a: float in [0.6, 0.6 + PI * 0.5, 0.6 + PI, 0.6 + PI * 1.5]:
+		var d := Vector2.from_angle(a)
+		var n := d.orthogonal()
+		for k in range(4, 15):
+			var p := Vector2(15, 15) + d * float(k)
+			_px(img, int(p.x), int(p.y), Color("6a4a2a"))
+			for w2 in range(1, 4):
+				var q := p + n * float(w2)
+				_px(img, int(q.x), int(q.y), Color("f0e8d8") if (k + w2) % 3 else Color("c8b898"))
+	return _tex(img)
+
+
+## Tente : peau tendue sur des perches (repaire, rebouteux) ou toile aux couleurs d'un camp (traité).
+static func tent_texture(body: Color, trim: Color) -> ImageTexture:
+	var img := _sprite(28, 22)
+	for y in range(4, 22):
+		var half := int(float(y - 4) * 0.75) + 1
+		for x in range(-half, half + 1):
+			var c := body if x > 0 else body.darkened(0.25)
+			if y == 21 or absi(x) == half:
+				c = trim
+			_px(img, 14 + x, y, c)
+	for y in range(12, 22):
+		_px(img, 14, y, Color("1a1410"))
+		_px(img, 13, y, Color("2a2018") if y > 14 else body.darkened(0.4))
+	for k in range(5):
+		_px(img, 12 - k / 2, 3 - k / 2, Color("6a4a2a"))
+		_px(img, 16 + k / 2, 3 - k / 2, Color("6a4a2a"))
+	return _tex(img)
+
+
+## Palissade : pieux taillés en pointe, liés par une corde.
+static func palisade_texture() -> ImageTexture:
+	var img := _sprite(32, 26)
+	for k in range(8):
+		var x0 := k * 4
+		var top := 2 + (k % 3)
+		for y in range(top, 26):
+			for x in range(x0, x0 + 3):
+				var c := Color("6a4a2a") if x == x0 else Color("8a6a40")
+				if y < top + 2:
+					c = Color("a8885a")
+				_px(img, x, y, c)
+	for x in range(32):
+		_px(img, x, 10, Color("4a3420"))
+		_px(img, x, 18, Color("4a3420"))
+	return _tex(img)
+
+
+## Totem des clans : têtes sculptées ; celui de l'orage porte des yeux qui crépitent.
+static func totem_texture(storm: bool) -> ImageTexture:
+	var img := _sprite(14, 36)
+	for y in range(2, 36):
+		for x in range(3, 11):
+			var band := y / 8
+			var c := Color("6a4a30") if band % 2 == 0 else Color("8a5a3a")
+			if x == 3:
+				c = c.darkened(0.3)
+			_px(img, x, y, c)
+		if y % 8 == 3:
+			_px(img, 5, y, Color("9fe0ff") if storm else Color("f2c46b"))
+			_px(img, 8, y, Color("9fe0ff") if storm else Color("f2c46b"))
+		if y % 8 == 6:
+			for x2 in range(5, 9):
+				_px(img, x2, y, Color("2a1810"))
+	for x in range(0, 14):
+		_px(img, x, 4, Color("c83a2a"))
+	return _tex(img)
+
+
+## Chariot : caisse de bois sur deux roues ; brûlé, il est noirci et fume.
+static func cart_texture(burnt: bool) -> ImageTexture:
+	var img := _sprite(30, 20)
+	var wood := Color("2a2220") if burnt else Color("8a6a40")
+	var dark := Color("1a1614") if burnt else Color("5a4028")
+	for y in range(5, 14):
+		for x in range(2, 28):
+			_px(img, x, y, wood if (x + y) % 5 else dark)
+	if not burnt:
+		for y in range(1, 6):
+			for x in range(4, 26):
+				_px(img, x, y, Color("e8dcc0") if y > 1 else Color("c8b898"))
+	for cx: int in [8, 22]:
+		for a in range(20):
+			var ang := float(a) / 20.0 * TAU
+			_px(img, cx + int(round(cos(ang) * 4.0)), 15 + int(round(sin(ang) * 4.0)), dark)
+		_px(img, cx, 15, Color("3a3a40"))
+	if burnt:
+		for k in range(10):
+			_px(img, 4 + k * 2, 5, Color("ff8a3a") if k % 3 == 0 else Color("3a2a20"))
+	return _tex(img)
+
+
+## Caisse (d'ambre volée : elle bourdonne de violet).
+static func crate_texture(amber: bool) -> ImageTexture:
+	var img := _sprite(14, 12)
+	for y in range(12):
+		for x in range(14):
+			var c := Color("8a6a40") if (x + y) % 4 else Color("6a4a2a")
+			if x == 0 or y == 0 or x == 13 or y == 11:
+				c = Color("4a3420")
+			_px(img, x, y, c)
+	if amber:
+		for x in range(2, 12):
+			_px(img, x, 4, Color("d98cff"))
+			_px(img, x, 7, Color("b07cff"))
+	return _tex(img)
+
+
+## Flèche d'ambre : un grand cristal sur un socle de pierre.
+static func amber_spire_texture() -> ImageTexture:
+	var img := _sprite(16, 34)
+	for y in range(26):
+		var half := int(6.0 * (1.0 - absf(float(y) - 17.0) / 17.0)) if y < 17 else int(6.0 * (1.0 - float(y - 17) / 11.0))
+		for x in range(-half, half + 1):
+			var c := Color("a86020") if x < 0 else Color("e8a040")
+			if x == 0 or (x == 1 and y % 4 == 0):
+				c = Color("ffe0a0")
+			_px(img, 8 + x, y, c)
+	for y in range(26, 34):
+		for x in range(2, 14):
+			_px(img, x, y, Color("8a7458") if x > 5 else Color("5a4a38"))
+	return _tex(img)
+
+
+## Étendard planté : bleu de la Prévôté, rouge des clans, ou rouge au crâne (Gharok).
+static func banner_pole_texture(col: Color, skull: bool) -> ImageTexture:
+	var img := _sprite(16, 40)
+	for y in range(0, 40):
+		_px(img, 3, y, Color("5a3a22"))
+		_px(img, 4, y, Color("7a5a32"))
+	_px(img, 3, 0, Color("d8c890"))
+	_px(img, 4, 0, Color("d8c890"))
+	for y in range(3, 22):
+		for x in range(5, 15):
+			if y > 18 and (x + y) % 3 == 0:
+				continue
+			_px(img, x, y, col if (x + y / 3) % 6 else col.lightened(0.18))
+	if skull:
+		for y in range(8, 13):
+			for x in range(8, 12):
+				_px(img, x, y, Color("e8e0c8"))
+		_px(img, 9, 10, Color("2a1810"))
+		_px(img, 11, 10, Color("2a1810"))
+	else:
+		for x in range(7, 13):
+			_px(img, x, 11, col.lightened(0.45))
+	return _tex(img)
+
+
+## Séchoir du rebouteux : cadre de perches, herbes et os qui pendent.
+static func rack_texture() -> ImageTexture:
+	var img := _sprite(26, 24)
+	for y in range(2, 24):
+		_px(img, 2, y, Color("6a4a2a"))
+		_px(img, 23, y, Color("6a4a2a"))
+	for x in range(2, 24):
+		_px(img, x, 3, Color("7a5a32"))
+	for k in range(6):
+		var x0 := 4 + k * 3
+		var long := 5 + (k * 3) % 5
+		for y in range(4, 4 + long):
+			_px(img, x0, y, Color("8aa850") if k % 2 == 0 else Color("e8e0c8"))
+		_px(img, x0, 4 + long, Color("5a7a3a") if k % 2 == 0 else Color("c8c0a8"))
+	return _tex(img)
+
+
+## Tour de guet de la palissade de Gharok.
+static func watchtower_texture() -> ImageTexture:
+	var img := _sprite(22, 48)
+	for y in range(14, 48):
+		for x: int in [4, 17]:
+			_px(img, x, y, Color("5a3a22"))
+			_px(img, x + 1, y, Color("7a5a32"))
+		if y % 8 == 0:
+			for x2 in range(4, 19):
+				_px(img, x2, y + (x2 - 4) / 5, Color("6a4a2a"))
+	for y in range(6, 15):
+		for x in range(2, 20):
+			_px(img, x, y, Color("8a6a40") if (x + y) % 4 else Color("6a4a2a"))
+	for y in range(0, 6):
+		var half := 10 - y * 2
+		for x in range(-half, half + 1):
+			_px(img, 11 + x, y + 2, Color("4a3420"))
+	_px(img, 11, 9, Color("ff9b4a"))
+	_px(img, 12, 9, Color("ffd080"))
+	return _tex(img)
+
+
+## Collines d'Ambre : l'horizon du lieu, entre les deux rangs de collines.
+static func _backdrop_hills(img: Image, rng: RandomNumberGenerator, s: String) -> void:
+	var w := img.get_width()
+	var h := img.get_height()
+	var base := int(h * 0.53)
+	match s:
+		"route":
+			# Une colonne de fumée noire monte au loin (la caravane attaquée).
+			var cx := int(w * 0.3)
+			for y in range(int(h * 0.12), base):
+				var t := float(base - y) / float(base - int(h * 0.12))
+				var half := int(2.0 + t * 9.0)
+				var off := int(sin(float(y) * 0.06) * 4.0 * t) + int(t * 14.0)
+				for x in range(-half, half + 1):
+					_px(img, cx + off + x, y, Color(0.12, 0.1, 0.1, 0.55 * (1.0 - t * 0.6)))
+		"moulins", "caravane":
+			# Moulins sur la crête.
+			for k in range(4 if s == "moulins" else 2):
+				var mx := int(w * (0.15 + 0.22 * float(k))) + rng.randi_range(-6, 6)
+				img.fill_rect(Rect2i(mx - 2, base - 12, 4, 12), Color("c8b8a0"))
+				for a: float in [0.3, 0.3 + PI * 0.5, 0.3 + PI, 0.3 + PI * 1.5]:
+					for r in range(1, 9):
+						_px(img, mx + int(cos(a) * float(r)), base - 12 + int(sin(a) * float(r)), Color("e8dcc0"))
+		"pylones":
+			# Flèches d'ambre qui luisent sur l'horizon.
+			for k in range(7):
+				var px := int(w * (0.1 + 0.13 * float(k))) + rng.randi_range(-5, 5)
+				var ph := rng.randi_range(8, 18)
+				for y in range(ph):
+					var half2 := int(float(y) * 0.25)
+					for x in range(-half2, half2 + 1):
+						_px(img, px + x, base - ph + y, Color("e8a040") if x >= 0 else Color("a86020"))
+				for r2 in range(2, 7):
+					_disc(img, px, base - ph, r2, Color(1.0, 0.7, 0.3, 0.04))
+		"gue":
+			# La rivière descend des collines.
+			for y in range(base - 4, h):
+				var t2 := float(y - base + 4) / float(h - base + 4)
+				var cx2 := int(w * 0.5 + sin(t2 * 4.0) * w * 0.12)
+				var half3 := int(2.0 + t2 * w * 0.06)
+				for x in range(-half3, half3 + 1):
+					_px(img, cx2 + x, y, Color(0.45, 0.65, 0.75, 0.75))
+				_px(img, cx2 - half3 / 2, y, Color(0.85, 0.95, 1.0, 0.5))
+		"repaire", "rebouteux":
+			# Palissade, tentes et fumées des feux de camp.
+			for k in range(-30, 31):
+				var ph2 := 5 + (2 if absi(k) % 3 == 0 else 0)
+				img.fill_rect(Rect2i(int(w * 0.3) + k, base - ph2, 1, ph2), Color("4a3828"))
+			for k2 in range(5):
+				var tx := int(w * (0.45 + 0.1 * float(k2)))
+				for y in range(7):
+					img.fill_rect(Rect2i(tx - y, base - 7 + y, y * 2 + 1, 1), Color("7a5a3a") if s == "repaire" else Color("8a8a5a"))
+			for k3 in range(3):
+				var sx2 := int(w * (0.25 + 0.25 * float(k3)))
+				for y in range(int(h * 0.25), base):
+					var t3 := float(base - y) / float(base - int(h * 0.25))
+					_px(img, sx2 + int(sin(float(y) * 0.1) * 3.0 * t3), y, Color(0.4, 0.38, 0.36, 0.35 * (1.0 - t3)))
+					_px(img, sx2 + 1 + int(sin(float(y) * 0.1) * 3.0 * t3), y, Color(0.4, 0.38, 0.36, 0.25 * (1.0 - t3)))
+		"orage":
+			# Totems de tempête sur la crête.
+			for k in range(5):
+				var tx2 := int(w * (0.12 + 0.18 * float(k)))
+				img.fill_rect(Rect2i(tx2 - 1, base - 14, 3, 14), Color("2a2420"))
+				_px(img, tx2, base - 12, Color("9fe0ff"))
+		"traite":
+			# Les deux camps face à face : tentes bleues à gauche, rouges à droite.
+			for k in range(8):
+				var left := k < 4
+				var tx3 := int(w * (0.08 + 0.1 * float(k) + (0.1 if not left else 0.0)))
+				var col := Color("3a6ad0") if left else Color("c83a2a")
+				for y in range(6):
+					img.fill_rect(Rect2i(tx3 - y, base - 6 + y, y * 2 + 1, 1), col.darkened(0.2 if y % 2 else 0.0))
+				img.fill_rect(Rect2i(tx3, base - 12, 1, 6), Color("4a3420"))
+				img.fill_rect(Rect2i(tx3 + 1, base - 12, 3, 2), col)
+		"fort":
+			# Le fort de Gharok, tout proche : palissade haute, tours, étendards rouges.
+			var fx := int(w * 0.5)
+			for k in range(-int(w * 0.3), int(w * 0.3)):
+				var ph3 := 16 + (4 if absi(k) % 4 == 0 else 0)
+				img.fill_rect(Rect2i(fx + k, base - ph3, 1, ph3), Color("2a2018"))
+			for tk: float in [-0.28, -0.1, 0.1, 0.28]:
+				var tx4 := fx + int(float(w) * tk)
+				img.fill_rect(Rect2i(tx4 - 4, base - 32, 9, 32), Color("221a14"))
+				img.fill_rect(Rect2i(tx4 - 6, base - 34, 13, 3), Color("2a2018"))
+				img.fill_rect(Rect2i(tx4, base - 44, 1, 10), Color("1a1410"))
+				img.fill_rect(Rect2i(tx4 + 1, base - 44, 6, 4), Color("a82a2a"))
+				_px(img, tx4, base - 26, Color("ff9b4a"))
+
+
+## Meule de foin des champs des moulins.
+static func haystack_texture() -> ImageTexture:
+	var img := _sprite(22, 18)
+	for y in range(2, 18):
+		var half := int(10.0 * sqrt(clampf(float(y - 1) / 16.0, 0.0, 1.0)))
+		for x in range(-half, half + 1):
+			var c := Color("d8b050") if x > -half / 2 else Color("a8803a")
+			if (x * 3 + y * 5) % 7 == 0:
+				c = Color("f2d070")
+			_px(img, 11 + x, y, c)
+	for x in range(2, 20):
+		_px(img, x, 9, Color("8a6a2a"))
+	return _tex(img)
+
+
+## Borne de la route d'Ambre : pierre dressée, gravée.
+static func milestone_texture() -> ImageTexture:
+	var img := _sprite(10, 18)
+	for y in range(2, 18):
+		for x in range(1, 9):
+			if y < 4 and (x == 1 or x == 8):
+				continue
+			_px(img, x, y, Color("b8a888") if x < 6 else Color("8a7a60"))
+	for y: int in [6, 9, 12]:
+		for x in range(3, 7):
+			_px(img, x, y, Color("5a4a38"))
+	return _tex(img)
