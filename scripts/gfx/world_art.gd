@@ -388,6 +388,28 @@ static func ground_texture(healed: bool = false) -> ImageTexture:
 			# Reflets verts de l'aurore sur la neige.
 			for i in range(w * h / 80):
 				_px(img, rng.randi_range(0, w - 1), rng.randi_range(0, h - 1), Color("5ff0a8") if rng.randf() < 0.5 else Color("b07cff"))
+		"dunes", "mirage", "scarabee", "caravane_sable", "spectres":
+			# Rides du sable et éclats de verre qui brillent.
+			for y in range(0, h, 5):
+				for x in range(0, w):
+					if (x + int(sin(float(y) * 0.2) * 6.0)) % 9 == 0:
+						_px(img, x, y + int(sin(float(x) * 0.15) * 2.0), Color("2a4a30"))
+			for i in range(w * h / 160):
+				_px(img, rng.randi_range(0, w - 1), rng.randi_range(0, h - 1), Color("e8a040"))
+		"oasis":
+			# Touffes d'herbe et flaques claires.
+			for i in range(14):
+				var pc7 := Vector2i(rng.randi_range(0, w - 1), rng.randi_range(int(2.0 * PX_PER_M), h - int(2.0 * PX_PER_M)))
+				_disc(img, pc7.x, pc7.y, rng.randi_range(2, 5), Color("3a5a8a"))
+			for i in range(w * h / 60):
+				_px(img, rng.randi_range(0, w - 1), rng.randi_range(0, h - 1), Color("3f7a3a"))
+		"miroirs", "sceaux", "college", "sphinx":
+			# Glyphes du Collège gravés dans les dalles, éclats de verre.
+			for i in range(16):
+				var gx2 := rng.randi_range(0, w - 12)
+				var gy2 := rng.randi_range(int(2.0 * PX_PER_M), h - int(2.0 * PX_PER_M))
+				for k in range(rng.randi_range(5, 10)):
+					_px(img, gx2 + k, gy2 + (k % 3), Color("e8a040"))
 		"traite":
 			# Herbe foulée par les deux camps, fleurs des prés.
 			for i in range(w * h / 80):
@@ -1258,7 +1280,11 @@ const LEVEL_SCENE := {
 	"z03_l06": "saules", "z03_l07": "barque", "z03_l08": "sorciere", "z03_l09": "refuge", "z03_l10": "hydre",
 	"z04_l01": "col", "z04_l02": "congeres", "z04_l03": "porte_naine", "z04_l04": "lac_gele", "z04_l05": "sentinelle",
 	"z04_l06": "aurore", "z04_l07": "chariot", "z04_l08": "portes", "z04_l09": "forteresse", "z04_l10": "colosse",
+	"z05_l01": "dunes", "z05_l02": "mirage", "z05_l03": "oasis", "z05_l04": "miroirs", "z05_l05": "scarabee",
+	"z05_l06": "caravane_sable", "z05_l07": "spectres", "z05_l08": "sceaux", "z05_l09": "college", "z05_l10": "sphinx",
 }
+## Désert de Verre (zone 5) : lieux du Collège oublié (dalles, colonnes, verre).
+const COLLEGE_SCENES := ["sceaux", "college", "sphinx", "miroirs"]
 ## Pics Gelés (zone 4) : lieux taillés par les nains (pavés, runes cyan).
 const DWARF_SCENES := ["porte_naine", "sentinelle", "portes", "forteresse", "colosse"]
 ## Lieux du marais (zone 3) où l'eau borde le terrain, et sa couleur.
@@ -1350,6 +1376,15 @@ static func scene_palette(s: String) -> Dictionary:
 			return {"grass": Color("2f4a36"), "path": "dirt", "mist": Color("dcecf8"), "moss": Color("3f5a3a"), "motes": Color(0.6, 0.9, 1.0), "lift": 1.0}
 		"colosse":
 			return {"grass": Color("263830"), "path": "cobbles", "mist": Color("a8c0e0"), "moss": Color("34483a"), "motes": Color(1.0, 0.75, 0.4), "lift": 0.85}
+		# Zone 5, Désert de Verre : couleurs du Bois, que la teinte du désert change en sable doré et grès.
+		"dunes", "mirage", "scarabee", "caravane_sable":
+			return {"grass": Color("35593f"), "path": "grass", "mist": Color("f0d8a8"), "moss": Color("4a6a48"), "motes": Color(1.0, 0.92, 0.7), "lift": 1.0}
+		"oasis":
+			return {"grass": Color("2f5a3a"), "path": "grass", "mist": Color("d8e8c8"), "moss": Color("3f6a3a"), "motes": Color(0.9, 1.0, 0.85), "lift": 1.0}
+		"miroirs", "sceaux", "college", "sphinx":
+			return {"grass": Color("2f4a36"), "path": "cobbles", "mist": Color("e8d8b0"), "moss": Color("3f5a3a"), "motes": Color(0.7, 1.0, 1.0), "lift": 1.0}
+		"spectres":
+			return {"grass": Color("2a4436"), "path": "grass", "mist": Color("a8b0d8"), "moss": Color("34503a"), "motes": Color(0.75, 0.85, 1.0), "lift": 0.8}
 	return {}
 
 
@@ -1575,7 +1610,8 @@ static func _backdrop_scene(img: Image, rng: RandomNumberGenerator, s: String) -
 # ---------------------------------------------------------------- zone 1 · végétation et arbres des combats
 
 const FOLIAGE_N := 12 ## images de 16×16 dans la planche de végétation
-const FOLIAGE_GLOW_Z4 := {"porte_naine": [9], "sentinelle": [9], "portes": [9], "forteresse": [9], "colosse": [8, 9], "aurore": [8], "lac_gele": [8]}
+const FOLIAGE_GLOW_Z4 := {"porte_naine": [9], "sentinelle": [9], "portes": [9], "forteresse": [9], "colosse": [8, 9], "aurore": [8], "lac_gele": [8],
+	"dunes": [8], "mirage": [8], "scarabee": [8], "caravane_sable": [8], "spectres": [8, 9], "miroirs": [8], "sceaux": [8, 9], "college": [8], "sphinx": [8, 9]}
 const FOLIAGE_GLOW := {"sentier": [9], "fougeres": [9], "cercle": [8, 9], "coeur": [8], "sylvarche": [9], "pylones": [8], "repaire": [9],
 	"pilotis": [9], "barque": [9], "mares": [8], "sorciere": [8], "gue_morts": [9], "refuge": [9], "saules": [9]}
 
@@ -1633,6 +1669,10 @@ static func _flower_cols(s: String) -> Array:
 			return [Color("5ff0a8"), Color("b07cff")]
 		"colosse":
 			return [Color("ffb050"), Color("8fe3f2")]
+		"dunes", "mirage", "scarabee", "caravane_sable", "spectres", "miroirs", "sceaux", "college", "sphinx":
+			return [Color("e8a040"), Color("ffd080")]
+		"oasis":
+			return [Color("e85a8a"), Color("f2e28b")]
 	return [Color("f4f0ff"), Color("f2e28b")]
 
 
@@ -1736,6 +1776,54 @@ static func foliage_atlas(s: String) -> ImageTexture:
 
 static func _scene_detail(img: Image, ox: int, s: String, which: int, rng: RandomNumberGenerator, fc: Array) -> void:
 	match s + str(which):
+		"dunes0", "mirage0", "scarabee0", "caravane_sable0", "spectres0", "miroirs0", "sceaux0", "college0", "sphinx0":
+			# Éclat de verre planté dans le sable (il luit).
+			for y in range(4, 16):
+				var hw4 := int(3.0 * (1.0 - absf(float(y) - 10.0) / 7.0)) + 1
+				for x in range(-hw4, hw4 + 1):
+					_px(img, ox + 8 + x, y, Color("e8ffff") if x == 0 else (Color("6ae0e0") if x > 0 else Color("2a9aa8")))
+			for x in range(4, 13):
+				_px(img, ox + x, 15, Color("d8b878"))
+		"dunes1", "mirage1", "caravane_sable1":
+			# Crâne de bête blanchi par le soleil.
+			for y in range(8, 13):
+				for x in range(4, 12):
+					_px(img, ox + x, y, Color("f4ecd8") if x < 9 else Color("d8d0b8"))
+			_px(img, ox + 6, 10, Color("4a3a28"))
+			_px(img, ox + 9, 10, Color("4a3a28"))
+			for k in range(4):
+				_px(img, ox + 3 - k / 2, 8 - k, Color("e8e0c8"))
+				_px(img, ox + 12 + k / 2, 8 - k, Color("e8e0c8"))
+		"oasis0":
+			# Roseaux et fleur du désert.
+			for k in range(6):
+				_blade(img, ox, 3 + k * 2, 15, 8 + k % 3 * 2, float(k - 3) * 0.2, Color("3a6a3a"), Color("8ac870"))
+			_px(img, ox + 8, 5, Color("e85a8a"))
+		"oasis1":
+			# Petite jarre de terre.
+			for y in range(6, 16):
+				var hw5 := 4 - absi(y - 11) / 2
+				for x in range(-hw5, hw5 + 1):
+					_px(img, ox + 8 + x, y, Color("c87a4a") if x < 1 else Color("a85a3a"))
+		"scarabee1":
+			# Carapace de scarabée de verre vide.
+			for y in range(7, 15):
+				for x in range(4, 13):
+					if Vector2(float(x) - 8.0, float(y) - 11.0).length() <= 4.5:
+						_px(img, ox + x, y, Color("2a9aa8") if x < 8 else Color("6ae0e0"))
+			for y in range(7, 15):
+				_px(img, ox + 8, y, Color("0e4a50"))
+		"spectres1", "sceaux1", "sphinx1":
+			# Glyphe du Collège qui flotte (il luit).
+			for d in [Vector2i(0, 0), Vector2i(1, 1), Vector2i(-1, 1), Vector2i(0, 2), Vector2i(1, -1), Vector2i(-1, -1), Vector2i(0, -2)]:
+				_px(img, ox + 8 + d.x, 9 + d.y, Color("d8c8ff"))
+		"miroirs1", "college1":
+			# Tronçon de colonne de grès.
+			for y in range(6, 16):
+				for x in range(5, 11):
+					_px(img, ox + x, y, Color("d8b878") if x < 9 else Color("a8885a"))
+			for x in range(4, 12):
+				_px(img, ox + x, 6, Color("e8c888"))
 		"col0", "congeres0", "chariot0", "lac_gele1":
 			# Rocher sous un chapeau de neige.
 			for y in range(-5, 6):
@@ -2104,7 +2192,8 @@ static func tree_atlas(s: String) -> ImageTexture:
 	elif s in STORM_SCENES:
 		leaf = [Color("2a2a22"), Color("3a3a2a"), Color("5a5a3a")]
 	var willow: bool = s in ["pilotis", "mares", "brume", "gue_morts", "croc", "saules", "barque", "sorciere", "refuge", "hydre"]
-	for v in range(2 if not willow else 0):
+	var palm: bool = s in ["oasis", "dunes", "mirage", "scarabee", "caravane_sable", "spectres", "miroirs", "sceaux", "college", "sphinx"]
+	for v in range(2 if not (willow or palm) else 0):
 		var ox := (3 + v) * fw
 		var cx2 := ox + fw / 2
 		for y in range(fh - 18, fh):
@@ -2126,6 +2215,26 @@ static func tree_atlas(s: String) -> ImageTexture:
 					elif x < -rx / 3 or y > ry / 2:
 						c = leaf[0]
 					_px(img, bx + x, by + y, c)
+	if palm:
+		# Palmiers du désert : stipe courbé, palmes en éventail, dattes.
+		for v in range(2):
+			var oxp := (3 + v) * fw
+			var cxp := oxp + fw / 2
+			var lean := 1.0 if v == 0 else -1.0
+			var top := Vector2(cxp + lean * 4.0, 12.0)
+			for y in range(12, fh):
+				var f := float(y - 12) / float(fh - 12)
+				var px := int(lerpf(top.x, float(cxp), f))
+				img.fill_rect(Rect2i(px - 1, y, 3, 1), Color("6a4a2a") if y % 3 else Color("4a3220"))
+			for k in range(7):
+				var a := -PI + float(k) / 6.0 * PI
+				var p := top
+				for d in range(12):
+					p += Vector2(cos(a), sin(a) * 0.6 + float(d) * 0.08)
+					_px(img, int(p.x), int(p.y), Color("3a6a2a") if d < 8 else Color("2a4a1e"))
+					_px(img, int(p.x), int(p.y) + 1, Color("5a8a3a"))
+			_px(img, int(top.x), int(top.y) + 2, Color("c86a2a"))
+			_px(img, int(top.x) + 1, int(top.y) + 2, Color("a84a1a"))
 	if willow:
 		# Saules pleureurs du marais : tronc tordu, dôme de feuillage, longues mèches qui tombent.
 		var wl := [Color("1e2e24"), Color("2e4434"), Color("4a6a4a")]
@@ -2812,4 +2921,87 @@ static func great_door_texture() -> ImageTexture:
 	_px(img, 17, 22, Color("c8d8ff"))
 	for d in [Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1)]:
 		_px(img, 17 + d.x, 22 + d.y, Color("4a6aff"))
+	return _tex(img)
+
+
+
+# ---------------------------------------------------------------- zone 5 · objets des combats (couleurs finales)
+
+## Obélisque de grès, glyphes du Collège.
+static func obelisk_texture() -> ImageTexture:
+	var img := _sprite(12, 40)
+	for y in range(4, 40):
+		var half := 3 + y / 14
+		for x in range(-half, half + 1):
+			_px(img, 6 + x, y, Color("e0c088") if x < 1 else Color("b8945a"))
+	for y in range(0, 5):
+		for x in range(-(y / 2), y / 2 + 1):
+			_px(img, 6 + x, y, Color("f2d8a0"))
+	for y: int in [10, 16, 22, 28]:
+		_px(img, 5, y, Color("2a9aa8"))
+		_px(img, 6, y + 1, Color("6ae0e0"))
+	return _tex(img)
+
+
+## Colonne du Collège oublié, brisée net.
+static func sand_column_texture() -> ImageTexture:
+	var img := _sprite(14, 34)
+	for y in range(6, 34):
+		for x in range(3, 11):
+			if y < 9 and x > 7:
+				continue
+			_px(img, x, y, Color("e0c088") if x < 7 else Color("b8945a"))
+		if y % 6 == 0:
+			for x in range(3, 11):
+				_px(img, x, y, Color("a8845a"))
+	for x in range(2, 12):
+		_px(img, x, 32, Color("c8a878"))
+		_px(img, x, 33, Color("a8845a"))
+	return _tex(img)
+
+
+## Grand miroir de verre sur pied (les miroirs renvoient les tirs).
+static func glass_mirror_texture() -> ImageTexture:
+	var img := _sprite(18, 34)
+	for y in range(2, 26):
+		for x in range(2, 16):
+			var c := Color("8ae0e8") if (x + y) % 7 else Color("e8ffff")
+			if x == 2 or x == 15 or y == 2 or y == 25:
+				c = Color("d8b060")
+			_px(img, x, y, c)
+	for k in range(6):
+		_px(img, 5 + k, 5 + k * 2, Color("ffffff"))
+	for y in range(26, 34):
+		_px(img, 8, y, Color("a8845a"))
+		_px(img, 9, y, Color("c8a070"))
+	for x in range(4, 14):
+		_px(img, x, 33, Color("a8845a"))
+	return _tex(img)
+
+
+## Dune de verre : un amas de cristaux turquoise.
+static func glass_cluster_texture() -> ImageTexture:
+	var img := _sprite(22, 24)
+	for k in range(5):
+		var bx := 3 + k * 4
+		var hgt := 10 + (k * 5) % 11
+		for y in range(24 - hgt, 24):
+			var hw := maxi(1, (y - (24 - hgt)) / 4)
+			for x in range(-hw, hw + 1):
+				_px(img, bx + x, y, Color("e8ffff") if x == 0 else (Color("6ae0e0") if x > 0 else Color("2a9aa8")))
+	return _tex(img)
+
+
+## Statue brisée d'un mage du Collège (tête de sphinx couchée).
+static func broken_statue_texture() -> ImageTexture:
+	var img := _sprite(26, 20)
+	for y in range(6, 20):
+		var half := 10 - absi(y - 13)
+		for x in range(-half, half + 1):
+			_px(img, 13 + x, y, Color("d8b878") if x < 3 else Color("a8885a"))
+	for y in range(8, 12):
+		_px(img, 9, y, Color("4a3a28"))
+		_px(img, 16, y, Color("4a3a28"))
+	for x in range(10, 16):
+		_px(img, x, 15, Color("8a6a40"))
 	return _tex(img)

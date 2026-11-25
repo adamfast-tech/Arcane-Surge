@@ -401,7 +401,11 @@ func _build_terrain() -> void:
 		# Pics : sapins enneigés, quelques arbres morts au col et devant la forteresse.
 		"col": [4, 4, 4, 0, 0, 1], "congeres": [4, 4, 3, 0, 0, 1], "porte_naine": [3, 3, 3, 0, 0, 1], "lac_gele": [3, 3, 3, 0, 0, 2],
 		"sentinelle": [2, 2, 2, 0, 0, 2], "aurore": [3, 3, 3, 0, 0, 1], "chariot": [4, 4, 4, 0, 0, 1], "portes": [2, 2, 2, 0, 0, 2],
-		"forteresse": [2, 2, 2, 0, 0, 2], "colosse": [1, 1, 1, 0, 0, 3]}.get(sc, [1, 1, 1, 0, 0, 0])
+		"forteresse": [2, 2, 2, 0, 0, 2], "colosse": [1, 1, 1, 0, 0, 3],
+		# Désert : palmiers à l'oasis, quelques-uns ailleurs, arbres morts.
+		"dunes": [0, 0, 0, 1, 1, 2], "mirage": [0, 0, 0, 2, 2, 1], "oasis": [0, 0, 0, 5, 5, 0], "miroirs": [0, 0, 0, 1, 1, 1],
+		"scarabee": [0, 0, 0, 1, 1, 3], "caravane_sable": [0, 0, 0, 2, 2, 1], "spectres": [0, 0, 0, 1, 1, 3], "sceaux": [0, 0, 0, 1, 1, 1],
+		"college": [0, 0, 0, 1, 1, 1], "sphinx": [0, 0, 0, 1, 1, 2]}.get(sc, [1, 1, 1, 0, 0, 0])
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_colors = true
@@ -414,7 +418,8 @@ func _build_terrain() -> void:
 	var tree_n: int = {"lisiere": 30, "sentier": 120, "clairiere": 44, "roncier": 80, "fougeres": 58, "cercle": 66, "source": 60, "coeur": 84, "sylvarche": 70,
 		"route": 22, "moulins": 40, "pylones": 16, "gue": 36, "repaire": 18, "orage": 20, "caravane": 22, "rebouteux": 26, "traite": 26, "fort": 16,
 		"pilotis": 44, "mares": 40, "brume": 56, "gue_morts": 34, "croc": 40, "saules": 60, "barque": 40, "sorciere": 50, "refuge": 36, "hydre": 38,
-		"col": 80, "congeres": 70, "porte_naine": 50, "lac_gele": 56, "sentinelle": 36, "aurore": 60, "chariot": 76, "portes": 36, "forteresse": 30, "colosse": 20}.get(sc, 90)
+		"col": 80, "congeres": 70, "porte_naine": 50, "lac_gele": 56, "sentinelle": 36, "aurore": 60, "chariot": 76, "portes": 36, "forteresse": 30, "colosse": 20,
+		"dunes": 10, "mirage": 14, "oasis": 46, "miroirs": 10, "scarabee": 10, "caravane_sable": 14, "spectres": 12, "sceaux": 10, "college": 12, "sphinx": 12}.get(sc, 90)
 	var dmin: float = {"lisiere": 10.0, "sentier": 6.2, "clairiere": 9.0, "roncier": 7.0, "fougeres": 8.0, "cercle": 7.5, "source": 9.0, "coeur": 6.8, "sylvarche": 7.5}.get(sc, 10.0)
 	var ty := -0.7 if floor_set else -2.5
 	for i in range(tree_n):
@@ -621,6 +626,9 @@ func _build_scene_props() -> void:
 		return
 	if WorldArt.zone == 4:
 		_build_frost_props()
+		return
+	if WorldArt.zone == 5:
+		_build_desert_props()
 		return
 	var sc := WorldArt.scene
 	var rng := RandomNumberGenerator.new()
@@ -1105,6 +1113,124 @@ func _build_frost_ambience() -> void:
 		add_child(gl)
 
 
+## Désert de Verre (zone 5) : obélisques, colonnes du Collège, miroirs, amas de verre, statues brisées, oasis.
+func _build_desert_props() -> void:
+	var sc := WorldArt.scene
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(sc) + 5
+	var glass := WorldArt.glass_cluster_texture()
+	for i in range(8):
+		var gp := _side_spot(rng)
+		_prop(glass, gp, rng.randf_range(1.0, 1.6), Color(1.1, 1.15, 1.15))
+		if i % 3 == 0:
+			_prop_light(gp, 0.8, Color("6ae0e0"), 0.6, 2.5)
+	match sc:
+		"dunes", "mirage", "scarabee", "caravane_sable", "spectres":
+			var ob := WorldArt.obelisk_texture()
+			for i in range(4):
+				var side := -1.0 if i % 2 == 0 else 1.0
+				_prop(ob, Vector2(4.5 + side * rng.randf_range(6.5, 9.0), 2.0 + float(i) * 4.0), 1.8)
+			var statue := WorldArt.broken_statue_texture()
+			for i in range(2):
+				_prop(statue, _side_spot(rng), 1.6)
+			if sc == "caravane_sable":
+				var cart := WorldArt.cart_texture(false)
+				for i in range(3):
+					_prop(cart, _side_spot(rng), 1.6)
+				var tent := WorldArt.tent_texture(Color("e8d8b0"), Color("a8845a"))
+				for i in range(3):
+					_prop(tent, _side_spot(rng), 1.8)
+		"oasis":
+			for side2: float in [-1.0, 1.0]:
+				var water := MeshInstance3D.new()
+				var wm := PlaneMesh.new()
+				wm.size = Vector2(6.0, 14.0)
+				water.mesh = wm
+				var mat := StandardMaterial3D.new()
+				mat.albedo_color = Color(0.2, 0.55, 0.65, 0.85)
+				mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+				mat.roughness = 0.1
+				mat.metallic_specular = 0.9
+				water.material_override = mat
+				water.position = w3(Vector2(4.5 + side2 * 8.5, 8.0), -0.6)
+				add_child(water)
+			var reeds := WorldArt.reeds_texture()
+			for i in range(14):
+				var side3 := -1.0 if i % 2 == 0 else 1.0
+				_prop(reeds, Vector2(4.5 + side3 * rng.randf_range(5.4, 6.0), rng.randf_range(1.0, 15.0)), 1.1)
+			var tent2 := WorldArt.tent_texture(Color("e8d8b0"), Color("c84a3a"))
+			for i in range(2):
+				_prop(tent2, _side_spot(rng), 1.8)
+		"miroirs", "sceaux", "college", "sphinx":
+			var col := WorldArt.sand_column_texture()
+			for i in range(10):
+				var side4 := -1.0 if i % 2 == 0 else 1.0
+				_prop(col, Vector2(4.5 + side4 * rng.randf_range(5.8, 8.5), 0.5 + float(i / 2) * 3.4), 1.8)
+			if sc == "miroirs" or sc == "college":
+				var mirror := WorldArt.glass_mirror_texture()
+				for i in range(4):
+					var mp := _side_spot(rng)
+					_prop(mirror, mp, 1.6)
+					_prop_light(mp, 1.0, Color("e8ffff"), 0.6, 2.5)
+			if sc == "sphinx" or sc == "sceaux":
+				var ob2 := WorldArt.obelisk_texture()
+				for x: float in [-1.6, 10.6]:
+					_prop(ob2, Vector2(x, 14.0), 2.2)
+					_prop_light(Vector2(x, 14.0), 2.2, Color("6ae0e0"), 0.8, 3.5)
+			var statue2 := WorldArt.broken_statue_texture()
+			for i in range(3):
+				_prop(statue2, _side_spot(rng), 1.6)
+
+
+## Désert : voiles de sable que le vent emporte, et (oasis) reflets sur l'eau.
+func _build_desert_ambience() -> void:
+	var sc := WorldArt.scene
+	var sand := CPUParticles3D.new()
+	sand.amount = 70
+	sand.lifetime = 3.0
+	sand.preprocess = 3.0
+	sand.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	sand.emission_box_extents = Vector3(3.0, 0.4, 12.0)
+	sand.position = Vector3(-4.0, 0.3, -8.0)
+	sand.direction = Vector3(1.0, 0.1, 0.0)
+	sand.spread = 8.0
+	sand.initial_velocity_min = 3.0
+	sand.initial_velocity_max = 5.0
+	sand.gravity = Vector3(0.0, -0.1, 0.0)
+	var q := QuadMesh.new()
+	q.size = Vector2(0.5, 0.03)
+	var qm := StandardMaterial3D.new()
+	qm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	qm.vertex_color_use_as_albedo = true
+	qm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	qm.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	q.material = qm
+	sand.mesh = q
+	var sg := Gradient.new()
+	sg.set_color(0, Color(1.0, 0.88, 0.6, 0.0))
+	sg.set_color(1, Color(1.0, 0.88, 0.6, 0.0))
+	sg.add_point(0.4, Color(1.0, 0.9, 0.65, 0.45))
+	sand.color_ramp = sg
+	add_child(sand)
+	if sc == "oasis":
+		for side: float in [-1.0, 1.0]:
+			var gl := CPUParticles3D.new()
+			gl.amount = 22
+			gl.lifetime = 1.4
+			gl.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+			gl.emission_box_extents = Vector3(2.5, 0.0, 6.5)
+			gl.position = w3(Vector2(4.5 + side * 8.5, 8.0), -0.56)
+			gl.gravity = Vector3.ZERO
+			gl.initial_velocity_max = 0.0
+			gl.mesh = _particle_mesh(0.08)
+			var gr := Gradient.new()
+			gr.set_color(0, Color(1.0, 1.0, 0.9, 0.0))
+			gr.set_color(1, Color(1.0, 1.0, 0.9, 0.0))
+			gr.add_point(0.5, Color(1.0, 1.0, 0.95, 0.9))
+			gl.color_ramp = gr
+			add_child(gl)
+
+
 ## Feux de camp : flamme, lueur qui danse, fumée.
 func _hills_fires(rng: RandomNumberGenerator, n: int) -> void:
 	var flame := WorldArt.flame_texture()
@@ -1267,6 +1393,19 @@ func _pillar_mats() -> Array:
 			cap.emission_enabled = true
 			cap.emission = Color("4ab8e0")
 			cap.emission_energy_multiplier = 0.6
+		# Désert : grès doré coiffé de verre turquoise.
+		"dunes", "mirage", "scarabee", "caravane_sable", "oasis", "spectres":
+			body.albedo_color = Color(1.05, 0.95, 0.8)
+			cap.albedo_color = Color("6ae0e0")
+			cap.emission_enabled = true
+			cap.emission = Color("2a9aa8")
+			cap.emission_energy_multiplier = 0.5
+		"miroirs", "sceaux", "college", "sphinx":
+			body.albedo_color = Color(1.1, 1.0, 0.85)
+			cap.albedo_color = Color("f2d070")
+			cap.emission_enabled = true
+			cap.emission = Color("e8a040")
+			cap.emission_energy_multiplier = 0.5
 		"colosse":
 			body.albedo_color = Color(0.7, 0.72, 0.85)
 			cap.albedo_color = Color("ff9a4a")
@@ -1372,6 +1511,8 @@ func _build_ambience() -> void:
 		_build_swamp_ambience()
 	if WorldArt.zone == 4:
 		_build_frost_ambience()
+	if WorldArt.zone == 5:
+		_build_desert_ambience()
 	if sc in ["lisiere", "sentier", "clairiere", "fougeres", "source", "sylvarche", "roncier"]:
 		var lv := CPUParticles3D.new()
 		lv.amount = 26
