@@ -19,6 +19,7 @@ const PLATE_MOOD := {
 	"pics": "snow", "porte": "snow", "lac": "snow", "forteresse": "snow", "colosse": "forge", "forge": "forge",
 	"col": "snow", "congeres": "snow", "sentinelle": "snow", "aurore": "snow", "chariot": "snow", "portes": "snow",
 	"dunes": "desert", "oasis": "desert", "miroirs": "desert", "desert_nuit": "moon",
+	"mirage": "desert", "scarabee": "desert", "caravane_sable": "desert", "sceaux": "desert",
 	"cendres": "cinder", "coulee": "cinder", "braisemont": "cinder", "nid": "cinder", "autels": "arcane", "citadelle": "cinder",
 	"caldeira": "forge", "antre": "cinder",
 	"cite": "abyss", "quais": "abyss", "canal": "abyss", "statues": "abyss", "archives": "arcane", "palais": "abyss", "abysse": "abyss",
@@ -28,7 +29,7 @@ const LEAFY := ["foret", "foret_gueri", "source", "pont", "collines", "lysbourg"
 ## Créatures et esprits : ils apparaissent en présence au centre, pas en buste.
 const PRESENCE := ["cerf", "sylvarche", "voix", "wyrm", "mere_dragon", "leviathan", "ourdisseur", "sphinx", "orrin", "morvaen", "varg", "gharok"]
 ## Sujets de scène (sprites de combat) montrés par leur portrait.
-const SUBJECT_PORTRAIT := {"stag": "cerf", "sylvarche": "sylvarche", "pixie": "fee", "varg": "varg", "gharok": "gharok"}
+const SUBJECT_PORTRAIT := {"stag": "cerf", "sylvarche": "sylvarche", "pixie": "fee", "varg": "varg", "gharok": "gharok", "glass_sphinx": "sphinx"}
 const MAX_FIGURES := 4
 ## Deux personnages au plus à l'écran : celui qui parle et celui à qui il répond, un de chaque côté.
 const MAX_VISIBLE := 2
@@ -40,7 +41,8 @@ const FXS := ["flash", "white", "fade", "lightning", "sparkles", "embers", "bloo
 	"slash", "wisps", "charge", "burst", "leaves", "dust", "shock",
 	"smoke", "arcs", "shieldwall", "howl", "drums", "rain", "banners", "pact", "shadow", "coins", "chant", "sigils", "cheer", "bars",
 	"bubbles", "fogbank", "lanterns", "ripples", "bonerise", "chains", "jaws", "ashring", "heads", "moths", "whispers",
-	"blizzard", "avalanche", "icecrack", "runes", "anvil", "aurora", "breath", "doors", "spectral"]
+	"blizzard", "avalanche", "icecrack", "runes", "anvil", "aurora", "breath", "doors", "spectral",
+	"sandstorm", "heatwave", "mirage", "glint", "sundisk", "hourglass", "riddle", "pages"]
 const ACTS := ["jump", "hop", "shake", "hurt", "attack", "droop", "kneel", "glow", "fall", "exit", "enter", "rise", "turn", "step", "cast", "echo"]
 const SUBJECT_ACTS := ["roar", "hit", "fall", "glow", "rise", "fade", "appear"]
 const GRADES := {"none": "ffffff", "night": "8c98d8", "violet": "c8a0f0", "warm": "ffd8ac", "dawn": "ffe6cc", "cold": "b8d6ff",
@@ -911,6 +913,34 @@ func _effect(spec: String) -> void:
 			# Volutes spectrales bleues qui montent autour du repère (le Thane Orrin).
 			var sp5 := _add_fx("emit_spectral", anchor, col if col_s != "" else Color("8fd0ff"), "light", 4.0)
 			sp5["rate"] = 18.0
+		# Désert de Verre (zone 5).
+		"sandstorm":
+			# Tempête de sable : voiles dorés en travers de la scène, l'air jaunit.
+			_add_fx("sandstorm", "center", col if col_s != "" else Color("f2d090"), "front", 4.0)
+		"heatwave":
+			# L'air tremble au-dessus du sable : lignes de chaleur ondulantes.
+			_add_fx("heatwave", "ground", col if col_s != "" else Color("fff0c8"), "light", 4.0)
+		"mirage":
+			# Un mirage : deux silhouettes translucides apparaissent, ondulent, puis s'effacent.
+			_fx_set(_add_fx("mirage", anchor if anchor != "auto" else "center", col if col_s != "" else Color("d8c8ff"), "light", 4.0), "r", sh * 0.3)
+		"glint":
+			# Le soleil accroche le verre : des éclats scintillent un peu partout.
+			var gl3 := _add_fx("emit_glint", "ground", col if col_s != "" else Color("e8ffff"), "light", 3.0)
+			gl3["rate"] = 22.0
+		"sundisk":
+			# Un disque solaire éblouissant et sa couronne (le Scarabée-soleil).
+			_fx_set(_add_fx("sundisk", anchor, col if col_s != "" else Color("ffd070"), "light", 3.5), "r", sh * 0.22)
+			_flash_on(Color("fff0c0"), 0.4, 0.3)
+		"hourglass":
+			# Un sablier : le sable coule… puis s'arrête net (l'aube de la Fracture).
+			_fx_set(_add_fx("hourglass", anchor if anchor != "auto" else "center", col if col_s != "" else Color("f2d090"), "light", 4.0), "r", sh * 0.14)
+		"riddle":
+			# Les énigmes du Sphinx : des glyphes dorés tournent autour du repère.
+			_fx_set(_add_fx("riddle", anchor, col if col_s != "" else Color("f2c46b"), "light", 4.0), "r", sh * 0.32)
+		"pages":
+			# Les pages du Journal s'envolent et tournent autour du repère.
+			var pg := _add_fx("emit_pages", anchor, col if col_s != "" else Color("f4ecd8"), "front", 2.5)
+			pg["rate"] = 10.0
 		"whispers":
 			# La brume parle : des volutes de murmures dérivent et s'effacent.
 			var wh := _add_fx("whispers", "center", col if col_s != "" else Color("d8d0f0"), "light", 4.0)
@@ -1643,6 +1673,13 @@ func _emit(e: Dictionary) -> void:
 			var sa := randf() * TAU
 			_part({"p": c + Vector2(cos(sa) * sh * 0.22, sin(sa) * sh * 0.08 + sh * 0.1), "v": Vector2(randf_range(-8, 8), randf_range(-60, -30)), "max": randf_range(1.2, 2.0),
 				"col": col.lerp(Color.WHITE, randf() * 0.4), "size": 1.0 if randf() < 0.6 else 2.0, "layer": "light", "sway": 16.0, "kind": "sq"})
+		"emit_glint":
+			_part({"p": Vector2(randf() * size.x, ground_y - randf_range(0.0, sh * 0.35)), "v": Vector2.ZERO, "max": randf_range(0.4, 0.8),
+				"col": col, "size": 1.0, "layer": "light", "kind": "star"})
+		"emit_pages":
+			var pa := randf() * TAU
+			_part({"p": c + Vector2.from_angle(pa) * sh * 0.08, "v": Vector2.from_angle(pa) * randf_range(60, 120) + Vector2(0, -40), "max": randf_range(1.2, 1.8),
+				"col": col, "size": 3.0, "layer": "front", "grav": Vector2(0, 40), "drag": 0.8, "sway": 30.0, "kind": "leaf"})
 		"emit_bubbles":
 			_part({"p": Vector2(randf() * size.x, ground_y + randf_range(-4.0, 10.0)), "v": Vector2(randf_range(-6, 6), randf_range(-70, -35)), "max": randf_range(0.8, 1.6),
 				"col": col.lerp(Color.WHITE, randf() * 0.3), "size": 2.0 if randf() < 0.4 else 1.0, "layer": "light", "sway": 10.0, "kind": "sq"})
@@ -1984,6 +2021,69 @@ func _draw_fx(ci: CanvasItem, e: Dictionary, k: float) -> void:
 						ci.draw_rect(Rect2(op.floor() - Vector2.ONE, Vector2(2, 2)), Color(Color.WHITE, ta))
 					else:
 						ci.draw_rect(Rect2(op.floor(), Vector2.ONE), Color(col, ta * 0.6))
+		"sandstorm":
+			var W12 := size.x * k
+			var H12 := size.y * k
+			var sa2 := minf(1.0, t / 0.8) * minf(1.0, (dur - t) / 1.0)
+			ci.draw_rect(Rect2(0.0, 0.0, W12, H12), Color(col, sa2 * 0.12))
+			for i in range(60):
+				var sx5 := fmod(float(i) * 47.3 + t * (180.0 + float(i % 5) * 40.0), W12 + 60.0) - 30.0
+				var sy5 := fmod(float(i) * 29.7, H12) + sin(_t * 3.0 + float(i)) * 3.0
+				ci.draw_line(Vector2(sx5, sy5).floor(), Vector2(sx5 - 14.0, sy5 + 1.0).floor(), Color(col, sa2 * 0.45), 1.0)
+		"heatwave":
+			var W13 := size.x * k
+			var ha := minf(1.0, t / 0.8) * minf(1.0, (dur - t) / 0.8)
+			for j in range(6):
+				var hy := (ground_y - _sh() * (0.05 + 0.08 * float(j))) * k
+				var pts13 := PackedVector2Array()
+				for q in range(24):
+					var hx := W13 * float(q) / 23.0
+					pts13.append(Vector2(hx, hy + sin(_t * 5.0 + float(q) * 0.8 + float(j)) * 2.0).floor())
+				ci.draw_polyline(pts13, Color(col, ha * 0.18), 1.0)
+		"mirage":
+			var mr3 := float(e["r"]) * k
+			var ma2 := sin(PI * clampf(t / dur, 0.0, 1.0))
+			for side5: float in [-1.0, 1.0]:
+				var fc := c + Vector2(side5 * mr3 * 0.5, 0.0)
+				for q in range(14):
+					var wob2 := sin(_t * 6.0 + float(q) * 0.7) * 3.0
+					var yy3 := fc.y - mr3 + float(q) * mr3 * 0.14
+					var half3 := mr3 * (0.12 if q < 4 else 0.2)
+					ci.draw_line(Vector2(fc.x - half3 + wob2, yy3).floor(), Vector2(fc.x + half3 + wob2, yy3).floor(), Color(col, ma2 * 0.35), 1.0)
+		"sundisk":
+			var sr4 := float(e["r"]) * k
+			var sa3 := minf(1.0, t / 0.4) * minf(1.0, (dur - t) / 0.8)
+			for q in range(16):
+				var ang5 := float(q) / 16.0 * TAU + _t * 0.4
+				ci.draw_line(c + Vector2.from_angle(ang5) * sr4 * 1.1, c + Vector2.from_angle(ang5) * sr4 * (1.6 + 0.2 * sin(_t * 3.0 + float(q))), Color(col, sa3 * 0.6), 2.0)
+			for i in range(6):
+				ci.draw_circle(c, sr4 * (1.0 - float(i) * 0.12), Color(col.lerp(Color.WHITE, float(i) / 6.0), sa3 * 0.3))
+		"hourglass":
+			var hr3 := float(e["r"]) * k
+			var hga := minf(1.0, t / 0.5) * minf(1.0, (dur - t) / 0.8)
+			var top3 := c + Vector2(0, -hr3)
+			var bot3 := c + Vector2(0, hr3)
+			var frame_c := Color(Color("c8a060"), hga)
+			ci.draw_line(top3 + Vector2(-hr3 * 0.7, 0), top3 + Vector2(hr3 * 0.7, 0), frame_c, 2.0)
+			ci.draw_line(bot3 + Vector2(-hr3 * 0.7, 0), bot3 + Vector2(hr3 * 0.7, 0), frame_c, 2.0)
+			for side6: float in [-1.0, 1.0]:
+				ci.draw_line(top3 + Vector2(side6 * hr3 * 0.6, 0), c + Vector2(side6 * 1.5, 0), Color(Color("e8f8ff"), hga * 0.7), 1.0)
+				ci.draw_line(c + Vector2(side6 * 1.5, 0), bot3 + Vector2(side6 * hr3 * 0.6, 0), Color(Color("e8f8ff"), hga * 0.7), 1.0)
+			var flow := clampf(t / 2.0, 0.0, 1.0)
+			var stopped := t > 2.0
+			ci.draw_colored_polygon(PackedVector2Array([top3 + Vector2(-hr3 * 0.5 * (1.0 - flow), hr3 * 0.1), top3 + Vector2(hr3 * 0.5 * (1.0 - flow), hr3 * 0.1), c]), Color(col, hga))
+			ci.draw_colored_polygon(PackedVector2Array([bot3 + Vector2(-hr3 * 0.5, -1.0), bot3 + Vector2(hr3 * 0.5, -1.0), bot3 + Vector2(0, -hr3 * 0.6 * flow - 1.0)]), Color(col, hga))
+			if not stopped:
+				ci.draw_line(c, c + Vector2(0, hr3 * 0.9), Color(col, hga), 1.0)
+		"riddle":
+			var rr8 := float(e["r"]) * k
+			var ra3 := minf(1.0, t / 0.6) * minf(1.0, (dur - t) / 0.8)
+			for q in range(6):
+				var ang6 := float(q) / 6.0 * TAU + t * 0.7
+				var gp2 := c + Vector2(cos(ang6) * rr8, sin(ang6) * rr8 * 0.4)
+				ci.draw_circle(gp2, 5.0, Color(col, ra3 * 0.18))
+				ci.draw_arc(gp2 + Vector2(0, -2), 2.0, -PI, PI * 0.5, 8, Color(col.lightened(0.3), ra3), 1.0)
+				ci.draw_rect(Rect2(gp2.floor() + Vector2(0, 2), Vector2(1, 1)), Color(col.lightened(0.3), ra3))
 		"blizzard":
 			var W9 := size.x * k
 			var H9 := size.y * k

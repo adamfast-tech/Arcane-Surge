@@ -17,9 +17,11 @@ const SPEC := {
 	"lanterne": [40, 104, 0.42, false, Vector2(14, 32), false],
 	"varg": [96, 152, 0.72, false, Vector2(48, 34), false],
 	"orrin": [96, 140, 0.7, false, Vector2(48, 34), false],
+	"sphinx": [140, 124, 0.95, false, Vector2(70, 34), false],
 	"gharok": [112, 168, 0.88, false, Vector2(48, 36), false],
 }
 const OX := 16 ## le portrait (64 px) est posé au milieu d'une image de 96 px
+const SOX := 38 ## le Sphinx : son portrait au milieu d'une image de 140 px
 
 static var _cache: Dictionary = {}
 
@@ -79,9 +81,11 @@ static func texture(id: String, mood: String = "neutre", talk: int = 0, blink: b
 				_varg(img, hi)
 			"orrin":
 				_robe(img, hi, 7.0, 0.25, false)
+			"sphinx":
+				_sphinx(img)
 			"gharok":
 				_gharok(img, hi)
-		img.blend_rect(hi, Rect2i(0, 0, 64, 64), Vector2i(OX, 0))
+		img.blend_rect(hi, Rect2i(0, 0, 64, 64), Vector2i(SOX if id == "sphinx" else OX, 0))
 		if id == "voix" or id == "orrin":
 			# La Voix n'a pas de pieds : son ombre se dissout vers le sol.
 			for y in range(84, img.get_height()):
@@ -320,3 +324,27 @@ static func _gharok(img: Image, hi: Image) -> void:
 	PortraitArt._ellipse(img, float(OX) + 44.0, 160.0, 10.0, 6.0, boot)
 	for bx: int in [OX + 20, OX + 44]:
 		PortraitArt._line(img, Vector2(bx - 8, 155), Vector2(bx + 8, 155), Color("8a8a98"))
+
+
+
+## Le Sphinx de verre, couché : la tête coiffée du portrait, un corps de lion de verre derrière elle, les
+## pattes avant allongées devant, les hanches de part et d'autre ; liserés d'or.
+static func _sphinx(img: Image) -> void:
+	var glass := PortraitArt._ramp(["1e5a70", "4a9ab8", "8ad0e8", "d8f6ff"])
+	var cx := float(SOX) + 32.0
+	PortraitArt._ellipse(img, cx, 86.0, 62.0, 18.0, glass)
+	for side: float in [-1.0, 1.0]:
+		PortraitArt._ellipse(img, cx + side * 48.0, 92.0, 20.0, 18.0, glass)
+		PortraitArt._ellipse(img, cx + side * 60.0, 108.0, 9.0, 5.0, glass)
+	PortraitArt._poly(img, PackedVector2Array([Vector2(cx - 16.0, 56), Vector2(cx + 16.0, 56), Vector2(cx + 19.0, 104), Vector2(cx - 19.0, 104)]), glass)
+	for side2: float in [-1.0, 1.0]:
+		var px := cx + side2 * 13.0
+		PortraitArt._poly(img, PackedVector2Array([Vector2(px - 8.0, 96), Vector2(px + 8.0, 96), Vector2(px + 9.0, 118), Vector2(px - 9.0, 118)]), glass)
+		PortraitArt._ellipse(img, px, 118.0, 10.0, 4.5, glass)
+		for k in range(3):
+			PortraitArt._px(img, int(px) - 5 + k * 5, 121, Color("f2d070"))
+	for x in range(int(cx) - 18, int(cx) + 19):
+		PortraitArt._px(img, x, 66, Color("e8b84a"))
+		PortraitArt._px(img, x, 67, Color("a87a2a"))
+	for k in range(6):
+		PortraitArt._line(img, Vector2(cx - 50.0 + float(k) * 20.0, 74.0), Vector2(cx - 46.0 + float(k) * 20.0, 96.0), Color(1, 1, 1, 0.35))

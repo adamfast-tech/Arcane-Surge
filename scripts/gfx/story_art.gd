@@ -32,7 +32,7 @@ static func plate(kind: String, size: Vector2i) -> ImageTexture:
 			_pics(img, rng, kind)
 		"forge":
 			_forge(img, rng)
-		"dunes", "oasis", "miroirs", "college", "desert_nuit", "sphinx":
+		"dunes", "oasis", "miroirs", "college", "desert_nuit", "sphinx", "mirage", "scarabee", "caravane_sable", "sceaux":
 			_desert(img, rng, kind)
 		"cendres", "coulee", "braisemont", "nid", "autels", "citadelle", "caldeira", "antre":
 			_cendres(img, rng, kind)
@@ -1306,9 +1306,12 @@ static func _desert(img: Image, rng: RandomNumberGenerator, kind: String) -> voi
 			_moon(img, int(w * 0.75), int(h * 0.15), maxi(5, int(minf(w, h) * 0.045)))
 		"miroirs":
 			_sky(img, rng, [[0.0, Color("2a1a48")], [0.35, Color("8a4a6a")], [0.55, Color("f29a5a")], [0.66, Color("ffd090")], [1.0, Color("8a5a3a")]], 0.4)
+		"scarabee":
+			# Ciel blanc de chaleur : le Scarabée pousse son soleil de verre.
+			_sky(img, rng, [[0.0, Color("8ab0d8")], [0.4, Color("e8d8b0")], [0.6, Color("fff0c8")], [1.0, Color("d8a860")]], 0.0)
 		_:
 			_sky(img, rng, [[0.0, Color("2a5a9a")], [0.4, Color("6a9ad0")], [0.6, Color("f0d8a0")], [1.0, Color("c89a5a")]], 0.0)
-	if kind in ["dunes", "oasis", "college"]:
+	if kind in ["dunes", "oasis", "college", "mirage", "caravane_sable", "sceaux"]:
 		var sx := int(w * 0.24)
 		var sy := int(h * 0.2)
 		var sr := maxi(5, int(minf(w, h) * 0.06))
@@ -1402,6 +1405,58 @@ static func _desert(img: Image, rng: RandomNumberGenerator, kind: String) -> voi
 				for y in range(gy - 1, gy + 6):
 					for x in range(gx - 2 + (y - gy) / 3, gx + 3 - (y - gy) / 3):
 						_px(img, x, y, Color(0.7, 0.62, 0.95, 0.5))
+		"mirage":
+			# Le mirage : un lac qui n'existe pas tremble sur l'horizon, et des portails qui ondulent.
+			var my2 := int(h * 0.6)
+			for y in range(my2, my2 + int(h * 0.04)):
+				for x in range(int(w * 0.15), int(w * 0.85)):
+					_px(img, x + int(sin(float(y) * 1.3) * 2.0), y, Color(0.6, 0.85, 1.0, 0.25))
+			for k in range(3):
+				var gx2 := int(w * (0.25 + 0.25 * float(k)))
+				for y in range(int(h * 0.48), int(h * 0.6)):
+					var wob := int(sin(float(y) * 0.6 + float(k)) * 2.0)
+					_px(img, gx2 - 6 + wob, y, Color(0.5, 1.0, 0.95, 0.5))
+					_px(img, gx2 + 6 + wob, y, Color(0.5, 1.0, 0.95, 0.5))
+				for x in range(gx2 - 6, gx2 + 7):
+					_px(img, x, int(h * 0.48), Color(0.5, 1.0, 0.95, 0.5))
+		"scarabee":
+			# Le Scarabée-soleil sur la crête, sa boule de verre incandescente.
+			var bx2 := int(w * 0.62)
+			var by2 := int(h * 0.56)
+			var br := int(minf(w, h) * 0.09)
+			_glow_px(img, bx2, by2, br * 2, Color("ffd070"), 0.3)
+			_disc(img, bx2, by2, br, Color("ffe8a0"))
+			_disc(img, bx2 - br / 3, by2 - br / 3, br / 3, Color("fffbe8"))
+			var sx2 := bx2 - br - int(w * 0.1)
+			for y in range(-int(h * 0.04), int(h * 0.04)):
+				var half5 := int(float(w) * 0.09 * sqrt(maxf(0.0, 1.0 - pow(float(y) / (h * 0.04), 2.0))))
+				img.fill_rect(Rect2i(sx2 - half5, by2 + y, half5 * 2, 1), Color("1e5a70") if y < 0 else Color("2a7a90"))
+			for k in range(3):
+				img.fill_rect(Rect2i(sx2 - int(w * 0.06) + k * int(w * 0.05), by2 + int(h * 0.04), 2, int(h * 0.03)), Color("123a48"))
+		"caravane_sable":
+			# La caravane au pied de la dune : chameaux chargés de tapis et de jarres.
+			for k in range(3):
+				var cx3 := int(w * (0.25 + 0.22 * float(k)))
+				var cy3 := int(h * 0.64)
+				img.fill_rect(Rect2i(cx3 - 9, cy3 - 10, 18, 6), Color("a8743a"))
+				_disc(img, cx3 - 2, cy3 - 12, 4, Color("a8743a"))
+				img.fill_rect(Rect2i(cx3 + 8, cy3 - 16, 3, 8), Color("a8743a"))
+				_disc(img, cx3 + 11, cy3 - 17, 2, Color("a8743a"))
+				for lx in [cx3 - 7, cx3 - 3, cx3 + 3, cx3 + 7]:
+					img.fill_rect(Rect2i(lx, cy3 - 4, 1, 6), Color("8a5a2a"))
+				img.fill_rect(Rect2i(cx3 - 8, cy3 - 15, 10, 4), Color("c83a2a") if k % 2 == 0 else Color("2a6ab0"))
+		"sceaux":
+			# Les grandes portes du Collège, scellées de violet, entre deux colonnes.
+			var cb2 := int(h * 0.68)
+			var gw2 := int(w * 0.14)
+			img.fill_rect(Rect2i(int(w * 0.5) - gw2, cb2 - int(h * 0.26), gw2 * 2, int(h * 0.26)), Color("8a6a40"))
+			img.fill_rect(Rect2i(int(w * 0.5) - 1, cb2 - int(h * 0.26), 2, int(h * 0.26)), Color("4a3420"))
+			for k in range(2):
+				var sx3 := int(w * 0.5) + (-1 if k == 0 else 1) * gw2 / 2
+				_glow_px(img, sx3, cb2 - int(h * 0.14), int(w * 0.05), Color("d93cf2"), 0.45)
+				_px(img, sx3, cb2 - int(h * 0.14), Color("ffc8ff"))
+			for c2 in [0.24, 0.76]:
+				img.fill_rect(Rect2i(int(w * c2) - 3, cb2 - int(h * 0.3), 7, int(h * 0.3)), Color("e8dcc0"))
 		"dunes":
 			for i in range(maxi(8, w / 20)):
 				var gx := rng.randi_range(0, w - 1)
