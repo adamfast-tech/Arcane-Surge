@@ -1,1159 +1,333 @@
 {
   "characters": {
-    "narrateur": {
-      "name": "",
-      "color": "A99FD0"
-    },
-    "porteur": {
-      "name": "{pseudo}",
-      "title": "Canalisateur",
-      "title_flag": {
-        "s1.sceau_echo": "Porteur d'Écho"
-      },
-      "color": "4FE3D2",
-      "portrait": "porteur"
-    },
-    "sylwen": {
-      "name": "Sylwen",
-      "title": "Vigiles Sylvestres",
-      "color": "8FD16A",
-      "portrait": "sylwen",
-      "loyalty": true
-    },
-    "brann": {
-      "name": "Brann",
-      "title": "Bastion d'Argent",
-      "color": "B8C6E8",
-      "portrait": "brann",
-      "loyalty": true,
-      "title_flag": {
-        "s1.honneur_forgecoeur": "Héritier de Forgecœur"
-      }
-    },
-    "krag": {
-      "name": "Krag",
-      "title": "Enfants de la Fureur",
-      "color": "E8703A",
-      "portrait": "krag",
-      "loyalty": true,
-      "loyalty_if": "s1.krag_allie"
-    },
-    "nyx": {
-      "name": "Nyx",
-      "title": "Cercle des Cendres",
-      "color": "C87CF0",
-      "portrait": "nyx",
-      "loyalty": true,
-      "loyalty_if": "s1.nyx_allie"
-    },
-    "voix": {
-      "name": "Voix inconnue",
-      "title": "???",
-      "color": "B07CFF",
-      "portrait": "voix"
-    },
-    "ignara": {
-      "name": "Ignara",
-      "title": "Fille des cendres",
-      "color": "FF9B4A",
-      "portrait": "ignara",
-      "loyalty": true,
-      "loyalty_if": "s1.ignara_allie"
-    },
-    "mere_dragon": {
-      "name": "La Mère-Dragon",
-      "title": "Gardienne de la Montagne de Braise",
-      "color": "FFB050",
-      "portrait": "mere_dragon"
-    },
-    "wyrm": {
-      "name": "Le Wyrm de cendre",
-      "title": "Père des incendies",
-      "color": "FF5A2A",
-      "portrait": "wyrm"
-    }
+    "narrateur": {"name": "", "color": "A99FD0"},
+    "porteur": {"name": "{pseudo}", "title": "Canalisateur", "title_flag": {"s1.sceau_echo": "Porteur d'Écho"}, "color": "4FE3D2", "portrait": "porteur"},
+    "sylwen": {"name": "Sylwen", "title": "Vigiles Sylvestres", "color": "8FD16A", "portrait": "sylwen", "loyalty": true},
+    "brann": {"name": "Brann", "title": "Bastion d'Argent", "color": "B8C6E8", "portrait": "brann", "loyalty": true, "title_flag": {"s1.honneur_forgecoeur": "Héritier de Forgecœur"}},
+    "krag": {"name": "Krag", "title": "Enfants de la Fureur", "color": "E8703A", "portrait": "krag", "loyalty": true, "loyalty_if": "s1.krag_allie"},
+    "nyx": {"name": "Nyx", "title": "Cercle des Cendres", "color": "C87CF0", "portrait": "nyx", "loyalty": true, "loyalty_if": "s1.nyx_allie"},
+    "voix": {"name": "Voix inconnue", "title": "???", "color": "B07CFF", "portrait": "voix"},
+    "ignara": {"name": "Ignara", "title": "Fille des cendres", "color": "FF9B4A", "portrait": "ignara", "loyalty": true, "loyalty_if": "s1.ignara_allie"},
+    "mere_dragon": {"name": "La Mère-Dragon", "title": "Gardienne de la Montagne de Braise", "color": "FFB050", "portrait": "mere_dragon"},
+    "wyrm": {"name": "Le Wyrm de cendre", "title": "Père des incendies", "color": "FF5A2A", "portrait": "wyrm"}
   },
   "scenes": {
     "z06_l01_intro": {
-      "art": "cendres",
       "subject": "ember_imp",
+      "art": "lisiere_cendree",
+      "cast": ["porteur", "sylwen", "brann"],
       "lines": [
-        {
-          "who": "narrateur",
-          "text": "Au-delà du désert, une forêt brûle sans jamais se consumer. Les arbres noirs fument, et les braises tombent comme une neige rouge."
-        },
-        {
-          "effects": {
-            "traitor_check": true
-          }
-        },
-        {
-          "who": "brann",
-          "text": "Une forêt qui brûle sans mourir. Les anciens de mon clan disaient que c'était le souffle d'une dragonne endormie."
-        },
-        {
-          "who": "sylwen",
-          "text": "Les arbres crient, {pseudo}. Pas de douleur… de colère.",
-          "mood": "triste"
-        },
-        {
-          "who": "traitre",
-          "text": "…Rien. Avance. Je te suis, comme toujours.",
-          "mood": "colere",
-          "if": "s1.traitre"
-        },
-        {
-          "who": "narrateur",
-          "text": "{traitre} évite ton regard depuis le désert. Une braise s'est posée sur son épaule, et elle ne s'éteint pas.",
-          "if": "s1.traitre"
-        },
-        {
-          "who": "narrateur",
-          "text": "Plus loin, des cris : quelqu'un se bat seul contre toute une meute de diablotins."
-        }
+        {"fx": ["ashfall", "embers"], "cam": "pan_right", "grade": "red", "who": "narrateur", "text": "Au-delà du désert, une forêt brûle sans jamais se consumer. Les arbres noirs fument, et les braises tombent comme une neige rouge."},
+        {"effects": {"traitor_check": true}},
+        {"act": {"brann": "step"}, "fx": "heartbeat:ff9a4a", "cam": "reset", "who": "brann", "text": "Une forêt qui brûle sans mourir. Les anciens de mon clan disaient que c'était le souffle d'une dragonne endormie."},
+        {"fx": "whispers:ff9a6a", "cam": "focus:sylwen", "who": "sylwen", "text": "Les arbres crient, {pseudo}. Pas de douleur… de colère.", "mood": "triste"},
+        {"act": {"traitre": "turn"}, "cam": "reset", "who": "traitre", "text": "…Rien. Avance. Je te suis, comme toujours.", "mood": "colere", "if": "s1.traitre"},
+        {"act": {"traitre": "droop"}, "fx": "wyrmmark@center:ff5a2a", "grade": "dark", "who": "narrateur", "text": "{traitre} évite ton regard depuis le désert. Une braise s'est posée sur son épaule, et elle ne s'éteint pas.", "if": "s1.traitre"},
+        {"fx": ["burst@right:ff8a3a", "firewall"], "act": {"sylwen": "jump"}, "cam": "kick", "grade": "red", "who": "narrateur", "text": "Plus loin, des cris : quelqu'un se bat seul contre toute une meute de diablotins."}
       ]
     },
     "z06_l01_outro": {
-      "art": "cendres",
       "subject": "",
+      "art": "lisiere_cendree",
+      "cast": ["porteur", "sylwen", "brann"],
       "lines": [
-        {
-          "who": "narrateur",
-          "text": "Une jeune femme aux cornes recourbées achève le dernier diablotin d'un trait de flammes. Des écailles cuivrées brillent sur ses tempes."
-        },
-        {
-          "who": "ignara",
-          "text": "Pas mal, pour des gens sans écailles. Ignara, de Braisemont. Mage… à ma façon.",
-          "mood": "joie"
-        },
-        {
-          "who": "ignara",
-          "text": "Je chasse les Cultistes du Wyrm. Ils brûlent ma forêt, et ils racontent que ma mère était un dragon."
-        },
-        {
-          "who": "porteur",
-          "text": "Et c'est vrai ?"
-        },
-        {
-          "who": "ignara",
-          "text": "On m'a trouvée dans un œuf, au milieu des cendres. Les gens de Braisemont m'ont élevée. Le reste, je compte bien le découvrir.",
-          "mood": "triste"
-        },
-        {
-          "who": "brann",
-          "text": "Une mage qui crache du feu. Ça nous changera des sphinx qui crachent des énigmes.",
-          "mood": "joie"
-        },
-        {
-          "who": "krag",
-          "text": "Elle me plaît. Elle frappe d'abord et elle se présente après.",
-          "mood": "joie",
-          "if": "s1.krag_allie"
-        },
-        {
-          "effects": {
-            "set": [
-              "s1.ignara_allie"
-            ]
-          }
-        },
-        {
-          "who": "narrateur",
-          "text": "Ignara rejoint le groupe. Au Cercle de Havre-Aube, choisis les deux compagnons qui t'accompagnent."
-        }
+        {"act": {"ignara": "enter"}, "fx": ["flash@right:ff9a4a", "ashfall"], "cam": "push", "who": "narrateur", "text": "Une jeune femme aux cornes recourbées achève le dernier diablotin d'un trait de flammes. Des écailles cuivrées brillent sur ses tempes."},
+        {"act": {"ignara": "hop"}, "cam": "focus:ignara", "who": "ignara", "text": "Pas mal, pour des gens sans écailles. Ignara, de Braisemont. Mage… à ma façon.", "mood": "joie"},
+        {"fx": "embers", "cam": "reset", "who": "ignara", "text": "Je chasse les Cultistes du Wyrm. Ils brûlent ma forêt, et ils racontent que ma mère était un dragon."},
+        {"act": {"porteur": "turn"}, "who": "porteur", "text": "Et c'est vrai ?"},
+        {"fx": "eggglow@center", "cam": "push", "grade": "warm", "who": "ignara", "text": "On m'a trouvée dans un œuf, au milieu des cendres. Les gens de Braisemont m'ont élevée. Le reste, je compte bien le découvrir.", "mood": "triste"},
+        {"act": {"brann": "hop"}, "grade": "none", "cam": "reset", "who": "brann", "text": "Une mage qui crache du feu. Ça nous changera des sphinx qui crachent des énigmes.", "mood": "joie"},
+        {"act": {"krag": "jump"}, "who": "krag", "text": "Elle me plaît. Elle frappe d'abord et elle se présente après.", "mood": "joie", "if": "s1.krag_allie"},
+        {"effects": {"set": ["s1.ignara_allie"]}},
+        {"fx": ["ashswirl@ignara", "ring@ignara:ff9a4a"], "grade": "warm", "who": "narrateur", "text": "Ignara rejoint le groupe. Au Cercle de Havre-Aube, choisis les deux compagnons qui t'accompagnent."}
       ]
     },
     "z06_l02_intro": {
-      "art": "cendres",
       "subject": "wyrm_cultist",
+      "art": "couloirs",
+      "cast": ["porteur", "ignara", "sylwen"],
       "lines": [
-        {
-          "who": "ignara",
-          "text": "Ces couloirs de feu, ce sont les Cultistes. Ils nourrissent l'incendie avec du Surge pour que le Wyrm grandisse."
-        },
-        {
-          "who": "sylwen",
-          "text": "Le Wyrm ?"
-        },
-        {
-          "who": "ignara",
-          "text": "Un dragon qui a bu le Surge jusqu'à devenir cendre. Il se prend pour le roi de la forêt.",
-          "mood": "colere"
-        },
-        {
-          "who": "nyx",
-          "text": "Un dragon qui se nourrit du Surge… Au Cercle, on en parlait à voix basse.",
-          "mood": "surpris",
-          "if": "s1.nyx_allie"
-        },
-        {
-          "who": "narrateur",
-          "text": "Le Givre éteint les flammes. Ignara fait la grimace : « Je déteste le froid. Mais je déteste encore plus ce feu-là. »"
-        }
+        {"fx": "firewall", "cam": "push", "grade": "red", "who": "ignara", "text": "Ces couloirs de feu, ce sont les Cultistes. Ils nourrissent l'incendie avec du Surge pour que le Wyrm grandisse."},
+        {"act": {"sylwen": "turn"}, "cam": "reset", "who": "sylwen", "text": "Le Wyrm ?"},
+        {"act": {"ignara": "attack"}, "fx": "veins@ground:ff5a2a", "who": "ignara", "text": "Un dragon qui a bu le Surge jusqu'à devenir cendre. Il se prend pour le roi de la forêt.", "mood": "colere"},
+        {"act": {"nyx": "droop"}, "fx": "whispers:c87cf0", "who": "nyx", "text": "Un dragon qui se nourrit du Surge… Au Cercle, on en parlait à voix basse.", "mood": "surpris", "if": "s1.nyx_allie"},
+        {"fx": ["breath@ignara", "steam@ignara"], "grade": "cold", "who": "narrateur", "text": "Le Givre éteint les flammes. Ignara fait la grimace : « Je déteste le froid. Mais je déteste encore plus ce feu-là. »"}
       ]
     },
     "z06_l02_outro": {
       "art": "cendres",
+      "cast": ["porteur", "ignara", "sylwen"],
       "lines": [
-        {
-          "who": "ignara",
-          "text": "Tu éteins mes incendies sans te brûler les doigts. Je retire ce que j'ai dit sur les gens sans écailles.",
-          "mood": "joie"
-        },
-        {
-          "who": "krag",
-          "text": "Ta forêt ne sait pas qu'on est là pour l'aider ?",
-          "if": "s1.krag_allie"
-        },
-        {
-          "who": "ignara",
-          "text": "Elle était belle, avant. Le feu de la Mère la gardait vivante, il ne la dévorait pas.",
-          "mood": "triste"
-        },
-        {
-          "who": "brann",
-          "text": "Le feu de la Mère ?"
-        },
-        {
-          "who": "ignara",
-          "text": "Une vieille histoire de Braisemont. Une dragonne qui dormait sous la montagne et qui réchauffait la forêt. Personne ne l'a jamais vue."
-        }
+        {"act": {"ignara": "hop"}, "cam": "focus:ignara", "who": "ignara", "text": "Tu éteins mes incendies sans te brûler les doigts. Je retire ce que j'ai dit sur les gens sans écailles.", "mood": "joie"},
+        {"act": {"krag": "shake"}, "cam": "reset", "who": "krag", "text": "Ta forêt ne sait pas qu'on est là pour l'aider ?", "if": "s1.krag_allie"},
+        {"fx": "renewal:ffb050", "grade": "dawn", "cam": "pan_up", "who": "ignara", "text": "Elle était belle, avant. Le feu de la Mère la gardait vivante, il ne la dévorait pas.", "mood": "triste"},
+        {"act": {"brann": "turn"}, "grade": "none", "cam": "reset", "who": "brann", "text": "Le feu de la Mère ?"},
+        {"fx": "heartbeat:ffb050", "cam": "zoom_out", "grade": "warm", "who": "ignara", "text": "Une vieille histoire de Braisemont. Une dragonne qui dormait sous la montagne et qui réchauffait la forêt. Personne ne l'a jamais vue."}
       ]
     },
     "z06_l03_intro": {
-      "art": "cendres",
       "subject": "wyvernling",
+      "art": "ailes",
+      "cast": ["porteur", "ignara", "sylwen"],
       "lines": [
-        {
-          "who": "narrateur",
-          "text": "Une ombre immense glisse sur la forêt. Puis une autre."
-        },
-        {
-          "who": "brann",
-          "text": "Des dragons ! Tous à couvert !",
-          "mood": "surpris"
-        },
-        {
-          "who": "ignara",
-          "text": "Ce ne sont pas des bêtes… ce sont mes cousins, je crois. Ils sont malades. La Marque du Wyrm brûle sur leurs ailes."
-        },
-        {
-          "who": "sylwen",
-          "text": "Quand une ombre passe sur une rangée, sors tes troupes de là, {pseudo}."
-        }
+        {"fx": "wingshadow", "cam": "tremble", "grade": "dark", "who": "narrateur", "text": "Une ombre immense glisse sur la forêt. Puis une autre."},
+        {"fx": "wingshadow", "act": {"brann": "jump"}, "cam": "kick", "grade": "none", "who": "brann", "text": "Des dragons ! Tous à couvert !", "mood": "surpris"},
+        {"fx": "wyrmmark@subject", "cam": "focus:subject", "who": "ignara", "text": "Ce ne sont pas des bêtes… ce sont mes cousins, je crois. Ils sont malades. La Marque du Wyrm brûle sur leurs ailes."},
+        {"act": {"sylwen": "step"}, "cam": "reset", "who": "sylwen", "text": "Quand une ombre passe sur une rangée, sors tes troupes de là, {pseudo}."}
       ]
     },
     "z06_l03_outro": {
-      "art": "cendres",
       "subject": "wyvernling",
+      "art": "ailes",
+      "cast": ["porteur", "ignara", "sylwen"],
       "lines": [
-        {
-          "who": "narrateur",
-          "text": "Un wyverneau abattu se débat encore. Ignara s'agenouille, pose la main sur son front et lui parle dans une langue rauque."
-        },
-        {
-          "who": "ignara",
-          "text": "Il dit que le Wyrm entend tout. Les colères, les rancunes, ce qu'on garde au fond de soi. Et qu'il marque ceux qui l'écoutent.",
-          "mood": "triste"
-        },
-        {
-          "who": "traitre",
-          "text": "…Quelle drôle d'idée.",
-          "mood": "triste",
-          "if": "s1.traitre"
-        },
-        {
-          "who": "nyx",
-          "text": "Une Marque qui se nourrit de rancune. Prenez soin de vos amis, ce soir.",
-          "mood": "triste",
-          "if": "s1.nyx_allie"
-        },
-        {
-          "who": "sylwen",
-          "text": "Personne ici n'écoutera ce dragon. N'est-ce pas ?",
-          "if_not": "s1.traitre"
-        }
+        {"act": {"subject": "hit", "ignara": "kneel"}, "cam": "push", "who": "narrateur", "text": "Un wyverneau abattu se débat encore. Ignara s'agenouille, pose la main sur son front et lui parle dans une langue rauque."},
+        {"fx": ["whispers:ff5a2a", "wyrmmark@subject"], "grade": "red", "cam": "focus:ignara", "who": "ignara", "text": "Il dit que le Wyrm entend tout. Les colères, les rancunes, ce qu'on garde au fond de soi. Et qu'il marque ceux qui l'écoutent.", "mood": "triste"},
+        {"act": {"traitre": "droop"}, "cam": "reset", "who": "traitre", "text": "…Quelle drôle d'idée.", "mood": "triste", "if": "s1.traitre"},
+        {"act": {"nyx": "turn"}, "who": "nyx", "text": "Une Marque qui se nourrit de rancune. Prenez soin de vos amis, ce soir.", "mood": "triste", "if": "s1.nyx_allie"},
+        {"act": {"sylwen": "step"}, "grade": "none", "who": "sylwen", "text": "Personne ici n'écoutera ce dragon. N'est-ce pas ?", "if_not": "s1.traitre"}
       ]
     },
     "z06_l04_intro": {
       "art": "coulee",
       "subject": "magma_golem",
+      "cast": ["porteur", "ignara", "sylwen"],
       "lines": [
-        {
-          "who": "brann",
-          "text": "Des coulées de magma ! Mon grand-père aurait vendu sa barbe pour une forge pareille.",
-          "mood": "joie"
-        },
-        {
-          "who": "ignara",
-          "text": "Approche-toi trop, et c'est ta barbe qui fondra."
-        },
-        {
-          "who": "narrateur",
-          "text": "Le Givre refroidit le magma, mais un moment seulement. Et les golems qui en sortent laissent une flaque brûlante en tombant."
-        }
+        {"fx": "lavaflow", "act": {"brann": "hop"}, "cam": "pan_right", "grade": "warm", "who": "brann", "text": "Des coulées de magma ! Mon grand-père aurait vendu sa barbe pour une forge pareille.", "mood": "joie"},
+        {"act": {"ignara": "step"}, "cam": "reset", "who": "ignara", "text": "Approche-toi trop, et c'est ta barbe qui fondra."},
+        {"fx": ["lavaflow", "heatwave:ff8a3a"], "act": {"subject": "roar"}, "who": "narrateur", "text": "Le Givre refroidit le magma, mais un moment seulement. Et les golems qui en sortent laissent une flaque brûlante en tombant."}
       ]
     },
     "z06_l04_outro": {
       "art": "coulee",
+      "cast": ["porteur", "ignara", "sylwen"],
       "lines": [
-        {
-          "who": "narrateur",
-          "text": "Un Cultiste blessé ricane entre deux quintes de toux."
-        },
-        {
-          "who": "narrateur",
-          "text": "« Le Wyrm vous a déjà choisis. L'un de vous porte sa Marque, et il le sait. Vous verrez. »"
-        },
-        {
-          "who": "narrateur",
-          "text": "Tu jettes un œil vers {traitre}. Ses mains tremblent.",
-          "if": "s1.traitre"
-        },
-        {
-          "who": "sylwen",
-          "text": "Il bluffe. Personne ici ne porte cette Marque.",
-          "if_not": "s1.traitre"
-        },
-        {
-          "who": "ignara",
-          "text": "Assez. Il ment comme il respire, et il respire de la fumée.",
-          "mood": "colere"
-        }
+        {"cam": "push", "grade": "red", "who": "narrateur", "text": "Un Cultiste blessé ricane entre deux quintes de toux."},
+        {"fx": ["wyrmmark@center", "whispers:ff5a2a"], "cam": "focus:center", "who": "narrateur", "text": "« Le Wyrm vous a déjà choisis. L'un de vous porte sa Marque, et il le sait. Vous verrez. »"},
+        {"act": {"traitre": "shake"}, "grade": "dark", "cam": "reset", "who": "narrateur", "text": "Tu jettes un œil vers {traitre}. Ses mains tremblent.", "if": "s1.traitre"},
+        {"act": {"sylwen": "shake"}, "cam": "reset", "who": "sylwen", "text": "Il bluffe. Personne ici ne porte cette Marque.", "if_not": "s1.traitre"},
+        {"act": {"ignara": "attack"}, "fx": "burst@center:ff8a3a", "grade": "none", "cam": "kick", "who": "ignara", "text": "Assez. Il ment comme il respire, et il respire de la fumée.", "mood": "colere"}
       ]
     },
     "z06_l05_intro": {
-      "art": "cendres",
       "subject": "ancient_drake",
+      "art": "drake",
+      "cast": ["porteur", "ignara", "sylwen"],
       "lines": [
-        {
-          "who": "ignara",
-          "text": "Un drake ancien… C'est un des gardiens de la Mère. Le Wyrm l'a pris, lui aussi.",
-          "mood": "surpris"
-        },
-        {
-          "who": "sylwen",
-          "text": "Quand il s'envole, nos troupes ne peuvent plus le toucher. Garde tes sorts pour ces moments-là."
-        }
+        {"fx": ["dragonfire@subject", "embers"], "act": {"subject": "roar"}, "cam": "shake", "who": "ignara", "text": "Un drake ancien… C'est un des gardiens de la Mère. Le Wyrm l'a pris, lui aussi.", "mood": "surpris"},
+        {"fx": "wingshadow", "act": {"sylwen": "step"}, "cam": "reset", "who": "sylwen", "text": "Quand il s'envole, nos troupes ne peuvent plus le toucher. Garde tes sorts pour ces moments-là."}
       ]
     },
     "z06_l05_outro": {
-      "art": "cendres",
       "subject": "ancient_drake",
       "subject_tint": "8a6a5a",
+      "art": "drake",
+      "cast": ["porteur", "ignara", "sylwen"],
       "lines": [
-        {
-          "who": "narrateur",
-          "text": "Le drake s'effondre. Avant de mourir, il tourne vers Ignara un œil d'or, et sa voix gronde dans toutes les têtes."
-        },
-        {
-          "who": "narrateur",
-          "text": "« Fille des cendres… La Mère dort sous la Montagne de Braise. Le Wyrm a volé son feu. Réveille-la. »"
-        },
-        {
-          "who": "ignara",
-          "text": "Fille des… Il m'a appelée…",
-          "mood": "surpris"
-        },
-        {
-          "who": "voix",
-          "text": "Le sang appelle le sang, Porteur. Et le temps n'oublie jamais une dette."
-        },
-        {
-          "who": "sylwen",
-          "text": "Encore cette voix…",
-          "mood": "surpris"
-        },
-        {
-          "who": "brann",
-          "text": "Qui que tu sois, montre-toi au lieu de murmurer !",
-          "mood": "colere"
-        }
+        {"act": {"subject": "fall"}, "fx": ["dust@ground", "ashfall"], "cam": "push", "who": "narrateur", "text": "Le drake s'effondre. Avant de mourir, il tourne vers Ignara un œil d'or, et sa voix gronde dans toutes les têtes."},
+        {"fx": ["heartbeat:ffb050", "bloom@subject:ffd070"], "grade": "warm", "cam": "focus:subject", "who": "narrateur", "text": "« Fille des cendres… La Mère dort sous la Montagne de Braise. Le Wyrm a volé son feu. Réveille-la. »"},
+        {"act": {"ignara": "jump"}, "cam": "focus:ignara", "who": "ignara", "text": "Fille des… Il m'a appelée…", "mood": "surpris"},
+        {"fx": "whispers:b07cff", "grade": "violet", "cam": "reset", "who": "voix", "text": "Le sang appelle le sang, Porteur. Et le temps n'oublie jamais une dette."},
+        {"act": {"sylwen": "turn"}, "who": "sylwen", "text": "Encore cette voix…", "mood": "surpris"},
+        {"act": {"brann": "attack"}, "grade": "none", "cam": "kick", "who": "brann", "text": "Qui que tu sois, montre-toi au lieu de murmurer !", "mood": "colere"}
       ]
     },
     "z06_l06_intro": {
       "art": "braisemont",
       "subject": "refugee_convoy",
+      "cast": ["porteur", "ignara", "sylwen"],
       "lines": [
-        {
-          "who": "ignara",
-          "text": "Braisemont. Mon village. Le feu arrive par le nord : il faut les faire passer au gué.",
-          "mood": "triste"
-        },
-        {
-          "who": "brann",
-          "text": "Personne ne reste derrière. Pas tant que j'ai un bouclier."
-        }
+        {"fx": ["firewall", "ashfall"], "cam": "pan_left", "grade": "red", "who": "ignara", "text": "Braisemont. Mon village. Le feu arrive par le nord : il faut les faire passer au gué.", "mood": "triste"},
+        {"act": {"brann": "attack"}, "fx": "shieldwall@brann", "grade": "none", "who": "brann", "text": "Personne ne reste derrière. Pas tant que j'ai un bouclier."}
       ]
     },
     "z06_l06_outro": {
       "art": "braisemont",
+      "cast": ["porteur", "ignara", "sylwen"],
       "lines": [
-        {
-          "who": "narrateur",
-          "text": "Au gué, une vieille femme serre Ignara dans ses bras. C'est Mère Hulda, qui l'a élevée."
-        },
-        {
-          "who": "narrateur",
-          "text": "« Ma petite flamme. Tu as encore grandi. Et ces cornes… »"
-        },
-        {
-          "who": "ignara",
-          "text": "Hulda m'a trouvée dans un œuf fendu, au pied de la Montagne de Braise. Elle a dit à tout le village que c'était une pierre chaude.",
-          "mood": "joie"
-        },
-        {
-          "who": "narrateur",
-          "text": "Hulda glisse un éclat de coquille dans la main d'Ignara, rouge comme une braise. « Ta vraie mère t'attend là-haut. Je l'ai toujours su. »"
-        },
-        {
-          "effects": {
-            "add": {
-              "loy.ignara": 5,
-              "rep.humains": 5
-            }
-          }
-        }
+        {"act": {"ignara": "hop"}, "cam": "push", "grade": "warm", "who": "narrateur", "text": "Au gué, une vieille femme serre Ignara dans ses bras. C'est Mère Hulda, qui l'a élevée."},
+        {"emote": {"ignara": "note"}, "who": "narrateur", "text": "« Ma petite flamme. Tu as encore grandi. Et ces cornes… »"},
+        {"fx": "eggglow@center:ffb050", "cam": "focus:ignara", "who": "ignara", "text": "Hulda m'a trouvée dans un œuf fendu, au pied de la Montagne de Braise. Elle a dit à tout le village que c'était une pierre chaude.", "mood": "joie"},
+        {"fx": ["bloom@ignara:ff6a2a", "embers"], "cam": "reset", "who": "narrateur", "text": "Hulda glisse un éclat de coquille dans la main d'Ignara, rouge comme une braise. « Ta vraie mère t'attend là-haut. Je l'ai toujours su. »"},
+        {"effects": {"add": {"loy.ignara": 5, "rep.humains": 5}}}
       ]
     },
     "z06_l07_intro": {
       "art": "nid",
       "subject": "minor_phoenix",
+      "cast": ["porteur", "ignara", "sylwen"],
       "lines": [
-        {
-          "who": "ignara",
-          "text": "Le Nid des Phénix. Ils renaissent de leurs cendres… sauf si le Givre les touche en dernier."
-        },
-        {
-          "who": "krag",
-          "text": "Un oiseau qui revient quand on le tue ? Deux combats pour le prix d'un !",
-          "mood": "joie",
-          "if": "s1.krag_allie"
-        }
+        {"fx": ["phoenix@subject", "embers"], "cam": "pan_up", "grade": "gold", "who": "ignara", "text": "Le Nid des Phénix. Ils renaissent de leurs cendres… sauf si le Givre les touche en dernier."},
+        {"act": {"krag": "jump"}, "cam": "reset", "who": "krag", "text": "Un oiseau qui revient quand on le tue ? Deux combats pour le prix d'un !", "mood": "joie", "if": "s1.krag_allie"}
       ]
     },
     "z06_l07_outro": {
       "art": "nid",
       "subject": "minor_phoenix",
+      "cast": ["porteur", "ignara", "sylwen"],
       "lines": [
-        {
-          "who": "narrateur",
-          "text": "Le dernier phénix du nid gît sur ses cendres, trop faible pour renaître. Ses plumes brillent encore."
-        },
-        {
-          "who": "ignara",
-          "text": "Il ne se battait que pour son nid. Le Wyrm l'a rendu fou.",
-          "mood": "triste"
-        },
-        {
-          "who": "krag",
-          "text": "Ses plumes valent une fortune. Et un phénix guéri peut redevenir dangereux.",
-          "if": "s1.krag_allie"
-        },
-        {
-          "choice": "z06_l07",
-          "prompt": "Le dernier phénix",
-          "options": [
-            {
-              "key": "A",
-              "text": "L'épargner et le soigner",
-              "effects": {
-                "set": [
-                  "s1.phenix_epargne"
-                ],
-                "add": {
-                  "loy.ignara": 10,
-                  "loy.sylwen": 5
-                }
-              },
-              "then": [
-                {
-                  "who": "ignara",
-                  "text": "Merci. Il s'en souviendra : les phénix n'oublient jamais.",
-                  "mood": "joie"
-                },
-                {
-                  "who": "narrateur",
-                  "text": "Le phénix s'envole vers la Montagne de Braise, une traînée d'or derrière lui."
-                }
-              ]
-            },
-            {
-              "key": "B",
-              "text": "Prendre ses plumes",
-              "effects": {
-                "set": [
-                  "s1.plumes_phenix"
-                ],
-                "add": {
-                  "loy.ignara": -10,
-                  "loy.krag": 5
-                },
-                "grant": {
-                  "base": "plume_phenix",
-                  "rarity": "epique"
-                }
-              },
-              "then": [
-                {
-                  "who": "ignara",
-                  "text": "Tu… Bien. Prends-les. Mais ne me demande pas de regarder.",
-                  "mood": "colere"
-                },
-                {
-                  "who": "narrateur",
-                  "text": "Les plumes brûlent encore entre tes doigts, sans te brûler."
-                }
-              ]
-            }
-          ]
-        }
+        {"act": {"subject": "fall"}, "fx": "ashfall", "cam": "push", "grade": "warm", "who": "narrateur", "text": "Le dernier phénix du nid gît sur ses cendres, trop faible pour renaître. Ses plumes brillent encore."},
+        {"act": {"ignara": "kneel"}, "cam": "focus:ignara", "who": "ignara", "text": "Il ne se battait que pour son nid. Le Wyrm l'a rendu fou.", "mood": "triste"},
+        {"act": {"krag": "step"}, "cam": "reset", "who": "krag", "text": "Ses plumes valent une fortune. Et un phénix guéri peut redevenir dangereux.", "if": "s1.krag_allie"},
+        {"choice": "z06_l07", "prompt": "Le dernier phénix", "options": [{"key": "A", "text": "L'épargner et le soigner", "effects": {"set": ["s1.phenix_epargne"], "add": {"loy.ignara": 10, "loy.sylwen": 5}}, "then": [{"who": "ignara", "text": "Merci. Il s'en souviendra : les phénix n'oublient jamais.", "mood": "joie"}, {"who": "narrateur", "text": "Le phénix s'envole vers la Montagne de Braise, une traînée d'or derrière lui."}]}, {"key": "B", "text": "Prendre ses plumes", "effects": {"set": ["s1.plumes_phenix"], "add": {"loy.ignara": -10, "loy.krag": 5}, "grant": {"base": "plume_phenix", "rarity": "epique"}}, "then": [{"who": "ignara", "text": "Tu… Bien. Prends-les. Mais ne me demande pas de regarder.", "mood": "colere"}, {"who": "narrateur", "text": "Les plumes brûlent encore entre tes doigts, sans te brûler."}]}]}
       ]
     },
     "z06_l08_intro": {
       "art": "autels",
       "subject": "wyrm_cultist",
+      "cast": ["porteur", "ignara", "sylwen"],
       "lines": [
-        {
-          "who": "narrateur",
-          "text": "Deux autels se dressent devant le temple des Cultistes. Sur chacun, un croissant gravé dans l'obsidienne."
-        },
-        {
-          "who": "nyx",
-          "text": "Ce croissant… C'est le signe du Héraut. Au Cercle, on l'appelle « le masque qui sourit ».",
-          "mood": "surpris",
-          "if": "s1.nyx_allie"
-        },
-        {
-          "who": "ignara",
-          "text": "Purifie les sceaux. Je veux voir ce qu'ils cachent."
-        }
+        {"fx": "sigils@center:b07cff", "cam": "push", "grade": "violet", "who": "narrateur", "text": "Deux autels se dressent devant le temple des Cultistes. Sur chacun, un croissant gravé dans l'obsidienne."},
+        {"act": {"nyx": "jump"}, "fx": "whispers:c87cf0", "who": "nyx", "text": "Ce croissant… C'est le signe du Héraut. Au Cercle, on l'appelle « le masque qui sourit ».", "mood": "surpris", "if": "s1.nyx_allie"},
+        {"act": {"ignara": "cast"}, "fx": "charge@ignara:ff9a4a", "grade": "none", "cam": "reset", "who": "ignara", "text": "Purifie les sceaux. Je veux voir ce qu'ils cachent."}
       ]
     },
     "z06_l08_outro": {
       "art": "autels",
+      "cast": ["porteur", "ignara", "sylwen"],
       "lines": [
-        {
-          "who": "narrateur",
-          "text": "Au pied d'un autel, entre deux braseros éteints, une page de vélin a été clouée avec soin. Encre violette, une seule lettre : « M. »"
-        },
-        {
-          "who": "narrateur",
-          "text": "« Le dragon voulait du feu ; je lui ai donné du temps. Il gardera ma porte tant que je ne serai pas revenu. Le Héraut veillera sur lui. »"
-        },
-        {
-          "effects": {
-            "add": {
-              "fragments": 1
-            }
-          }
-        },
-        {
-          "who": "ignara",
-          "text": "Ce « M. »… Il a réveillé le Wyrm. Il l'a nourri. Pour garder une porte ?",
-          "mood": "colere"
-        },
-        {
-          "who": "sylwen",
-          "text": "Encore lui. Le Collège, et maintenant la forêt.",
-          "mood": "triste"
-        },
-        {
-          "who": "narrateur",
-          "text": "La page s'est glissée dans ta main : un Fragment de Morvaen."
-        }
+        {"fx": "bloom@center:d8b0ff", "cam": "push", "who": "narrateur", "text": "Au pied d'un autel, entre deux braseros éteints, une page de vélin a été clouée avec soin. Encre violette, une seule lettre : « M. »"},
+        {"fx": ["timestop", "pages@center"], "grade": "violet", "cam": "focus:center", "who": "narrateur", "text": "« Le dragon voulait du feu ; je lui ai donné du temps. Il gardera ma porte tant que je ne serai pas revenu. Le Héraut veillera sur lui. »"},
+        {"effects": {"add": {"fragments": 1}}},
+        {"act": {"ignara": "attack"}, "fx": "embers", "grade": "red", "cam": "reset", "who": "ignara", "text": "Ce « M. »… Il a réveillé le Wyrm. Il l'a nourri. Pour garder une porte ?", "mood": "colere"},
+        {"act": {"sylwen": "droop"}, "grade": "none", "who": "sylwen", "text": "Encore lui. Le Collège, et maintenant la forêt.", "mood": "triste"},
+        {"fx": "seal@porteur:4fe3d2", "cam": "focus:porteur", "who": "narrateur", "text": "La page s'est glissée dans ta main : un Fragment de Morvaen."}
       ]
     },
     "z06_l09_intro": {
       "art": "citadelle",
       "subject": "drakonid",
+      "cast": ["porteur", "ignara", "sylwen"],
       "lines": [
-        {
-          "who": "narrateur",
-          "text": "La citadelle des Drakonides garde l'entrée de la Montagne de Braise. Derrière ses murs, quelque chose respire, lentement, comme une forge endormie."
-        },
-        {
-          "who": "ignara",
-          "text": "Elle est là. Je la sens jusque dans mes os."
-        }
+        {"fx": ["heartbeat:ff8a3a", "embers"], "cam": "pan_up", "who": "narrateur", "text": "La citadelle des Drakonides garde l'entrée de la Montagne de Braise. Derrière ses murs, quelque chose respire, lentement, comme une forge endormie."},
+        {"act": {"ignara": "glow"}, "fx": "bloom@ignara:ffb050", "cam": "focus:ignara", "who": "ignara", "text": "Elle est là. Je la sens jusque dans mes os."}
       ]
     },
     "z06_l09_outro": {
       "art": "caldeira",
       "subject": "mere_dragon",
+      "cast": ["porteur", "ignara", "sylwen"],
       "lines": [
-        {
-          "who": "narrateur",
-          "text": "Sous la montagne, une caverne de basalte rougeoie. Une dragonne immense y dort, enchaînée de cendre. Entre ses pattes, un œuf noir veiné de feu."
-        },
-        {
-          "who": "narrateur",
-          "text": "Ignara pose la main sur les chaînes. Elles se brisent comme du verre."
-        },
-        {
-          "who": "mere_dragon",
-          "text": "Ma fille. Je t'ai cachée parmi les hommes quand le Wyrm s'est levé. Tu as bien grandi, petite flamme."
-        },
-        {
-          "who": "ignara",
-          "text": "Tu m'as abandonnée… pour me sauver.",
-          "mood": "triste"
-        },
-        {
-          "who": "mere_dragon",
-          "text": "Le Wyrm a bu mon feu. Aide-moi à le reprendre, Porteur, et les miens se battront à tes côtés jusqu'à la fin. Ou prends l'Œuf, si c'est la puissance que tu cherches : il est le dernier de ma lignée."
-        },
-        {
-          "who": "krag",
-          "text": "Un œuf de dragon… Avec ça, plus personne ne nous résisterait.",
-          "if": "s1.krag_allie"
-        },
-        {
-          "who": "ignara",
-          "text": "N'y pense même pas.",
-          "mood": "colere"
-        },
-        {
-          "choice": "z06_l09",
-          "prompt": "La Mère-Dragon",
-          "options": [
-            {
-              "key": "A",
-              "text": "Sceller un pacte avec la Mère-Dragon",
-              "effects": {
-                "set": [
-                  "s1.pacte_dragons"
-                ],
-                "add": {
-                  "rep.dragons": 30,
-                  "loy.ignara": 10
-                }
-              },
-              "then": [
-                {
-                  "who": "mere_dragon",
-                  "text": "Alors j'irai mordre le Wyrm la première. Et quand viendra la dernière bataille, lève les yeux : nous serons là."
-                },
-                {
-                  "who": "ignara",
-                  "text": "Ma mère, alliée du Porteur. Hulda ne va jamais me croire.",
-                  "mood": "joie"
-                }
-              ]
-            },
-            {
-              "key": "B",
-              "text": "Voler l'Œuf de cendre",
-              "effects": {
-                "set": [
-                  "s1.oeuf_vole"
-                ],
-                "add": {
-                  "rep.dragons": -40,
-                  "loy.ignara": -40,
-                  "corruption": 10
-                },
-                "grant": {
-                  "base": "oeuf_cendre",
-                  "rarity": "legendaire"
-                }
-              },
-              "then": [
-                {
-                  "who": "narrateur",
-                  "text": "Tu saisis l'Œuf. Il est brûlant, et il bat."
-                },
-                {
-                  "who": "mere_dragon",
-                  "text": "Voleur. Les miens se souviendront de ton visage, de la mer jusqu'au cœur du Surge."
-                },
-                {
-                  "who": "ignara",
-                  "text": "Comment as-tu pu… C'était mon frère, ou ma sœur, dans cette coquille.",
-                  "mood": "colere"
-                },
-                {
-                  "who": "narrateur",
-                  "text": "Ignara te suit encore. Mais elle ne te regarde plus."
-                }
-              ]
-            }
-          ]
-        }
+        {"act": {"subject": "appear"}, "fx": ["chains@subject:8a7a7a", "eggglow@ground"], "cam": "pan_up", "grade": "warm", "who": "narrateur", "text": "Sous la montagne, une caverne de basalte rougeoie. Une dragonne immense y dort, enchaînée de cendre. Entre ses pattes, un œuf noir veiné de feu."},
+        {"act": {"ignara": "cast"}, "fx": ["shatter@subject:ffb050", "white"], "cam": "kick", "who": "narrateur", "text": "Ignara pose la main sur les chaînes. Elles se brisent comme du verre."},
+        {"act": {"subject": "glow"}, "fx": "bloom@subject:ffd070", "cam": "focus:subject", "who": "mere_dragon", "text": "Ma fille. Je t'ai cachée parmi les hommes quand le Wyrm s'est levé. Tu as bien grandi, petite flamme."},
+        {"act": {"ignara": "droop"}, "cam": "focus:ignara", "who": "ignara", "text": "Tu m'as abandonnée… pour me sauver.", "mood": "triste"},
+        {"fx": ["eggglow@ground", "heartbeat:ff6a2a"], "cam": "reset", "who": "mere_dragon", "text": "Le Wyrm a bu mon feu. Aide-moi à le reprendre, Porteur, et les miens se battront à tes côtés jusqu'à la fin. Ou prends l'Œuf, si c'est la puissance que tu cherches : il est le dernier de ma lignée."},
+        {"act": {"krag": "step"}, "who": "krag", "text": "Un œuf de dragon… Avec ça, plus personne ne nous résisterait.", "if": "s1.krag_allie"},
+        {"act": {"ignara": "attack"}, "emote": {"ignara": "anger"}, "who": "ignara", "text": "N'y pense même pas.", "mood": "colere"},
+        {"choice": "z06_l09", "prompt": "La Mère-Dragon", "options": [{"key": "A", "text": "Sceller un pacte avec la Mère-Dragon", "effects": {"set": ["s1.pacte_dragons"], "add": {"rep.dragons": 30, "loy.ignara": 10}}, "then": [{"who": "mere_dragon", "text": "Alors j'irai mordre le Wyrm la première. Et quand viendra la dernière bataille, lève les yeux : nous serons là."}, {"who": "ignara", "text": "Ma mère, alliée du Porteur. Hulda ne va jamais me croire.", "mood": "joie"}]}, {"key": "B", "text": "Voler l'Œuf de cendre", "effects": {"set": ["s1.oeuf_vole"], "add": {"rep.dragons": -40, "loy.ignara": -40, "corruption": 10}, "grant": {"base": "oeuf_cendre", "rarity": "legendaire"}}, "then": [{"who": "narrateur", "text": "Tu saisis l'Œuf. Il est brûlant, et il bat."}, {"who": "mere_dragon", "text": "Voleur. Les miens se souviendront de ton visage, de la mer jusqu'au cœur du Surge."}, {"who": "ignara", "text": "Comment as-tu pu… C'était mon frère, ou ma sœur, dans cette coquille.", "mood": "colere"}, {"who": "narrateur", "text": "Ignara te suit encore. Mais elle ne te regarde plus."}]}]}
       ]
     },
     "z06_l10_intro": {
       "art": "antre",
       "subject": "ash_wyrm",
+      "cast": ["porteur", "ignara", "sylwen"],
       "lines": [
-        {
-          "effects": {
-            "betrayal": true
-          }
-        },
-        {
-          "who": "narrateur",
-          "text": "Pendant la nuit, {traitre} a disparu. Des empreintes de cendre mènent jusqu'à l'antre du Wyrm.",
-          "if": "s1.trahison"
-        },
-        {
-          "who": "ignara",
-          "text": "La Marque. Le Wyrm a appelé, et il y a eu une réponse.",
-          "mood": "colere",
-          "if": "s1.trahison"
-        },
-        {
-          "who": "narrateur",
-          "text": "Cette nuit, un cri a réveillé le camp : {traitre}, la Marque en flammes sur l'épaule. Au matin, ce n'était plus qu'une cicatrice.",
-          "if": "s1.marque_resistee"
-        },
-        {
-          "who": "traitre",
-          "text": "Le Wyrm m'a parlé toute la nuit. Je n'ai pas cédé. Grâce à toi.",
-          "mood": "triste",
-          "if": "s1.marque_resistee"
-        },
-        {
-          "who": "wyrm",
-          "text": "Le Porteur. Enfin. Ton Sceau sent le temps volé, comme celui de l'homme au croissant."
-        },
-        {
-          "who": "wyrm",
-          "text": "Approche. Je vais te montrer ce que ta lignée a fait de la mienne."
-        },
-        {
-          "who": "ignara",
-          "text": "Ce n'est pas ta forêt, Wyrm. C'est celle de ma mère.",
-          "mood": "colere"
-        },
-        {
-          "who": "ignara",
-          "text": "Et ma mère t'a déjà mordu. Tu boites, vieux lézard.",
-          "mood": "joie",
-          "if": "s1.pacte_dragons"
-        },
-        {
-          "who": "narrateur",
-          "text": "Quand le Wyrm sera aux abois, la Marque appellera {traitre} à ses côtés. À 0 PV, la Marque se brise ; un de tes sorts l'achèverait ensuite.",
-          "if": "s1.trahison"
-        }
+        {"effects": {"betrayal": true}},
+        {"fx": "ashfall", "cam": "push", "grade": "dark", "who": "narrateur", "text": "Pendant la nuit, {traitre} a disparu. Des empreintes de cendre mènent jusqu'à l'antre du Wyrm.", "if": "s1.trahison"},
+        {"act": {"ignara": "attack"}, "fx": "wyrmmark@center", "who": "ignara", "text": "La Marque. Le Wyrm a appelé, et il y a eu une réponse.", "mood": "colere", "if": "s1.trahison"},
+        {"fx": "wyrmmark@center:ff3a2a", "grade": "red", "who": "narrateur", "text": "Cette nuit, un cri a réveillé le camp : {traitre}, la Marque en flammes sur l'épaule. Au matin, ce n'était plus qu'une cicatrice.", "if": "s1.marque_resistee"},
+        {"act": {"traitre": "droop"}, "fx": "shatter@center:ff8a3a", "grade": "none", "who": "traitre", "text": "Le Wyrm m'a parlé toute la nuit. Je n'ai pas cédé. Grâce à toi.", "mood": "triste", "if": "s1.marque_resistee"},
+        {"act": {"subject": "roar"}, "fx": ["dragonfire@subject", "firewall"], "cam": "shake", "grade": "red", "who": "wyrm", "text": "Le Porteur. Enfin. Ton Sceau sent le temps volé, comme celui de l'homme au croissant."},
+        {"fx": "veins@ground:ff5a2a", "cam": "focus:subject", "who": "wyrm", "text": "Approche. Je vais te montrer ce que ta lignée a fait de la mienne."},
+        {"act": {"ignara": "attack"}, "cam": "reset", "who": "ignara", "text": "Ce n'est pas ta forêt, Wyrm. C'est celle de ma mère.", "mood": "colere"},
+        {"act": {"ignara": "hop"}, "emote": {"ignara": "note"}, "who": "ignara", "text": "Et ma mère t'a déjà mordu. Tu boites, vieux lézard.", "mood": "joie", "if": "s1.pacte_dragons"},
+        {"fx": "wyrmmark@center", "grade": "dark", "who": "narrateur", "text": "Quand le Wyrm sera aux abois, la Marque appellera {traitre} à ses côtés. À 0 PV, la Marque se brise ; un de tes sorts l'achèverait ensuite.", "if": "s1.trahison"}
       ]
     },
     "z06_l10_outro": {
       "art": "antre",
       "subject": "ash_wyrm",
       "subject_tint": "5a4a4a",
+      "cast": ["porteur", "ignara", "sylwen"],
       "lines": [
-        {
-          "who": "narrateur",
-          "text": "Le Wyrm s'effondre dans une pluie de cendres. Le feu de la forêt vacille… puis redevient doré, vivant."
-        },
-        {
-          "who": "ignara",
-          "text": "Tu sens ? Le feu de la Mère. Il revient.",
-          "mood": "joie"
-        },
-        {
-          "who": "narrateur",
-          "text": "Au milieu des cendres, {traitre} est à genoux. La Marque palpite encore sous sa peau.",
-          "if": "s1.traitre_epargne"
-        },
-        {
-          "who": "traitre",
-          "text": "Je l'ai écouté. Toutes ces rancunes… Il les a rendues si fortes. Je ne te demande rien.",
-          "mood": "triste",
-          "if": "s1.traitre_epargne"
-        },
-        {
-          "choice": "z06_l10",
-          "major": true,
-          "prompt": "Trahison et rédemption",
-          "if": "s1.traitre_epargne",
-          "options": [
-            {
-              "key": "A",
-              "text": "Tendre la main",
-              "effects": {
-                "set": [
-                  "s1.quete_pardon",
-                  "s1.fil_redemption"
-                ]
-              },
-              "then": [
-                {
-                  "who": "narrateur",
-                  "text": "Tu tends la main. {traitre} la regarde longtemps avant de la prendre."
-                },
-                {
-                  "who": "ignara",
-                  "text": "La Marque ne partira pas toute seule. Il faudra l'arracher, là où elle est née."
-                },
-                {
-                  "who": "narrateur",
-                  "text": "Nouvelle quête : « Les Cendres du Pardon » (6-R), sur la carte de la Forêt Cendrée."
-                }
-              ]
-            },
-            {
-              "key": "B",
-              "text": "Laisser partir",
-              "effects": {
-                "exile": true,
-                "set": [
-                  "s1.fil_exile"
-                ]
-              },
-              "then": [
-                {
-                  "who": "traitre",
-                  "text": "Alors je pars. Un jour, peut-être, nos routes se croiseront encore.",
-                  "mood": "triste"
-                },
-                {
-                  "who": "narrateur",
-                  "text": "{traitre} s'éloigne dans les cendres, sans se retourner."
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "who": "narrateur",
-          "text": "{traitre} ne se relèvera pas. La Marque s'est éteinte avec sa vie.",
-          "if": "s1.traitre_tue"
-        },
-        {
-          "who": "ignara",
-          "text": "Le Wyrm voulait ça : que tu doives choisir. Je suis désolée.",
-          "mood": "triste",
-          "if": "s1.traitre_tue"
-        },
-        {
-          "who": "narrateur",
-          "text": "La Marque du Wyrm flotte au-dessus des cendres, une rune rouge qui cherche une épaule où se poser. Elle n'en trouve aucune.",
-          "if_not": "s1.trahison"
-        },
-        {
-          "choice": "z06_l10",
-          "major": true,
-          "prompt": "La Marque du Wyrm",
-          "if_not": "s1.trahison",
-          "options": [
-            {
-              "key": "C",
-              "text": "Briser la Marque",
-              "effects": {
-                "set": [
-                  "s1.marque_brisee"
-                ],
-                "add": {
-                  "corruption": -5,
-                  "loy.ignara": 5
-                }
-              },
-              "then": [
-                {
-                  "who": "narrateur",
-                  "text": "La rune se fend en deux et s'éteint dans un souffle tiède."
-                },
-                {
-                  "who": "ignara",
-                  "text": "Bon débarras.",
-                  "mood": "joie"
-                }
-              ]
-            },
-            {
-              "key": "D",
-              "text": "Garder un éclat de la Marque",
-              "effects": {
-                "set": [
-                  "s1.eclat_marque"
-                ],
-                "add": {
-                  "corruption": 10,
-                  "rep.dragons": -10
-                }
-              },
-              "then": [
-                {
-                  "who": "narrateur",
-                  "text": "Tu refermes la main sur un éclat brûlant. Il murmure dans une langue que tu ne devrais pas comprendre… et que tu comprends."
-                },
-                {
-                  "who": "ignara",
-                  "text": "Je n'aime pas ce que tu tiens là, {pseudo}. Pas du tout.",
-                  "mood": "colere"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "who": "ignara",
-          "text": "Je viens avec vous. La forêt a retrouvé sa mère ; moi, j'ai encore des comptes à régler avec ce « M. »."
-        },
-        {
-          "who": "narrateur",
-          "text": "Fin de l'acte 6. Au-delà de la forêt, la mer… et une cité engloutie qui attend."
-        }
+        {"act": {"subject": "fall"}, "fx": ["ashfall", "dust@ground"], "cam": "push", "who": "narrateur", "text": "Le Wyrm s'effondre dans une pluie de cendres. Le feu de la forêt vacille… puis redevient doré, vivant."},
+        {"act": {"ignara": "jump"}, "fx": ["ashswirl@center", "heartbeat:ffd070"], "grade": "gold", "who": "ignara", "text": "Tu sens ? Le feu de la Mère. Il revient.", "mood": "joie"},
+        {"act": {"traitre": "kneel"}, "fx": "wyrmmark@center", "grade": "dark", "cam": "focus:center", "who": "narrateur", "text": "Au milieu des cendres, {traitre} est à genoux. La Marque palpite encore sous sa peau.", "if": "s1.traitre_epargne"},
+        {"act": {"traitre": "droop"}, "cam": "reset", "who": "traitre", "text": "Je l'ai écouté. Toutes ces rancunes… Il les a rendues si fortes. Je ne te demande rien.", "mood": "triste", "if": "s1.traitre_epargne"},
+        {"choice": "z06_l10", "major": true, "prompt": "Trahison et rédemption", "if": "s1.traitre_epargne", "options": [{"key": "A", "text": "Tendre la main", "effects": {"set": ["s1.quete_pardon", "s1.fil_redemption"]}, "then": [{"who": "narrateur", "text": "Tu tends la main. {traitre} la regarde longtemps avant de la prendre."}, {"who": "ignara", "text": "La Marque ne partira pas toute seule. Il faudra l'arracher, là où elle est née."}, {"who": "narrateur", "text": "Nouvelle quête : « Les Cendres du Pardon » (6-R), sur la carte de la Forêt Cendrée."}]}, {"key": "B", "text": "Laisser partir", "effects": {"exile": true, "set": ["s1.fil_exile"]}, "then": [{"who": "traitre", "text": "Alors je pars. Un jour, peut-être, nos routes se croiseront encore.", "mood": "triste"}, {"who": "narrateur", "text": "{traitre} s'éloigne dans les cendres, sans se retourner."}]}]},
+        {"grade": "dark", "cam": "zoom_out", "who": "narrateur", "text": "{traitre} ne se relèvera pas. La Marque s'est éteinte avec sa vie.", "if": "s1.traitre_tue"},
+        {"act": {"ignara": "droop"}, "cam": "reset", "who": "ignara", "text": "Le Wyrm voulait ça : que tu doives choisir. Je suis désolée.", "mood": "triste", "if": "s1.traitre_tue"},
+        {"fx": "wyrmmark@center", "cam": "focus:center", "grade": "red", "who": "narrateur", "text": "La Marque du Wyrm flotte au-dessus des cendres, une rune rouge qui cherche une épaule où se poser. Elle n'en trouve aucune.", "if_not": "s1.trahison"},
+        {"choice": "z06_l10", "major": true, "prompt": "La Marque du Wyrm", "if_not": "s1.trahison", "options": [{"key": "C", "text": "Briser la Marque", "effects": {"set": ["s1.marque_brisee"], "add": {"corruption": -5, "loy.ignara": 5}}, "then": [{"who": "narrateur", "text": "La rune se fend en deux et s'éteint dans un souffle tiède."}, {"who": "ignara", "text": "Bon débarras.", "mood": "joie"}]}, {"key": "D", "text": "Garder un éclat de la Marque", "effects": {"set": ["s1.eclat_marque"], "add": {"corruption": 10, "rep.dragons": -10}}, "then": [{"who": "narrateur", "text": "Tu refermes la main sur un éclat brûlant. Il murmure dans une langue que tu ne devrais pas comprendre… et que tu comprends."}, {"who": "ignara", "text": "Je n'aime pas ce que tu tiens là, {pseudo}. Pas du tout.", "mood": "colere"}]}]},
+        {"art": "pardon", "act": {"ignara": "step"}, "fx": "renewal", "grade": "dawn", "cam": "reset", "who": "ignara", "text": "Je viens avec vous. La forêt a retrouvé sa mère ; moi, j'ai encore des comptes à régler avec ce « M. »."},
+        {"art": "pardon", "title": "Acte 6 · Le Sang", "fx": "ashswirl@center:ffd070", "grade": "gold", "who": "narrateur", "text": "Fin de l'acte 6. Au-delà de la forêt, la mer… et une cité engloutie qui attend."}
       ]
     },
     "z06_r01_intro": {
-      "art": "antre",
       "subject": "wyrm_mark",
+      "art": "pardon",
+      "cast": ["porteur", "ignara", "sylwen"],
       "lines": [
-        {
-          "who": "narrateur",
-          "text": "Au cœur de la forêt guérie, une dernière braise refuse de s'éteindre : la Marque du Wyrm, enracinée là où {traitre} l'a reçue."
-        },
-        {
-          "who": "traitre",
-          "text": "Si je la touche sans vous, elle me reprendra. Si on la détruit ensemble… peut-être pas.",
-          "mood": "triste"
-        },
-        {
-          "who": "ignara",
-          "text": "Alors on la détruit ensemble. Givre, flammes, tout ce qu'il faudra."
-        }
+        {"fx": ["wyrmmark@subject", "embers"], "cam": "push", "who": "narrateur", "text": "Au cœur de la forêt guérie, une dernière braise refuse de s'éteindre : la Marque du Wyrm, enracinée là où {traitre} l'a reçue."},
+        {"act": {"traitre": "droop"}, "cam": "reset", "who": "traitre", "text": "Si je la touche sans vous, elle me reprendra. Si on la détruit ensemble… peut-être pas.", "mood": "triste"},
+        {"act": {"ignara": "cast"}, "fx": "charge@ignara:ff9a4a", "who": "ignara", "text": "Alors on la détruit ensemble. Givre, flammes, tout ce qu'il faudra."}
       ]
     },
     "z06_r01_outro": {
-      "art": "cendres",
+      "art": "pardon",
+      "cast": ["porteur", "ignara", "sylwen"],
       "lines": [
-        {
-          "who": "narrateur",
-          "text": "La Marque éclate dans un tourbillon de cendres dorées. {traitre} tombe à genoux, puis se relève."
-        },
-        {
-          "who": "traitre",
-          "text": "Elle est partie. Mais quelque chose est resté : la chaleur. Elle ne me brûle plus, elle m'obéit.",
-          "mood": "joie"
-        },
-        {
-          "who": "narrateur",
-          "text": "{traitre} revient dans le groupe, loyauté 60. L'Héritage de cendre reste : Sang du Wyrm, Souffle de cendre, et une braise qui ranime la Barrière une fois par combat."
-        }
+        {"fx": ["shatter@center:ffd070", "ashswirl@center", "white"], "cam": "kick", "grade": "gold", "who": "narrateur", "text": "La Marque éclate dans un tourbillon de cendres dorées. {traitre} tombe à genoux, puis se relève."},
+        {"act": {"traitre": "rise"}, "fx": "embers", "grade": "dawn", "who": "traitre", "text": "Elle est partie. Mais quelque chose est resté : la chaleur. Elle ne me brûle plus, elle m'obéit.", "mood": "joie"},
+        {"fx": "renewal", "cam": "reset", "who": "narrateur", "text": "{traitre} revient dans le groupe, loyauté 60. L'Héritage de cendre reste : Sang du Wyrm, Souffle de cendre, et une braise qui ranime la Barrière une fois par combat."}
       ]
     }
   },
   "barks": {
     "start": [
-      {
-        "who": "brann",
-        "text": "Ça sent le charbon et la barbe roussie. Reste loin des flammes."
-      },
-      {
-        "who": "sylwen",
-        "text": "Cette forêt brûle depuis des années… et elle ne meurt jamais. Ce n'est pas un feu ordinaire.",
-        "mood": "triste"
-      },
-      {
-        "who": "sylwen",
-        "text": "Un couloir de feu descend vers nous : éteins-le au Givre, ou envoie tes troupes ailleurs."
-      },
-      {
-        "who": "krag",
-        "text": "Des dragons ! Enfin des adversaires à ma taille.",
-        "if": "s1.krag_allie",
-        "mood": "joie"
-      },
-      {
-        "who": "nyx",
-        "text": "Des cendres partout. C'est presque chez moi.",
-        "mood": "joie"
-      },
-      {
-        "who": "ignara",
-        "text": "Le Givre ? Pff. Bon, d'accord, le Givre.",
-        "if": "s1.ignara_allie",
-        "mood": "colere"
-      },
-      {
-        "who": "ignara",
-        "text": "Si un dragon passe, ne le regarde pas dans les yeux. Ils détestent ça.",
-        "if": "s1.ignara_allie"
-      }
+      {"who": "brann", "text": "Ça sent le charbon et la barbe roussie. Reste loin des flammes."},
+      {"who": "sylwen", "text": "Cette forêt brûle depuis des années… et elle ne meurt jamais. Ce n'est pas un feu ordinaire.", "mood": "triste"},
+      {"who": "sylwen", "text": "Un couloir de feu descend vers nous : éteins-le au Givre, ou envoie tes troupes ailleurs."},
+      {"who": "krag", "text": "Des dragons ! Enfin des adversaires à ma taille.", "if": "s1.krag_allie", "mood": "joie"},
+      {"who": "nyx", "text": "Des cendres partout. C'est presque chez moi.", "mood": "joie"},
+      {"who": "ignara", "text": "Le Givre ? Pff. Bon, d'accord, le Givre.", "if": "s1.ignara_allie", "mood": "colere"},
+      {"who": "ignara", "text": "Si un dragon passe, ne le regarde pas dans les yeux. Ils détestent ça.", "if": "s1.ignara_allie"}
     ],
     "barrier_low": [
-      {
-        "who": "brann",
-        "text": "La Barrière chauffe au rouge ! Tiens bon !"
-      },
-      {
-        "who": "sylwen",
-        "text": "Ils passent ! Le feu nous pousse dans le dos !"
-      },
-      {
-        "who": "krag",
-        "text": "Qu'ils viennent se brûler sur nous !",
-        "if": "s1.krag_allie"
-      },
-      {
-        "who": "nyx",
-        "text": "La Barrière fond. Fais quelque chose. Vite."
-      }
+      {"who": "brann", "text": "La Barrière chauffe au rouge ! Tiens bon !"},
+      {"who": "sylwen", "text": "Ils passent ! Le feu nous pousse dans le dos !"},
+      {"who": "krag", "text": "Qu'ils viennent se brûler sur nous !", "if": "s1.krag_allie"},
+      {"who": "nyx", "text": "La Barrière fond. Fais quelque chose. Vite."}
     ],
     "half": [
-      {
-        "who": "sylwen",
-        "text": "À moitié ! La forêt nous regarde passer."
-      },
-      {
-        "who": "brann",
-        "text": "La moitié. Et pas un poil de barbe en moins. Presque."
-      },
-      {
-        "who": "nyx",
-        "text": "À moitié en cendres. Comme le reste."
-      }
+      {"who": "sylwen", "text": "À moitié ! La forêt nous regarde passer."},
+      {"who": "brann", "text": "La moitié. Et pas un poil de barbe en moins. Presque."},
+      {"who": "nyx", "text": "À moitié en cendres. Comme le reste."}
     ],
     "boss_phase": [
-      {
-        "who": "sylwen",
-        "text": "Il prend son envol ! Seuls les tirs et les sorts l'atteindront là-haut !"
-      },
-      {
-        "who": "brann",
-        "text": "Il change de rythme. Garde un œil sur le ciel."
-      },
-      {
-        "who": "krag",
-        "text": "Il se fâche ? Qu'il descende me le dire en face !",
-        "if": "s1.krag_allie"
-      },
-      {
-        "who": "nyx",
-        "text": "Nouvelle phase. Il brûle plus fort."
-      },
-      {
-        "who": "ignara",
-        "text": "Il s'envole ! Vise-le avec tes sorts, vite !",
-        "if": "s1.ignara_allie"
-      },
-      {
-        "who": "ignara",
-        "text": "Il s'envole ! Vise-le avec tes sorts, vite !",
-        "if": "s1.ignara_allie"
-      },
-      {
-        "who": "ignara",
-        "text": "Il s'envole ! Vise-le avec tes sorts, vite !",
-        "if": "s1.ignara_allie"
-      }
+      {"who": "sylwen", "text": "Il prend son envol ! Seuls les tirs et les sorts l'atteindront là-haut !"},
+      {"who": "brann", "text": "Il change de rythme. Garde un œil sur le ciel."},
+      {"who": "krag", "text": "Il se fâche ? Qu'il descende me le dire en face !", "if": "s1.krag_allie"},
+      {"who": "nyx", "text": "Nouvelle phase. Il brûle plus fort."},
+      {"who": "ignara", "text": "Il s'envole ! Vise-le avec tes sorts, vite !", "if": "s1.ignara_allie"},
+      {"who": "ignara", "text": "Il s'envole ! Vise-le avec tes sorts, vite !", "if": "s1.ignara_allie"},
+      {"who": "ignara", "text": "Il s'envole ! Vise-le avec tes sorts, vite !", "if": "s1.ignara_allie"}
     ],
     "echo": [
-      {
-        "who": "sylwen",
-        "text": "Le Sceau répond… même au milieu des flammes."
-      }
+      {"who": "sylwen", "text": "Le Sceau répond… même au milieu des flammes."}
     ],
     "ultimate": [
-      {
-        "who": "brann",
-        "text": "Voilà un incendie dans le bon sens !",
-        "mood": "joie"
-      },
-      {
-        "who": "ignara",
-        "text": "Ça, c'était presque digne d'un dragon.",
-        "if": "s1.ignara_allie",
-        "mood": "joie"
-      },
-      {
-        "who": "ignara",
-        "text": "Ça, c'était presque digne d'un dragon.",
-        "if": "s1.ignara_allie",
-        "mood": "joie"
-      },
-      {
-        "who": "ignara",
-        "text": "Ça, c'était presque digne d'un dragon.",
-        "if": "s1.ignara_allie",
-        "mood": "joie"
-      }
+      {"who": "brann", "text": "Voilà un incendie dans le bon sens !", "mood": "joie"},
+      {"who": "ignara", "text": "Ça, c'était presque digne d'un dragon.", "if": "s1.ignara_allie", "mood": "joie"},
+      {"who": "ignara", "text": "Ça, c'était presque digne d'un dragon.", "if": "s1.ignara_allie", "mood": "joie"},
+      {"who": "ignara", "text": "Ça, c'était presque digne d'un dragon.", "if": "s1.ignara_allie", "mood": "joie"}
     ],
     "crowd": [
-      {
-        "who": "nyx",
-        "text": "Une armée dans la fumée. Les dragons n'ont qu'à bien se tenir.",
-        "mood": "joie"
-      }
+      {"who": "nyx", "text": "Une armée dans la fumée. Les dragons n'ont qu'à bien se tenir.", "mood": "joie"}
     ],
     "escort_low": [
-      {
-        "who": "brann",
-        "text": "Les réfugiés ! Couvre le convoi !"
-      },
-      {
-        "who": "sylwen",
-        "text": "Le convoi est touché ! Protège les villageois !"
-      }
+      {"who": "brann", "text": "Les réfugiés ! Couvre le convoi !"},
+      {"who": "sylwen", "text": "Le convoi est touché ! Protège les villageois !"}
     ]
   },
   "barks_level": {
-    "z06_l02": {
-      "start": [
-        {
-          "who": "sylwen",
-          "text": "Deux incendies à la fois… Le Givre est notre seule eau ici."
-        }
-      ]
-    },
-    "z06_l03": {
-      "start": [
-        {
-          "who": "brann",
-          "text": "Une ombre ailée ! Quand le sol s'assombrit, dégage la rangée !",
-          "mood": "surpris"
-        }
-      ]
-    },
-    "z06_l04": {
-      "start": [
-        {
-          "who": "sylwen",
-          "text": "Des coulées de magma. Le Givre les refroidit un moment, pas plus."
-        }
-      ]
-    },
-    "z06_l05": {
-      "start": [
-        {
-          "who": "sylwen",
-          "text": "Un drake ancien ! Quand il s'envole, tes invocations l'attendent en dessous.",
-          "mood": "surpris"
-        }
-      ]
-    },
-    "z06_l06": {
-      "start": [
-        {
-          "who": "brann",
-          "text": "Des villageois de Braisemont. On les fait passer, quoi qu'il en coûte."
-        }
-      ]
-    },
-    "z06_l07": {
-      "start": [
-        {
-          "who": "nyx",
-          "text": "Des phénix. Achève-les au Givre, sinon ils renaissent."
-        }
-      ]
-    },
-    "z06_l10": {
-      "start": [
-        {
-          "who": "sylwen",
-          "text": "Le Wyrm de cendre… Le père de tous ces feux.",
-          "mood": "surpris"
-        },
-        {
-          "who": "brann",
-          "text": "Ses œufs ! Brise-les avant qu'ils éclosent !"
-        }
-      ]
-    }
+    "z06_l02": {"start": [{"who": "sylwen", "text": "Deux incendies à la fois… Le Givre est notre seule eau ici."}]},
+    "z06_l03": {"start": [{"who": "brann", "text": "Une ombre ailée ! Quand le sol s'assombrit, dégage la rangée !", "mood": "surpris"}]},
+    "z06_l04": {"start": [{"who": "sylwen", "text": "Des coulées de magma. Le Givre les refroidit un moment, pas plus."}]},
+    "z06_l05": {"start": [{"who": "sylwen", "text": "Un drake ancien ! Quand il s'envole, tes invocations l'attendent en dessous.", "mood": "surpris"}]},
+    "z06_l06": {"start": [{"who": "brann", "text": "Des villageois de Braisemont. On les fait passer, quoi qu'il en coûte."}]},
+    "z06_l07": {"start": [{"who": "nyx", "text": "Des phénix. Achève-les au Givre, sinon ils renaissent."}]},
+    "z06_l10": {"start": [{"who": "sylwen", "text": "Le Wyrm de cendre… Le père de tous ces feux.", "mood": "surpris"}, {"who": "brann", "text": "Ses œufs ! Brise-les avant qu'ils éclosent !"}]}
   }
 }

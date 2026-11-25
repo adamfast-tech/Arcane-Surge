@@ -19,9 +19,12 @@ const SPEC := {
 	"orrin": [96, 140, 0.7, false, Vector2(48, 34), false],
 	"sphinx": [140, 124, 0.95, false, Vector2(70, 34), false],
 	"gharok": [112, 168, 0.88, false, Vector2(48, 36), false],
+	"mere_dragon": [200, 176, 0.98, false, Vector2(100, 34), false],
+	"wyrm": [200, 176, 1.0, false, Vector2(100, 34), false],
 }
 const OX := 16 ## le portrait (64 px) est posé au milieu d'une image de 96 px
 const SOX := 38 ## le Sphinx : son portrait au milieu d'une image de 140 px
+const DOX := 68 ## les dragons : leur portrait au milieu d'une image de 200 px (ailes déployées)
 
 static var _cache: Dictionary = {}
 
@@ -85,7 +88,14 @@ static func texture(id: String, mood: String = "neutre", talk: int = 0, blink: b
 				_sphinx(img)
 			"gharok":
 				_gharok(img, hi)
-		img.blend_rect(hi, Rect2i(0, 0, 64, 64), Vector2i(SOX if id == "sphinx" else OX, 0))
+			"mere_dragon", "wyrm":
+				_dragon(img, id == "wyrm")
+		var hox := OX
+		if id == "sphinx":
+			hox = SOX
+		elif id in ["mere_dragon", "wyrm"]:
+			hox = DOX
+		img.blend_rect(hi, Rect2i(0, 0, 64, 64), Vector2i(hox, 0))
 		if id == "voix" or id == "orrin":
 			# La Voix n'a pas de pieds : son ombre se dissout vers le sol.
 			for y in range(84, img.get_height()):
@@ -348,3 +358,93 @@ static func _sphinx(img: Image) -> void:
 		PortraitArt._px(img, x, 67, Color("a87a2a"))
 	for k in range(6):
 		PortraitArt._line(img, Vector2(cx - 50.0 + float(k) * 20.0, 74.0), Vector2(cx - 46.0 + float(k) * 20.0, 96.0), Color(1, 1, 1, 0.35))
+
+
+
+## Les dragons de la Forêt Cendrée, assis comme un chat de garde : ailes déployées derrière eux, long cou sous
+## la tête du portrait, poitrail aux écailles de ventre, pattes avant plantées (griffes), cuisses repliées,
+## queue enroulée. La Mère-Dragon est cuivre et or ; le Wyrm est noir de cendre, fendu de lave, ailes déchirées.
+static func _dragon(img: Image, wyrm: bool) -> void:
+	var cx := float(DOX) + 32.0
+	var hide := PortraitArt._ramp(["1a1214", "2e2428", "443a3e", "5e5256"] if wyrm else ["6a2e10", "b0561a", "e08a38", "ffc070"])
+	var memb := PortraitArt._ramp(["1e0e0e", "3a1a16", "5a2a20"] if wyrm else ["5a1e0c", "8a3a16", "c06028"])
+	var bone := Color("6a5a5e") if wyrm else Color("ffcf80")
+	var belly := PortraitArt._ramp(["2a2224", "3e3234", "524446"] if wyrm else ["c88a40", "f0c070", "ffe0a0"])
+	var glow := Color("ff6a1a")
+	# Ailes : bras de l'aile de l'épaule au poignet, doigts jusqu'au bord ; la membrane entre eux, bord festonné.
+	for side: float in [-1.0, 1.0]:
+		var sh := Vector2(cx + side * 16.0, 80.0)
+		var wrist := Vector2(cx + side * 62.0, 22.0)
+		var tips := [Vector2(cx + side * 96.0, 8.0), Vector2(cx + side * 98.0, 48.0), Vector2(cx + side * 86.0, 86.0), Vector2(cx + side * 58.0, 108.0)]
+		for f in range(tips.size() - 1):
+			var a: Vector2 = tips[f]
+			var b: Vector2 = tips[f + 1]
+			var mid := (a + b) * 0.5 + Vector2(-side * 8.0, -6.0)
+			PortraitArt._poly(img, PackedVector2Array([wrist, a, mid, b]), memb, -0.1 * side)
+		PortraitArt._poly(img, PackedVector2Array([sh, wrist, tips[3] as Vector2, Vector2(cx + side * 22.0, 104.0)]), memb, -0.1 * side)
+		if wyrm:
+			# Ailes déchirées : des trous dans la membrane, bords rongés de braise.
+			for hcen in [Vector2(cx + side * 80.0, 40.0), Vector2(cx + side * 70.0, 78.0), Vector2(cx + side * 44.0, 92.0)]:
+				var hc: Vector2 = hcen
+				for yy in range(-5, 6):
+					for xx in range(-4, 5):
+						if Vector2(float(xx), float(yy) * 0.8).length() <= 4.0:
+							img.set_pixel(int(hc.x) + xx, int(hc.y) + yy, Color(0, 0, 0, 0))
+				PortraitArt._px(img, int(hc.x) + 4, int(hc.y), glow)
+				PortraitArt._px(img, int(hc.x) - 4, int(hc.y) + 1, glow)
+		PortraitArt._line(img, sh, wrist, bone, 2)
+		for tp in tips:
+			PortraitArt._line(img, wrist, tp as Vector2, bone, 1)
+		# Griffe au poignet.
+		PortraitArt._line(img, wrist, wrist + Vector2(side * 3.0, -5.0), Color("f0e8d8"), 1)
+	# Queue : elle part de la cuisse droite et s'enroule devant, pointe en fer de lance.
+	var tail := [Vector2(cx + 34.0, 150.0), Vector2(cx + 62.0, 160.0), Vector2(cx + 80.0, 150.0), Vector2(cx + 84.0, 132.0)]
+	for i in range(tail.size() - 1):
+		_limb(img, tail[i] as Vector2, tail[i + 1] as Vector2, 9.0 - float(i) * 2.4, 9.0 - float(i + 1) * 2.4, hide)
+	PortraitArt._poly(img, PackedVector2Array([Vector2(cx + 84.0, 136.0), Vector2(cx + 78.0, 124.0), Vector2(cx + 86.0, 116.0), Vector2(cx + 90.0, 126.0)]), PortraitArt._ramp(["3a0e0a", "6a1a12"] if wyrm else ["8a3a12", "c86020"]))
+	# Cuisses repliées, puis le corps.
+	for side2: float in [-1.0, 1.0]:
+		PortraitArt._ellipse(img, cx + side2 * 30.0, 146.0, 22.0, 20.0, hide, 0.1 * side2)
+		PortraitArt._ellipse(img, cx + side2 * 40.0, 166.0, 12.0, 5.0, hide)
+	PortraitArt._ellipse(img, cx, 122.0, 34.0, 36.0, hide)
+	# Long cou sous la tête.
+	PortraitArt._poly(img, PackedVector2Array([Vector2(cx - 10.0, 50.0), Vector2(cx + 10.0, 50.0), Vector2(cx + 20.0, 96.0), Vector2(cx - 20.0, 96.0)]), hide)
+	# Écailles de ventre : plaques claires du cou au bas du poitrail.
+	for k in range(13):
+		var y := 62 + k * 7
+		var half := 6.0 + float(k) * 1.4 if k < 7 else 15.0 - float(k - 7) * 1.6
+		PortraitArt._poly(img, PackedVector2Array([Vector2(cx - half, float(y)), Vector2(cx + half, float(y)), Vector2(cx + half - 1.0, float(y + 6)), Vector2(cx - half + 1.0, float(y + 6))]), belly)
+		for x in range(int(cx - half) + 1, int(cx + half)):
+			PortraitArt._px(img, x, y + 6, belly[0].darkened(0.3))
+	# Pattes avant plantées, griffes d'ivoire.
+	for side3: float in [-1.0, 1.0]:
+		var top := Vector2(cx + side3 * 22.0, 104.0)
+		var knee := Vector2(cx + side3 * 26.0, 136.0)
+		var foot := Vector2(cx + side3 * 24.0, 164.0)
+		_limb(img, top, knee, 10.0, 8.0, hide)
+		_limb(img, knee, foot, 8.0, 7.0, hide)
+		PortraitArt._ellipse(img, foot.x, 168.0, 11.0, 5.0, hide)
+		for c in range(4):
+			var clx := int(foot.x) - 8 + c * 5
+			PortraitArt._px(img, clx, 172, Color("f0e8d8"))
+			PortraitArt._px(img, clx, 173, Color("c8b8a8"))
+	if wyrm:
+		# Fissures de lave sur tout le corps, comme sur son visage.
+		var rng := RandomNumberGenerator.new()
+		rng.seed = 6010
+		for v in range(16):
+			var p := Vector2(cx + rng.randf_range(-40.0, 40.0), rng.randf_range(84.0, 166.0))
+			var d := Vector2.from_angle(rng.randf_range(0.6, 2.5))
+			for q in range(rng.randi_range(5, 11)):
+				if img.get_pixel(int(p.x), int(p.y)).a > 0.5:
+					PortraitArt._px(img, int(p.x), int(p.y), glow if q % 3 else Color("ffd060"))
+				d = d.rotated(rng.randf_range(-0.5, 0.5))
+				p += d
+		PortraitArt._glow(img, int(cx), 120, 30, glow, 0.12)
+	else:
+		# Reflets d'or sur les écailles.
+		for i in range(40):
+			var gx := int(cx) + (i * 37) % 80 - 40
+			var gy := 90 + (i * 53) % 76
+			if img.get_pixel(gx, gy).a > 0.5:
+				PortraitArt._px(img, gx, gy, Color("ffe8a0"))

@@ -34,8 +34,10 @@ static func plate(kind: String, size: Vector2i) -> ImageTexture:
 			_forge(img, rng)
 		"dunes", "oasis", "miroirs", "college", "desert_nuit", "sphinx", "mirage", "scarabee", "caravane_sable", "sceaux":
 			_desert(img, rng, kind)
-		"cendres", "coulee", "braisemont", "nid", "autels", "citadelle", "caldeira", "antre":
+		"cendres", "coulee", "braisemont", "nid", "autels", "citadelle", "caldeira", "antre", "lisiere_cendree", "couloirs", "ailes", "drake":
 			_cendres(img, rng, kind)
+		"pardon":
+			_pardon(img, rng)
 		"cite", "quais", "canal", "statues", "archives", "palais", "abysse":
 			_cite(img, rng, kind)
 		_:
@@ -1529,14 +1531,20 @@ static func _burnt_tree(img: Image, rng: RandomNumberGenerator, x: int, base: in
 
 ## Forêt Cendrée : ciel de fumée rougeoyant, arbres calcinés en flammes, braises, dragon dans les fumées.
 ## Variantes : coulee (rivières de magma), braisemont (village et gué), nid (nid des phénix), autels (autels du
-## croissant), citadelle (forteresse draconide), caldeira (la Mère-Dragon enchaînée), antre (l'antre du Wyrm).
+## croissant), citadelle (forteresse draconide), caldeira (la Mère-Dragon enchaînée), antre (l'antre du Wyrm),
+## lisiere_cendree (la lisière en flammes, le sable du désert au premier plan), couloirs (murs de flammes),
+## ailes (dragons en vol, ombre de leurs ailes), drake (le piton du drake ancien).
 static func _cendres(img: Image, rng: RandomNumberGenerator, kind: String) -> void:
 	var w := img.get_width()
 	var h := img.get_height()
 	if kind in ["caldeira", "antre"]:
 		_cendres_cave(img, rng, kind)
 		return
-	_sky(img, rng, [[0.0, Color("120a10")], [0.35, Color("3a141a")], [0.55, Color("8a2a1a")], [0.66, Color("d8602a")], [0.72, Color("4a1e16")], [1.0, Color("1a100e")]], 0.15)
+	if kind == "lisiere_cendree":
+		# Le ciel s'embrase depuis la forêt : le bas du ciel orange vif.
+		_sky(img, rng, [[0.0, Color("1a0c10")], [0.3, Color("4a1a1a")], [0.5, Color("b03a1a")], [0.64, Color("f08a3a")], [0.7, Color("5a2416")], [1.0, Color("1a100e")]], 0.1)
+	else:
+		_sky(img, rng, [[0.0, Color("120a10")], [0.35, Color("3a141a")], [0.55, Color("8a2a1a")], [0.66, Color("d8602a")], [0.72, Color("4a1e16")], [1.0, Color("1a100e")]], 0.15)
 	# Lune rougie derrière la fumée.
 	var mx := int(w * 0.72)
 	var my := int(h * 0.16)
@@ -1560,8 +1568,12 @@ static func _cendres(img: Image, rng: RandomNumberGenerator, kind: String) -> vo
 	# Collines lointaines en braises, puis forêt calcinée.
 	_ridge(img, rng, int(h * 0.58), int(h * 0.03), Color("2a1412"), Color("8a3a1a"))
 	var x := -rng.randi_range(0, 8)
+	var burn_p := 0.85 if kind in ["lisiere_cendree", "couloirs"] else 0.45
 	while x < w + 8:
-		_burnt_tree(img, rng, x, int(h * 0.68) + rng.randi_range(-3, 3), rng.randi_range(int(h * 0.12), int(h * 0.26)), rng.randf() < 0.45)
+		if kind == "couloirs" and absi(x - w / 2) < int(w * 0.12):
+			x += rng.randi_range(int(w * 0.06), int(w * 0.11))
+			continue
+		_burnt_tree(img, rng, x, int(h * 0.68) + rng.randi_range(-3, 3), rng.randi_range(int(h * 0.12), int(h * 0.26)), rng.randf() < burn_p)
 		x += rng.randi_range(int(w * 0.06), int(w * 0.11))
 	for y in range(int(h * 0.68), h):
 		var k := float(y - int(h * 0.68)) / float(maxi(1, h - int(h * 0.68)))
@@ -1575,6 +1587,77 @@ static func _cendres(img: Image, rng: RandomNumberGenerator, kind: String) -> vo
 	_fireflies(img, rng, int(w * h / 900.0), int(h * 0.2), h - 2, Color("ffb050"))
 	var gy := int(h * 0.7)
 	match kind:
+		"lisiere_cendree":
+			# La lisière : le sable du désert qui s'arrête net, la forêt en flammes derrière, une braise sur chaque arbre.
+			for y in range(int(h * 0.82), h):
+				var k2 := float(y - int(h * 0.82)) / maxf(1.0, h * 0.18)
+				var sx0 := int(w * (0.55 - 0.25 * k2))
+				img.fill_rect(Rect2i(0, y, sx0, 1), Color("a8844a").lerp(Color("6a4a2a"), k2))
+				for d in range(3):
+					_px(img, sx0 + d, y, Color("3a2418"))
+			for k in range(int(w / 28)):
+				_flame(img, rng, rng.randi_range(0, w), int(h * 0.68) + rng.randi_range(-2, 2), rng.randi_range(int(h * 0.05), int(h * 0.1)))
+			_glow_px(img, w / 2, int(h * 0.64), int(w * 0.4), Color("ff7a2a"), 0.15)
+		"couloirs":
+			# Deux murs de flammes en perspective : ils convergent vers le fond, un couloir de cendre entre eux.
+			var vx := w / 2
+			var vy := int(h * 0.6)
+			for side in [-1, 1]:
+				for k3 in range(14):
+					var f := float(k3) / 13.0
+					var fx2 := int(lerpf(float(vx + side * int(w * 0.06)), float(vx + side * int(w * 0.62)), f))
+					var fy2 := int(lerpf(float(vy), float(h + 6), f))
+					_flame(img, rng, fx2, fy2, int(lerpf(h * 0.05, h * 0.3, f)))
+			for y in range(vy, h):
+				var k4 := float(y - vy) / maxf(1.0, float(h - vy))
+				var half4 := int(lerpf(w * 0.05, w * 0.5, k4))
+				img.fill_rect(Rect2i(vx - half4 + int(w * 0.03 * k4), y, maxi(1, half4 * 2 - int(w * 0.06 * k4)), 1), Color("3a2a26").lerp(Color("241a18"), k4))
+			for i in range(w / 3):
+				var ax3 := rng.randi_range(0, w)
+				var ay3 := rng.randi_range(vy, h)
+				_px(img, ax3, ay3, Color("6a6a6a") if rng.randf() < 0.7 else Color("ff8a3a"))
+		"ailes":
+			# Deux dragons immenses passent sous la fumée ; l'ombre de leurs ailes couvre la forêt.
+			for dr in [[0.34, 0.2, 0.3], [0.74, 0.32, 0.18]]:
+				_wing_silhouette(img, int(w * float(dr[0])), int(h * float(dr[1])), int(w * float(dr[2])), Color("140808"))
+			for y in range(int(h * 0.6), int(h * 0.8)):
+				var sa := 0.35 * (1.0 - absf(float(y - int(h * 0.7)) / (h * 0.1)))
+				for x5 in range(int(w * 0.08), int(w * 0.62)):
+					_px(img, x5, y, Color(0.03, 0.01, 0.01, sa))
+			# Écailles marquées tombées des ailes : la Marque du Wyrm y brûle.
+			for i in range(5):
+				var mx2 := rng.randi_range(int(w * 0.1), int(w * 0.9))
+				var my2 := rng.randi_range(int(h * 0.78), h - 6)
+				_disc(img, mx2, my2, 2, Color("6a1a12"))
+				_px(img, mx2, my2, Color("ff4a2a"))
+		"drake":
+			# Le perchoir du drake ancien : un piton de basalte, ossements et éclats d'écailles, griffures dans la roche.
+			var px2 := w / 2
+			var pb := int(h * 0.76)
+			var pw := int(w * 0.3)
+			# Rocher déchiqueté : sommet en dents de scie, flancs éclairés par les braises.
+			var walk := 0.0
+			for xx in range(px2 - int(pw * 0.7), px2 + int(pw * 0.7)):
+				walk = clampf(walk + rng.randf_range(-1.6, 1.6), -float(h) * 0.04, float(h) * 0.04)
+				var f5 := absf(float(xx - px2)) / (float(pw) * 0.7)
+				var top5 := int(h * 0.44 + f5 * f5 * h * 0.3 + walk)
+				for y in range(top5, pb + int(h * 0.03)):
+					var k5 := float(y - top5) / maxf(1.0, float(pb - top5))
+					var c5 := Color("2a1e22").lerp(Color("181012"), k5)
+					if (xx + y / 3) % 9 == 0:
+						c5 = c5.darkened(0.3)
+					_px(img, xx, y, c5)
+				_px(img, xx, top5, Color("8a4a2a") if xx > px2 else Color("4a2a24"))
+				_px(img, xx, top5 + 1, Color("5a3024"))
+			for k6 in range(3):
+				for d2 in range(int(h * 0.12)):
+					_px(img, px2 - pw / 6 + k6 * 5 + d2 / 4, int(h * 0.54) + d2, Color("ff7a2a") if d2 % 5 else Color("ffd070"))
+			for i in range(maxi(6, w / 24)):
+				var bx2 := rng.randi_range(int(w * 0.05), int(w * 0.95))
+				var by2 := rng.randi_range(int(h * 0.8), h - 3)
+				img.fill_rect(Rect2i(bx2, by2, rng.randi_range(5, 12), 2), Color("d8c8a8"))
+				_px(img, bx2, by2 - 1, Color("d8c8a8"))
+			_glow_px(img, px2, int(h * 0.5), int(w * 0.18), Color("ff9a4a"), 0.2)
 		"coulee":
 			# Rivières de magma qui serpentent jusqu'au premier plan.
 			for k in range(3):
@@ -1654,6 +1737,76 @@ static func _cendres(img: Image, rng: RandomNumberGenerator, kind: String) -> vo
 				_px(img, tx, cb - th / 2, Color("ffb050"))
 	if kind != "cendres":
 		_mist(img, rng, int(h * 0.6), h - 2, Color(0.2, 0.08, 0.06, 0.2), 20)
+
+
+## Langue de flamme : base jaune, corps orange, pointe rouge qui ondule, lueur autour.
+static func _flame(img: Image, rng: RandomNumberGenerator, x: int, base: int, hgt: int) -> void:
+	_glow_px(img, x, base - hgt / 2, maxi(4, hgt), Color("ff7a2a"), 0.22)
+	var hw := maxi(2, hgt / 4)
+	for y in range(hgt):
+		var k := float(y) / float(maxi(1, hgt))
+		var half := int(float(hw) * (1.0 - k) * (0.8 + 0.2 * sin(k * 9.0 + float(x))))
+		var sway := int(sin(k * 4.0 + float(x) * 0.3) * float(hw) * 0.5 * k)
+		for dx in range(-half, half + 1):
+			var c := Color("ffe08a") if k < 0.3 and absi(dx) < half / 2 + 1 else (Color("ff8a2a") if k < 0.7 else Color("d83a1a"))
+			_px(img, x + dx + sway, base - y, c)
+	if rng.randf() < 0.5:
+		_px(img, x + rng.randi_range(-hw, hw), base - hgt - rng.randi_range(2, 6), Color("ffb050"))
+
+
+## Silhouette de dragon en vol, ailes déployées (vue de dessous), de la taille « span ».
+static func _wing_silhouette(img: Image, cx: int, cy: int, span: int, col: Color) -> void:
+	var half := span / 2
+	for k in range(-half, half + 1):
+		var f := absf(float(k)) / float(maxi(1, half))
+		var top := cy - int(float(span) * 0.18 * sin(f * PI * 0.9))
+		var bot := cy + int(float(span) * 0.06 * (1.0 - f)) + int(3.0 * sin(f * 18.0))
+		for y in range(top, bot + 1):
+			_px(img, cx + k, y, col)
+	img.fill_rect(Rect2i(cx - maxi(1, span / 40), cy - span / 6, maxi(2, span / 20), span / 2), col)
+	for d in range(span / 4):
+		_px(img, cx + int(sin(float(d) * 0.3) * 3.0), cy + span / 3 + d, col)
+	_disc(img, cx, cy - span / 6, maxi(2, span / 26), col)
+
+
+## Le Pardon : la forêt guérie à l'aube. Les troncs restent noirs, mais des pousses vertes les couvrent ;
+## le feu de la Mère, redevenu doré, luit sous les cendres ; des cendres d'or flottent.
+static func _pardon(img: Image, rng: RandomNumberGenerator) -> void:
+	var w := img.get_width()
+	var h := img.get_height()
+	_sky(img, rng, [[0.0, Color("2a1e3a")], [0.3, Color("7a4a5a")], [0.52, Color("e8a060")], [0.64, Color("ffd890")], [0.7, Color("6a5a3a")], [1.0, Color("2a2a1a")]], 0.05)
+	var sx := int(w * 0.5)
+	var sy := int(h * 0.62)
+	_glow_px(img, sx, sy, int(w * 0.35), Color("ffd070"), 0.3)
+	_disc(img, sx, sy, maxi(5, int(minf(w, h) * 0.06)), Color("fff0c0"))
+	_ridge(img, rng, int(h * 0.6), int(h * 0.03), Color("3a3a22"), Color("8a9a4a"))
+	var x := -rng.randi_range(0, 8)
+	while x < w + 8:
+		var base := int(h * 0.7) + rng.randi_range(-3, 3)
+		var hgt := rng.randi_range(int(h * 0.12), int(h * 0.26))
+		_burnt_tree(img, rng, x, base, hgt, false)
+		# Pousses vertes sur le tronc et au pied.
+		for f in range(rng.randi_range(4, 9)):
+			_px(img, x + rng.randi_range(-3, 3), base - rng.randi_range(0, hgt), Color("7ac83a") if f % 2 else Color("b8f070"))
+		x += rng.randi_range(int(w * 0.06), int(w * 0.11))
+	for y in range(int(h * 0.7), h):
+		var k := float(y - int(h * 0.7)) / float(maxi(1, h - int(h * 0.7)))
+		img.fill_rect(Rect2i(0, y, w, 1), Color("3a3a22").lerp(Color("1e2014"), k))
+	for i in range(w * 2):
+		var gx := rng.randi_range(0, w)
+		var gy := rng.randi_range(int(h * 0.72), h)
+		_px(img, gx, gy, Color("5a8a2a") if i % 3 else Color("9ad050"))
+		if i % 4 == 0:
+			_px(img, gx, gy - 1, Color("7ab83a"))
+	# Le feu doré sous les cendres.
+	for i in range(maxi(3, w / 70)):
+		var lx := rng.randi_range(0, w)
+		var ly := rng.randi_range(int(h * 0.76), h - 4)
+		for d in range(rng.randi_range(8, 20)):
+			_px(img, lx + d, ly + int(sin(float(d) * 0.3) * 1.5), Color("ffd070"))
+		_glow_px(img, lx + 8, ly, 8, Color("ffd070"), 0.2)
+	_fireflies(img, rng, int(w * h / 800.0), int(h * 0.2), h - 2, Color("ffe08a"))
+	_mist(img, rng, int(h * 0.62), int(h * 0.75), Color(1.0, 0.9, 0.7, 0.12), 14)
 
 
 ## Cavernes : la caldeira de la Mère-Dragon (dragonne endormie, chaînes brisées, l'Œuf de cendre) et l'antre du Wyrm.
