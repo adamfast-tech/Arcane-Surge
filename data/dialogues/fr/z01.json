@@ -211,10 +211,10 @@
       "art": "nexus",
       "cast": ["porteur", "sylwen", "brann"],
       "lines": [
-        {"cam": "pan_left", "who": "sylwen", "text": "Le Cœur de la Forêt. Deux Nexus gardent le chemin de la Sylvarche, avec une tour de ronces."},
-        {"who": "brann", "mood": "joie", "text": "Deux Nexus, une tour : trois cibles. J'aime quand c'est simple."},
-        {"who": "sylwen", "text": "Les feux-follets tirent de loin. Ne les laisse pas user la Barrière."},
-        {"fx": "flash:d93cf2", "cam": ["tremble", "zoom"], "who": "sylvarche", "text": "Qui ose… entrer… dans mon cœur…"}
+        {"fx": "heartbeat@center:b03cf2", "cam": "pan_left", "grade": "violet", "who": "sylwen", "text": "Le Cœur de la Forêt. Deux Nexus gardent le chemin de la Sylvarche, avec une tour de ronces."},
+        {"cam": "reset", "who": "brann", "mood": "joie", "text": "Deux Nexus, une tour : trois cibles. J'aime quand c'est simple."},
+        {"fx": "willo@center:8fe8ff", "who": "sylwen", "text": "Les feux-follets tirent de loin. Ne les laisse pas user la Barrière."},
+        {"fx": ["heartbeat@subject:d93cf2", "veins@ground:d97cf2"], "cam": "push", "grade": "red", "who": "sylvarche", "text": "Qui ose… entrer… dans mon cœur…"}
       ]
     },
     "z01_l09_outro": {
@@ -223,20 +223,20 @@
       "subject_tint": "FFE4F6",
       "cast": ["porteur", "sylwen", "brann"],
       "lines": [
-        {"fx": "flash:d93cf2", "cam": "shake", "act": {"subject": "rise"}, "who": "narrateur", "text": "Les Nexus s'effondrent. Derrière eux, des cages de ronces : des dizaines de fées, pâles et captives."},
-        {"who": "fee", "mood": "triste", "text": "Aidez-nous… La Sylvarche boit notre lumière. Chaque instant nous éteint un peu plus…"},
-        {"who": "brann", "text": "Si on s'arrête pour les libérer, la Sylvarche aura le temps de s'enraciner. Elle sera plus forte."},
-        {"who": "sylwen", "mood": "triste", "text": "Et si on les laisse, elles mourront. Je… je ne sais pas. C'est à toi de décider."},
+        {"fx": "cage@subject:5a3a6a", "act": {"subject": "rise"}, "grade": "violet", "cam": "push", "who": "narrateur", "text": "Les Nexus s'effondrent. Derrière eux, des cages de ronces : des dizaines de fées, pâles et captives."},
+        {"fx": "drip@subject:ffb8f0", "grade": "dark", "who": "fee", "mood": "triste", "text": "Aidez-nous… La Sylvarche boit notre lumière. Chaque instant nous éteint un peu plus…"},
+        {"cam": "focus:brann", "grade": "violet", "who": "brann", "text": "Si on s'arrête pour les libérer, la Sylvarche aura le temps de s'enraciner. Elle sera plus forte."},
+        {"cam": "focus:porteur", "who": "sylwen", "mood": "triste", "text": "Et si on les laisse, elles mourront. Je… je ne sais pas. C'est à toi de décider."},
         {"choice": "z01_l09", "prompt": "Les fées captives", "options": [
           {"key": "A", "text": "Libérer les fées captives", "effects": {"set": ["s1.fees_liberees"], "add": {"loy.sylwen": 10}},
            "then": [
-             {"act": {"subject": "glow"}, "fx": "sparkles:ffe4f6", "who": "fee", "mood": "joie", "text": "Merci… Nous n'oublierons pas. Quand tu affronteras la Sylvarche, nous serons là."},
+             {"fx": "shatter@subject:ffe4f6", "act": {"subject": "glow"}, "cam": "reset", "grade": "dawn", "who": "fee", "mood": "joie", "text": "Merci… Nous n'oublierons pas. Quand tu affronteras la Sylvarche, nous serons là."},
              {"who": "sylwen", "mood": "joie", "text": "Merci. Vraiment."}
            ]},
           {"key": "B", "text": "Poursuivre la Sylvarche", "effects": {"set": ["s1.sylvarche_poursuivie"]},
            "then": [
-             {"act": {"brann": "exit"}, "who": "brann", "text": "On fonce. Désolé, les minuscules : on revient vous chercher après."},
-             {"act": {"subject": "fall"}, "who": "fee", "mood": "triste", "text": "Après… il sera trop tard…"},
+             {"act": {"brann": "exit"}, "cam": "reset", "who": "brann", "text": "On fonce. Désolé, les minuscules : on revient vous chercher après."},
+             {"act": {"subject": "fall"}, "grade": "dark", "who": "fee", "mood": "triste", "text": "Après… il sera trop tard…"},
              {"who": "sylwen", "mood": "triste", "text": "…Allons-y. Vite."}
            ]}
         ]}

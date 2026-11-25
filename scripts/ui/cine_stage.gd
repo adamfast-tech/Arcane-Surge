@@ -31,7 +31,7 @@ const MAX_FIGURES := 4
 ## Vocabulaire des indications (vérifié par tools/ui_smoke.gd).
 const CAMS := ["zoom", "zoom_out", "reset", "punch", "shake", "tremble", "pan_left", "pan_right", "pan_up", "push", "pull", "kick", "focus"]
 const FXS := ["flash", "white", "fade", "lightning", "sparkles", "embers", "bloom", "ring", "rays", "bolt", "beam", "crack",
-	"seal", "spiral", "flux", "gate", "arrow", "swarm", "clang", "steam", "thorns", "glitter", "hooves", "drip", "ferns", "lanes", "timestop", "flicker", "wind", "eyes", "veins", "fountain",
+	"seal", "spiral", "flux", "gate", "arrow", "swarm", "clang", "steam", "thorns", "glitter", "hooves", "drip", "ferns", "lanes", "timestop", "flicker", "wind", "eyes", "veins", "fountain", "heartbeat", "willo", "cage", "shatter",
 	"slash", "wisps", "charge", "burst", "leaves", "dust", "shock"]
 const ACTS := ["jump", "hop", "shake", "hurt", "attack", "droop", "kneel", "glow", "fall", "exit", "enter", "rise", "turn", "step", "cast", "echo"]
 const SUBJECT_ACTS := ["roar", "hit", "fall", "glow", "rise", "fade", "appear"]
@@ -643,6 +643,34 @@ func _effect(spec: String) -> void:
 			var fo := _add_fx("emit_fountain", anchor if anchor != "auto" else "ground", col if col_s != "" else Color("9fe3ff"), "light", 4.0)
 			fo["rate"] = 170.0
 			_fx_set(_add_fx("ring", anchor if anchor != "auto" else "ground", col if col_s != "" else Color("9fe3ff"), "light", 1.0), "sq", 0.3)
+		"heartbeat":
+			# Le Cœur de la Forêt bat : double battement sourd, la lumière enfle avec lui.
+			var hb := _add_fx("heartbeat", anchor, col if col_s != "" else Color("d93cf2"), "light", 4.2)
+			hb["r"] = sh * 0.6
+			hb["beat"] = -1
+		"willo":
+			# Feux-follets : des orbes froids dérivent en laissant une traîne.
+			var wo := _add_fx("willo", anchor, col if col_s != "" else Color("8fe8ff"), "light", 4.5)
+			var orbs := PackedVector2Array()
+			for i in range(5):
+				orbs.append(Vector2(randf() * TAU, randf_range(0.6, 1.4)))
+			wo["pts"] = orbs
+			wo["r"] = sh * 0.35
+		"cage":
+			# Cage de ronces : des barreaux épineux enferment le sujet.
+			_fx_set(_add_fx("cage", anchor, col if col_s != "" else Color("5a3a6a"), "front", 1e9), "r", sh * 0.3)
+		"shatter":
+			# La cage vole en éclats : barreaux en morceaux, poussière de lumière.
+			for e9 in _fx.duplicate():
+				if str(e9["kind"]) == "cage":
+					_fx.erase(e9)
+			var sp3 := _anchor_pos(anchor)
+			for i in range(40):
+				_part({"p": sp3 + Vector2(randf_range(-1, 1) * sh * 0.25, randf_range(-1, 1) * sh * 0.25), "v": Vector2.from_angle(randf() * TAU) * randf_range(120, 320),
+					"max": randf_range(0.7, 1.2), "col": Color("6a4a7a"), "size": 1.0, "layer": "front", "grav": Vector2(0, 420), "drag": 1.0, "kind": "leaf"})
+			var gl2 := _add_fx("emit_glitter", anchor, col if col_s != "" else Color("ffe4f6"), "light", 2.0)
+			gl2["rate"] = 60.0
+			_kick_impulse(8.0)
 		"hooves":
 			# Martèlement au loin : le sol bat, la poussière saute, à intervalles réguliers.
 			var hv := _add_fx("hooves", "ground", Color("d8c8b0"), "back", 3.2)
@@ -1226,6 +1254,11 @@ func _update_fx(delta: float) -> void:
 			while float(e["acc"]) >= 1.0:
 				e["acc"] = float(e["acc"]) - 1.0
 				_emit(e)
+		if kind == "heartbeat":
+			var hb2 := int(float(e["t"]) / 1.1)
+			if hb2 != int(e["beat"]) and float(e["t"]) < float(e["dur"]) - 0.5:
+				e["beat"] = hb2
+				_punch = 0.6
 		if kind == "hooves":
 			var beat := int(float(e["t"]) / 0.42)
 			if beat != int(e["beat"]) and float(e["t"]) < float(e["dur"]) - 0.4:
@@ -1611,6 +1644,41 @@ func _draw_fx(ci: CanvasItem, e: Dictionary, k: float) -> void:
 				if seg.size() >= 2:
 					ci.draw_polyline(seg, Color(col, a15 * 0.35), 3.0)
 					ci.draw_polyline(seg, Color(col.lightened(0.3), a15), 1.0)
+		"heartbeat":
+			var ph2 := fmod(t, 1.1)
+			var thump := maxf(exp(-ph2 * 9.0), 0.7 * exp(-maxf(0.0, ph2 - 0.22) * 9.0) * (1.0 if ph2 > 0.22 else 0.0))
+			var a16 := minf(1.0, (dur - t) / 0.6)
+			var hr := float(e["r"]) * k * (0.6 + 0.4 * thump)
+			for i in range(6):
+				var hq := 1.0 - float(i) / 6.0
+				ci.draw_circle(c, hr * hq, Color(col, a16 * 0.06 * (0.4 + thump)))
+		"willo":
+			var ob: PackedVector2Array = e["pts"]
+			var wr := float(e["r"]) * k
+			var a17 := minf(1.0, t / 0.5) * minf(1.0, (dur - t) / 0.7)
+			for i in range(ob.size()):
+				var o2 := ob[i]
+				for tr in range(6):
+					var tt := t - float(tr) * 0.06
+					var op := c + Vector2(cos(o2.x + tt * o2.y) * wr * 1.4, sin(o2.x * 2.0 + tt * o2.y * 1.6) * wr * 0.5)
+					var ta := a17 * (1.0 - float(tr) / 6.0)
+					if tr == 0:
+						ci.draw_circle(op, 4.0, Color(col, ta * 0.2))
+						ci.draw_rect(Rect2(op.floor() - Vector2.ONE, Vector2(2, 2)), Color(Color.WHITE, ta))
+					else:
+						ci.draw_rect(Rect2(op.floor(), Vector2.ONE), Color(col, ta * 0.6))
+		"cage":
+			var cr := float(e["r"]) * k
+			var cg := clampf(t / 0.8, 0.0, 1.0)
+			var base2 := c.y + cr
+			for i in range(7):
+				var bx2 := c.x - cr + float(i) * cr * 2.0 / 6.0
+				var top2 := base2 - cr * 2.0 * cg * (0.9 + 0.1 * sin(float(i) * 1.7))
+				ci.draw_line(Vector2(bx2, base2).floor(), Vector2(bx2 + sin(float(i)) * 2.0, top2).floor(), Color(Color("1a0e20"), 1.0), 3.0)
+				ci.draw_line(Vector2(bx2, base2).floor(), Vector2(bx2 + sin(float(i)) * 2.0, top2).floor(), Color(col, 1.0), 1.0)
+				for j in range(3):
+					var ty := lerpf(base2, top2, 0.25 + 0.25 * float(j))
+					ci.draw_line(Vector2(bx2, ty).floor(), Vector2(bx2 + (2.0 if j % 2 == 0 else -2.0), ty - 2.0).floor(), Color(col.lightened(0.2), 1.0), 1.0)
 		"lanes":
 			var xs: PackedVector2Array = e["pts"]
 			var gy := (_anchor_pos("ground") * k).y
