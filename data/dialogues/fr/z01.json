@@ -15,34 +15,37 @@
     "prologue": {
       "title": "Prologue",
       "art": "fracture",
+      "grade": "night",
       "lines": [
-        {"fx": "fade", "cam": "zoom", "who": "narrateur", "text": "Valdrune. Il y a trois cents ans, l'archimage Morvaen tenta un sortilège que nul n'aurait dû tenter."},
-        {"fx": ["white", "sparkles:d93cf2"], "cam": ["shake", "zoom_out"], "who": "narrateur", "text": "La trame du monde se déchira. On appelle cette blessure la Fracture."},
-        {"fx": "sparkles:b07cff", "cam": ["reset", "pan_right"], "who": "narrateur", "art": "surge", "text": "Depuis, la magie brute des Veines déferle par vagues incontrôlées : l'Arcane Surge."},
-        {"fx": "flash:d93cf2", "cam": ["zoom", "tremble"], "who": "narrateur", "art": "nexus", "text": "Là où elle s'accumule naissent les Nexus, des cœurs corrompus qui enfantent des monstres."},
-        {"fx": "sparkles:4fe3d2", "cam": "reset", "who": "narrateur", "art": "surge", "text": "Les Canalisateurs savent plier cette énergie et la changer en invocations. Tu en fais partie."},
-        {"fx": "fade", "cam": "zoom_out", "who": "narrateur", "art": "lysbourg", "text": "Ce soir, à l'orée du Bois des Lucioles, le village de Lysbourg dort paisiblement."},
-        {"fx": "flash:b07cff", "cam": ["punch", "shake"], "who": "narrateur", "art": "lysbourg", "text": "Plus pour longtemps."}
+        {"subject": "portrait:morvaen", "subject_tint": "9a8ac8", "fx": ["fade", "circle@subject:b07cff", "charge@subject:b07cff"], "cam": "push", "grade": "night", "who": "narrateur", "text": "Valdrune. Il y a trois cents ans, l'archimage Morvaen tenta un sortilège que nul n'aurait dû tenter."},
+        {"subject": "", "fx": ["white", "crack@sky:d93cf2", "shock@ground:d93cf2"], "cam": ["kick", "pull"], "grade": "violet", "who": "narrateur", "text": "La trame du monde se déchira. On appelle cette blessure la Fracture."},
+        {"fx": ["wisps@ground:b07cff", "rays@sky:d93cf2"], "cam": ["reset", "pan_right"], "who": "narrateur", "art": "surge", "text": "Depuis, la magie brute des Veines déferle par vagues incontrôlées : l'Arcane Surge."},
+        {"fx": ["charge@center:d93cf2", "ring@center:d93cf2"], "cam": "focus:center", "grade": "red", "who": "narrateur", "art": "nexus", "text": "Là où elle s'accumule naissent les Nexus, des cœurs corrompus qui enfantent des monstres."},
+        {"act": {"porteur": "cast"}, "fx": "rays@porteur:4fe3d2", "cam": "reset", "grade": "none", "who": "narrateur", "art": "surge", "text": "Les Canalisateurs savent plier cette énergie et la changer en invocations. Tu en fais partie."},
+        {"act": {"porteur": "exit"}, "fx": "fade", "cam": "pull", "grade": "night", "who": "narrateur", "art": "lysbourg", "text": "Ce soir, à l'orée du Bois des Lucioles, le village de Lysbourg dort paisiblement."},
+        {"fx": ["bolt@center:d93cf2", "shock@ground:b07cff"], "cam": "kick", "grade": "violet", "who": "narrateur", "art": "lysbourg", "text": "Plus pour longtemps."}
       ]
     },
 
     "z01_l01_intro": {
       "art": "lysbourg",
+      "grade": "violet",
       "lines": [
-        {"fx": "flash:b07cff", "cam": "shake", "who": "ancien", "mood": "surpris", "text": "Debout ! Le ciel est devenu violet au-dessus du bois… Le Surge frappe Lysbourg !"},
-        {"cam": "pan_right", "who": "ancien", "mood": "triste", "text": "Un Nexus a germé près du vieux pont. Ses créatures marchent déjà sur le village."},
-        {"fx": "sparkles:4fe3d2", "cam": "reset", "who": "porteur", "mood": "colere", "text": "Je peux les arrêter. Le Surge n'est qu'une énergie de plus : il suffit de la canaliser."},
-        {"act": {"porteur": "glow"}, "who": "ancien", "text": "Alors canalise ! Les portes runiques du chemin amplifieront ton flux. Vise-les !"},
-        {"act": {"porteur": "exit"}, "cam": "punch", "who": "ancien", "mood": "colere", "text": "Et tant que la Barrière tient, le village tient. Va !"}
+        {"fx": ["bloom@sky:b07cff", "bolt@center:d93cf2"], "cam": "kick", "who": "ancien", "mood": "surpris", "text": "Debout ! Le ciel est devenu violet au-dessus du bois… Le Surge frappe Lysbourg !"},
+        {"fx": "wisps@center:b07cff", "cam": "pan_right", "who": "ancien", "mood": "triste", "text": "Un Nexus a germé près du vieux pont. Ses créatures marchent déjà sur le village."},
+        {"act": {"porteur": "cast"}, "fx": "charge@porteur:4fe3d2", "cam": "focus:porteur", "who": "porteur", "mood": "colere", "text": "Je peux les arrêter. Le Surge n'est qu'une énergie de plus : il suffit de la canaliser."},
+        {"fx": "circle@center:f2c46b", "cam": "reset", "who": "ancien", "text": "Alors canalise ! Les portes runiques du chemin amplifieront ton flux. Vise-les !"},
+        {"act": {"porteur": "exit"}, "fx": "burst@porteur:4fe3d2", "cam": "push", "who": "ancien", "mood": "colere", "text": "Et tant que la Barrière tient, le village tient. Va !"}
       ]
     },
     "z01_l01_outro": {
       "art": "lysbourg",
       "cast": ["porteur"],
+      "grade": "dawn",
       "lines": [
-        {"fx": "sparkles:f2c46b", "act": {"porteur": "hop"}, "who": "ancien", "mood": "joie", "text": "Le Nexus s'est brisé ! Par les Veines… tu as sauvé Lysbourg."},
-        {"cam": "pan_right", "who": "ancien", "mood": "triste", "text": "Mais regarde la forêt : les lueurs violettes s'étendent. Ce n'était qu'une première vague."},
-        {"who": "ancien", "text": "Les Vigiles Sylvestres gardent le Bois. Tu les trouveras sur le Sentier des Lucioles."}
+        {"act": {"porteur": "hop"}, "fx": ["rays@sky:f2c46b", "burst@center:f2c46b"], "who": "ancien", "mood": "joie", "text": "Le Nexus s'est brisé ! Par les Veines… tu as sauvé Lysbourg."},
+        {"fx": "wisps@center:b07cff", "cam": "pan_right", "grade": "violet", "who": "ancien", "mood": "triste", "text": "Mais regarde la forêt : les lueurs violettes s'étendent. Ce n'était qu'une première vague."},
+        {"cam": "reset", "grade": "dawn", "who": "ancien", "text": "Les Vigiles Sylvestres gardent le Bois. Tu les trouveras sur le Sentier des Lucioles."}
       ]
     },
 
@@ -132,7 +135,7 @@
       "lines": [
         {"act": {"subject": "rise"}, "fx": "sparkles:cfe6ff", "who": "narrateur", "subject_tint": "CFE6FF", "text": "La corruption s'échappe des bois du Cerf en volutes violettes. Il se relève, apaisé."},
         {"act": {"subject": "glow"}, "cam": "zoom", "who": "cerf", "text": "Canalisateur… Le Sceau attendait une main comme la tienne. Il est à toi, désormais."},
-        {"act": {"porteur": "glow"}, "fx": ["white", "sparkles:4fe3d2"], "cam": "punch", "who": "narrateur", "text": "Une lumière brûle ta paume, puis s'y grave : un cercle runique traversé d'une ligne. Le Sceau d'Écho."},
+        {"act": {"porteur": "cast"}, "fx": ["beam@porteur:9ff0ff", "white"], "cam": "focus:porteur", "who": "narrateur", "text": "Une lumière brûle ta paume, puis s'y grave : un cercle runique traversé d'une ligne. Le Sceau d'Écho."},
         {"effects": {"set": ["s1.sceau_echo"]}},
         {"who": "cerf", "text": "Avec lui, tu entendras les échos du temps. Le dernier qui l'a porté a voulu tout réparer…"},
         {"cam": "zoom_out", "who": "cerf", "mood": "triste", "text": "…et il a tout brisé. Ne l'oublie jamais."},

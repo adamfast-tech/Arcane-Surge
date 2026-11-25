@@ -1,29 +1,36 @@
 P = ["porteur"]
 PS = ["porteur", "sylwen"]
 PSB = ["porteur", "sylwen", "brann"]
-CAST = {
-    "z01_l01_outro": P, "z01_l02_intro": P, "z01_l02_outro": PS, "z01_l03_intro": PS, "z01_l03_outro": PSB,
+SCENE = {
+    "prologue": {"grade": "night"},
+    "z01_l01_intro": {"grade": "violet"},
+    "z01_l01_outro": {"cast": P, "grade": "dawn"},
+}
+CAST = { "z01_l02_intro": P, "z01_l02_outro": PS, "z01_l03_intro": PS, "z01_l03_outro": PSB,
     "z01_l04_intro": PSB, "z01_l04_outro": PSB, "z01_l05_intro": PSB, "z01_l05_outro": PSB, "z01_l06_intro": PSB,
     "z01_l06_outro": PSB, "z01_l07_intro": PSB, "z01_l07_outro": PSB, "z01_l08_intro": PSB, "z01_l08_outro": PSB,
     "z01_l09_intro": PSB, "z01_l09_outro": PSB, "z01_l10_intro": PSB, "z01_l10_outro": PSB,
 }
 CUES = [
-    # Prologue : la Fracture, le Surge, Lysbourg endormi.
-    ("prologue", "Valdrune. Il y a trois cents ans", {"fx": "fade", "cam": "zoom"}),
-    ("prologue", "La trame du monde se déchira", {"fx": ["white", "sparkles:d93cf2"], "cam": ["shake", "zoom_out"]}),
-    ("prologue", "Depuis, la magie brute", {"fx": "sparkles:b07cff", "cam": ["reset", "pan_right"]}),
-    ("prologue", "Là où elle s'accumule", {"fx": "flash:d93cf2", "cam": ["zoom", "tremble"]}),
-    ("prologue", "Les Canalisateurs savent", {"fx": "sparkles:4fe3d2", "cam": "reset"}),
-    ("prologue", "Ce soir, à l'orée", {"fx": "fade", "cam": "zoom_out"}),
-    ("prologue", "Plus pour longtemps.", {"fx": "flash:b07cff", "cam": ["punch", "shake"]}),
+    # Prologue : Morvaen et son sortilège, la Fracture, le Surge, les Nexus ; le héros ; Lysbourg endormi.
+    ("prologue", "Valdrune. Il y a trois cents ans", {"subject": "portrait:morvaen", "subject_tint": "9a8ac8",
+        "fx": ["fade", "circle@subject:b07cff", "charge@subject:b07cff"], "cam": "push", "grade": "night"}),
+    ("prologue", "La trame du monde se déchira", {"subject": "", "fx": ["white", "crack@sky:d93cf2", "shock@ground:d93cf2"],
+        "cam": ["kick", "pull"], "grade": "violet"}),
+    ("prologue", "Depuis, la magie brute", {"fx": ["wisps@ground:b07cff", "rays@sky:d93cf2"], "cam": ["reset", "pan_right"]}),
+    ("prologue", "Là où elle s'accumule", {"fx": ["charge@center:d93cf2", "ring@center:d93cf2"], "cam": "focus:center", "grade": "red"}),
+    ("prologue", "Les Canalisateurs savent", {"act": {"porteur": "cast"}, "fx": "rays@porteur:4fe3d2", "cam": "reset", "grade": "none"}),
+    ("prologue", "Ce soir, à l'orée", {"act": {"porteur": "exit"}, "fx": "fade", "cam": "pull", "grade": "night"}),
+    ("prologue", "Plus pour longtemps.", {"fx": ["bolt@center:d93cf2", "shock@ground:b07cff"], "cam": "kick", "grade": "violet"}),
     # 1-1 : le réveil de Lysbourg.
-    ("z01_l01_intro", "Debout ! Le ciel est devenu violet", {"fx": "flash:b07cff", "cam": "shake"}),
-    ("z01_l01_intro", "Un Nexus a germé", {"cam": "pan_right"}),
-    ("z01_l01_intro", "Je peux les arrêter.", {"fx": "sparkles:4fe3d2", "cam": "reset"}),
-    ("z01_l01_intro", "Alors canalise !", {"act": {"porteur": "glow"}}),
-    ("z01_l01_intro", "Et tant que la Barrière tient", {"act": {"porteur": "exit"}, "cam": "punch"}),
-    ("z01_l01_outro", "Le Nexus s'est brisé", {"fx": "sparkles:f2c46b", "act": {"porteur": "hop"}}),
-    ("z01_l01_outro", "Mais regarde la forêt", {"cam": "pan_right"}),
+    ("z01_l01_intro", "Debout ! Le ciel est devenu violet", {"fx": ["bloom@sky:b07cff", "bolt@center:d93cf2"], "cam": "kick"}),
+    ("z01_l01_intro", "Un Nexus a germé", {"fx": "wisps@center:b07cff", "cam": "pan_right"}),
+    ("z01_l01_intro", "Je peux les arrêter.", {"act": {"porteur": "cast"}, "fx": "charge@porteur:4fe3d2", "cam": "focus:porteur"}),
+    ("z01_l01_intro", "Alors canalise !", {"fx": "circle@center:f2c46b", "cam": "reset"}),
+    ("z01_l01_intro", "Et tant que la Barrière tient", {"act": {"porteur": "exit"}, "fx": "burst@porteur:4fe3d2", "cam": "push"}),
+    ("z01_l01_outro", "Le Nexus s'est brisé", {"act": {"porteur": "hop"}, "fx": ["rays@sky:f2c46b", "burst@center:f2c46b"]}),
+    ("z01_l01_outro", "Mais regarde la forêt", {"fx": "wisps@center:b07cff", "cam": "pan_right", "grade": "violet"}),
+    ("z01_l01_outro", "Les Vigiles Sylvestres gardent", {"cam": "reset", "grade": "dawn"}),
     # 1-2 : Sylwen.
     ("z01_l02_intro", "Halte ! Un pas de plus", {"cam": "punch", "act": {"porteur": "hurt"}}),
     ("z01_l02_intro", "Les lucioles fuient le Surge", {"fx": "sparkles:fff3b0"}),
@@ -48,7 +55,7 @@ CUES = [
     ("z01_l05_intro", "Il baisse la tête", {"act": {"subject": "roar"}, "cam": ["shake", "reset"]}),
     ("z01_l05_outro", "La corruption s'échappe", {"act": {"subject": "rise"}, "fx": "sparkles:cfe6ff"}),
     ("z01_l05_outro", "Canalisateur… Le Sceau attendait", {"act": {"subject": "glow"}, "cam": "zoom"}),
-    ("z01_l05_outro", "Une lumière brûle ta paume", {"act": {"porteur": "glow"}, "fx": ["white", "sparkles:4fe3d2"], "cam": "punch"}),
+    ("z01_l05_outro", "Une lumière brûle ta paume", {"act": {"porteur": "cast"}, "fx": ["beam@porteur:9ff0ff", "white"], "cam": "focus:porteur"}),
     ("z01_l05_outro", "…et il a tout brisé.", {"cam": "zoom_out"}),
     ("z01_l05_outro", "Il est parti… Un Sceau d'Écho", {"fx": "sparkles:cfe6ff", "cam": "reset"}),
     # 1-6 : les fées sombres, le premier Écho.

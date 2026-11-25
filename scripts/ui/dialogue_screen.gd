@@ -33,6 +33,7 @@ var _mood := "neutre"
 var _talk_frame := 0
 var _blink := false
 var _blink_t := 3.0
+var _hold := 0.0 ## carton-titre : la première réplique attend (un toucher l'abrège)
 
 var art_rect: TextureRect
 var subject_rect: TextureRect
@@ -218,7 +219,8 @@ func _relayout() -> void:
 	if not head_row.visible:
 		ph += head_row.get_combined_minimum_size().y + 12.0
 	stage.ground_y = size.y - 24.0 - ph - 6.0
-	stage.top_y = 90.0
+	stage.top_y = 0.0
+	stage.set_px(3.0 if size.x < size.y else 4.0)
 	_refresh_art()
 
 
@@ -239,6 +241,9 @@ func _next_scene() -> void:
 		_finish()
 		return
 	_load_scene(scenes[_scene_i])
+	if _hold > 0.0:
+		panel.visible = false
+		return
 	_advance()
 
 
@@ -248,9 +253,13 @@ func _load_scene(id: String) -> void:
 	_queue = (sc.get("lines", []) as Array).duplicate()
 	stage.begin_scene(sc)
 	_set_art(str(sc.get("art", "foret")))
+	_subject = "~" ## une nouvelle scène repose toujours son sujet (ou efface la présence de la précédente)
 	_set_subject(str(sc.get("subject", "")))
-	subject_rect.modulate = Color(str(sc.get("subject_tint", "ffffff")))
+	stage.set_tint(Color(str(sc.get("subject_tint", "ffffff"))))
 	title_label.text = _scene_title(id, sc)
+	if id == "prologue" or id.ends_with("_intro"):
+		stage.title_card.call_deferred(title_label.text)
+		_hold = 2.2
 
 
 func _scene_title(id: String, sc: Dictionary) -> String:
@@ -305,7 +314,7 @@ func _apply_visuals(l: Dictionary) -> void:
 	if l.has("subject"):
 		_set_subject(str(l["subject"]))
 	if l.has("subject_tint"):
-		subject_rect.modulate = Color(str(l["subject_tint"]))
+		stage.set_tint(Color(str(l["subject_tint"])))
 
 
 func _set_art(kind: String) -> void:
@@ -335,10 +344,10 @@ func _set_art(kind: String) -> void:
 
 
 func _set_subject(name: String) -> void:
+	if name == _subject:
+		return
 	_subject = name
-	subject_rect.texture = SpriteAtlas.single(name) if name != "" else null
-	subject_rect.visible = name != ""
-	stage.subject_changed()
+	stage.set_subject(name)
 
 
 func _show_line(l: Dictionary) -> void:
@@ -352,6 +361,8 @@ func _show_line(l: Dictionary) -> void:
 	_blink = false
 	stage.speak(who, _mood)
 	stage.play_cues(l)
+	# Le personnage est sur scène, en grand : le panneau ne garde que son nom.
+	portrait_frame.visible = false
 	if not narr:
 		var col := Dialogues.color(who)
 		portrait_rect.texture = PortraitArt.texture(who, _mood)
@@ -499,11 +510,9 @@ func _animate_portrait(delta: float) -> void:
 		blink = true
 		if _blink_t <= -0.13:
 			_blink_t = randf_range(2.4, 4.6)
-	if not PortraitArt.can_talk(_who):
-		portrait_rect.pivot_offset = portrait_rect.size * 0.5
-		portrait_rect.scale = Vector2.ONE * (1.0 + (0.035 * absf(sin(_t * 7.0)) if _typing else 0.0))
+	stage.set_mouth(talk if PortraitArt.can_talk(_who) else 0, blink)
+	if not portrait_frame.visible:
 		return
-	portrait_rect.scale = Vector2.ONE
 	if talk != _talk_frame or blink != _blink:
 		_talk_frame = talk
 		_blink = blink
@@ -515,6 +524,10 @@ func _animate_portrait(delta: float) -> void:
 func _skip() -> void:
 	if _waiting_choice or _overlay_open or _done:
 		return
+	_hold = 0.0
+	stage.end_title()
+	panel.visible = true
+	panel.modulate.a = 1.0
 	var last: Dictionary = {}
 	while true:
 		if _queue.is_empty():
@@ -525,6 +538,7 @@ func _skip() -> void:
 				_finish()
 				return
 			_load_scene(scenes[_scene_i])
+			_hold = 0.0
 			continue
 		var l: Dictionary = _queue.pop_front()
 		if not Story.check(l):
@@ -582,8 +596,21 @@ func _unhandled_input(ev: InputEvent) -> void:
 	get_viewport().set_input_as_handled()
 
 
+## Fin du carton-titre : le panneau revient, la première réplique commence.
+func _end_hold() -> void:
+	_hold = 0.0
+	stage.end_title()
+	panel.visible = true
+	panel.modulate.a = 0.0
+	panel.create_tween().tween_property(panel, "modulate:a", 1.0, 0.25)
+	_advance()
+
+
 func _tap() -> void:
 	if _overlay_open or _waiting_choice or _done:
+		return
+	if _hold > 0.0:
+		_end_hold()
 		return
 	if _typing:
 		_complete_line()
@@ -593,6 +620,11 @@ func _tap() -> void:
 
 func _process(delta: float) -> void:
 	_t += delta
+	if _hold > 0.0:
+		_hold -= delta
+		if _hold <= 0.0:
+			_end_hold()
+		return
 	if _typing:
 		_shown += delta * CPS
 		var n := text_label.get_total_character_count()

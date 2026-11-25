@@ -32,7 +32,7 @@ static func frame(who: String, mood: String, talk: int, blink: bool) -> Texture2
 
 ## Le portrait a-t-il une bouche dessinée (sinon il s'anime en respirant) ?
 static func can_talk(who: String) -> bool:
-	return not (who in ["cerf", "sylvarche", "voix", "orrin", "mere_dragon", "wyrm", "leviathan", "ourdisseur"])
+	return not (who in ["cerf", "sylvarche", "voix", "orrin", "mere_dragon", "wyrm", "leviathan", "ourdisseur", "morvaen"])
 
 
 static func texture(who: String, mood: String = "neutre") -> Texture2D:
@@ -108,6 +108,8 @@ static func texture(who: String, mood: String = "neutre") -> Texture2D:
 			_leviathan(img, mood)
 		"ourdisseur":
 			_ourdisseur(img, mood)
+		"morvaen":
+			_porteur_ancien(img, mood)
 		_:
 			return null
 	_outline(img)
@@ -117,7 +119,7 @@ static func texture(who: String, mood: String = "neutre") -> Texture2D:
 
 
 static func has_portrait(who: String) -> bool:
-	return who in ["porteur", "sylwen", "brann", "ancien", "cerf", "sylvarche", "fee", "voix", "krag", "gharok", "prevote", "varg", "nyx", "vesper", "aurele", "corvin", "aelis", "durgan", "ysolde", "orrin", "thalren", "sphinx", "ignara", "mere_dragon", "wyrm", "ssareth", "leviathan", "ourdisseur"] \
+	return who in ["porteur", "sylwen", "brann", "ancien", "cerf", "sylvarche", "fee", "voix", "krag", "gharok", "prevote", "varg", "nyx", "vesper", "aurele", "corvin", "aelis", "durgan", "ysolde", "orrin", "thalren", "sphinx", "ignara", "mere_dragon", "wyrm", "ssareth", "leviathan", "ourdisseur", "morvaen"] \
 		or ResourceLoader.exists("res://assets/portraits/%s.png" % who)
 
 

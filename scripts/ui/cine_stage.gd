@@ -1,13 +1,14 @@
 class_name CineStage
 extends Control
-## Mise en scène des dialogues (docs/design/41-cinematiques.md) : une petite « cinématique » par réplique.
-## - Caméra sur le décor : lent travelling (zoom et dérive), zooms, panoramiques, secousses.
-## - Ambiance animée selon le décor (lumière, brume, lucioles, braises, neige, bulles), éclairs et flashs.
-## - Acteurs : les personnages qui parlent apparaissent sur scène (ils entrent, respirent, s'animent en parlant,
-##   sautent de surprise, tremblent de colère, s'affaissent de tristesse), et agissent sur indication.
-## Indications facultatives d'une réplique : « cam », « fx », « act » (voir play_cues).
+## Mise en scène des dialogues (docs/design/41-cinematiques.md).
+## - Personnages en grands bustes animés (entrée, respiration, bouche, clignements, réactions, actions),
+##   créatures et esprits en « présence » au centre, avec leur aura.
+## - Calques d'effets en pixel-art (SubViewport basse résolution) : lueurs, rayons, cercles runiques qui se
+##   tracent, éclairs, failles, ondes de choc, entailles, volutes, particules ; bulles d'émotion.
+## - Caméra : lent travelling, poussée et recul, mise au point sur un personnage, à-coups amortis (ressort).
+## - Étalonnage des couleurs, bandes cinéma, fondus, ambiance animée du décor, feuilles qui tombent.
+## Indications facultatives d'une réplique : « cam », « fx », « act », « grade », « emote » (voir play_cues).
 
-## Décor -> ambiance (Ambience.MOODS).
 const PLATE_MOOD := {
 	"fracture": "arcane", "surge": "arcane", "nexus": "arcane", "college": "arcane", "sphinx": "arcane", "tour": "moon",
 	"lysbourg": "dawn", "foret": "mist", "foret_gueri": "dawn", "source": "mist", "pont": "mist", "sylvarche": "arcane", "collines": "dawn",
@@ -19,212 +20,437 @@ const PLATE_MOOD := {
 	"caldeira": "forge", "antre": "cinder",
 	"cite": "abyss", "quais": "abyss", "canal": "abyss", "statues": "abyss", "archives": "arcane", "palais": "abyss", "abysse": "abyss",
 }
-## Personnages qui ont un sprite d'acteur (le héros : son sprite généré, « player »).
-const ACTOR_SPRITE := {"porteur": "player", "brann": "brann", "sylwen": "sylwen", "krag": "krag", "nyx": "nyx", "ignara": "ignara", "ssareth": "ssareth"}
-const MAX_ACTORS := 4
+## Décors où des feuilles tombent.
+const LEAFY := ["foret", "foret_gueri", "source", "pont", "collines", "lysbourg", "sylvarche"]
+## Créatures et esprits : ils apparaissent en présence au centre, pas en buste.
+const PRESENCE := ["cerf", "sylvarche", "voix", "wyrm", "mere_dragon", "leviathan", "ourdisseur", "sphinx", "orrin", "morvaen"]
+## Sujets de scène (sprites de combat) montrés par leur portrait.
+const SUBJECT_PORTRAIT := {"stag": "cerf", "sylvarche": "sylvarche", "pixie": "fee"}
+const MAX_FIGURES := 4
+
 ## Vocabulaire des indications (vérifié par tools/ui_smoke.gd).
-const CAMS := ["zoom", "zoom_out", "reset", "punch", "shake", "tremble", "pan_left", "pan_right", "pan_up"]
-const FXS := ["flash", "white", "fade", "lightning", "sparkles", "embers"]
-const ACTS := ["jump", "hop", "shake", "hurt", "attack", "droop", "kneel", "glow", "fall", "exit", "enter", "rise"]
-const SUBJECT_ACTS := ["roar", "hit", "fall", "glow", "rise"]
+const CAMS := ["zoom", "zoom_out", "reset", "punch", "shake", "tremble", "pan_left", "pan_right", "pan_up", "push", "pull", "kick", "focus"]
+const FXS := ["flash", "white", "fade", "lightning", "sparkles", "embers", "bloom", "ring", "rays", "circle", "bolt", "beam", "crack",
+	"slash", "wisps", "charge", "burst", "leaves", "dust", "shock"]
+const ACTS := ["jump", "hop", "shake", "hurt", "attack", "droop", "kneel", "glow", "fall", "exit", "enter", "rise", "turn", "step", "cast"]
+const SUBJECT_ACTS := ["roar", "hit", "fall", "glow", "rise", "fade", "appear"]
+const GRADES := {"none": "ffffff", "night": "8c98d8", "violet": "c8a0f0", "warm": "ffd8ac", "dawn": "ffe6cc", "cold": "b8d6ff",
+	"red": "ff9c8c", "green": "c8f2b8", "dark": "6c6c8c", "gold": "fff0c4"}
+const MOOD_EMOTE := {"surpris": "!", "colere": "anger", "triste": "drop", "joie": "note"}
+## Bulles d'émotion (o : contour, autre lettre : couleur de EMOTE_COL).
+const EMOTES := {
+	"!": [".ooo.", "owwwo", "owwwo", "owwwo", ".owo.", ".owo.", "..o..", ".ooo.", ".owo.", ".ooo."],
+	"?": [".oooo.", "owwwwo", "oo..wo", "...owo", "..owwo", "..owo.", "..oo..", "..oo..", "..owo.", "..oo.."],
+	"anger": [".oo.oo.", "orroror", "oro.oro", ".......", "oro.oro", "orroror", ".oo.oo."],
+	"drop": ["..o..", ".obo.", ".obo.", "obbbo", "obwbo", "obbbo", ".ooo."],
+	"note": ["..oooo", "..oyyo", "..oyoo", "..oyo.", "oooyo.", "oyyyo.", "oyyyo.", ".ooo.."],
+	"dots": ["ooooooooo", "owoowoowo", "ooooooooo"],
+}
+const EMOTE_COL := {"o": "1a1426", "w": "fff6e0", "r": "ff4a3a", "b": "8fd8ff", "y": "ffd86a"}
 
 var art: TextureRect ## le décor, cadré par la caméra
-var subject: TextureRect ## le sujet de la scène (créature, boss)
-var ground_y := 600.0 ## ligne du sol des acteurs (pixels de l'écran)
-var top_y := 90.0 ## haut de la zone de scène
+var subject: TextureRect ## la présence (créature, esprit) au centre
+var ground_y := 600.0 ## haut du panneau de texte : les bustes s'y appuient
+var top_y := 0.0
+var px := 4.0 ## taille d'un pixel des effets
+var talking := false ## l'orateur parle (le texte s'écrit)
+var cast_fixed := false
 
 var _t := 0.0
+var _scene_t := 0.0
+# Caméra.
 var _zoom := 1.0
 var _zoom_to := 1.0
-var _drift_dir := 1.0
+var _focus := Vector2.ZERO
+var _focus_to := Vector2.ZERO
+var _focus_set := false
 var _pan := Vector2.ZERO
 var _pan_to := Vector2.ZERO
-var _shake := 0.0
-var _shake_amp := 10.0
+var _kick := Vector2.ZERO
+var _kick_v := Vector2.ZERO
 var _punch := 0.0
+var _trem := 0.0
+var _drift_dir := 1.0
+var _cam_s := 1.0
+var _cam_off := Vector2.ZERO
+# Calques.
 var _ambient: Ambience
 var _mood := ""
+var _plate := ""
+var _boxes: Dictionary = {} ## calque -> SubViewportContainer
+var _figs_box: Control
+var _ghost_box: Control
+var _grade := Color.WHITE ## étalonnage : teinte du décor, des personnages et des effets de matière
+var _grade_to := Color.WHITE
+var _lb_top: ColorRect
+var _lb_bot: ColorRect
+var _lb := 0.0
 var _flash: ColorRect
 var _flash_t := 0.0
 var _flash_dur := 0.3
-var _flash2_t := -1.0 ## second éclair (foudre)
-var _actors: Dictionary = {} ## id -> état de l'acteur
+var _flash_peak := 1.0
+var _bolt2_t := -1.0
+# Personnages et présence.
+var _figs: Dictionary = {} ## id -> état du buste
 var _order: Array[String] = []
 var _speaker := ""
-var _subject_t := 0.0 ## entrée du sujet
-var _subject_act := ""
-var _subject_act_t := 0.0
-var _burst: CPUParticles2D
-var _burst_at := Vector2(-1, -1) ## d'où partent les étincelles (l'acteur qui agit)
-var cast_fixed := false ## distribution imposée par la scène (« cast »)
-var talking := false ## l'orateur parle (le texte s'écrit)
+var _mouth := 0
+var _mouth_blink := false
+var _pres: Dictionary = {} ## présence (sujet) : nom, portrait, temps, action…
+var _aura: Dictionary = {}
+var _ghosts: Array = []
+# Effets.
+var _fx: Array = []
+var _parts: Array = []
+var _emotes: Array = []
+var _last_anchor := ""
+var _fig_mat: Shader
+var _title: Control
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	SpriteAtlas.set_player(Profile.look(), Profile.race(), Profile.player_class())
-	_burst = CPUParticles2D.new()
-	_burst.emitting = false
-	_burst.one_shot = true
-	_burst.amount = 40
-	_burst.lifetime = 0.9
-	_burst.explosiveness = 0.95
-	_burst.direction = Vector2(0, -1)
-	_burst.spread = 180.0
-	_burst.initial_velocity_min = 80.0
-	_burst.initial_velocity_max = 260.0
-	_burst.gravity = Vector2(0, 180)
-	_burst.scale_amount_min = 4.0
-	_burst.scale_amount_max = 9.0
-	add_child(_burst)
+	_fig_mat = load("res://shaders/cine_figure.gdshader")
+	_boxes["back"] = _fx_box("back", false)
+	_ghost_box = _plain_layer()
+	_figs_box = _plain_layer()
+	_boxes["front"] = _fx_box("front", false)
+	_boxes["light"] = _fx_box("light", true)
+	_lb_top = _bar()
+	_lb_bot = _bar()
+	if OS.has_feature("web"):
+		var q := str(JavaScriptBridge.eval("window.location.search", true))
+		if q.contains("cdbg="):
+			var hide := q.get_slice("cdbg=", 1).get_slice("&", 0).split(",")
+			for h in hide:
+				if _boxes.has(h):
+					(_boxes[h] as Control).visible = false
+				elif h == "figs":
+					_figs_box.visible = false
+	if subject != null:
+		var sm := ShaderMaterial.new()
+		sm.shader = _fig_mat
+		subject.material = sm
+		subject.visible = false
 
 
-## Le voile de flash vit au-dessus du décor et des acteurs, sous le panneau de texte.
+func _plain_layer() -> Control:
+	var c := Control.new()
+	c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(c)
+	c.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	return c
+
+
+func _bar() -> ColorRect:
+	var r := ColorRect.new()
+	r.color = Color("05040a")
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(r)
+	return r
+
+
+## Calque d'effets en basse résolution, agrandi sans lissage ; additif pour la lumière.
+func _fx_box(layer: String, additive: bool) -> SubViewportContainer:
+	var box := SubViewportContainer.new()
+	box.stretch = true
+	box.stretch_shrink = int(px)
+	box.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if additive:
+		var m := CanvasItemMaterial.new()
+		m.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+		box.material = m
+	add_child(box)
+	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var vp := SubViewport.new()
+	vp.transparent_bg = true
+	vp.disable_3d = true
+	vp.canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
+	box.add_child(vp)
+	var fx := CineFx.new()
+	fx.stage = self
+	fx.layer = layer
+	vp.add_child(fx)
+	return box
+
+
+## Le voile de fondu vit au-dessus de la scène, sous le panneau de texte.
 func make_flash_layer() -> ColorRect:
 	_flash = ColorRect.new()
-	_flash.color = Color(1, 1, 1, 0)
+	_flash.color = Color(0, 0, 0, 0)
 	_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return _flash
 
 
+## Le joueur passe le carton-titre : il s'efface vite.
+func end_title() -> void:
+	if _title != null and is_instance_valid(_title):
+		var tw := _title.create_tween()
+		tw.tween_property(_title, "modulate:a", 0.0, 0.25)
+		tw.tween_callback(_title.queue_free)
+	_title = null
+
+
+## Carton-titre au début d'une scène (intro d'un niveau, prologue) : il apparaît au centre, puis s'efface.
+func title_card(text: String) -> void:
+	if text.strip_edges() == "":
+		return
+	var box := VBoxContainer.new()
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_theme_constant_override("separation", 6)
+	var parts := text.split(" ", false, 1)
+	var big := text
+	var small := ""
+	if parts.size() == 2 and parts[0].contains("-"):
+		small = parts[0]
+		big = parts[1]
+	if small != "":
+		var s := UiTheme.title(small, 26, UiTheme.CYAN)
+		s.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		s.add_theme_color_override("font_outline_color", Color(0.02, 0.02, 0.06))
+		s.add_theme_constant_override("outline_size", 8)
+		box.add_child(s)
+	var l := UiTheme.title(big.to_upper(), 54 if size.x > size.y else 40, UiTheme.GOLD)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.add_theme_color_override("font_outline_color", Color(0.02, 0.02, 0.06))
+	l.add_theme_constant_override("outline_size", 12)
+	box.add_child(l)
+	var line := ColorRect.new()
+	line.color = Color(UiTheme.GOLD, 0.8)
+	line.custom_minimum_size = Vector2(minf(size.x * 0.4, 420.0), 3)
+	line.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	box.add_child(line)
+	add_child(box)
+	_title = box
+	box.size = Vector2(size.x * 0.9, 0)
+	box.position = Vector2(size.x * 0.05, _sh() * 0.3)
+	box.modulate.a = 0.0
+	var tw := box.create_tween()
+	tw.tween_property(box, "modulate:a", 1.0, 0.5).set_delay(0.3)
+	tw.parallel().tween_property(line, "custom_minimum_size:x", minf(size.x * 0.5, 560.0), 1.6).set_delay(0.3)
+	tw.tween_interval(0.9)
+	tw.tween_property(box, "modulate:a", 0.0, 0.5)
+	tw.tween_callback(box.queue_free)
+
+
+func set_px(p: float) -> void:
+	if is_equal_approx(p, px):
+		return
+	px = p
+	for k in _boxes.keys():
+		(_boxes[k] as SubViewportContainer).stretch_shrink = int(px)
+
+
+func _sh() -> float:
+	return maxf(160.0, ground_y - top_y)
+
+
 # ---------------------------------------------------------------- scène
 
-## Nouvelle scène : distribution vide (ou imposée), caméra au repos, travelling dans l'autre sens.
+## Nouvelle scène : bandes cinéma, sortie du noir, distribution vide (ou imposée), caméra au repos.
 func begin_scene(sc: Dictionary) -> void:
-	for id in _actors.keys():
-		(_actors[id]["rect"] as TextureRect).queue_free()
-	_actors.clear()
+	for id in _figs.keys():
+		(_figs[id]["rect"] as TextureRect).queue_free()
+	_figs.clear()
 	_order.clear()
 	_speaker = ""
+	_fx.clear()
+	_parts.clear()
+	_emotes.clear()
+	_aura = {}
+	if not _pres.is_empty():
+		_aura = _add_fx("aura", "subject", Dialogues.color(str(_pres["pid"])) if str(_pres["pid"]) != "" else Color("fff0b0"), "light", 1e9)
 	_zoom = 1.0
 	_zoom_to = 1.0
 	_pan = Vector2.ZERO
 	_pan_to = Vector2.ZERO
+	_kick = Vector2.ZERO
+	_kick_v = Vector2.ZERO
+	_focus_set = false
 	_drift_dir = -_drift_dir
-	_t = 0.0
+	_scene_t = 0.0
+	_lb = 0.0
+	_flash_on(Color.BLACK, 0.8, 1.0)
+	_grade_to = Color(str(GRADES.get(str(sc.get("grade", "none")), "ffffff")))
 	cast_fixed = sc.has("cast")
 	for c in sc.get("cast", []):
 		var cd: Dictionary = c if c is Dictionary else {"id": str(c)}
-		_add_actor(str(cd["id"]), float(cd.get("x", -1.0)), bool(cd.get("hidden", false)))
+		var side := 0.0
+		if str(cd.get("side", "")) == "left":
+			side = -1.0
+		elif str(cd.get("side", "")) == "right":
+			side = 1.0
+		_add_fig(Dialogues.resolve_who(str(cd["id"])), side, bool(cd.get("hidden", false)))
 	if sc.has("cam"):
-		_camera(str(sc["cam"]))
+		for c in _list(sc["cam"]):
+			_camera(c)
+	if _plate in LEAFY:
+		_start_leaves()
 
 
-## Décor : son ambiance animée (une seule à la fois).
+## Décor : son ambiance animée.
 func set_plate(kind: String) -> void:
+	_plate = kind
+	if kind in LEAFY:
+		_start_leaves()
+	else:
+		for e in _fx.duplicate():
+			if str(e["kind"]) == "emit_leaves":
+				_fx.erase(e)
 	var mood := str(PLATE_MOOD.get(kind, "mist"))
-	if mood == _mood and _ambient != null:
-		return
-	_mood = mood
-	if _ambient != null:
-		_ambient.queue_free()
-		_ambient = null
-	if not Profile.ambience_on():
-		return
-	_ambient = Ambience.new()
-	_ambient.mood = mood
-	add_child(_ambient)
-	move_child(_ambient, 0)
+	if mood != _mood or _ambient == null:
+		_mood = mood
+		if _ambient != null:
+			_ambient.queue_free()
+			_ambient = null
+		if Profile.ambience_on():
+			_ambient = Ambience.new()
+			_ambient.mood = mood
+			add_child(_ambient)
+			move_child(_ambient, 0)
 
 
-## Nouveau plan (changement de décor) : le travelling repart dans l'autre sens.
+## Nouveau plan (changement de décor) : le travelling repart.
 func new_shot() -> void:
-	_t = 0.0
+	_scene_t = 0.0
 	_drift_dir = -_drift_dir
 	_pan_to = Vector2.ZERO
 	_zoom_to = 1.0
+	_focus_set = false
+	if _plate in LEAFY:
+		_start_leaves()
 
 
-## Nouveau sujet : il apparaît en grandissant.
-func subject_changed() -> void:
-	_subject_t = 0.0
-	_subject_act = ""
+# ---------------------------------------------------------------- présence (sujet)
+
+## Sujet de la scène : créature ou esprit au centre (son portrait, ou son sprite), avec son aura.
+func set_subject(name: String) -> void:
+	if subject == null:
+		return
+	if name == "":
+		if not _pres.is_empty() and not bool(_pres.get("fading", false)):
+			_subject_act("fade")
+		return
+	var pid := ""
+	if name.begins_with("portrait:"):
+		pid = name.substr(9)
+	elif SUBJECT_PORTRAIT.has(name):
+		pid = str(SUBJECT_PORTRAIT[name])
+	if not _pres.is_empty() and str(_pres["name"]) == name and not bool(_pres.get("fading", false)):
+		return
+	_pres = {"name": name, "pid": pid, "t": 0.0, "act": "", "act_t": 0.0, "tint": Color.WHITE, "fading": false, "mood": "neutre"}
+	subject.texture = PortraitArt.texture(pid, "neutre") if pid != "" else SpriteAtlas.single(name)
+	subject.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	subject.stretch_mode = TextureRect.STRETCH_SCALE
+	subject.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	subject.visible = true
+	subject.modulate = Color.WHITE
+	var col := Dialogues.color(pid) if pid != "" else Color("fff0b0")
+	_aura = _add_fx("aura", "subject", col, "light", 1e9)
+	_add_fx("bloom", "subject", col, "light", 1.2)
 	_reflow()
+
+
+func set_tint(c: Color) -> void:
+	if _pres.is_empty():
+		return
+	_pres["tint"] = c
+	if not _aura.is_empty():
+		_aura["col"] = c.lerp(Color.WHITE, 0.2) if c != Color.WHITE else _aura["col"]
+
+
+func has_figure(who: String) -> bool:
+	return _figs.has(who) or (not _pres.is_empty() and str(_pres["pid"]) == who)
 
 
 # ---------------------------------------------------------------- répliques
 
-## Une réplique commence : l'orateur (s'il a un sprite) entre en scène et joue selon son humeur.
+## Une réplique commence : l'orateur entre en scène (buste, ou présence pour une créature), réagit à son humeur.
 func speak(who: String, mood: String) -> void:
 	_speaker = who
-	if not ACTOR_SPRITE.has(who):
+	if who == "narrateur" or not PortraitArt.has_portrait(who):
 		return
-	if not _actors.has(who):
-		if cast_fixed:
+	if who in PRESENCE or (not _pres.is_empty() and str(_pres["pid"]) == who):
+		if _pres.is_empty() or str(_pres["pid"]) != who:
+			set_subject("portrait:" + who)
+		_pres["mood"] = mood
+		return
+	if not _figs.has(who):
+		if cast_fixed and _order.size() >= MAX_FIGURES:
 			return
-		_add_actor(who, -1.0, false)
-	var a: Dictionary = _actors[who]
-	if bool(a["hidden"]):
-		a["hidden"] = false
-		a["enter_t"] = 0.0
-	match mood:
-		"surpris":
-			_act(who, "jump")
-		"colere":
-			_act(who, "shake")
-		"joie":
-			_act(who, "hop")
-		"triste":
-			_act(who, "droop")
+		_add_fig(who, 0.0, false)
+	var f: Dictionary = _figs[who]
+	if bool(f["hidden"]):
+		f["hidden"] = false
+		f["ex"] = 0.0
+	var before := str(f["mood"])
+	f["mood"] = mood
+	(f["rect"] as TextureRect).move_to_front()
+	if mood != before:
+		if str(f["persist"]) == "droop" and mood != "triste":
+			f["persist"] = ""
+		match mood:
+			"surpris":
+				_act(who, "jump")
+			"colere":
+				_act(who, "shake")
+			"joie":
+				_act(who, "hop")
+			"triste":
+				f["persist"] = "droop"
+		if MOOD_EMOTE.has(mood):
+			_emote(who, str(MOOD_EMOTE[mood]))
+
+
+## Bouche et paupières de l'orateur (calculées par l'écran de dialogue pendant l'écriture du texte).
+func set_mouth(talk: int, blink: bool) -> void:
+	_mouth = talk
+	_mouth_blink = blink
 
 
 ## Indications de mise en scène d'une réplique :
-## « cam » : zoom, zoom_out, punch, shake, tremble, pan_left, pan_right, reset ;
-## « fx » : flash, flash:RRGGBB, lightning, fade, sparkles[:RRGGBB], embers, white (ou une liste) ;
-## « act » : {qui: action} — jump, hop, shake, attack, hurt, kneel, rise, droop, exit, enter, fall, glow ;
-##   « subject » désigne la créature : roar, hit, fall, rise, glow.
+## « cam » : push, pull, focus:<repère>, kick, tremble, pan_left, pan_right, pan_up, reset (et zoom, zoom_out,
+##   punch, shake, conservés) ;
+## « fx » : « effet[@repère][:RRGGBB] » — bloom, ring, shock, rays, circle, bolt, beam, crack, slash, wisps,
+##   charge, burst, embers, leaves, dust, fade, white (et flash, lightning, sparkles) ;
+##   repères : un personnage, subject, center, sky, ground, left, right ;
+## « act » : {qui: action} — jump, hop, shake, hurt, attack, droop, kneel, glow, fall, exit, enter, rise, turn,
+##   step, cast ; « subject » : roar, hit, fall, glow, rise, fade, appear ;
+## « grade » : étalonnage (night, violet, warm, dawn, cold, red, green, dark, gold, none) ;
+## « emote » : {qui: !, ?, anger, drop, note, dots}.
 func play_cues(l: Dictionary) -> void:
+	if l.has("grade"):
+		_grade_to = Color(str(GRADES.get(str(l["grade"]), "ffffff")))
 	if l.has("cam"):
 		for c in _list(l["cam"]):
 			_camera(c)
-	_burst_at = Vector2(-1, -1)
+	_last_anchor = ""
 	if l.has("act"):
 		var acts: Dictionary = l["act"]
 		for who in acts.keys():
 			var w := Dialogues.resolve_who(str(who))
+			var what := str(acts[who])
 			if w == "subject":
-				_subject_act = str(acts[who])
-				_subject_act_t = 0.0
-				if subject != null and subject.visible:
-					_burst_at = subject.position + subject.size * Vector2(0.5, 0.45)
-				if _subject_act == "roar":
-					_camera("shake")
+				_subject_act(what)
+				_last_anchor = "subject"
 			else:
-				if not _actors.has(w) and ACTOR_SPRITE.has(w):
-					_add_actor(w, -1.0, false)
-				_act(w, str(acts[who]))
-				if _actors.has(w):
-					var r: TextureRect = _actors[w]["rect"]
-					_burst_at = Vector2(float(_actors[w]["x"]) * size.x, ground_y - r.size.y * 0.6)
+				if not _figs.has(w) and PortraitArt.has_portrait(w) and not (w in PRESENCE) and what != "exit":
+					_add_fig(w, 0.0, false)
+				if _figs.has(w):
+					_act(w, what)
+					_last_anchor = w
+	if l.has("emote"):
+		var ems: Dictionary = l["emote"]
+		for who in ems.keys():
+			_emote(Dialogues.resolve_who(str(who)), str(ems[who]))
 	if l.has("fx"):
 		for f in _list(l["fx"]):
 			_effect(f)
-
-
-## Erreurs d'indications d'une réplique ou d'une scène (mots inconnus, acteur sans sprite).
-static func check_cues(l: Dictionary) -> Array[String]:
-	var errs: Array[String] = []
-	for c in _list(l.get("cam", [])):
-		if not CAMS.has(c):
-			errs.append("cam " + c)
-	for f in _list(l.get("fx", [])):
-		if not FXS.has(f.get_slice(":", 0)):
-			errs.append("fx " + f)
-	var acts: Dictionary = l.get("act", {})
-	for who in acts.keys():
-		var w := str(who)
-		var what := str(acts[who])
-		if w == "subject":
-			if not SUBJECT_ACTS.has(what):
-				errs.append("act subject " + what)
-		elif not (ACTOR_SPRITE.has(w) or w == "traitre") or not ACTS.has(what):
-			errs.append("act %s %s" % [w, what])
-	for c in l.get("cast", []):
-		var id := str((c as Dictionary).get("id", "")) if c is Dictionary else str(c)
-		if not ACTOR_SPRITE.has(id):
-			errs.append("cast " + id)
-	return errs
 
 
 static func _list(v: Variant) -> Array[String]:
@@ -238,52 +464,110 @@ static func _list(v: Variant) -> Array[String]:
 
 
 func _camera(c: String) -> void:
-	match c:
-		"zoom":
-			_zoom_to = 1.22
-		"zoom_out":
-			_zoom_to = 0.98
+	var name := c.get_slice(":", 0)
+	match name:
+		"push", "zoom":
+			_zoom_to = 1.16
+		"pull", "zoom_out":
+			_zoom_to = 0.97
 		"reset":
 			_zoom_to = 1.0
 			_pan_to = Vector2.ZERO
+			_focus_set = false
+		"focus":
+			_focus_to = _anchor_pos(c.get_slice(":", 1) if c.contains(":") else "subject")
+			_focus_set = true
+			_zoom_to = 1.2
+		"kick", "shake":
+			_kick_impulse(16.0)
 		"punch":
+			_kick_impulse(10.0)
 			_punch = 1.0
-		"shake":
-			_shake = 0.5
-			_shake_amp = 12.0
 		"tremble":
-			_shake = 1.6
-			_shake_amp = 4.0
+			_trem = 1.8
 		"pan_left":
-			_pan_to = Vector2(size.x * 0.06, 0.0)
+			_pan_to = Vector2(size.x * 0.05, 0.0)
 		"pan_right":
-			_pan_to = Vector2(-size.x * 0.06, 0.0)
+			_pan_to = Vector2(-size.x * 0.05, 0.0)
 		"pan_up":
-			_pan_to = Vector2(0.0, size.y * 0.05)
+			_pan_to = Vector2(0.0, _sh() * 0.06)
 
 
-func _effect(f: String) -> void:
-	var parts := f.split(":")
-	var kind := parts[0]
-	var col := Color(parts[1]) if parts.size() > 1 else Color.WHITE
+func _kick_impulse(amp: float) -> void:
+	var dir := Vector2.from_angle(randf_range(0.0, TAU))
+	dir.y = absf(dir.y) * 0.6 + 0.4
+	_kick_v += dir.normalized() * amp * 26.0
+
+
+## « effet@repère:couleur ».
+func _effect(spec: String) -> void:
+	var col_s := ""
+	var head := spec
+	if spec.contains(":"):
+		col_s = spec.get_slice(":", 1)
+		head = spec.get_slice(":", 0)
+	var kind := head.get_slice("@", 0)
+	var anchor := head.get_slice("@", 1) if head.contains("@") else ""
+	if anchor == "":
+		anchor = _last_anchor if _last_anchor != "" else "auto"
+	var col := Color(col_s) if col_s != "" else Color.WHITE
+	var sh := _sh()
 	match kind:
-		"flash":
-			_flash_on(col, 0.35, 0.8)
-		"white":
-			_flash_on(Color.WHITE, 0.9, 1.0)
 		"fade":
-			_flash_on(Color.BLACK, 1.2, 1.0)
-		"lightning":
-			_flash_on(Color("e8f0ff"), 0.18, 0.9)
-			_flash2_t = 0.25
-			_camera("shake")
-		"sparkles", "embers":
-			var c2 := col if parts.size() > 1 else (Color("ffb050") if kind == "embers" else Color("fff3b0"))
-			_burst.position = _burst_at if _burst_at.x >= 0.0 else Vector2(size.x * 0.5, top_y + (ground_y - top_y) * 0.45)
-			_burst.color = c2
-			_burst.gravity = Vector2(0, -60) if kind == "embers" else Vector2(0, 180)
-			_burst.restart()
-			_burst.emitting = true
+			_flash_on(Color.BLACK, 1.3, 1.0)
+		"white":
+			_flash_on(Color.WHITE, 0.5, 0.55)
+			_fx_set(_add_fx("bloom", anchor, Color.WHITE, "light", 1.4), "r", sh * 0.8)
+			_add_fx("ring", anchor, Color.WHITE, "light", 0.8)
+		"flash", "bloom":
+			var b := _add_fx("bloom", anchor, col, "light", 1.3)
+			b["r"] = sh * (0.7 if kind == "flash" else 0.45)
+		"ring", "shock":
+			var r := _add_fx("ring", anchor, col, "light", 0.9)
+			if kind == "shock":
+				r["sq"] = 0.32
+				r["R"] = size.x * 0.5
+				_dust(_anchor_pos("ground"), 14)
+		"rays":
+			_add_fx("rays", anchor, col, "light", 3.0)
+		"circle":
+			var c := _add_fx("circle", anchor, col, "light", 2.6)
+			c["r"] = sh * (0.32 if anchor in ["center", "sky", "subject", "auto"] else 0.2)
+		"bolt", "lightning":
+			_add_fx("bolt", anchor, col if col_s != "" else Color("cfe0ff"), "light", 0.45)
+			_fx_set(_add_fx("bloom", anchor, col if col_s != "" else Color("cfe0ff"), "light", 0.6), "r", sh * 0.5)
+			_flash_on(Color("e8f0ff"), 0.16, 0.45)
+			_bolt2_t = 0.22
+			_burst(_anchor_pos(anchor), col if col_s != "" else Color("cfe0ff"), 24, "light")
+			_kick_impulse(8.0)
+		"beam":
+			_add_fx("beam", anchor, col, "light", 1.6)
+			_add_fx("bloom", anchor, col, "light", 1.6)
+		"crack":
+			_add_fx("crack", anchor if anchor != "auto" else "sky", col, "light", 4.0)
+		"slash":
+			_add_fx("slash", anchor, col, "light", 0.5)
+		"wisps":
+			var e := _add_fx("emit_wisps", anchor, col, "back", 3.5)
+			e["rate"] = 26.0
+		"charge":
+			var e2 := _add_fx("emit_charge", anchor, col, "light", 1.3)
+			e2["rate"] = 70.0
+			_fx_set(_add_fx("bloom", anchor, col, "light", 1.8), "r", sh * 0.25)
+		"burst", "sparks", "sparkles":
+			_burst(_anchor_pos(anchor), col if col_s != "" else Color("fff3b0"), 46, "light")
+			_fx_set(_add_fx("ring", anchor, col if col_s != "" else Color("fff3b0"), "light", 0.6), "R", sh * 0.22)
+		"embers":
+			var e3 := _add_fx("emit_embers", "ground", col if col_s != "" else Color("ffb050"), "light", 4.0)
+			e3["rate"] = 40.0
+		"leaves":
+			_start_leaves()
+		"dust":
+			_dust(_anchor_pos(anchor), 16)
+
+
+func _fx_set(e: Dictionary, key: String, v: Variant) -> void:
+	e[key] = v
 
 
 func _flash_on(col: Color, dur: float, peak: float) -> void:
@@ -291,216 +575,835 @@ func _flash_on(col: Color, dur: float, peak: float) -> void:
 		return
 	_flash.color = Color(col, peak)
 	_flash_dur = dur
+	_flash_peak = peak
 	_flash_t = dur
 
 
-# ---------------------------------------------------------------- acteurs
+func _add_fx(kind: String, anchor: String, col: Color, layer: String, dur: float) -> Dictionary:
+	var sh := _sh()
+	var e := {"kind": kind, "anchor": anchor, "col": col, "layer": layer, "t": 0.0, "dur": dur, "r": sh * 0.4, "R": sh * 0.5,
+		"sq": 1.0, "rot": randf() * TAU, "acc": 0.0, "rate": 0.0, "pts": PackedVector2Array(), "gen": -1.0}
+	if kind == "crack":
+		var y := _anchor_pos(anchor).y
+		var pts := PackedVector2Array()
+		var n := 18
+		for i in range(n + 1):
+			var f := float(i) / float(n)
+			pts.append(Vector2(lerpf(-0.05, 1.05, f) * size.x, y + randf_range(-1.0, 1.0) * sh * 0.05 + sin(f * 7.0) * sh * 0.03))
+		e["pts"] = pts
+	_fx.append(e)
+	return e
 
-func _add_actor(id: String, x: float, hidden: bool) -> void:
-	if not ACTOR_SPRITE.has(id) or _actors.has(id):
+
+# ---------------------------------------------------------------- personnages
+
+func _add_fig(id: String, side: float, hidden: bool) -> void:
+	if id == "" or _figs.has(id) or not PortraitArt.has_portrait(id) or id in PRESENCE:
 		return
-	if _order.size() >= MAX_ACTORS:
-		# Plus de place : le plus ancien acteur qui ne parle pas quitte la scène.
+	if _order.size() >= MAX_FIGURES:
+		# Plus de place : le plus ancien personnage silencieux quitte la scène.
 		for old in _order:
-			if old != _speaker:
-				_remove_actor(old)
+			if old != _speaker and float(_figs[old]["xt"]) < 0.0:
+				_act(old, "exit")
 				break
+	if side == 0.0:
+		side = -1.0 if id == "porteur" else 1.0
+		var n_side := 0
+		for o in _order:
+			if float(_figs[o]["side"]) == side:
+				n_side += 1
+		if n_side >= 2:
+			side = -side
 	var r := TextureRect.new()
 	r.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	r.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	r.stretch_mode = TextureRect.STRETCH_SCALE
 	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(r)
+	var m := ShaderMaterial.new()
+	m.shader = _fig_mat
+	r.material = m
+	_figs_box.add_child(r)
 	_order.append(id)
-	var slot := x if x >= 0.0 else -1.0
-	_actors[id] = {"rect": r, "sprite": str(ACTOR_SPRITE[id]), "x": slot, "cx": -1.0, "hidden": hidden, "enter_t": 0.0,
-		"act": "", "act_t": 0.0, "side": -1.0 if _order.size() % 2 == 1 else 1.0}
-	_reflow()
-
-
-func _remove_actor(id: String) -> void:
-	if not _actors.has(id):
-		return
-	(_actors[id]["rect"] as TextureRect).queue_free()
-	_actors.erase(id)
-	_order.erase(id)
-	_reflow()
-
-
-## Places des acteurs sans position imposée : réparties de gauche à droite dans l'ordre d'arrivée.
-func _reflow() -> void:
-	var free: Array[String] = []
-	for id in _order:
-		if float(_actors[id]["x"]) < 0.0 or bool(_actors[id].get("auto", false)):
-			_actors[id]["auto"] = true
-			free.append(id)
-	# Avec une créature au centre, les acteurs se rangent sur les côtés.
-	var sides: Array[float] = [0.16, 0.84, 0.3, 0.7]
-	var subj := subject != null and subject.visible and subject.texture != null
-	for i in range(free.size()):
-		_actors[free[i]]["x"] = sides[i] if subj else (float(i) + 1.0) / float(free.size() + 1)
+	_figs[id] = {"rect": r, "mat": m, "side": side, "ex": 0.0, "xt": -1.0, "hidden": hidden, "mood": "neutre", "act": "",
+		"act_t": 0.0, "persist": "", "blink_t": randf_range(1.0, 3.5), "dark": 0.0, "sc": 1.0, "tkey": "", "flip": false,
+		"head": Vector2.ZERO, "ph": randf() * TAU, "ghost_t": 0.0, "glow_col": Dialogues.color(id), "slashed": false}
 
 
 func _act(id: String, what: String) -> void:
-	if not _actors.has(id):
+	if not _figs.has(id):
 		return
-	var a: Dictionary = _actors[id]
+	var f: Dictionary = _figs[id]
 	match what:
-		"exit":
-			a["act"] = "exit"
 		"enter":
-			a["hidden"] = false
-			a["enter_t"] = 0.0
-		_:
-			a["act"] = what
-	a["act_t"] = 0.0
+			f["hidden"] = false
+			f["ex"] = 0.0
+			return
+		"exit":
+			f["xt"] = 0.0
+		"rise":
+			f["persist"] = ""
+		"droop", "kneel", "fall", "step":
+			f["persist"] = what
+		"turn":
+			f["flip"] = not bool(f["flip"])
+		"glow", "cast":
+			var col: Color = f["glow_col"]
+			_fx_set(_add_fx("bloom", id, col, "light", 1.4), "r", _sh() * 0.32)
+			var e := _add_fx("emit_motes", id, col, "light", 1.6)
+			e["rate"] = 40.0
+			if what == "cast":
+				_fx_set(_add_fx("circle", id, col, "light", 2.2), "r", _sh() * 0.2)
+	f["act"] = what
+	f["act_t"] = 0.0
+	f["slashed"] = false
+
+
+func _emote(id: String, kind: String) -> void:
+	if not EMOTES.has(kind):
+		return
+	for em in _emotes:
+		if str(em["who"]) == id:
+			_emotes.erase(em)
+			break
+	_emotes.append({"who": id, "kind": kind, "t": 0.0, "dur": 1.9})
+
+
+func _subject_act(what: String) -> void:
+	if _pres.is_empty():
+		return
+	_pres["act"] = what
+	_pres["act_t"] = 0.0
+	var sh := _sh()
+	var col: Color = _aura.get("col", Color.WHITE)
+	match what:
+		"roar":
+			_fx_set(_add_fx("ring", "subject", col, "light", 1.0), "R", sh * 0.7)
+			_add_fx("rays", "subject", col, "light", 1.4)
+			_kick_impulse(14.0)
+			_dust(_anchor_pos("ground"), 18)
+		"hit":
+			_burst(_anchor_pos("subject"), Color.WHITE, 40, "light")
+			_add_fx("slash", "subject", Color.WHITE, "light", 0.5)
+			_kick_impulse(12.0)
+		"glow":
+			_fx_set(_add_fx("bloom", "subject", col, "light", 1.6), "r", sh * 0.6)
+			_add_fx("rays", "subject", col, "light", 2.4)
+		"fade":
+			_pres["fading"] = true
+			var e := _add_fx("emit_dissolve", "subject", col, "light", 1.4)
+			e["rate"] = 90.0
+		"appear", "rise":
+			_pres["t"] = 0.0 if what == "appear" else _pres["t"]
+			_add_fx("bloom", "subject", col, "light", 1.4)
+		"fall":
+			_dust(_anchor_pos("ground"), 20)
+
+
+# ---------------------------------------------------------------- repères
+
+func _anchor_pos(name: String) -> Vector2:
+	var sh := _sh()
+	match name:
+		"center":
+			return Vector2(size.x * 0.5, top_y + sh * 0.45)
+		"sky":
+			return Vector2(size.x * 0.5, top_y + sh * 0.16)
+		"ground":
+			return Vector2(size.x * 0.5, ground_y - sh * 0.04)
+		"left":
+			return Vector2(size.x * 0.2, top_y + sh * 0.45)
+		"right":
+			return Vector2(size.x * 0.8, top_y + sh * 0.45)
+		"subject", "auto":
+			if not _pres.is_empty() and subject != null and subject.visible:
+				return _pres.get("center", Vector2(size.x * 0.5, top_y + sh * 0.4))
+			return Vector2(size.x * 0.5, top_y + sh * 0.42)
+	if _figs.has(name):
+		return _figs[name]["head"]
+	return Vector2(size.x * 0.5, top_y + sh * 0.45)
+
+
+func _cam_point(p: Vector2, depth: float) -> Vector2:
+	var s := 1.0 + (_cam_s - 1.0) * depth
+	return _focus + (p - _focus) * s + _cam_off * depth
 
 
 # ---------------------------------------------------------------- image par image
 
 func _process(delta: float) -> void:
 	_t += delta
+	_scene_t += delta
 	_update_camera(delta)
-	_update_actors(delta)
-	_update_subject(delta)
+	_update_figures(delta)
+	_update_presence(delta)
+	_update_fx(delta)
+	_update_parts(delta)
+	_update_ghosts(delta)
+	for em in _emotes.duplicate():
+		em["t"] = float(em["t"]) + delta
+		if float(em["t"]) > float(em["dur"]):
+			_emotes.erase(em)
+	_grade = _grade.lerp(_grade_to, clampf(delta * 1.5, 0.0, 1.0))
+	if art != null:
+		art.self_modulate = _grade
+	_figs_box.modulate = _grade
+	(_boxes["back"] as Control).modulate = _grade
+	_lb = lerpf(_lb, size.y * 0.06, clampf(delta * 2.5, 0.0, 1.0))
+	_lb_top.position = Vector2.ZERO
+	_lb_top.size = Vector2(size.x, _lb)
+	_lb_bot.position = Vector2(0.0, size.y - _lb)
+	_lb_bot.size = Vector2(size.x, _lb)
 	if _flash != null and _flash_t > 0.0:
 		_flash_t -= delta
 		var k := clampf(_flash_t / maxf(0.01, _flash_dur), 0.0, 1.0)
-		_flash.color.a = k * k * (0.9 if _flash.color.v > 0.5 else 1.0)
-	if _flash2_t > 0.0:
-		_flash2_t -= delta
-		if _flash2_t <= 0.0:
-			_flash_on(Color("e8f0ff"), 0.22, 0.85)
+		_flash.color.a = k * k * _flash_peak
+	if _bolt2_t > 0.0:
+		_bolt2_t -= delta
+		if _bolt2_t <= 0.0:
+			_flash_on(Color("e8f0ff"), 0.2, 0.35)
 
 
 func _update_camera(delta: float) -> void:
 	if art == null:
 		return
-	_zoom = lerpf(_zoom, _zoom_to, clampf(delta * 1.4, 0.0, 1.0))
-	_pan = _pan.lerp(_pan_to, clampf(delta * 1.2, 0.0, 1.0))
+	var center := Vector2(size.x * 0.5, top_y + _sh() * 0.5)
+	if not _focus_set:
+		_focus_to = center
+	if _focus == Vector2.ZERO:
+		_focus = center
+	var k := 1.0 - exp(-delta * 1.5)
+	_zoom = lerpf(_zoom, _zoom_to, k)
+	_focus = _focus.lerp(_focus_to, k)
+	_pan = _pan.lerp(_pan_to, k)
+	# À-coup amorti : un ressort ramène l'image en place en une oscillation.
+	# (en petits pas : une image lente ne doit pas faire diverger le ressort)
+	var left := minf(delta, 0.25)
+	while left > 0.0:
+		var h := minf(left, 1.0 / 120.0)
+		left -= h
+		var acc := -_kick * 200.0 - _kick_v * 14.0
+		_kick_v += acc * h
+		_kick += _kick_v * h
+	if not (is_finite(_kick.x) and is_finite(_kick.y)) or _kick.length() > 200.0:
+		_kick = Vector2.ZERO
+		_kick_v = Vector2.ZERO
 	_punch = maxf(0.0, _punch - delta * 3.0)
-	var shake_off := Vector2.ZERO
-	if _shake > 0.0:
-		_shake -= delta
-		shake_off = Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * _shake_amp * clampf(_shake * 2.0, 0.0, 1.0)
-	# Lent travelling : le décor s'approche doucement et dérive pendant la scène.
-	var breath := 1.05 + 0.05 * clampf(_t / 24.0, 0.0, 1.0) + 0.006 * sin(_t * 0.6)
-	var s := breath * _zoom * (1.0 + 0.06 * sin(_punch * PI))
-	art.pivot_offset = art.size * 0.5
-	art.scale = Vector2.ONE * s
-	art.position = Vector2(_drift_dir * clampf(_t / 24.0, 0.0, 1.0) * size.x * 0.025, sin(_t * 0.25) * 3.0) + _pan + shake_off
+	var trem := Vector2.ZERO
+	if _trem > 0.0:
+		_trem -= delta
+		trem = Vector2(sin(_t * 43.0), cos(_t * 37.0)) * 2.5 * clampf(_trem, 0.0, 1.0)
+	var u := clampf(_scene_t / 26.0, 0.0, 1.0)
+	var breath := 1.04 + 0.06 * u + 0.004 * sin(_t * 0.5)
+	_cam_s = breath * _zoom * (1.0 + 0.05 * sin(_punch * PI))
+	var drift := Vector2(_drift_dir * u * size.x * 0.022, sin(_t * 0.22) * 3.0)
+	_cam_off = drift + _pan + _kick + trem
+	art.pivot_offset = _focus
+	art.scale = Vector2.ONE * _cam_s
+	art.position = _cam_off
 
 
-## Taille des acteurs à l'écran : un même multiple entier pour tous (les tailles relatives restent justes).
-func _actor_scale() -> float:
-	var area := maxf(120.0, ground_y - top_y)
-	return clampf(floorf(area * 0.26 / 22.0), 3.0, 9.0)
+func _fig_scale() -> float:
+	return clampf(floorf(minf(_sh() * 1.0, size.x * 0.5) / 64.0), 2.0, 10.0)
 
 
-func _update_actors(delta: float) -> void:
+## Places : chaque côté a une place extérieure et une place intérieure, dans l'ordre d'arrivée.
+func _reflow() -> void:
+	var counts := {-1.0: 0, 1.0: 0}
+	var narrow := size.x < size.y
 	for id in _order:
-		var a: Dictionary = _actors[id]
-		var r: TextureRect = a["rect"]
-		var speaking := id == _speaker
-		var mouth := speaking and talking
-		var frame := 0
-		if mouth and int(_t * 6.0) % 2 == 1:
-			frame = 1
-		r.texture = SpriteAtlas.single(str(a["sprite"]), frame)
-		if r.texture == null:
-			continue
-		var tw := float(r.texture.get_width())
-		var th := float(r.texture.get_height())
-		var k := _actor_scale()
-		r.size = Vector2(tw * k, th * k)
-		var tx := float(a["x"]) * size.x
-		if float(a["cx"]) < 0.0:
-			# Entrée : il arrive du bord de son côté.
-			a["cx"] = -r.size.x if float(a["side"]) < 0.0 else size.x + r.size.x
-		a["cx"] = lerpf(float(a["cx"]), tx, clampf(delta * 4.0, 0.0, 1.0))
-		var dx := 0.0
+		var f: Dictionary = _figs[id]
+		var side := float(f["side"])
+		var i := int(counts[side])
+		counts[side] = i + 1
+		var outer := 0.22 if narrow else 0.16
+		var inner := 0.42 if narrow else 0.31
+		var x := outer if i == 0 else inner
+		f["slot"] = x if side < 0.0 else 1.0 - x
+		f["rank"] = i
+
+
+func _update_figures(delta: float) -> void:
+	_reflow()
+	var k := _fig_scale()
+	var fs := Vector2(64.0, 64.0) * k
+	var sh := _sh()
+	for id in _order.duplicate():
+		var f: Dictionary = _figs[id]
+		var r: TextureRect = f["rect"]
+		var m: ShaderMaterial = f["mat"]
+		var side := float(f["side"])
+		var speaking: bool = id == _speaker
+		# Bouche et paupières.
+		f["blink_t"] = float(f["blink_t"]) - delta
+		var blink := float(f["blink_t"]) < 0.0
+		if float(f["blink_t"]) < -0.13:
+			f["blink_t"] = randf_range(2.2, 4.8)
+		var talk := 0
+		if speaking:
+			talk = _mouth
+			blink = blink or _mouth_blink
+		var tkey := "%s|%d|%s" % [str(f["mood"]), talk, str(blink)]
+		if tkey != str(f["tkey"]):
+			f["tkey"] = tkey
+			r.texture = PortraitArt.frame(id, str(f["mood"]), talk, blink)
+		r.flip_h = bool(f["flip"]) if side < 0.0 else not bool(f["flip"])
+		r.visible = not bool(f["hidden"])
+		r.size = fs
+		# Entrée et sortie.
+		var tx := float(f.get("slot", 0.2)) * size.x
+		var off_x := -fs.x * 0.7 if side < 0.0 else size.x + fs.x * 0.7
+		f["ex"] = minf(1.0, float(f["ex"]) + delta / 0.55)
+		var x := lerpf(off_x, tx, _ease_out_back(float(f["ex"])))
+		var alpha := clampf(float(f["ex"]) * 2.5, 0.0, 1.0)
+		if float(f["xt"]) >= 0.0:
+			f["xt"] = float(f["xt"]) + delta / 0.45
+			x = lerpf(tx, off_x, _ease_in(clampf(float(f["xt"]), 0.0, 1.0)))
+			alpha = 1.0 - clampf(float(f["xt"]), 0.0, 1.0)
+			if float(f["xt"]) >= 1.0:
+				r.queue_free()
+				_figs.erase(id)
+				_order.erase(id)
+				continue
+		# L'orateur s'avance dans la lumière, les autres reculent dans l'ombre.
+		var lit: bool = speaking or _speaker == "" or not _figs.has(_speaker)
+		f["dark"] = lerpf(float(f["dark"]), 0.0 if lit else 0.55, clampf(delta * 6.0, 0.0, 1.0))
+		f["sc"] = lerpf(float(f["sc"]), (1.0 if lit else 0.95) * (0.92 if int(f.get("rank", 0)) > 0 and not speaking else 1.0), clampf(delta * 6.0, 0.0, 1.0))
+		var toward := -side ## vers le centre
+		var dx := toward * size.x * (0.012 if speaking else 0.0)
 		var dy := 0.0
-		var sy := 1.0
+		var sx := 1.0 - 0.006 * sin(_t * 2.1 + float(f["ph"]))
+		var sy := 1.0 + 0.012 * sin(_t * 2.1 + float(f["ph"]))
 		var rot := 0.0
-		var alpha := 1.0
-		var tint := Color.WHITE
-		a["act_t"] = float(a["act_t"]) + delta
-		var at := float(a["act_t"])
-		match str(a["act"]):
+		var flash := 0.0
+		var flash_col := Color.WHITE
+		var rim := Color(0, 0, 0, 0)
+		var desat := 0.0 if lit else 0.3
+		if speaking and talking:
+			dy -= absf(sin(_t * 8.0)) * k * 0.35
+		match str(f["persist"]):
+			"droop":
+				dy += fs.y * 0.03
+				desat = maxf(desat, 0.35)
+			"kneel":
+				dy += fs.y * 0.1
+			"step":
+				dx += toward * size.x * 0.04
+			"fall":
+				rot = -toward * 0.22
+				dy += fs.y * 0.12
+				f["dark"] = maxf(float(f["dark"]), 0.4)
+		f["act_t"] = float(f["act_t"]) + delta
+		var at := float(f["act_t"])
+		match str(f["act"]):
 			"jump":
-				dy = -absf(sin(clampf(at / 0.4, 0.0, 1.0) * PI)) * k * 5.0
+				var u := at / 0.38
+				dy -= sin(PI * clampf(u, 0.0, 1.0)) * fs.y * 0.07
+				if u > 1.0 and u < 1.5:
+					sy *= 1.0 - 0.06 * sin(PI * (u - 1.0) / 0.5)
+					sx *= 1.0 + 0.04 * sin(PI * (u - 1.0) / 0.5)
 			"hop":
-				dy = -absf(sin(clampf(at / 0.6, 0.0, 1.0) * TAU)) * k * 2.5
+				dy -= absf(sin(TAU * clampf(at / 0.6, 0.0, 1.0))) * fs.y * 0.035
 			"shake":
-				dx = sin(at * 60.0) * k * 0.8 * clampf(1.0 - at / 0.5, 0.0, 1.0)
+				var env := clampf(1.0 - at / 0.5, 0.0, 1.0)
+				dx += sin(at * 52.0) * k * 1.2 * env + toward * size.x * 0.025 * clampf(1.0 - at / 1.4, 0.0, 1.0)
+				rim = Color(1.0, 0.3, 0.2, 0.9 * clampf(1.0 - at / 0.8, 0.0, 1.0))
 			"hurt":
-				dx = sin(at * 50.0) * k * 1.2 * clampf(1.0 - at / 0.4, 0.0, 1.0)
-				tint = Color(1.0, 0.5, 0.5).lerp(Color.WHITE, clampf(at / 0.5, 0.0, 1.0))
+				var env2 := clampf(1.0 - at / 0.45, 0.0, 1.0)
+				dx += -toward * size.x * 0.035 * env2 + sin(at * 60.0) * k * env2
+				flash = clampf(1.0 - at / 0.18, 0.0, 1.0)
+				flash_col = Color(1.0, 0.85, 0.85)
 			"attack":
-				var dir := 1.0 if tx < size.x * 0.5 else -1.0
-				dx = dir * sin(clampf(at / 0.45, 0.0, 1.0) * PI) * k * 6.0
-			"droop", "kneel":
-				sy = 0.86 if str(a["act"]) == "kneel" else 0.95
-			"glow":
-				tint = Color(1.6, 1.6, 1.3).lerp(Color.WHITE, clampf(at / 1.2, 0.0, 1.0))
-			"fall":
-				rot = clampf(at / 0.5, 0.0, 1.0) * PI * 0.5
-				alpha = clampf(1.4 - at, 0.25, 1.0)
-			"exit":
-				dx = (1.0 if tx > size.x * 0.5 else -1.0) * at * size.x * 0.9
-				alpha = clampf(1.0 - at * 1.5, 0.0, 1.0)
-		if mouth and str(a["act"]) == "":
-			dy -= absf(sin(_t * 9.0)) * k * 0.6
-		elif not speaking:
-			dy -= sin(_t * 1.8 + float(_order.find(id))) * k * 0.25
-		r.visible = not bool(a["hidden"])
-		r.pivot_offset = Vector2(r.size.x * 0.5, r.size.y)
+				var d := 0.0
+				if at < 0.16:
+					d = _ease_out(at / 0.16)
+				elif at < 0.32:
+					d = 1.0
+				elif at < 0.62:
+					d = 1.0 - _ease_in_out((at - 0.32) / 0.3)
+				dx += toward * size.x * 0.17 * d
+				rot += toward * 0.07 * d
+				if at < 0.2:
+					f["ghost_t"] = float(f["ghost_t"]) - delta
+					if float(f["ghost_t"]) <= 0.0:
+						f["ghost_t"] = 0.035
+						_spawn_ghost(r, f["glow_col"])
+				if at >= 0.16 and not bool(f["slashed"]):
+					f["slashed"] = true
+					var hit := Vector2(tx + dx + toward * fs.x * 0.45, ground_y - fs.y * 0.45)
+					var s := _add_fx("slash", "", Color.WHITE, "light", 0.45)
+					s["at"] = hit
+					s["rot"] = 0.0 if toward > 0.0 else PI
+					_burst(hit, f["glow_col"], 26, "light")
+					_kick_impulse(9.0)
+			"glow", "cast":
+				var env3 := clampf(1.0 - at / 1.6, 0.0, 1.0)
+				flash = 0.45 * clampf(1.0 - at / 0.6, 0.0, 1.0)
+				flash_col = f["glow_col"]
+				rim = Color(f["glow_col"], 0.9 * env3)
+				dy -= fs.y * 0.015 * sin(PI * clampf(at / 1.2, 0.0, 1.0))
+		# Position finale : un buste s'appuie sur le panneau ; la caméra le déplace un peu.
+		var bottom := Vector2(tx + dx, ground_y + fs.y * 0.14 + dy)
+		var s2 := float(f["sc"])
+		var b2 := _cam_point(bottom, 0.25)
+		var cs := 1.0 + (_cam_s - 1.0) * 0.25
+		r.pivot_offset = Vector2(fs.x * 0.5, fs.y)
+		r.scale = Vector2(sx * s2 * cs, sy * s2 * cs)
 		r.rotation = rot
-		r.scale = Vector2(1.0, sy)
-		r.position = Vector2(float(a["cx"]) - r.size.x * 0.5 + dx, ground_y - r.size.y + dy)
-		# Ceux qui se taisent restent un peu dans l'ombre.
-		var dim := 1.0 if speaking or _speaker == "" or not ACTOR_SPRITE.has(_speaker) else 0.72
-		r.modulate = Color(tint.r * dim, tint.g * dim, tint.b * dim, alpha)
-		if str(a["act"]) == "exit" and at > 0.8:
-			_remove_actor.call_deferred(id)
+		r.position = b2 - r.pivot_offset
+		r.modulate = Color(1, 1, 1, alpha)
+		m.set_shader_parameter("dark", float(f["dark"]))
+		m.set_shader_parameter("flash", flash)
+		m.set_shader_parameter("flash_col", flash_col)
+		m.set_shader_parameter("rim_col", rim)
+		m.set_shader_parameter("desat", desat)
+		f["head"] = b2 + Vector2(0.0, -fs.y * 0.62 * s2 * cs)
 
 
-func _update_subject(delta: float) -> void:
-	if subject == null or not subject.visible or subject.texture == null:
+func _spawn_ghost(r: TextureRect, col: Color) -> void:
+	var g := TextureRect.new()
+	g.texture = r.texture
+	g.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	g.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	g.stretch_mode = TextureRect.STRETCH_SCALE
+	g.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	g.flip_h = r.flip_h
+	g.size = r.size
+	g.pivot_offset = r.pivot_offset
+	g.scale = r.scale
+	g.rotation = r.rotation
+	g.position = r.position
+	g.modulate = Color(col.lightened(0.3), 0.5)
+	var cm := CanvasItemMaterial.new()
+	cm.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	g.material = cm
+	_ghost_box.add_child(g)
+	_ghosts.append({"r": g, "t": 0.0})
+
+
+func _update_ghosts(delta: float) -> void:
+	for g in _ghosts.duplicate():
+		g["t"] = float(g["t"]) + delta
+		var r: TextureRect = g["r"]
+		r.modulate.a = 0.5 * clampf(1.0 - float(g["t"]) / 0.28, 0.0, 1.0)
+		if float(g["t"]) > 0.28:
+			r.queue_free()
+			_ghosts.erase(g)
+
+
+func _update_presence(delta: float) -> void:
+	if subject == null or _pres.is_empty() or subject.texture == null:
 		return
-	_subject_t += delta
-	var grow := clampf(_subject_t / 0.6, 0.0, 1.0)
-	var sc := lerpf(0.7, 1.0, 1.0 - pow(1.0 - grow, 3.0))
-	var dx := 0.0
-	var extra := 1.0
-	var rot := 0.0
-	var tint := Color.WHITE
-	if _subject_act != "":
-		_subject_act_t += delta
-		var at := _subject_act_t
-		match _subject_act:
-			"roar":
-				extra = 1.0 + 0.12 * sin(clampf(at / 0.5, 0.0, 1.0) * PI)
-				tint = Color(1.4, 0.8, 0.8).lerp(Color.WHITE, clampf(at / 0.8, 0.0, 1.0))
-			"hit":
-				dx = sin(at * 50.0) * 10.0 * clampf(1.0 - at / 0.4, 0.0, 1.0)
-				tint = Color(1.0, 0.4, 0.4).lerp(Color.WHITE, clampf(at / 0.4, 0.0, 1.0))
-			"fall":
-				rot = clampf(at / 0.8, 0.0, 1.0) * 0.35
-				tint = Color.WHITE.lerp(Color(0.5, 0.5, 0.55), clampf(at / 0.8, 0.0, 1.0))
-			"glow":
-				tint = Color(1.6, 1.6, 1.4).lerp(Color.WHITE, clampf(at / 1.2, 0.0, 1.0))
-			"rise":
-				extra = lerpf(0.8, 1.0, clampf(at / 0.8, 0.0, 1.0))
-	# La créature se tient au fond de la scène, derrière les acteurs : grande, posée, elle respire.
+	_pres["t"] = float(_pres["t"]) + delta
+	var t := float(_pres["t"])
+	var pid := str(_pres["pid"])
+	var sh := _sh()
 	var tw := float(subject.texture.get_width())
 	var th := float(subject.texture.get_height())
-	var area := maxf(120.0, ground_y - top_y)
-	var k := clampf(floorf(area * 0.6 / th), 2.0, 12.0)
-	subject.size = Vector2(tw * k, th * k)
-	var foot := ground_y - area * 0.07
-	subject.pivot_offset = Vector2(subject.size.x * 0.5, subject.size.y)
-	subject.scale = Vector2(1.0, 1.0 + 0.015 * sin(_t * 1.6)) * sc * extra
+	var k := clampf(floorf(minf(sh * 1.15, size.x * 0.62) / th), 2.0, 14.0) if pid != "" else clampf(floorf(sh * 0.5 / th), 2.0, 12.0)
+	var fs := Vector2(tw, th) * k
+	if pid != "":
+		var talk := _mouth if _speaker == pid else 0
+		var key := "%s|%s|%d" % [pid, str(_pres["mood"]), talk]
+		if key != str(_pres.get("tkey", "")):
+			_pres["tkey"] = key
+			subject.texture = PortraitArt.frame(pid, str(_pres["mood"]), talk, false)
+	var grow := _ease_out(clampf(t / 0.9, 0.0, 1.0))
+	var sc := lerpf(0.9, 1.0, grow)
+	var alpha := grow
+	var dy := sin(t * 0.9) * k * 1.5
+	var dx := 0.0
+	var rot := 0.0
+	var flash := 0.0
+	var flash_col := Color.WHITE
+	var dark := 0.0
+	var desat := 0.0
+	_pres["act_t"] = float(_pres["act_t"]) + delta
+	var at := float(_pres["act_t"])
+	match str(_pres["act"]):
+		"roar":
+			sc *= 1.0 + 0.1 * sin(PI * clampf(at / 0.5, 0.0, 1.0))
+			flash = 0.5 * clampf(1.0 - at / 0.7, 0.0, 1.0)
+			flash_col = Color(1.0, 0.45, 0.45)
+		"hit":
+			dx = sin(at * 55.0) * k * 1.5 * clampf(1.0 - at / 0.4, 0.0, 1.0)
+			flash = clampf(1.0 - at / 0.22, 0.0, 1.0)
+		"fall":
+			var u := _ease_in_out(clampf(at / 0.9, 0.0, 1.0))
+			dy += fs.y * 0.1 * u
+			rot = 0.05 * u
+			dark = 0.3 * u
+			desat = 0.4 * u
+		"glow":
+			flash = 0.65 * clampf(1.0 - at / 1.1, 0.0, 1.0)
+			flash_col = _aura.get("col", Color.WHITE)
+		"fade":
+			alpha *= clampf(1.0 - at / 1.3, 0.0, 1.0)
+			sc *= 1.0 + 0.05 * clampf(at / 1.3, 0.0, 1.0)
+			if at > 1.35 and bool(_pres.get("fading", false)):
+				subject.visible = false
+				if not _aura.is_empty():
+					_fx.erase(_aura)
+				_aura = {}
+				_pres = {}
+				return
+		"rise":
+			sc *= lerpf(0.94, 1.0, clampf(at / 0.8, 0.0, 1.0))
+	var bottom := Vector2(size.x * 0.5 + dx, ground_y + (fs.y * 0.1 if pid != "" else -sh * 0.04) + dy)
+	var b2 := _cam_point(bottom, 0.7)
+	var cs := 1.0 + (_cam_s - 1.0) * 0.7
+	subject.size = fs
+	subject.pivot_offset = Vector2(fs.x * 0.5, fs.y)
+	subject.scale = Vector2.ONE * sc * cs
 	subject.rotation = rot
-	subject.position = Vector2((size.x - subject.size.x) * 0.5 + dx, foot - subject.size.y)
-	subject.self_modulate = Color(tint, grow)
+	subject.position = b2 - subject.pivot_offset
+	var tint: Color = _pres["tint"]
+	subject.modulate = Color(tint * _grade, alpha)
+	var m := subject.material as ShaderMaterial
+	if m != null:
+		m.set_shader_parameter("flash", flash)
+		m.set_shader_parameter("flash_col", flash_col)
+		m.set_shader_parameter("dark", dark)
+		m.set_shader_parameter("desat", desat)
+		m.set_shader_parameter("rim_col", Color(_aura.get("col", Color.WHITE), 0.5))
+	_pres["center"] = b2 + Vector2(0.0, -fs.y * 0.55 * sc * cs)
+	if not _aura.is_empty():
+		_aura["r"] = fs.x * 0.6 * sc * cs
+		_aura["alpha"] = alpha
+
+
+# ---------------------------------------------------------------- effets
+
+func _update_fx(delta: float) -> void:
+	for e in _fx.duplicate():
+		e["t"] = float(e["t"]) + delta
+		var kind := str(e["kind"])
+		if kind.begins_with("emit_"):
+			e["acc"] = float(e["acc"]) + float(e["rate"]) * delta
+			while float(e["acc"]) >= 1.0:
+				e["acc"] = float(e["acc"]) - 1.0
+				_emit(e)
+		if float(e["t"]) > float(e["dur"]):
+			_fx.erase(e)
+
+
+func _fx_pos(e: Dictionary) -> Vector2:
+	if e.has("at"):
+		return e["at"]
+	return _anchor_pos(str(e["anchor"]))
+
+
+## Une particule pour un émetteur.
+func _emit(e: Dictionary) -> void:
+	var c := _fx_pos(e)
+	var col: Color = e["col"]
+	var sh := _sh()
+	match str(e["kind"]):
+		"emit_wisps":
+			var p := c + Vector2(randf_range(-1.0, 1.0) * sh * 0.22, randf_range(-0.2, 0.3) * sh * 0.3)
+			_part({"p": p, "v": Vector2(randf_range(-6, 6), randf_range(-38, -18)), "max": randf_range(1.4, 2.4), "col": col,
+				"size": 2.0 if randf() < 0.4 else 1.0, "layer": "back", "sway": randf_range(10, 22), "kind": "sq"})
+			if randf() < 0.35:
+				_part({"p": p, "v": Vector2(0, randf_range(-30, -14)), "max": 1.6, "col": col.lightened(0.5), "size": 1.0, "layer": "light",
+					"sway": 14.0, "kind": "sq"})
+		"emit_charge":
+			var a := randf() * TAU
+			var rr := sh * randf_range(0.25, 0.45)
+			_part({"p": c + Vector2.from_angle(a) * rr, "v": Vector2.from_angle(a + PI) * 40.0, "max": 1.0, "col": col.lightened(0.3),
+				"size": 1.0 if randf() < 0.7 else 2.0, "layer": "light", "target": c, "speed": rr * 1.6, "kind": "sq"})
+		"emit_motes":
+			var p2 := c + Vector2(randf_range(-0.6, 0.6) * sh * 0.25, randf_range(0.0, 0.7) * sh * 0.3)
+			_part({"p": p2, "v": Vector2(randf_range(-8, 8), randf_range(-60, -30)), "max": randf_range(0.8, 1.4), "col": col.lightened(0.35),
+				"size": 1.0, "layer": "light", "sway": 8.0, "kind": "sq"})
+		"emit_dissolve":
+			var hs := sh * 0.32
+			var p3 := c + Vector2(randf_range(-1.0, 1.0) * hs, randf_range(-1.0, 1.0) * hs)
+			_part({"p": p3, "v": Vector2(randf_range(-10, 10), randf_range(-70, -30)), "max": randf_range(1.0, 1.8), "col": col.lightened(0.3),
+				"size": 1.0 if randf() < 0.6 else 2.0, "layer": "light", "sway": 12.0, "kind": "sq"})
+		"emit_embers":
+			_part({"p": Vector2(randf() * size.x, ground_y + 10.0), "v": Vector2(randf_range(-10, 10), randf_range(-90, -50)),
+				"max": randf_range(2.0, 3.5), "col": col.lerp(Color("ffe08a"), randf()), "size": 1.0, "layer": "light", "sway": 18.0, "kind": "sq"})
+		"emit_leaves":
+			var leaf_c: Array = [Color("4f8a3e"), Color("7ab04f"), Color("c8a040"), Color("a8602a")]
+			_part({"p": Vector2(randf_range(-0.1, 1.0) * size.x, -8.0), "v": Vector2(randf_range(20, 45), randf_range(28, 50)),
+				"max": randf_range(6.0, 10.0), "col": leaf_c[randi() % leaf_c.size()], "size": 1.0, "layer": "front", "sway": 30.0,
+				"kind": "leaf", "drag": 0.0})
+
+
+func _start_leaves() -> void:
+	for e in _fx:
+		if str(e["kind"]) == "emit_leaves":
+			return
+	var e2 := _add_fx("emit_leaves", "sky", Color.WHITE, "front", 1e9)
+	e2["rate"] = 1.6
+
+
+func _part(d: Dictionary) -> void:
+	if _parts.size() > 700:
+		return
+	d["life"] = 0.0
+	d["ph"] = randf() * TAU
+	if not d.has("grav"):
+		d["grav"] = Vector2.ZERO
+	if not d.has("drag"):
+		d["drag"] = 0.6
+	if not d.has("sway"):
+		d["sway"] = 0.0
+	_parts.append(d)
+
+
+func _burst(at: Vector2, col: Color, n: int, layer: String) -> void:
+	for i in range(n):
+		var a := randf() * TAU
+		var sp := randf_range(90.0, 320.0)
+		_part({"p": at, "v": Vector2.from_angle(a) * sp, "max": randf_range(0.45, 0.9), "col": col.lerp(Color.WHITE, randf() * 0.5),
+			"size": 2.0 if randf() < 0.3 else 1.0, "layer": layer, "grav": Vector2(0, 260), "drag": 2.2, "kind": "sq"})
+
+
+func _dust(at: Vector2, n: int) -> void:
+	for i in range(n):
+		var dir := -1.0 if i % 2 == 0 else 1.0
+		_part({"p": at + Vector2(randf_range(-0.3, 0.3) * size.x * 0.3, randf_range(-6, 6)), "v": Vector2(dir * randf_range(40, 140), randf_range(-30, -5)),
+			"max": randf_range(0.7, 1.2), "col": Color("b8a898"), "size": randf_range(8.0, 18.0), "layer": "back", "drag": 2.5, "kind": "puff"})
+
+
+func _update_parts(delta: float) -> void:
+	var keep: Array = []
+	for p in _parts:
+		p["life"] = float(p["life"]) + delta
+		if float(p["life"]) > float(p["max"]):
+			continue
+		var v: Vector2 = p["v"]
+		var pos: Vector2 = p["p"]
+		if p.has("target"):
+			var tgt: Vector2 = p["target"]
+			var to := tgt - pos
+			if to.length() < 6.0:
+				continue
+			v = v.lerp(to.normalized() * float(p["speed"]), clampf(delta * 5.0, 0.0, 1.0))
+		v += (p["grav"] as Vector2) * delta
+		v *= 1.0 - clampf(float(p["drag"]) * delta, 0.0, 1.0)
+		pos += v * delta
+		pos.x += sin(float(p["ph"]) + float(p["life"]) * 3.0) * float(p["sway"]) * delta
+		p["v"] = v
+		p["p"] = pos
+		keep.append(p)
+	_parts = keep
+
+
+# ---------------------------------------------------------------- dessin (calques basse résolution)
+
+func draw_layer(ci: CanvasItem, layer: String) -> void:
+	var k := 1.0 / px
+	for e in _fx:
+		if str(e["layer"]) == layer:
+			_draw_fx(ci, e, k)
+	for p in _parts:
+		if str(p["layer"]) != layer:
+			continue
+		var u := float(p["life"]) / float(p["max"])
+		var col: Color = p["col"]
+		var a := 1.0 - u * u
+		var pos: Vector2 = (p["p"] as Vector2) * k
+		match str(p["kind"]):
+			"puff":
+				ci.draw_circle(pos, float(p["size"]) * k * (0.6 + u), Color(col, 0.35 * (1.0 - u)))
+			"leaf":
+				var flip := sin(float(p["ph"]) + float(p["life"]) * 5.0) > 0.0
+				ci.draw_rect(Rect2(pos.floor(), Vector2(2, 1) if flip else Vector2(1, 2)), Color(col, minf(1.0, (1.0 - u) * 3.0)))
+			_:
+				var s := float(p["size"])
+				ci.draw_rect(Rect2(pos.floor(), Vector2(s, s)), Color(col, a))
+	if layer == "front":
+		for em in _emotes:
+			_draw_emote(ci, em, k)
+
+
+func _draw_fx(ci: CanvasItem, e: Dictionary, k: float) -> void:
+	var t := float(e["t"])
+	var dur := float(e["dur"])
+	var u := clampf(t / maxf(0.01, dur), 0.0, 1.0)
+	var c := _fx_pos(e) * k
+	var col: Color = e["col"]
+	match str(e["kind"]):
+		"bloom", "aura":
+			var a := 0.0
+			if str(e["kind"]) == "aura":
+				a = (0.4 + 0.12 * sin(_t * 2.0)) * float(e.get("alpha", 1.0))
+			else:
+				a = t / 0.08 if t < 0.08 else 1.0 - (t - 0.08) / maxf(0.01, dur - 0.08)
+			var rr := float(e["r"]) * k
+			for i in range(7):
+				var f := 1.0 - float(i) / 7.0
+				ci.draw_circle(c, rr * f, Color(col, a * 0.07))
+			if str(e["kind"]) == "bloom":
+				ci.draw_circle(c, rr * 0.08, Color(Color.WHITE, a * 0.5))
+		"ring":
+			var r := float(e["R"]) * k * _ease_out(u)
+			var a2 := 1.0 - u
+			ci.draw_set_transform(c, 0.0, Vector2(1.0, float(e["sq"])))
+			ci.draw_arc(Vector2.ZERO, r, 0.0, TAU, 56, Color(col, a2), maxf(1.0, 3.0 * (1.0 - u)))
+			ci.draw_arc(Vector2.ZERO, r * 0.82, 0.0, TAU, 48, Color(col, a2 * 0.4), 1.0)
+			ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		"rays":
+			var a3 := minf(1.0, t / 0.3) * minf(1.0, (dur - t) / 0.8)
+			var rot := float(e["rot"]) + t * 0.25
+			var big := float(e["r"]) * k * 2.2
+			for i in range(10):
+				var ang := rot + float(i) * TAU / 10.0
+				var w := 0.05 + 0.02 * sin(_t * 3.0 + float(i))
+				ci.draw_primitive(PackedVector2Array([c, c + Vector2.from_angle(ang - w) * big, c + Vector2.from_angle(ang + w) * big]),
+					PackedColorArray([Color(col, a3 * 0.3), Color(col, 0.0), Color(col, 0.0)]), PackedVector2Array())
+		"circle":
+			var rr2 := float(e["r"]) * k
+			var p := clampf(t / 0.7, 0.0, 1.0)
+			var a4 := minf(1.0, (dur - t) / 0.5)
+			var rot2 := t * 0.7
+			var cc := Color(col, a4)
+			ci.draw_arc(c, rr2, rot2, rot2 + p * TAU, 64, Color(col, a4 * 0.35), 3.0)
+			ci.draw_arc(c, rr2, rot2, rot2 + p * TAU, 64, cc, 1.0)
+			ci.draw_arc(c, rr2 * 1.08, -rot2, -rot2 - p * TAU, 64, Color(col, a4 * 0.5), 1.0)
+			ci.draw_arc(c, rr2 * 0.7, -rot2 * 1.3, -rot2 * 1.3 + p * TAU, 48, cc, 1.0)
+			if p > 0.4:
+				var q := clampf((p - 0.4) / 0.6, 0.0, 1.0)
+				for tri in range(2):
+					var pts := PackedVector2Array()
+					for j in range(4):
+						pts.append(c + Vector2.from_angle(rot2 * 0.8 + float(tri) * PI / 3.0 + float(j) * TAU / 3.0) * rr2 * 0.7)
+					ci.draw_polyline(pts, Color(col, a4 * q), 1.0)
+				for j in range(12):
+					var rp := c + Vector2.from_angle(-rot2 * 1.6 + float(j) * TAU / 12.0) * rr2 * 0.86
+					ci.draw_rect(Rect2(rp.floor(), Vector2(2, 1) if j % 2 == 0 else Vector2(1, 2)), Color(col.lightened(0.4), a4 * q))
+			ci.draw_circle(c, rr2 * 0.18 * (1.0 + 0.2 * sin(_t * 6.0)), Color(col.lightened(0.5), a4 * 0.35))
+		"bolt":
+			if t - float(e["gen"]) > 0.05:
+				e["gen"] = t
+				e["pts"] = _bolt_path(_fx_pos(e))
+			if t < 0.38 and int(t * 30.0) % 3 != 2:
+				var pts2: PackedVector2Array = e["pts"]
+				var scaled := PackedVector2Array()
+				for q2 in pts2:
+					scaled.append((q2 * k).floor())
+				ci.draw_polyline(scaled, Color(col, 0.5), 3.0)
+				ci.draw_polyline(scaled, Color.WHITE, 1.0)
+		"beam":
+			var ww := float(e["r"]) * k * 0.4 * sin(PI * u)
+			ci.draw_rect(Rect2(c.x - ww * 0.5, 0.0, ww, c.y), Color(col, 0.45))
+			ci.draw_rect(Rect2(c.x - ww * 0.15, 0.0, ww * 0.3, c.y), Color(Color.WHITE, 0.8 * sin(PI * u)))
+		"crack":
+			var pts3: PackedVector2Array = e["pts"]
+			var reveal := clampf(t / 0.7, 0.0, 1.0)
+			var n := int(reveal * float(pts3.size() - 1)) + 1
+			var a5 := minf(1.0, (dur - t) / 0.8)
+			var sub := PackedVector2Array()
+			for i in range(mini(n + 1, pts3.size())):
+				sub.append((pts3[i] * k).floor())
+			if sub.size() >= 2:
+				var pulse := 0.3 + 0.12 * sin(_t * 7.0)
+				ci.draw_polyline(sub, Color(col, pulse * a5), 7.0)
+				ci.draw_polyline(sub, Color(col, 0.8 * a5), 3.0)
+				ci.draw_polyline(sub, Color(Color.WHITE, a5), 1.0)
+		"slash":
+			var span := PI * 0.9
+			var prog := clampf(t / 0.12, 0.0, 1.0)
+			var a6 := 1.0 - clampf((t - 0.12) / 0.33, 0.0, 1.0)
+			var r2 := _sh() * 0.12 * k
+			var a0 := float(e["rot"]) - span * 0.5
+			for i in range(3):
+				ci.draw_arc(c, r2 - float(i), a0, a0 + span * prog, 24, Color(col if i > 0 else Color.WHITE, a6 * (1.0 - float(i) * 0.25)), 2.0 - float(i) * 0.5)
+
+
+func _bolt_path(target: Vector2) -> PackedVector2Array:
+	var start := Vector2(target.x + randf_range(-0.12, 0.12) * size.x, top_y - 10.0)
+	var pts := PackedVector2Array()
+	var n := 10
+	var perp := (target - start).orthogonal().normalized()
+	for i in range(n + 1):
+		var f := float(i) / float(n)
+		var j := 0.0 if i == 0 or i == n else randf_range(-1.0, 1.0) * _sh() * 0.06 * (1.0 - absf(f - 0.5))
+		pts.append(start.lerp(target, f) + perp * j)
+	return pts
+
+
+func _draw_emote(ci: CanvasItem, em: Dictionary, k: float) -> void:
+	var who := str(em["who"])
+	var base := Vector2.ZERO
+	if _figs.has(who):
+		var f: Dictionary = _figs[who]
+		var side := float(f["side"])
+		var fs := _fig_scale() * 64.0
+		base = (f["head"] as Vector2) + Vector2(-side * fs * 0.3 - 16.0, -fs * 0.42)
+	elif not _pres.is_empty() and str(_pres["pid"]) == who:
+		base = _anchor_pos("subject") + Vector2(_sh() * 0.25, -_sh() * 0.25)
+	else:
+		return
+	var t := float(em["t"])
+	var pop := minf(1.0, t / 0.12)
+	var a := minf(1.0, (float(em["dur"]) - t) / 0.3)
+	var hop := -absf(sin(t * 9.0)) * 2.0 * maxf(0.0, 1.0 - t / 0.6)
+	var rows: Array = EMOTES[str(em["kind"])]
+	var px2 := 2.0 if px >= 4.0 else 3.0 ## un pixel de bulle = 2 pixels d'effet (8 pixels d'écran)
+	var o := (base * k).floor() + Vector2(0.0, hop * 2.0 - (1.0 - pop) * 6.0)
+	for y in range(rows.size()):
+		var row := str(rows[y])
+		for x in range(row.length()):
+			var ch := row[x]
+			if ch == ".":
+				continue
+			ci.draw_rect(Rect2(o + Vector2(x, y) * px2, Vector2.ONE * px2), Color(Color(str(EMOTE_COL.get(ch, "ffffff"))), a))
+
+
+# ---------------------------------------------------------------- courbes
+
+static func _ease_out(x: float) -> float:
+	return 1.0 - pow(1.0 - clampf(x, 0.0, 1.0), 3.0)
+
+
+static func _ease_in(x: float) -> float:
+	return pow(clampf(x, 0.0, 1.0), 3.0)
+
+
+static func _ease_in_out(x: float) -> float:
+	var v := clampf(x, 0.0, 1.0)
+	return v * v * (3.0 - 2.0 * v)
+
+
+static func _ease_out_back(x: float) -> float:
+	var v := clampf(x, 0.0, 1.0)
+	var c1 := 1.4
+	return 1.0 + (c1 + 1.0) * pow(v - 1.0, 3.0) + c1 * pow(v - 1.0, 2.0)
+
+
+# ---------------------------------------------------------------- vérification des données
+
+## Erreurs d'indications d'une réplique ou d'une scène (mots inconnus, personnage sans portrait).
+static func check_cues(l: Dictionary) -> Array[String]:
+	var errs: Array[String] = []
+	for c in _list(l.get("cam", [])):
+		if not CAMS.has(c.get_slice(":", 0)):
+			errs.append("cam " + c)
+	for f in _list(l.get("fx", [])):
+		var kind := f.get_slice(":", 0).get_slice("@", 0)
+		if not FXS.has(kind):
+			errs.append("fx " + f)
+	if l.has("grade") and not GRADES.has(str(l["grade"])):
+		errs.append("grade " + str(l["grade"]))
+	var acts: Dictionary = l.get("act", {})
+	for who in acts.keys():
+		var w := str(who)
+		var what := str(acts[who])
+		if not (acts[who] is String):
+			errs.append("act %s : %s" % [w, what])
+		elif w == "subject":
+			if not SUBJECT_ACTS.has(what):
+				errs.append("act subject " + what)
+		elif not (PortraitArt.has_portrait(w) or w == "traitre") or not ACTS.has(what):
+			errs.append("act %s %s" % [w, what])
+	var ems: Dictionary = l.get("emote", {})
+	for who in ems.keys():
+		if not EMOTES.has(str(ems[who])):
+			errs.append("emote " + str(ems[who]))
+	for c in l.get("cast", []):
+		var id := str((c as Dictionary).get("id", "")) if c is Dictionary else str(c)
+		if not (PortraitArt.has_portrait(id) or id == "traitre"):
+			errs.append("cast " + id)
+	return errs
