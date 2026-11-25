@@ -2,6 +2,13 @@ P = ["porteur"]
 PS = ["porteur", "sylwen"]
 PSB = ["porteur", "sylwen", "brann"]
 SCENE = {
+    # Un décor par lieu : le sentier (1-2), la clairière brisée (1-3), le roncier (1-4), les fougères (1-5),
+    # le cercle des fées (1-6).
+    "z01_l02_intro": {"art": "sentier"}, "z01_l02_outro": {"art": "sentier"},
+    "z01_l03_intro": {"art": "clairiere"}, "z01_l03_outro": {"art": "clairiere"},
+    "z01_l04_intro": {"art": "roncier"}, "z01_l04_outro": {"art": "roncier"},
+    "z01_l05_intro": {"art": "fougeres"}, "z01_l05_outro": {"art": "fougeres"},
+    "z01_l06_intro": {"art": "cercle_fees"}, "z01_l06_outro": {"art": "cercle_fees"},
     "prologue": {"grade": "night"},
     "z01_l01_intro": {"grade": "violet"},
     "z01_l01_outro": {"cast": P, "grade": "dawn"},

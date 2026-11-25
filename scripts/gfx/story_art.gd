@@ -151,7 +151,8 @@ static func _forest(img: Image, rng: RandomNumberGenerator, kind: String) -> voi
 	var w := img.get_width()
 	var h := img.get_height()
 	var healed := kind == "foret_gueri"
-	var corrupt := kind in ["nexus", "sylvarche", "lysbourg"]
+	var corrupt := kind in ["nexus", "sylvarche", "lysbourg", "roncier"]
+	var open_center := kind in ["clairiere", "fougeres", "cercle_fees"] ## clairière : pas d'arbres au milieu
 	var top := Color("04050f")
 	var mid := Color("1d1a48") if not corrupt else Color("2a1448")
 	var low := Color("2d2c5e") if not corrupt else Color("4a2060")
@@ -173,7 +174,12 @@ static func _forest(img: Image, rng: RandomNumberGenerator, kind: String) -> voi
 	var far_l := Color("2a3f66") if not healed else Color("3a6a4a")
 	var near_l := Color("24365a") if not healed else Color("3f7a4a")
 	for i in range(int(w / 7.0)):
-		_pine(img, rng.randi_range(-4, w + 4), int(h * 0.66) + rng.randi_range(-3, 3), rng.randi_range(int(h * 0.12), int(h * 0.2)), far, far_l)
+		var px := rng.randi_range(-4, w + 4)
+		var ph := rng.randi_range(int(h * 0.12), int(h * 0.2))
+		var pb := int(h * 0.66) + rng.randi_range(-3, 3)
+		if open_center and px > int(w * 0.3) and px < int(w * 0.7):
+			continue
+		_pine(img, px, pb, ph, far, far_l)
 	_mist(img, rng, int(h * 0.58), int(h * 0.7), Color(0.55, 0.55, 0.9, 0.15), int(w / 8.0))
 	# Sol.
 	var ground := Color("1a2a24") if not healed else Color("1f3a26")
@@ -191,6 +197,16 @@ static func _forest(img: Image, rng: RandomNumberGenerator, kind: String) -> voi
 			_bridge(img, rng)
 		"nexus":
 			_crystal(img, int(w * 0.5), int(h * 0.62), int(minf(w, h) * 0.13))
+		"sentier":
+			_path(img, rng)
+		"clairiere":
+			_clearing(img, rng)
+		"roncier":
+			_brambles(img, rng)
+		"fougeres":
+			_moonbeam(img)
+		"cercle_fees":
+			_fairy_ring(img, rng)
 	# Arbres proches sur les bords.
 	for side in [0, 1]:
 		for k in range(3):
@@ -202,10 +218,148 @@ static func _forest(img: Image, rng: RandomNumberGenerator, kind: String) -> voi
 			for s in range(int(h * 0.18)):
 				_px(img, int(p.x), int(p.y), Color("5b3a8a") if s % 6 != 0 else Color("b07cff"))
 				p += Vector2(rng.randf_range(-1.0, 1.0), -rng.randf_range(0.4, 1.0))
+	if kind == "fougeres":
+		_ferns(img, rng)
 	var ff := 20 if kind == "foret" else 8
-	if healed or kind == "source":
+	if healed or kind == "source" or kind == "sentier":
 		ff = 70
+	elif kind == "cercle_fees":
+		ff = 40
 	_fireflies(img, rng, int(ff * w / 240.0), int(h * 0.3), h - 4, Color("f2e28b") if not corrupt else Color("d98cff"))
+
+
+## 1-2 · Le sentier des lucioles : un chemin de terre qui serpente jusqu'à l'horizon, bordé de pierres.
+static func _path(img: Image, rng: RandomNumberGenerator) -> void:
+	var w := img.get_width()
+	var h := img.get_height()
+	var y0 := int(h * 0.64)
+	for y in range(y0, h):
+		var t := float(y - y0) / float(h - y0)
+		var cx := float(w) * 0.5 + sin(t * 3.2) * float(w) * 0.09 * t
+		var half := lerpf(1.5, float(w) * 0.28, pow(t, 1.3))
+		img.fill_rect(Rect2i(int(cx - half), y, int(half * 2.0) + 1, 1), Color("3a3328").lerp(Color("4a4232"), t))
+		_px(img, int(cx - half), y, Color("5a4e3a"))
+		_px(img, int(cx + half), y, Color("5a4e3a"))
+		if rng.randf() < 0.25:
+			_px(img, int(cx + rng.randf_range(-half, half)), y, Color("6a5e48"))
+		if y % 5 == 0 and t > 0.15:
+			for sd: float in [-1.0, 1.0]:
+				_disc(img, int(cx + sd * (half + 3.0)), y, maxi(1, int(t * 2.5)), Color("4a4a5a"))
+
+
+## 1-3 · La clairière brisée : souches éclatées, un tronc couché, branches cassées.
+static func _clearing(img: Image, rng: RandomNumberGenerator) -> void:
+	var w := img.get_width()
+	var h := img.get_height()
+	var bark := Color("3a2a22")
+	for i in range(5):
+		var x := rng.randi_range(int(w * 0.22), int(w * 0.78))
+		var base := int(h * 0.7) + rng.randi_range(-2, 4)
+		var sw := rng.randi_range(4, 8)
+		var sh := rng.randi_range(5, 12)
+		img.fill_rect(Rect2i(x, base - sh, sw, sh), bark)
+		img.fill_rect(Rect2i(x + sw - 1, base - sh, 1, sh), Color("5a4232"))
+		for k in range(sw):
+			var jag := rng.randi_range(0, 4)
+			img.fill_rect(Rect2i(x + k, base - sh - jag, 1, jag), Color("6a5040") if k % 2 == 0 else bark)
+	var ly := int(h * 0.76)
+	var lx := int(w * 0.3)
+	var lw := int(w * 0.34)
+	img.fill_rect(Rect2i(lx, ly, lw, 5), Color("4a3428"))
+	img.fill_rect(Rect2i(lx, ly, lw, 1), Color("6a5040"))
+	_disc(img, lx + lw, ly + 2, 3, Color("7a5a40"))
+	_disc(img, lx + lw, ly + 2, 1, Color("4a3428"))
+	for i in range(10):
+		var a := Vector2(rng.randf_range(w * 0.15, w * 0.85), rng.randf_range(h * 0.72, h * 0.9))
+		var b := a + Vector2(rng.randf_range(-8, 8), rng.randf_range(-3, 3))
+		for k in range(10):
+			var p := a.lerp(b, float(k) / 9.0)
+			_px(img, int(p.x), int(p.y), Color("4a3a2e"))
+
+
+## 1-4 · Le roncier : des ronces maudites étouffent les arbres ; deux pierres runiques (la porte maudite).
+static func _brambles(img: Image, rng: RandomNumberGenerator) -> void:
+	var w := img.get_width()
+	var h := img.get_height()
+	for sd: int in [-1, 1]:
+		var x := int(w * 0.5) + sd * int(w * 0.09)
+		img.fill_rect(Rect2i(x - 3, int(h * 0.52), 6, int(h * 0.2)), Color("4a4660"))
+		img.fill_rect(Rect2i(x + 2, int(h * 0.52), 1, int(h * 0.2)), Color("6a6680"))
+		for k in range(4):
+			_px(img, x, int(h * 0.55) + k * 4, Color("d93cf2"))
+	img.fill_rect(Rect2i(int(w * 0.41) - 3, int(h * 0.5), int(w * 0.18) + 6, 4), Color("4a4660"))
+	for i in range(int(w / 3.0)):
+		var p := Vector2(rng.randf_range(-10.0, float(w) + 10.0), rng.randf_range(h * 0.58, h * 0.95))
+		var dir := Vector2.from_angle(rng.randf_range(-PI, 0.0))
+		for s2 in range(rng.randi_range(10, 26)):
+			_px(img, int(p.x), int(p.y), Color("2a1430") if s2 % 3 != 0 else Color("5a2a6a"))
+			if s2 % 5 == 2:
+				_px(img, int(p.x) + 1, int(p.y) - 1, Color("8e62e0"))
+			dir = dir.rotated(rng.randf_range(-0.5, 0.5))
+			p += dir
+
+
+## 1-5 · Clairière aux fougères : un rai de lune tombe au milieu, là où le Cerf apparaît.
+static func _moonbeam(img: Image) -> void:
+	var w := img.get_width()
+	var h := img.get_height()
+	for y in range(h):
+		var t := float(y) / float(h)
+		var cx := lerpf(float(w) * 0.7, float(w) * 0.5, t)
+		var half := lerpf(float(w) * 0.04, float(w) * 0.16, t)
+		for x in range(int(cx - half), int(cx + half)):
+			var edge := 1.0 - absf(float(x) - cx) / half
+			_px(img, x, y, Color(0.75, 0.8, 1.0, 0.07 * edge))
+
+
+static func _ferns(img: Image, rng: RandomNumberGenerator) -> void:
+	var w := img.get_width()
+	var h := img.get_height()
+	for i in range(16):
+		var left := i % 2 == 0
+		var base := Vector2(rng.randf_range(0.0, w * 0.3) if left else rng.randf_range(w * 0.7, float(w)), float(h) + 2.0)
+		if i >= 12:
+			base = Vector2(rng.randf_range(w * 0.2, w * 0.8), h * 0.74)
+		var ang := rng.randf_range(-PI * 0.8, -PI * 0.55) if not left else rng.randf_range(-PI * 0.45, -PI * 0.2)
+		var ln := rng.randf_range(h * 0.12, h * 0.3) * (0.4 if i >= 12 else 1.0)
+		var col := Color("2a5a36") if rng.randf() < 0.5 else Color("3f7a4a")
+		var p := base
+		var d := Vector2.from_angle(ang)
+		for k in range(int(ln)):
+			_px(img, int(p.x), int(p.y), col.darkened(0.2))
+			if k % 2 == 0:
+				var leaf := maxi(1, int((1.0 - float(k) / ln) * 5.0))
+				var n := d.orthogonal()
+				for q in range(1, leaf + 1):
+					_px(img, int(p.x + n.x * q), int(p.y + n.y * q + q * 0.4), col)
+					_px(img, int(p.x - n.x * q), int(p.y - n.y * q + q * 0.4), col.lightened(0.1))
+			d = d.rotated(0.025 if left else -0.025)
+			p += d
+
+
+## 1-6 · Le cercle des fées : un anneau de champignons lumineux sur la mousse.
+static func _fairy_ring(img: Image, rng: RandomNumberGenerator) -> void:
+	var w := img.get_width()
+	var h := img.get_height()
+	var c := Vector2(w * 0.5, h * 0.75)
+	var rx := w * 0.2
+	var ry := h * 0.045
+	for y in range(int(c.y - ry * 2.0), int(c.y + ry * 2.0)):
+		for x in range(int(c.x - rx * 1.3), int(c.x + rx * 1.3)):
+			var d := pow((float(x) - c.x) / rx, 2.0) + pow((float(y) - c.y) / ry, 2.0)
+			if d < 1.2:
+				_px(img, x, y, Color(1.0, 0.6, 0.9, 0.08 * (1.2 - d)))
+	for i in range(16):
+		var a := float(i) / 16.0 * TAU
+		var mx := int(c.x + cos(a) * rx)
+		var my := int(c.y + sin(a) * ry)
+		var cap := 2 if i % 3 != 0 else 3
+		img.fill_rect(Rect2i(mx, my - 2, 1, 3), Color("e8dcc0"))
+		for dx in range(-cap, cap + 1):
+			_px(img, mx + dx, my - 3, Color("f7a8e0"))
+		_px(img, mx, my - 4, Color("ffd8f4"))
+		_px(img, mx - 1, my - 3, Color("ffffff"))
+	_fireflies(img, rng, 14, int(h * 0.62), int(h * 0.74), Color("ffb8f0"))
 
 
 static func _village(img: Image, rng: RandomNumberGenerator) -> void:

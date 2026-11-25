@@ -133,7 +133,7 @@ static func _ramp(hexes: Array) -> Array[Color]:
 
 
 static func _px(img: Image, x: int, y: int, c: Color) -> void:
-	if x < 0 or y < 0 or x >= SIZE or y >= SIZE:
+	if x < 0 or y < 0 or x >= img.get_width() or y >= img.get_height():
 		return
 	if c.a < 1.0:
 		var b := img.get_pixel(x, y)
@@ -211,13 +211,15 @@ static func _glow(img: Image, cx: int, cy: int, r: int, c: Color, a: float) -> v
 ## Contour sombre de 1 px autour de la silhouette.
 static func _outline(img: Image) -> void:
 	var src := img.duplicate() as Image
-	for y in range(SIZE):
-		for x in range(SIZE):
+	var w := img.get_width()
+	var h := img.get_height()
+	for y in range(h):
+		for x in range(w):
 			if src.get_pixel(x, y).a > 0.5:
 				continue
 			for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
 				var q: Vector2i = Vector2i(x, y) + d
-				if q.x >= 0 and q.y >= 0 and q.x < SIZE and q.y < SIZE and src.get_pixel(q.x, q.y).a > 0.5:
+				if q.x >= 0 and q.y >= 0 and q.x < w and q.y < h and src.get_pixel(q.x, q.y).a > 0.5:
 					img.set_pixel(x, y, OUTLINE)
 					break
 
@@ -226,7 +228,7 @@ static func _outline(img: Image) -> void:
 static func _rim(img: Image, x0: int, x1: int, y0: int, y1: int, c: Color) -> void:
 	for y in range(y0, y1 + 1):
 		for x in range(x1, x0 - 1, -1):
-			if img.get_pixel(clampi(x, 0, SIZE - 1), clampi(y, 0, SIZE - 1)).a > 0.5:
+			if img.get_pixel(clampi(x, 0, img.get_width() - 1), clampi(y, 0, img.get_height() - 1)).a > 0.5:
 				_px(img, x, y, Color(c, 0.55))
 				break
 

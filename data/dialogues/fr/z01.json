@@ -50,7 +50,7 @@
     },
 
     "z01_l02_intro": {
-      "art": "foret",
+      "art": "sentier",
       "cast": ["porteur"],
       "lines": [
         {"fx": "arrow@porteur", "act": {"porteur": "hurt"}, "emote": {"porteur": "!"}, "who": "sylwen", "mood": "colere", "text": "Halte ! Un pas de plus et… Oh. C'est toi qui as brisé le Nexus de Lysbourg ?"},
@@ -60,7 +60,7 @@
       ]
     },
     "z01_l02_outro": {
-      "art": "foret",
+      "art": "sentier",
       "cast": ["porteur", "sylwen"],
       "lines": [
         {"fx": "swarm@porteur:fff3b0", "who": "sylwen", "mood": "joie", "text": "Joli travail. Tu canalises comme une rivière en crue : fort, mais pas toujours droit."},
@@ -70,7 +70,7 @@
     },
 
     "z01_l03_intro": {
-      "art": "foret",
+      "art": "clairiere",
       "cast": ["porteur", "sylwen"],
       "lines": [
         {"act": {"brann": "attack"}, "fx": "clang@brann", "who": "brann", "mood": "colere", "text": "Enfin des renforts ! Je tiens cette clairière depuis l'aube, avec mon bouclier et ma mauvaise humeur."},
@@ -87,7 +87,7 @@
       ]
     },
     "z01_l03_outro": {
-      "art": "foret",
+      "art": "clairiere",
       "cast": ["porteur", "sylwen", "brann"],
       "lines": [
         {"act": {"brann": "hop"}, "fx": "dust@ground", "who": "brann", "mood": "joie", "text": "Ha ! Voilà ce que j'appelle un nettoyage de printemps."},
@@ -97,8 +97,8 @@
     },
 
     "z01_l04_intro": {
-      "art": "foret",
       "subject": "pixie",
+      "art": "roncier",
       "cast": ["porteur", "sylwen", "brann"],
       "lines": [
         {"act": {"subject": "glow"}, "fx": "glitter@subject:ffb8f0", "who": "sylwen", "text": "Les fées sont nées de la magie pure des Veines. Le Surge les rend folles… et sombres."},
@@ -108,7 +108,7 @@
       ]
     },
     "z01_l04_outro": {
-      "art": "foret",
+      "art": "roncier",
       "cast": ["porteur", "sylwen", "brann"],
       "lines": [
         {"fx": "thorns@right:8a4aa8", "emote": {"sylwen": "note"}, "who": "brann", "mood": "colere", "text": "D'accord. Les fées causent BEAUCOUP d'ennuis. Je retire ce que j'ai dit."},
@@ -118,8 +118,8 @@
     },
 
     "z01_l05_intro": {
-      "art": "foret",
       "subject": "stag",
+      "art": "fougeres",
       "cast": ["porteur", "sylwen", "brann"],
       "lines": [
         {"act": {"subject": "rise"}, "fx": ["ferns@ground", "drip@subject:b07cff"], "cam": "push", "grade": "violet", "who": "narrateur", "text": "Un cerf immense jaillit des fougères. Ses bois ruissellent d'une lumière violette."},
@@ -129,8 +129,8 @@
       ]
     },
     "z01_l05_outro": {
-      "art": "foret",
       "subject": "stag",
+      "art": "fougeres",
       "cast": ["porteur", "sylwen", "brann"],
       "lines": [
         {"act": {"subject": "rise"}, "fx": "wisps@subject:b07cff", "grade": "none", "who": "narrateur", "subject_tint": "CFE6FF", "text": "La corruption s'échappe des bois du Cerf en volutes violettes. Il se relève, apaisé."},
@@ -144,8 +144,8 @@
     },
 
     "z01_l06_intro": {
-      "art": "foret",
       "subject": "pixie",
+      "art": "cercle_fees",
       "cast": ["porteur", "sylwen", "brann"],
       "lines": [
         {"subject_tint": "9a7ab8", "act": {"subject": "roar"}, "fx": "glitter@subject:8a4aa8", "grade": "violet", "who": "sylwen", "mood": "surpris", "text": "Des tireuses, des porte-boucliers… Les fées sombres s'organisent. C'est nouveau."},
@@ -154,7 +154,7 @@
       ]
     },
     "z01_l06_outro": {
-      "art": "foret",
+      "art": "cercle_fees",
       "cast": ["porteur", "sylwen", "brann"],
       "lines": [
         {"act": {"porteur": "echo"}, "fx": "timestop@porteur", "grade": "cold", "cam": "push", "who": "narrateur", "text": "Un instant, le monde s'est figé. Tu as vu d'autres versions de cette bataille, d'autres choix, d'autres fins."},

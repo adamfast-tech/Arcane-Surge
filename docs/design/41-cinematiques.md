@@ -13,7 +13,22 @@ Le chantier avance niveau par niveau. **Version 2 du moteur** (bustes, calques d
 | Ambiance | Selon le décor (`CineStage.PLATE_MOOD`) : lucioles et brume, poussière arcanique, braises, neige, sable, bulles ; **feuilles qui tombent** devant la scène en forêt et à Lysbourg |
 | Personnages | **Grands bustes** (portraits 64×64 agrandis d'un facteur entier). **Deux au plus à l'écran** : celui qui parle et celui à qui il répond, un de chaque côté (le héros à gauche de préférence) ; quand un troisième parle, le plus ancien sort. Pendant le carton-titre, plan d'ensemble sans personnages : ils entrent ensuite. Ils entrent en glissant (léger rebond), respirent, parlent (bouche animée), clignent. Celui qui parle s'avance dans la lumière ; les autres reculent dans l'ombre, un peu ternis. Le panneau de texte ne garde que le nom |
 | Humeur | Au changement d'humeur d'un personnage : **bulle d'émotion** posée sur sa tête et entraînée par elle (« ! » au-dessus, veine de colère au coin du crâne qui palpite, goutte sur la tempe qui glisse, note près du visage) et geste : saut avec écrasement, tremblement et pas en avant avec liseré rouge, petits bonds, affaissement et couleurs passées |
-| Présence | Créatures et esprits (Grand Cerf, Sylvarche, la Voix, dragons, Léviathan, Ourdisseur, Sphinx, Orrin, Morvaen) : grand portrait qui flotte dans son **aura**, au centre entre les deux bustes (écran large) ou au-dessus d'eux (téléphone), sans être recouvert. Les sujets de scène connus (`stag`, `sylvarche`, `pixie`) prennent leur portrait ; les autres gardent leur sprite. Quand un esprit parle sans être le sujet, il apparaît en présence |
+| Présence | Créatures et esprits, au centre, dans leur **aura**. **En pied** quand leur corps est dessiné (`FigureArt`, zone 1 : le Grand Cerf, la Sylvarche, la fée, Morvaen, la Voix, la Lanterne) : ils se tiennent **debout dans le décor**, les pieds au sol derrière le panneau et les bustes (le premier plan cache le bas du corps), la tête toujours dans le cadre ; seuls ceux qui volent (la fée) planent. Leur taille suit la scène (le Cerf est immense, la fée minuscule). Les autres (zones 2 à 7, pour l'instant) gardent un grand portrait qui flotte. Les sujets de scène connus (`stag`, `sylvarche`, `pixie`) prennent leur portrait ; les autres gardent leur sprite. Quand un esprit parle sans être le sujet, il apparaît en présence |
+
+## Décors et personnages en pied (zone 1)
+
+**Un décor par lieu** (`StoryArt._forest` et ses variantes) : Lysbourg (1-1), **le sentier des lucioles** (1-2 : chemin de terre qui serpente, bordé de pierres, lucioles), **la clairière brisée** (1-3 : souches éclatées, tronc couché, branches cassées), **le roncier** (1-4 : ronces maudites, deux pierres runiques), **la clairière aux fougères** (1-5 : rai de lune au milieu, grandes fougères), **le cercle des fées** (1-6 : anneau de champignons lumineux), le pont (1-7), la Tour du Croissant, la Source (1-8), le Cœur de la Forêt (1-9), la Sylvarche (1-10), la forêt guérie. Les clairières laissent le centre libre pour la créature.
+
+**Personnages en pied** (`scripts/gfx/figure_art.gd`) : le haut du corps est leur portrait (avec bouche et expressions), le reste est dessiné dans le même style.
+
+| Personnage | Corps |
+|---|---|
+| Grand Cerf | De face : poitrail clair, quatre pattes fines, sabots ; traînées violettes quand il est corrompu |
+| Sylvarche | Grande couronne (violette, verte une fois purifiée), tronc noueux fissuré, racines qui s'étalent |
+| Fée | Robe en corolle, jambes fines ; elle vole |
+| Morvaen | Longue robe jusqu'au sol, bâton à l'orbe turquoise |
+| La Voix | Robe d'ombre qui se dissout vers le sol |
+| Lanterne de l'Aube | Accrochée à sa perche plantée dans le sol |
 
 ## Indications (données)
 

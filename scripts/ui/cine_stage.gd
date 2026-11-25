@@ -11,7 +11,7 @@ extends Control
 
 const PLATE_MOOD := {
 	"fracture": "arcane", "surge": "arcane", "nexus": "arcane", "college": "arcane", "sphinx": "arcane", "tour": "moon",
-	"lysbourg": "dawn", "foret": "mist", "foret_gueri": "dawn", "source": "mist", "pont": "mist", "sylvarche": "arcane", "collines": "dawn",
+	"lysbourg": "dawn", "foret": "mist", "sentier": "mist", "clairiere": "mist", "roncier": "arcane", "fougeres": "mist", "cercle_fees": "arcane", "foret_gueri": "dawn", "source": "mist", "pont": "mist", "sylvarche": "arcane", "collines": "dawn",
 	"steppe": "steppe", "moulins": "steppe", "campement": "campfire", "orage": "steppe", "traite": "steppe", "fort": "steppe",
 	"marais": "swamp", "cercle": "swamp", "hydre": "swamp", "refuge": "campfire",
 	"pics": "snow", "porte": "snow", "lac": "snow", "forteresse": "snow", "colosse": "forge", "forge": "forge",
@@ -21,7 +21,7 @@ const PLATE_MOOD := {
 	"cite": "abyss", "quais": "abyss", "canal": "abyss", "statues": "abyss", "archives": "arcane", "palais": "abyss", "abysse": "abyss",
 }
 ## Décors où des feuilles tombent.
-const LEAFY := ["foret", "foret_gueri", "source", "pont", "collines", "lysbourg", "sylvarche"]
+const LEAFY := ["foret", "foret_gueri", "source", "pont", "collines", "lysbourg", "sylvarche", "sentier", "clairiere", "fougeres", "cercle_fees", "roncier"]
 ## Créatures et esprits : ils apparaissent en présence au centre, pas en buste.
 const PRESENCE := ["cerf", "sylvarche", "voix", "wyrm", "mere_dragon", "leviathan", "ourdisseur", "sphinx", "orrin", "morvaen"]
 ## Sujets de scène (sprites de combat) montrés par leur portrait.
@@ -350,8 +350,13 @@ func set_subject(name: String) -> void:
 		pid = str(SUBJECT_PORTRAIT[name])
 	if not _pres.is_empty() and str(_pres["name"]) == name and not bool(_pres.get("fading", false)):
 		return
-	_pres = {"name": name, "pid": pid, "t": 0.0, "act": "", "act_t": 0.0, "tint": Color.WHITE, "fading": false, "mood": "neutre"}
-	subject.texture = PortraitArt.texture(pid, "neutre") if pid != "" else SpriteAtlas.single(name)
+	# Personnage en pied (il se tient dans le décor), sinon portrait ou sprite.
+	var fig := pid if FigureArt.has(pid) else ("lanterne" if name == "lantern" else "")
+	_pres = {"name": name, "pid": pid, "fig": fig, "t": 0.0, "act": "", "act_t": 0.0, "tint": Color.WHITE, "fading": false, "mood": "neutre"}
+	if fig != "":
+		subject.texture = FigureArt.texture(fig, "neutre")
+	else:
+		subject.texture = PortraitArt.texture(pid, "neutre") if pid != "" else SpriteAtlas.single(name)
 	subject.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	subject.stretch_mode = TextureRect.STRETCH_SCALE
 	subject.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -1217,13 +1222,27 @@ func _update_presence(delta: float) -> void:
 	var tw := float(subject.texture.get_width())
 	var th := float(subject.texture.get_height())
 	var narrow := size.x < size.y
+	var fig := str(_pres.get("fig", ""))
 	var k := 2.0
-	if pid != "":
+	if fig != "":
+		# En pied : sa taille suit la hauteur de la scène (le Cerf est immense, la fée minuscule), en multiple entier.
+		k = maxf(1.0, roundf(sh * FigureArt.height_share(fig) / th))
+		k = minf(k, maxf(1.0, floorf(size.x * 0.9 / tw)))
+		# La tête reste dans le cadre, sous la bande cinéma.
+		var feet := ground_y + sh * 0.08 - (sh * 0.3 if FigureArt.flies(fig) else 0.0)
+		k = minf(k, maxf(1.0, floorf((feet - size.y * 0.06 - 10.0) / th)))
+	elif pid != "":
 		k = clampf(floorf(minf(sh * (0.6 if narrow else 1.0), size.x * (0.78 if narrow else 0.4)) / th), 2.0, 14.0)
 	else:
 		k = clampf(floorf(sh * (0.3 if narrow else 0.42) / th), 2.0, 24.0)
 	var fs := Vector2(tw, th) * k
-	if pid != "":
+	if fig != "":
+		var talk2 := _mouth if _speaker == pid else 0
+		var key2 := "fig|%s|%s|%d" % [fig, str(_pres["mood"]), talk2]
+		if key2 != str(_pres.get("tkey", "")):
+			_pres["tkey"] = key2
+			subject.texture = FigureArt.texture(fig, str(_pres["mood"]), talk2, false)
+	elif pid != "":
 		var talk := _mouth if _speaker == pid else 0
 		var key := "%s|%s|%d" % [pid, str(_pres["mood"]), talk]
 		if key != str(_pres.get("tkey", "")):
@@ -1232,7 +1251,8 @@ func _update_presence(delta: float) -> void:
 	var grow := _ease_out(clampf(t / 0.9, 0.0, 1.0))
 	var sc := lerpf(0.9, 1.0, grow)
 	var alpha := grow
-	var dy := sin(t * 0.9) * k * 1.5
+	# Un portrait seul flotte doucement ; un personnage en pied respire, et seuls ceux qui volent planent.
+	var dy := sin(t * 0.9) * k * 1.5 if fig == "" or FigureArt.flies(fig) else 0.0
 	var dx := 0.0
 	var rot := 0.0
 	var flash := 0.0
@@ -1274,6 +1294,12 @@ func _update_presence(delta: float) -> void:
 	var base_y := ground_y + (fs.y * 0.1 if pid != "" else -sh * 0.04)
 	if narrow:
 		base_y = ground_y - _fig_scale() * 64.0 * 0.62
+	if fig != "":
+		# Les pieds au sol du décor, derrière les bustes (qui cachent le bas du corps, comme au premier plan).
+		base_y = ground_y + sh * 0.08
+		if FigureArt.flies(fig):
+			base_y -= sh * 0.3
+		sc *= 1.0 + 0.008 * sin(t * 1.4)
 	var bottom := Vector2(size.x * 0.5 + dx, base_y + dy)
 	var b2 := _cam_point(bottom, 0.7)
 	var cs := 1.0 + (_cam_s - 1.0) * 0.7
@@ -1291,7 +1317,11 @@ func _update_presence(delta: float) -> void:
 		m.set_shader_parameter("dark", dark)
 		m.set_shader_parameter("desat", desat)
 		m.set_shader_parameter("rim_col", Color(_aura.get("col", Color.WHITE), 0.5))
-	_pres["center"] = b2 + Vector2(0.0, -fs.y * 0.55 * sc * cs)
+	if fig != "":
+		var hc := FigureArt.head_center(fig)
+		_pres["center"] = b2 + Vector2((hc.x - tw * 0.5) * k * sc * cs, -(th - hc.y) * k * sc * cs)
+	else:
+		_pres["center"] = b2 + Vector2(0.0, -fs.y * 0.55 * sc * cs)
 	if not _aura.is_empty():
 		_aura["r"] = fs.x * 0.6 * sc * cs
 		_aura["alpha"] = alpha
