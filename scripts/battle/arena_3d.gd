@@ -305,6 +305,10 @@ func _build_terrain() -> void:
 	var moss := _triplanar(WorldArt.moss_texture(), 0.5)
 	if floor_set:
 		moss.albedo_color = (pal["moss"] as Color).lerp(Color("3f6a3a"), 0.5).lightened(0.15)
+	if floor_set:
+		# Derrière le Nexus, la forêt continue : plus de vide où le ciel apparaîtrait au ras du sol.
+		_box(Vector3(11.0, 2.0, 26.0), w3(Vector2(4.5, 30.5), -1.72), rock)
+		_box(Vector3(11.0, 0.2, 26.0), w3(Vector2(4.5, 30.5), -0.7), moss)
 	for side in [-1, 1]:
 		var cx := 4.5 + float(side) * 14.5
 		if floor_set:
@@ -371,6 +375,12 @@ func _build_terrain() -> void:
 		var x := 4.5 + side * rng.randf_range(dmin, 17.0)
 		var y := rng.randf_range(-6.0, 34.0)
 		spots.append([Vector3(x, ty, -y), rng.randf_range(3.0, 6.0), _pick(rng, weights) if floor_set else rng.randi_range(0, 2)])
+	if floor_set:
+		# Lisière serrée derrière le Nexus : le fond de la clairière.
+		for i in range(46):
+			var bx := rng.randf_range(-3.0, 12.0)
+			var by := rng.randf_range(19.0, 36.0)
+			spots.append([Vector3(bx, ty, -by), rng.randf_range(4.0, 7.0), _pick(rng, weights)])
 	if not floor_set:
 		for i in range(14):
 			var side := -1.0 if i % 2 == 0 else 1.0
@@ -710,6 +720,10 @@ func _build_foliage() -> void:
 	# Sur le terrain : quelques touffes basses et cailloux.
 	for i in range(55):
 		items.append([w3(Vector2(rng.randf_range(0.6, 8.4), rng.randf_range(0.8, 14.5)), 0.0), rng.randf_range(0.16, 0.26), [0, 1, 7, 11, 2][rng.randi_range(0, 4)]])
+	# Derrière le Nexus : buissons, fougères et herbes hautes au pied de la lisière.
+	for i in range(40):
+		var f3: int = [4, 4, 6, 10, 2, 3, 5, 8][rng.randi_range(0, 7)]
+		items.append([w3(Vector2(rng.randf_range(-1.0, 10.0), rng.randf_range(17.9, 22.0)), -0.6), rng.randf_range(0.5, 1.0) * (1.5 if f3 in [4, 5, 8] else 1.0), f3])
 	# Sol de la forêt de part et d'autre : tout, plus grand, avec les détails du lieu.
 	for i in range(200):
 		var side2 := -1.0 if i % 2 == 0 else 1.0
