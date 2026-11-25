@@ -745,6 +745,9 @@ func _run() -> void:
 	if not _class_fire_ok():
 		quit(1)
 		return
+	if not _drawer_groups_ok():
+		quit(1)
+		return
 	if not _classes_ok():
 		quit(1)
 		return
@@ -2413,5 +2416,39 @@ func _class_fire_ok() -> bool:
 	print("tirs de classe : apparitions en 3 s ", out, " · flèche ", touched, " ennemis · onde ", arc_hits, " en arc, portée %.1f · clerc barrière %.1f · chevalier recul %.2f · rage berserker ×%.1f · ×2 → %d flèches · compagnons %s" % [far, cl.barrier_hp, y_hit - 4.0, r_low / r_full, arrows, comp_ok])
 	if not errs.is_empty():
 		push_error("tirs de classe : %s" % [errs])
+		return false
+	return true
+
+
+## Sorts de classe (grimoire, arbre de l'Entraînement) : dans les disciplines de leur classe, jamais dans
+## les écoles élémentaires du Tiroir ni dans le catalogue général de la Bibliothèque.
+func _drawer_groups_ok() -> bool:
+	var errs: Array[String] = []
+	var per := {}
+	for cls: String in (GameData.party()["classes"] as Dictionary).keys():
+		var discs: Array[String] = []
+		for d in Profile.disciplines(cls):
+			discs.append("d:" + str((d as Dictionary)["id"]))
+		var tree: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/skill_trees/%s.json" % cls))
+		for br in tree.get("branches", []):
+			for tier in br.get("tiers", []):
+				for node in tier["nodes"]:
+					if not node.has("unlock"):
+						continue
+					var sid := str(node["unlock"])
+					var g := Profile.drawer_group(sid)
+					if cls == "mage":
+						if not BattleScreen.DRAWER.has(g):
+							errs.append("%s (%s) → %s" % [sid, cls, g])
+					elif not discs.has(g) or LibraryScreen.catalogue().has(sid):
+						errs.append("%s (%s) → %s" % [sid, cls, g])
+					per[cls] = int(per.get(cls, 0)) + 1
+		for sid in Profile.class_grimoire(cls):
+			if not discs.has(Profile.drawer_group(sid)):
+				errs.append("%s (grimoire %s) → %s" % [sid, cls, Profile.drawer_group(sid)])
+	var nec := [Profile.drawer_group("horde"), Profile.drawer_group("malediction_masse"), Profile.drawer_group("sacrifice_ames")]
+	print("tiroir : sorts d'arbre par classe ", per, " · nécromancien ", nec, " · Purifier ", Profile.drawer_group("purifier"))
+	if not errs.is_empty():
+		push_error("sorts de classe mal rangés : %s" % [errs])
 		return false
 	return true

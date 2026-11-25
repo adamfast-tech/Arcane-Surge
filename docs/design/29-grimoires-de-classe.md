@@ -24,7 +24,7 @@ Chaque classe a son propre grimoire : une soixantaine de techniques, du rang Nov
 | **Voie requise** | Une technique ne s'apprend et ne sert qu'en suivant sa voie. Après un changement de voie (Salle de méditation), elle reste apprise : elle revient quand on reprend cette voie. |
 | **Mage** | Son grimoire, ce sont les 7 écoles élémentaires (56 sorts). Elles restent ouvertes à toutes les voies. |
 | **Deck** | Il compte 7 sorts au plus, et mêle librement grimoire de classe et écoles élémentaires. |
-| **Tiroir** | Le bouton **⇄ ARCHER** fait passer les 8 cases des écoles aux 8 **disciplines** de la classe ; **⇄ ÉCOLES** revient aux écoles. Chaque discipline compte 8 techniques au plus, une par case. |
+| **Tiroir** | Le bouton **⇄ ARCHER** fait passer les 8 cases des écoles aux 8 **disciplines** de la classe ; **⇄ ÉCOLES** revient aux écoles. Chaque discipline compte 8 techniques au plus, une par case. Les sorts que l'arbre de la classe débloque (Entraînement) y sont rangés aussi, chacun dans sa discipline (Nécromancien : Horde → Morts-vivants, Malédiction de masse → Maléfices, Sacrifice d'âmes → Âmes) ; jamais dans une école élémentaire. Seuls les sorts d'arbre du Mage, dont le grimoire est fait des écoles, restent dans leur école. |
 | **Répartition** | 9 techniques par rang de Novice à Mage, puis 8 par rang de Maître à Interdit : 60 en tout. |
 
 ## Archer : 60 techniques, 8 disciplines

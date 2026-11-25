@@ -1218,6 +1218,26 @@ static func grimoire_of(id: String) -> String:
 	return str((GameData.spells().get(id, {}) as Dictionary).get("grimoire", ""))
 
 
+## Classe d'un sort de classe : son grimoire, ou l'arbre de compétences qui le débloque (Entraînement) ;
+## « » pour les sorts des écoles élémentaires (le Mage, et ses sorts d'arbre, y compris).
+static func spell_class(id: String) -> String:
+	var sp: Dictionary = GameData.spells().get(id, {})
+	if sp.has("grimoire"):
+		return str(sp["grimoire"])
+	if sp.has("tree_class") and not sp.has("school") and str(sp["tree_class"]) != "mage":
+		return str(sp["tree_class"])
+	return ""
+
+
+## Case du Tiroir d'un sort : la discipline de sa classe (« d:os »…) pour un sort de classe (grimoire ou
+## arbre), sinon son école (Purifier, sans école, va avec la Lumière).
+static func drawer_group(id: String) -> String:
+	var sp: Dictionary = GameData.spells().get(id, {})
+	if spell_class(id) != "" and sp.has("disc"):
+		return "d:" + str(sp["disc"])
+	return str(sp.get("school", "lumiere"))
+
+
 ## Grimoire d'une classe (docs/design/29-grimoires-de-classe.md) : ses techniques, du rang Novice à Interdit.
 ## Le Mage a pour grimoire les écoles élémentaires, communes à toutes les voies.
 static func class_grimoire(cls: String) -> Array[String]:

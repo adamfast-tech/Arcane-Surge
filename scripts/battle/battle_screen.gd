@@ -155,10 +155,8 @@ func _ready() -> void:
 	arena.setup(sim, UiTheme.font(), bool(_opts.get("healed", false)))
 	if _mode == "drawer":
 		for id in sim.player().spells:
-			var sd: Dictionary = sim.spells_db[id]
-			var sc := str(sd.get("school", "lumiere"))
-			if sd.has("grimoire"):
-				sc = "d:" + str(sd.get("disc", ""))
+			# Sorts de classe (grimoire ou arbre de l'Entraînement) : dans leur discipline, page de la classe.
+			var sc := Profile.drawer_group(str(id))
 			if not _by_school.has(sc):
 				_by_school[sc] = []
 			(_by_school[sc] as Array).append(id)

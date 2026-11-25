@@ -19,8 +19,8 @@ func _ready() -> void:
 	_rebuild()
 
 
-## Sorts du grimoire (hors sorts des compagnons et Ultimes). Les sorts d'arbre sans rang
-## n'apparaissent que pour leur classe (ou une fois connus).
+## Sorts du grimoire élémentaire (hors sorts des compagnons et Ultimes). Les sorts de classe, du grimoire
+## ou de l'arbre de compétences, sont rangés dans l'onglet Classes.
 static func catalogue() -> Array[String]:
 	var out: Array[String] = []
 	var known := Profile.known_spells()
@@ -30,8 +30,8 @@ static func catalogue() -> Array[String]:
 			continue
 		if sp.has("grimoire"):
 			continue # grimoires de classe : onglet Classes
-		if sp.has("tree_class") and not sp.has("rank") and str(sp["tree_class"]) != Profile.player_class() and not known.has(str(id)):
-			continue
+		if Profile.spell_class(str(id)) != "":
+			continue # sorts d'arbre d'une classe : onglet Classes, avec sa discipline
 		out.append(str(id))
 	return out
 
@@ -359,8 +359,8 @@ func _spell_card(id: String, known: bool, in_deck: bool, how: String = "", info_
 		tags.append(str(ri["name"]))
 	if sp.has("school"):
 		tags.append(str(Profile.SCHOOLS.get(str(sp["school"]), "")))
-	elif sp.has("disc"):
-		tags.append(str(Profile.discipline_info(str(sp["grimoire"]), str(sp["disc"])).get("name", "")))
+	elif sp.has("disc") and Profile.spell_class(id) != "":
+		tags.append(str(Profile.discipline_info(Profile.spell_class(id), str(sp["disc"])).get("name", "")))
 	if sp.has("rank"):
 		tags.append("puissance %d" % Profile.spell_power(id))
 	if int(sp.get("mana", 0)) > 0 or int(sp.get("cd", 0)) > 0:

@@ -96,7 +96,7 @@ func _mode_card(m: String, on: bool) -> Button:
 		for sc in BattleScreen.DRAWER:
 			var n := 0
 			for id in known:
-				if str(GameData.spells()[id].get("school", "lumiere")) == str(sc):
+				if Profile.drawer_group(str(id)) == str(sc):
 					n += 1
 			var info: Array = BattleScreen.DRAWER_INFO[sc]
 			var chip := HBoxContainer.new()
