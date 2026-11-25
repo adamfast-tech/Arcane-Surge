@@ -1,1085 +1,315 @@
 {
- "characters": {
-  "narrateur": {
-   "name": "",
-   "color": "A99FD0"
+  "characters": {
+    "narrateur": {"name": "", "color": "A99FD0"},
+    "porteur": {"name": "{pseudo}", "title": "Canalisateur", "title_flag": {"s1.sceau_echo": "Porteur d'Écho"}, "color": "4FE3D2", "portrait": "porteur"},
+    "sylwen": {"name": "Sylwen", "title": "Vigiles Sylvestres", "color": "8FD16A", "portrait": "sylwen", "loyalty": true},
+    "brann": {"name": "Brann", "title": "Bastion d'Argent", "color": "B8C6E8", "portrait": "brann", "loyalty": true, "title_flag": {"s1.honneur_forgecoeur": "Héritier de Forgecœur"}},
+    "ancien": {"name": "Ancien Tobin", "title": "Doyen de Lysbourg", "color": "F2C46B", "portrait": "ancien"},
+    "cerf": {"name": "Le Grand Cerf", "title": "Gardien du Bois", "color": "9FF0FF", "portrait": "cerf"},
+    "sylvarche": {"name": "La Sylvarche", "title": "Arbre-mère des elfes", "color": "D97CF2", "portrait": "sylvarche"},
+    "fee": {"name": "Fée captive", "title": "Fées des Lucioles", "color": "F7A8E0", "portrait": "fee"},
+    "voix": {"name": "Voix inconnue", "title": "???", "color": "B07CFF", "portrait": "voix"},
+    "krag": {"name": "Krag", "title": "Enfants de la Fureur", "color": "E8703A", "portrait": "krag", "loyalty": true, "loyalty_if": "s1.krag_allie"},
+    "gharok": {"name": "Gharok", "title": "Seigneur de guerre de Croc-Tonnerre", "title_flag": {"s1.gharok_exorcise": "Ancien seigneur de guerre, libéré"}, "color": "D93CF2", "portrait": "gharok"},
+    "prevote": {"name": "Maëlle", "title": "Prévôte d'Ambreval", "color": "6FA8E8", "portrait": "prevote"},
+    "varg": {"name": "Varg", "title": "Chef pillard", "color": "C84A3A", "portrait": "varg"}
   },
-  "porteur": {
-   "name": "{pseudo}",
-   "title": "Canalisateur",
-   "title_flag": {
-    "s1.sceau_echo": "Porteur d'Écho"
-   },
-   "color": "4FE3D2",
-   "portrait": "porteur"
+  "scenes": {
+    "z02_l01_intro": {
+      "subject": "pillard",
+      "art": "route",
+      "cast": ["porteur", "sylwen", "brann"],
+      "lines": [
+        {"fx": ["wind@center:f0e0b0", "smoke@right"], "cam": "pan_right", "who": "narrateur", "text": "Au sortir du Bois, la route d'Ambre serpente entre des collines dorées. Le vent couche l'herbe haute ; au loin monte une fumée noire."},
+        {"fx": "dust@subject", "cam": "focus:subject", "who": "brann", "text": "Des pillards. Ils attaquent tout ce qui roule, et le Surge leur donne du cœur à l'ouvrage."},
+        {"fx": "bolt@sky:ffd070", "cam": "reset", "who": "sylwen", "text": "Leurs portails sentent l'orage. Garde un œil sur le ciel… et sur l'herbe."}
+      ]
+    },
+    "z02_l01_outro": {
+      "art": "route",
+      "subject": "",
+      "cast": ["porteur", "sylwen", "brann"],
+      "lines": [
+        {"fx": "smoke@right", "cam": "push", "who": "narrateur", "text": "Parmi les chariots renversés, une cage. Dedans, un jeune orc ligoté, le visage peint de rouge."},
+        {"fx": "bars@krag", "act": {"krag": "shake"}, "cam": "reset", "who": "krag", "text": "Ne restez pas plantés là, sang-pâles. Coupez ces cordes, ou passez votre chemin.", "mood": "colere"},
+        {"emote": {"brann": "dots"}, "who": "brann", "text": "Charmant. On le laisse aux corbeaux ?"},
+        {"cam": "focus:sylwen", "who": "sylwen", "text": "Les pillards l'ont enchaîné, lui aussi. L'ennemi de nos ennemis…"},
+        {"fx": ["seal@porteur:4fe3d2", "slash@krag:9ff0ff", "shatter@krag:e8d8b0"], "cam": "kick", "who": "narrateur", "text": "D'un geste, le Sceau tranche les liens."},
+        {"act": {"krag": "step"}, "who": "krag", "text": "Le Sceau d'Écho… Les chamans disaient que ce n'était qu'un conte.", "mood": "surpris"},
+        {"fx": "wind@center:f0e0b0", "cam": "reset", "who": "krag", "text": "Je m'appelle Krag. Je ne vous dois rien… mais je n'oublie pas. On se reverra dans les collines."}
+      ]
+    },
+    "z02_l02_intro": {
+      "art": "moulins",
+      "subject": "wolf_rider",
+      "cast": ["porteur", "sylwen", "brann"],
+      "lines": [
+        {"fx": "wind@center:f0e8c8", "cam": "pan_left", "who": "narrateur", "text": "Les moulins d'Ambreval tournent à vide. Les meuniers ont fui ; les pillards se servent dans les silos."},
+        {"act": {"prevote": "step"}, "cam": "reset", "who": "prevote", "text": "Vous êtes les gens du Bois ? Le Bastion m'a écrit. Je suis Maëlle, prévôte d'Ambreval."},
+        {"fx": "wind@center:fff4d8", "cam": "push", "who": "prevote", "text": "Méfiez-vous du vent des steppes. Quand l'herbe ploie, la rafale suit : elle balaie tout, nos gens comme les leurs."},
+        {"cam": "reset", "who": "brann", "text": "Un vent qui pousse l'ennemi sur les flancs… Profite des rafales pour viser les portails dégagés."}
+      ]
+    },
+    "z02_l02_outro": {
+      "art": "moulins",
+      "cast": ["porteur", "sylwen"],
+      "lines": [
+        {"fx": "cheer", "act": {"prevote": "hop"}, "who": "prevote", "text": "Les moulins tournent de nouveau. Ambreval vous doit une fière chandelle.", "mood": "joie"},
+        {"fx": "smoke@right", "cam": "push", "grade": "warm", "who": "prevote", "text": "Mais ne vous y trompez pas : les pillards ne sont que des charognards. Ce sont les clans orcs qui brûlent nos fermes."},
+        {"cam": "focus:sylwen", "grade": "none", "who": "sylwen", "text": "Tous les clans ? Ou seulement ceux que le Surge a touchés ?"},
+        {"act": {"prevote": "shake"}, "cam": "reset", "who": "prevote", "text": "Un orc reste un orc. Vingt ans de guerre me l'ont appris.", "mood": "colere"}
+      ]
+    },
+    "z02_l03_intro": {
+      "subject": "pylon",
+      "art": "pylones",
+      "cast": ["porteur", "sylwen", "brann"],
+      "lines": [
+        {"fx": "arcs@subject:ffc860", "cam": "pan_up", "who": "narrateur", "text": "Sur la crête se dressent des cristaux d'ambre hauts comme des hommes. La foudre y court en veines dorées."},
+        {"cam": "focus:krag", "who": "krag", "text": "Les pylônes de nos ancêtres. Ils gardaient l'orage pour les nuits de chasse."},
+        {"fx": ["arcs@center:d98cff", "bolt@subject:ffd070"], "cam": "kick", "who": "krag", "text": "Le Surge les a rendus fous. Quand l'un d'eux s'illumine, il surcharge le portail voisin : tes créatures y gagnent la foudre… et se dédoublent.", "mood": "colere"},
+        {"emote": {"brann": "?"}, "cam": "reset", "who": "brann", "text": "Tiens, le gamin de la cage. Tu nous suis ?"},
+        {"act": {"krag": "turn"}, "who": "krag", "text": "Je chasse ceux qui ont pris mon clan. Nos routes se croisent, c'est tout."}
+      ]
+    },
+    "z02_l03_outro": {
+      "art": "pylones",
+      "cast": ["porteur", "sylwen", "brann"],
+      "lines": [
+        {"act": {"krag": "step"}, "who": "krag", "text": "Pas mal, pour des sang-pâles. Vous savez où frapper."},
+        {"cam": "focus:sylwen", "who": "sylwen", "text": "Tu parles de ton clan comme d'un deuil, Krag."},
+        {"fx": "shadow@center:b03ad8", "grade": "violet", "cam": "push", "who": "krag", "text": "Le clan Croc-Tonnerre suit un chef qui n'est plus lui-même. Ses yeux brillent de violet. Il ne reconnaît plus personne.", "mood": "triste"},
+        {"act": {"krag": "turn"}, "grade": "none", "cam": "reset", "who": "krag", "text": "Le reste ne vous regarde pas."}
+      ]
+    },
+    "z02_l04_intro": {
+      "subject": "clan_guard",
+      "art": "gue",
+      "cast": ["porteur", "sylwen", "brann"],
+      "lines": [
+        {"fx": "shieldwall@ground:8a6a40", "cam": "kick", "who": "narrateur", "text": "Au gué de la Rivière-Sèche, des gardes de clan forment un mur de boucliers. Derrière eux avancent des ogres d'ambre."},
+        {"act": {"brann": "hop"}, "who": "brann", "text": "Enfin des gens qui savent tenir une ligne ! Dommage qu'ils soient en face.", "mood": "joie"},
+        {"fx": "wind@center:f0e0b0", "who": "sylwen", "text": "Leurs pavois arrêtent tout ce qui vient de face. Contourne-les, ou fais-les plier avec le vent."}
+      ]
+    },
+    "z02_l04_outro": {
+      "art": "gue",
+      "cast": ["porteur", "sylwen", "brann"],
+      "lines": [
+        {"act": {"brann": "droop"}, "who": "brann", "text": "Ils ont tenu jusqu'au bout. Pas un n'a reculé."},
+        {"act": {"krag": "droop"}, "who": "krag", "text": "Les gardes de mon clan ne reculent jamais. Même possédés.", "mood": "triste"},
+        {"fx": "coins@center", "act": {"krag": "shake"}, "cam": "push", "who": "krag", "text": "Et c'est Varg qui les arme. Un humain. Il vend l'ambre maudit aux possédés et il rit en comptant son or.", "mood": "colere"},
+        {"act": {"sylwen": "step"}, "cam": "reset", "who": "sylwen", "text": "Alors allons lui rendre visite."}
+      ]
+    },
+    "z02_l05_intro": {
+      "art": "campement",
+      "subject": "varg",
+      "grade": "warm",
+      "cast": ["porteur", "sylwen", "brann"],
+      "lines": [
+        {"fx": "embers", "cam": "pan_right", "who": "narrateur", "text": "Le repaire de Varg : des palissades, des chariots volés, et des caisses d'ambre qui bourdonnent de violet."},
+        {"act": {"subject": "appear"}, "cam": "focus:subject", "who": "varg", "text": "Le Porteur d'Écho en personne ! On m'avait dit que tu étais plus grand.", "mood": "joie"},
+        {"fx": "coins@subject", "who": "varg", "text": "Le Surge paie bien, l'ami. Mieux que les rois, mieux que les clans. Pourquoi est-ce que je refuserais ?"},
+        {"act": {"brann": "attack"}, "fx": "clang@brann", "cam": "reset", "who": "brann", "text": "Parce qu'on va te le faire regretter.", "mood": "colere"},
+        {"fx": ["howl@subject:d8e0f0", "eyes@center"], "act": {"subject": "roar"}, "cam": "kick", "who": "varg", "text": "Les gars ! Lâchez les loups !", "mood": "colere"},
+        {"fx": "lanes@ground:ff4a3a", "who": "sylwen", "text": "Il charge en ligne : quand le sol rougit, sors de son couloir."}
+      ]
+    },
+    "z02_l05_outro": {
+      "art": "campement",
+      "subject": "varg",
+      "grade": "warm",
+      "cast": ["porteur", "sylwen", "brann"],
+      "lines": [
+        {"act": {"subject": "fall"}, "who": "varg", "text": "D'accord… D'accord ! Je parle ! L'ambre, c'est pour Gharok, le seigneur de guerre. Il en veut toujours plus.", "mood": "triste"},
+        {"fx": "bolt@sky:d93cf2", "grade": "violet", "who": "varg", "text": "Il dit qu'une voix lui parle dans l'orage. Qu'elle lui promet les collines entières."},
+        {"fx": "seal@porteur:d93cf2", "act": {"porteur": "hurt"}, "cam": "focus:porteur", "who": "narrateur", "text": "Une voix dans l'orage… Le Sceau d'Écho te brûle la paume, comme sous la Tour du Croissant."},
+        {"fx": "timestop", "cam": "tremble", "who": "voix", "text": "Porteur… Tu ramasses les Échos que je sème. Comme c'est touchant.", "mood": "joie"},
+        {"grade": "warm", "cam": "reset", "who": "brann", "text": "On le livre à la prévôte. Elle saura quoi en faire."}
+      ]
+    },
+    "z02_l06_intro": {
+      "art": "orage",
+      "subject": "storm_shaman",
+      "grade": "cold",
+      "cast": ["porteur", "sylwen", "brann"],
+      "lines": [
+        {"fx": ["rain", "bolt@subject:9fe0ff"], "cam": "push", "who": "narrateur", "text": "Le campement de l'orage. Des chamans psalmodient sous un ciel noir ; leurs totems crachent la foudre."},
+        {"act": {"krag": "droop"}, "cam": "reset", "who": "krag", "text": "Ce sont les miens. Les chamans de Croc-Tonnerre.", "mood": "triste"},
+        {"act": {"krag": "step"}, "fx": "arcs@subject:9fe0ff", "who": "krag", "text": "Abats leurs totems, pas leurs vies… si tu peux. Le Surge les tient, mais leurs âmes sont encore là."},
+        {"fx": "bolt@center:9fe0ff", "cam": "kick", "who": "sylwen", "text": "Leurs éclairs visent tes créatures : ne les laisse pas s'agglutiner."}
+      ]
+    },
+    "z02_l06_outro": {
+      "art": "orage",
+      "grade": "cold",
+      "cast": ["porteur", "sylwen", "brann"],
+      "lines": [
+        {"fx": ["rain", "wisps@ground:b07cff"], "act": {"subject": "fall"}, "who": "narrateur", "text": "Quand le dernier totem tombe, les chamans s'effondrent, hagards. Le violet quitte leurs yeux."},
+        {"act": {"krag": "hop"}, "fx": "rays@sky:f2c46b", "grade": "dawn", "who": "krag", "text": "Ils respirent. Ils… respirent.", "mood": "joie"},
+        {"cam": "focus:krag", "who": "krag", "text": "Tu aurais pu tous les écraser. Tu ne l'as pas fait. Je m'en souviendrai, Porteur."},
+        {"act": {"brann": "hop"}, "cam": "reset", "who": "brann", "text": "Il commence à me plaire, ce gamin.", "mood": "joie"}
+      ]
+    },
+    "z02_l07_intro": {
+      "subject": "caravan",
+      "art": "caravane",
+      "cast": ["porteur"],
+      "lines": [
+        {"fx": "dust@subject", "cam": "pan_right", "who": "prevote", "text": "Ambreval a faim. Ce chariot de vivres doit passer, coûte que coûte."},
+        {"fx": "eyes@center", "cam": "push", "who": "prevote", "text": "Les loups des pillards rôdent le long de la route. Ils frappent toujours par les flancs."},
+        {"act": {"krag": "step"}, "fx": "howl@right:d8e0f0", "cam": "reset", "who": "krag", "text": "Je connais ces loups. Ils chassent par trois. Tiens les côtés, le chariot tiendra."},
+        {"act": {"prevote": "shake"}, "who": "prevote", "text": "Un orc qui nous conseille ? Le monde marche sur la tête.", "mood": "colere"}
+      ]
+    },
+    "z02_l07_outro": {
+      "art": "moulins",
+      "subject": "caravan",
+      "cast": ["porteur"],
+      "lines": [
+        {"fx": ["cheer", "dust@subject"], "grade": "warm", "who": "narrateur", "text": "Le chariot franchit les portes d'Ambreval sous les vivats."},
+        {"cam": "focus:prevote", "who": "prevote", "text": "…Merci. À vous aussi, l'orc."},
+        {"act": {"krag": "step"}, "cam": "reset", "who": "krag", "text": "Krag. Mon nom est Krag."},
+        {"act": {"prevote": "droop"}, "grade": "dawn", "who": "prevote", "text": "Krag. Mon mari est mort au gué, il y a dix ans, sous une hache orque. Je n'oublierai pas… mais je retiendrai ton nom aussi.", "mood": "triste"}
+      ]
+    },
+    "z02_l08_intro": {
+      "subject": "bonesetter",
+      "art": "rebouteux",
+      "cast": ["porteur", "sylwen", "brann"],
+      "lines": [
+        {"fx": ["chant@subject:a8e070", "sigils@center:d93cf2"], "cam": "push", "who": "narrateur", "text": "Au cœur des collines, une rebouteuse possédée soigne le Nexus en chantant. Deux sceaux de Surge le rendent intouchable."},
+        {"act": {"krag": "shake"}, "cam": "reset", "who": "krag", "text": "Ourza ! Elle m'a soigné quand j'étais petit. Regarde ce qu'ils ont fait d'elle…", "mood": "colere"},
+        {"fx": "beam@center:fff6c8", "who": "sylwen", "text": "Purifie les sceaux. Sans eux, ses soins ne serviront plus à rien."}
+      ]
+    },
+    "z02_l08_outro": {
+      "art": "rebouteux",
+      "cast": ["porteur", "sylwen", "brann"],
+      "lines": [
+        {"fx": ["shatter@center:d98cff", "white"], "act": {"subject": "fall"}, "who": "narrateur", "text": "Les sceaux se brisent. La vieille Ourza tombe à genoux, libérée. Elle saisit la main de Krag."},
+        {"fx": "chant@subject:f2e08a", "grade": "dawn", "who": "narrateur", "text": "« Krag, mon petit… Ton père… Le Surge s'est logé dans son cœur, pas dans son âme. On peut encore l'en chasser. »"},
+        {"act": {"krag": "step"}, "who": "krag", "text": "Il est encore là, quelque part ? Après tout ce temps ?", "mood": "surpris"},
+        {"act": {"brann": "turn"}, "who": "brann", "text": "Ton père ?", "mood": "surpris"},
+        {"act": {"krag": "turn"}, "cam": "reset", "who": "krag", "text": "…Plus tard. Je vous dirai tout. Plus tard.", "mood": "triste"}
+      ]
+    },
+    "z02_l09_intro": {
+      "art": "traite",
+      "subject": "war_banner",
+      "cast": ["porteur", "sylwen", "brann"],
+      "lines": [
+        {"fx": ["drums", "banners:a82a2a"], "cam": "pan_left", "grade": "warm", "who": "narrateur", "text": "Les clans possédés déferlent sur deux fronts : sur Ambreval, et sur le campement des orcs restés libres."},
+        {"act": {"prevote": "attack"}, "cam": "kick", "who": "prevote", "text": "Ils sont aux portes ! Porteur, Ambreval a besoin de vous, maintenant !", "mood": "colere"},
+        {"act": {"krag": "attack"}, "who": "krag", "text": "Le campement aussi ! Les nôtres n'ont plus de chamans pour se défendre !", "mood": "colere"},
+        {"cam": "reset", "who": "sylwen", "text": "Brisons d'abord le siège : les deux Nexus doivent tomber. On décidera ensuite."}
+      ]
+    },
+    "z02_l09_outro": {
+      "art": "traite",
+      "cast": ["porteur", "sylwen", "brann"],
+      "lines": [
+        {"fx": "smoke@right", "grade": "none", "who": "narrateur", "text": "Les Nexus s'effondrent. Les possédés refluent vers le fort de Gharok… mais la paix ne tient qu'à un fil."},
+        {"act": {"prevote": "shake"}, "who": "prevote", "text": "Mes miliciens veulent raser le campement. « Un orc reste un orc », disent-ils. Et je… je les comprends.", "mood": "colere"},
+        {"act": {"krag": "shake"}, "who": "krag", "text": "Les miens veulent reprendre l'ambre de vos silos. Ils disent que vous l'avez volé à nos ancêtres.", "mood": "colere"},
+        {"emote": {"brann": "drop"}, "who": "brann", "text": "Ils vont s'entretuer avant même que Gharok lève le petit doigt."},
+        {"fx": "pact@center", "cam": "push", "who": "sylwen", "text": "C'est toi qu'ils écoutent, {pseudo}. Choisis bien."},
+        {"choice": "z02_l09", "prompt": "Le Traité d'Ambre", "options": [{"key": "A", "text": "Défendre le village humain", "effects": {"set": ["s1.traite_ambreval"], "add": {"rep.humains": 20, "rep.orcs": -15}}, "then": [{"who": "prevote", "text": "Ambreval s'en souviendra. Mes miliciens tiendront vos flancs contre Gharok.", "mood": "joie"}, {"who": "krag", "text": "…Les miens repartiront dans les steppes les mains vides. Je ne l'oublierai pas.", "mood": "colere"}]}, {"key": "B", "text": "Défendre le campement orc", "effects": {"set": ["s1.traite_campement"], "add": {"rep.orcs": 20, "rep.humains": -15}}, "then": [{"who": "krag", "text": "Tu as tenu parole pour nous. Les chamans du clan marcheront avec toi jusqu'au fort de Gharok.", "mood": "joie"}, {"who": "prevote", "text": "Faites comme vous voudrez. Ambreval se débrouillera seule, comme toujours.", "mood": "triste"}]}, {"key": "C", "text": "Négocier le Traité d'Ambre", "tag": "Humain / Clerc", "only": {"race": ["humain"], "class": ["clerc"]}, "effects": {"set": ["s1.traite_negocie"], "add": {"rep.humains": 10, "rep.orcs": 10}}, "then": [{"who": "narrateur", "text": "Toute la nuit, sous la tente du conseil, tu parles. À l'aube, deux mains se serrent au-dessus d'une carte des collines."}, {"who": "prevote", "text": "Un traité. Avec des orcs. Mon père se retournerait dans sa tombe… mais il serait encore en vie s'il en avait signé un."}, {"who": "krag", "text": "Humains et orcs, côte à côte. Les chamans n'ont jamais vu ça.", "mood": "joie"}]}]}
+      ]
+    },
+    "z02_l10_intro": {
+      "art": "fort",
+      "subject": "gharok",
+      "grade": "dark",
+      "cast": ["porteur", "sylwen", "brann"],
+      "lines": [
+        {"fx": ["rain", "banners:a82a2a", "drums"], "cam": "push", "who": "narrateur", "text": "Le fort de Gharok domine les collines. Trois bannières de guerre claquent dans l'orage ; le seigneur de guerre attend sur la palissade."},
+        {"act": {"subject": "roar"}, "fx": ["bolt@subject:d93cf2", "shadow@subject:b03ad8"], "cam": "kick", "who": "gharok", "text": "Le Porteur d'Écho… La Voix m'a parlé de toi. Ton Sceau sera ma couronne.", "mood": "colere"},
+        {"act": {"krag": "step"}, "cam": "reset", "who": "krag", "text": "Père… C'est moi. C'est Krag.", "mood": "triste"},
+        {"act": {"brann": "jump"}, "who": "brann", "text": "Son PÈRE ?!", "mood": "surpris"},
+        {"act": {"krag": "droop"}, "who": "krag", "text": "Gharok, seigneur de Croc-Tonnerre. Mon père. Le Surge l'a pris il y a un an. Je ne savais pas comment vous le dire.", "mood": "triste"},
+        {"fx": "bolt@sky:9fe0ff", "act": {"subject": "glow"}, "who": "gharok", "text": "Je n'ai pas de fils. Je n'ai que la tempête."},
+        {"act": {"prevote": "attack"}, "who": "prevote", "text": "Mes miliciens tiennent les flancs ! Vos arrières sont couverts !", "if": "s1.traite_ambreval"},
+        {"fx": "chant@krag:9fe0ff", "who": "krag", "text": "Les chamans du clan sont avec nous. Ils affaiblissent son orage !", "if": "s1.traite_campement"},
+        {"fx": "pact@center", "who": "narrateur", "text": "Humains et orcs se rangent côte à côte derrière la Barrière. Les chamans chantent ; les miliciens lèvent leurs piques.", "if": "s1.traite_negocie"},
+        {"cam": "focus:subject", "who": "sylwen", "text": "Ses bannières le protègent : tant qu'une seule tient, il ne craint presque rien. Abats-les d'abord."}
+      ]
+    },
+    "z02_l10_outro": {
+      "art": "fort",
+      "subject": "gharok",
+      "grade": "dark",
+      "cast": ["porteur", "sylwen", "brann"],
+      "lines": [
+        {"act": {"subject": "fall"}, "fx": "shadow@subject:b03ad8", "cam": "push", "who": "narrateur", "text": "Gharok tombe à genoux. Une ombre violette se tord sous sa peau, prête à fuir… ou à mourir avec lui."},
+        {"grade": "cold", "cam": "focus:subject", "who": "gharok", "text": "Krag… mon fils… C'est toi ?", "mood": "triste"},
+        {"act": {"krag": "kneel"}, "cam": "reset", "who": "krag", "text": "Porteur, ton Sceau peut chasser le Surge. Je t'en supplie : sauve-le.", "mood": "triste"},
+        {"cam": "focus:brann", "who": "brann", "text": "Et s'il replonge ? Le clan entier replongera avec lui. Lysbourg a failli brûler pour moins que ça."},
+        {"fx": "rays@sky:8fd16a", "cam": "reset", "who": "sylwen", "text": "On a sauvé la Sylvarche. On peut le sauver, lui aussi.", "if": "s1.sylvarche_purifiee"},
+        {"act": {"sylwen": "droop"}, "cam": "reset", "who": "sylwen", "text": "La dernière fois, on a choisi la hache. Je ne veux pas revivre ça.", "mood": "triste", "if": "s1.sylvarche_abattue"},
+        {"choice": "z02_l10", "major": true, "prompt": "Gharok", "options": [{"key": "A", "text": "Exorciser Gharok", "effects": {"set": ["s1.gharok_exorcise", "s1.krag_allie"], "add": {"loy.krag": 10, "rep.orcs": 20, "loy.sylwen": 5}}, "then": [{"who": "narrateur", "text": "Tu poses le Sceau sur le cœur du seigneur de guerre. L'orage hurle, puis se tait.", "subject_tint": "F2C46B"}, {"who": "gharok", "text": "La tempête… s'est tue. Krag. Pardonne-moi.", "mood": "joie"}, {"who": "krag", "text": "Père !", "mood": "joie"}, {"who": "krag", "text": "Porteur. Ma hache est à toi. Jusqu'au Cœur du Surge, s'il le faut."}, {"who": "narrateur", "text": "Krag rejoint le groupe. Au Cercle de Havre-Aube, choisis les deux compagnons qui t'accompagnent."}]}, {"key": "B", "text": "Achever Gharok", "effects": {"set": ["s1.gharok_acheve"], "add": {"rep.orcs": -10, "loy.sylwen": -5}, "grant": {"base": "croc_gharok", "rarity": "legendaire"}, "also": [{"chose": {"z02_l09": ["B", "C"]}, "set": ["s1.krag_allie"], "add": {"loy.krag": -30}}, {"chose": {"z02_l09": "A"}, "set": ["s1.krag_parti"]}]}, "then": [{"who": "narrateur", "text": "Brann frappe. Le seigneur de guerre s'effondre, et l'ombre violette s'éteint avec lui.", "subject": ""}, {"who": "krag", "text": "…", "mood": "triste"}, {"who": "krag", "text": "Mon père est mort de ta main. Mais tu as défendu mon clan quand personne d'autre ne l'a fait. Je te suivrai. Pour eux. Pas pour toi.", "mood": "colere", "chose": {"z02_l09": ["B", "C"]}}, {"who": "narrateur", "text": "Krag rejoint le groupe… mais sa loyauté est fragile.", "chose": {"z02_l09": ["B", "C"]}}, {"who": "krag", "text": "Tu as choisi les humains, puis la hache. Il n'y a rien pour moi à tes côtés.", "mood": "colere", "chose": {"z02_l09": "A"}}, {"who": "narrateur", "text": "Krag disparaît dans les hautes herbes, sans se retourner.", "chose": {"z02_l09": "A"}}, {"who": "brann", "text": "Tiens. Un croc de sa mâchoire. La foudre y gronde encore."}]}]},
+        {"title": "Acte 2 · Les Alliances", "grade": "dawn", "who": "narrateur", "text": "Acte 2 terminé : les Alliances. Au sud, les Marais Murmurants exhalent une brume grise… et le Cercle des Cendres y attend son heure.", "art": "steppe"},
+        {"emote": {"brann": "drop"}, "who": "brann", "text": "Des marais. Évidemment. Mes bottes n'y survivront pas.", "art": "steppe", "mood": "joie"}
+      ]
+    }
   },
-  "sylwen": {
-   "name": "Sylwen",
-   "title": "Vigiles Sylvestres",
-   "color": "8FD16A",
-   "portrait": "sylwen",
-   "loyalty": true
+  "barks": {
+    "start": [
+      {"who": "brann", "text": "Bouclier levé ! Qu'ils viennent !"},
+      {"who": "brann", "text": "Le Bastion ne recule pas !"},
+      {"who": "sylwen", "text": "Je couvre la droite. Vise les portes !"},
+      {"who": "sylwen", "text": "Le vent est avec nous."},
+      {"who": "sylwen", "loy_min": {"sylwen": 75}, "text": "Avec toi à mes côtés, je n'ai pas peur."},
+      {"who": "brann", "loy_min": {"brann": 75}, "text": "Ensemble, on est une forteresse !"},
+      {"who": "sylwen", "loy_max": {"sylwen": 30}, "text": "Finissons-en. Je n'ai pas envie de parler."},
+      {"who": "brann", "loy_max": {"brann": 30}, "text": "Je me bats. Ne m'en demande pas plus."},
+      {"who": "sylwen", "if": "s1.sylvarche_purifiee", "text": "La Sylvarche veille sur nous. Je le sens."},
+      {"who": "sylwen", "if": "s1.sylvarche_abattue", "text": "La forêt est si silencieuse, maintenant…"},
+      {"who": "sylwen", "text": "Le vent tourne… attention aux rafales."},
+      {"who": "krag", "text": "Pour Croc-Tonnerre !"},
+      {"who": "krag", "text": "La Fureur gronde. Laisse-moi la libérer !"},
+      {"who": "krag", "text": "Mon père nous regarde. Pas de quartier.", "if": "s1.gharok_exorcise"},
+      {"who": "krag", "text": "Je me bats pour le clan. Pas pour toi.", "loy_max": {"krag": 30}},
+      {"who": "krag", "text": "Côte à côte, Porteur. Comme des frères de clan.", "loy_min": {"krag": 75}},
+      {"who": "nyx", "text": "Des collines. Du vent. Aucun mort à qui parler. Quel ennui."}
+    ],
+    "barrier_low": [
+      {"who": "brann", "text": "La Barrière cède ! Vise ceux qui passent !"},
+      {"who": "sylwen", "text": "Ils sont trop près ! Tire sur les premiers rangs !"},
+      {"who": "brann", "text": "Je tiens, je tiens… mais pas éternellement !"},
+      {"who": "krag", "text": "Ils passent ! Je les arrête à la hache !"}
+    ],
+    "half": [
+      {"who": "sylwen", "text": "Il faiblit ! Continue !"},
+      {"who": "brann", "text": "À moitié fait ! Le plus dur, c'est l'autre moitié."},
+      {"who": "krag", "text": "Ça saigne ! Encore !"},
+      {"who": "nyx", "text": "À moitié mort. Mon genre préféré."}
+    ],
+    "boss_phase": [
+      {"who": "brann", "text": "Il s'énerve ! Bon signe : on lui fait mal."},
+      {"who": "sylwen", "text": "Attention, il change de rythme !"},
+      {"who": "krag", "text": "Il enrage ? Moi aussi !"}
+    ],
+    "echo": [
+      {"who": "sylwen", "text": "Ton Sceau brille… Qu'as-tu vu ?"},
+      {"who": "brann", "text": "Encore cet air bizarre. Bah, tant que ça marche !"}
+    ],
+    "ultimate": [
+      {"who": "brann", "text": "Par la barbe de mes ancêtres ! Quelle puissance !"},
+      {"who": "sylwen", "text": "Magnifique…"}
+    ],
+    "crowd": [
+      {"who": "brann", "text": "Regarde-moi cette armée !"},
+      {"who": "sylwen", "text": "Ton flux est puissant ! Garde le rythme !"}
+    ],
+    "escort_low": [
+      {"who": "sylwen", "text": "La Lanterne faiblit ! Protège-la !"},
+      {"who": "brann", "text": "Personne ne touche à cette lanterne !"}
+    ]
   },
-  "brann": {
-   "name": "Brann",
-   "title": "Bastion d'Argent",
-   "color": "B8C6E8",
-   "portrait": "brann",
-   "loyalty": true,
-   "title_flag": {
-    "s1.honneur_forgecoeur": "Héritier de Forgecœur"
-   }
-  },
-  "ancien": {
-   "name": "Ancien Tobin",
-   "title": "Doyen de Lysbourg",
-   "color": "F2C46B",
-   "portrait": "ancien"
-  },
-  "cerf": {
-   "name": "Le Grand Cerf",
-   "title": "Gardien du Bois",
-   "color": "9FF0FF",
-   "portrait": "cerf"
-  },
-  "sylvarche": {
-   "name": "La Sylvarche",
-   "title": "Arbre-mère des elfes",
-   "color": "D97CF2",
-   "portrait": "sylvarche"
-  },
-  "fee": {
-   "name": "Fée captive",
-   "title": "Fées des Lucioles",
-   "color": "F7A8E0",
-   "portrait": "fee"
-  },
-  "voix": {
-   "name": "Voix inconnue",
-   "title": "???",
-   "color": "B07CFF",
-   "portrait": "voix"
-  },
-  "krag": {
-   "name": "Krag",
-   "title": "Enfants de la Fureur",
-   "color": "E8703A",
-   "portrait": "krag",
-   "loyalty": true,
-   "loyalty_if": "s1.krag_allie"
-  },
-  "gharok": {
-   "name": "Gharok",
-   "title": "Seigneur de guerre de Croc-Tonnerre",
-   "title_flag": {
-    "s1.gharok_exorcise": "Ancien seigneur de guerre, libéré"
-   },
-   "color": "D93CF2",
-   "portrait": "gharok"
-  },
-  "prevote": {
-   "name": "Maëlle",
-   "title": "Prévôte d'Ambreval",
-   "color": "6FA8E8",
-   "portrait": "prevote"
-  },
-  "varg": {
-   "name": "Varg",
-   "title": "Chef pillard",
-   "color": "C84A3A",
-   "portrait": "varg"
+  "barks_level": {
+    "z02_l05": {"start": [{"who": "brann", "text": "Varg ! Ce pillard me doit une barrique de bière."}], "boss_phase": [{"who": "sylwen", "text": "Il appelle sa bande ! Vise les loups !"}]},
+    "z02_l10": {"start": [{"who": "brann", "text": "Ses bannières ! Abats-les, son armure tombera."}, {"who": "sylwen", "text": "La Nature le blesse, utilise les Racines !"}], "boss_phase": [{"who": "brann", "text": "Des totems d'orage ! Détruis-les avant qu'ils ne frappent !"}]}
   }
- },
- "scenes": {
-  "z02_l01_intro": {
-   "art": "steppe",
-   "subject": "pillard",
-   "lines": [
-    {
-     "who": "narrateur",
-     "text": "Au sortir du Bois, la route d'Ambre serpente entre des collines dorées. Le vent couche l'herbe haute ; au loin monte une fumée noire."
-    },
-    {
-     "who": "brann",
-     "text": "Des pillards. Ils attaquent tout ce qui roule, et le Surge leur donne du cœur à l'ouvrage."
-    },
-    {
-     "who": "sylwen",
-     "text": "Leurs portails sentent l'orage. Garde un œil sur le ciel… et sur l'herbe."
-    }
-   ]
-  },
-  "z02_l01_outro": {
-   "art": "steppe",
-   "subject": "krag",
-   "lines": [
-    {
-     "who": "narrateur",
-     "text": "Parmi les chariots renversés, une cage. Dedans, un jeune orc ligoté, le visage peint de rouge."
-    },
-    {
-     "who": "krag",
-     "text": "Ne restez pas plantés là, sang-pâles. Coupez ces cordes, ou passez votre chemin.",
-     "mood": "colere"
-    },
-    {
-     "who": "brann",
-     "text": "Charmant. On le laisse aux corbeaux ?"
-    },
-    {
-     "who": "sylwen",
-     "text": "Les pillards l'ont enchaîné, lui aussi. L'ennemi de nos ennemis…"
-    },
-    {
-     "who": "narrateur",
-     "text": "D'un geste, le Sceau tranche les liens."
-    },
-    {
-     "who": "krag",
-     "text": "Le Sceau d'Écho… Les chamans disaient que ce n'était qu'un conte.",
-     "mood": "surpris"
-    },
-    {
-     "who": "krag",
-     "text": "Je m'appelle Krag. Je ne vous dois rien… mais je n'oublie pas. On se reverra dans les collines."
-    }
-   ]
-  },
-  "z02_l02_intro": {
-   "art": "moulins",
-   "subject": "wolf_rider",
-   "lines": [
-    {
-     "who": "narrateur",
-     "text": "Les moulins d'Ambreval tournent à vide. Les meuniers ont fui ; les pillards se servent dans les silos."
-    },
-    {
-     "who": "prevote",
-     "text": "Vous êtes les gens du Bois ? Le Bastion m'a écrit. Je suis Maëlle, prévôte d'Ambreval."
-    },
-    {
-     "who": "prevote",
-     "text": "Méfiez-vous du vent des steppes. Quand l'herbe ploie, la rafale suit : elle balaie tout, nos gens comme les leurs."
-    },
-    {
-     "who": "brann",
-     "text": "Un vent qui pousse l'ennemi sur les flancs… Profite des rafales pour viser les portails dégagés."
-    }
-   ]
-  },
-  "z02_l02_outro": {
-   "art": "moulins",
-   "lines": [
-    {
-     "who": "prevote",
-     "text": "Les moulins tournent de nouveau. Ambreval vous doit une fière chandelle.",
-     "mood": "joie"
-    },
-    {
-     "who": "prevote",
-     "text": "Mais ne vous y trompez pas : les pillards ne sont que des charognards. Ce sont les clans orcs qui brûlent nos fermes."
-    },
-    {
-     "who": "sylwen",
-     "text": "Tous les clans ? Ou seulement ceux que le Surge a touchés ?"
-    },
-    {
-     "who": "prevote",
-     "text": "Un orc reste un orc. Vingt ans de guerre me l'ont appris.",
-     "mood": "colere"
-    }
-   ]
-  },
-  "z02_l03_intro": {
-   "art": "steppe",
-   "subject": "pylon",
-   "lines": [
-    {
-     "who": "narrateur",
-     "text": "Sur la crête se dressent des cristaux d'ambre hauts comme des hommes. La foudre y court en veines dorées."
-    },
-    {
-     "who": "krag",
-     "text": "Les pylônes de nos ancêtres. Ils gardaient l'orage pour les nuits de chasse."
-    },
-    {
-     "who": "krag",
-     "text": "Le Surge les a rendus fous. Quand l'un d'eux s'illumine, il surcharge le portail voisin : tes créatures y gagnent la foudre… et se dédoublent.",
-     "mood": "colere"
-    },
-    {
-     "who": "brann",
-     "text": "Tiens, le gamin de la cage. Tu nous suis ?"
-    },
-    {
-     "who": "krag",
-     "text": "Je chasse ceux qui ont pris mon clan. Nos routes se croisent, c'est tout."
-    }
-   ]
-  },
-  "z02_l03_outro": {
-   "art": "steppe",
-   "lines": [
-    {
-     "who": "krag",
-     "text": "Pas mal, pour des sang-pâles. Vous savez où frapper."
-    },
-    {
-     "who": "sylwen",
-     "text": "Tu parles de ton clan comme d'un deuil, Krag."
-    },
-    {
-     "who": "krag",
-     "text": "Le clan Croc-Tonnerre suit un chef qui n'est plus lui-même. Ses yeux brillent de violet. Il ne reconnaît plus personne.",
-     "mood": "triste"
-    },
-    {
-     "who": "krag",
-     "text": "Le reste ne vous regarde pas."
-    }
-   ]
-  },
-  "z02_l04_intro": {
-   "art": "steppe",
-   "subject": "clan_guard",
-   "lines": [
-    {
-     "who": "narrateur",
-     "text": "Au gué de la Rivière-Sèche, des gardes de clan forment un mur de boucliers. Derrière eux avancent des ogres d'ambre."
-    },
-    {
-     "who": "brann",
-     "text": "Enfin des gens qui savent tenir une ligne ! Dommage qu'ils soient en face.",
-     "mood": "joie"
-    },
-    {
-     "who": "sylwen",
-     "text": "Leurs pavois arrêtent tout ce qui vient de face. Contourne-les, ou fais-les plier avec le vent."
-    }
-   ]
-  },
-  "z02_l04_outro": {
-   "art": "steppe",
-   "lines": [
-    {
-     "who": "brann",
-     "text": "Ils ont tenu jusqu'au bout. Pas un n'a reculé."
-    },
-    {
-     "who": "krag",
-     "text": "Les gardes de mon clan ne reculent jamais. Même possédés.",
-     "mood": "triste"
-    },
-    {
-     "who": "krag",
-     "text": "Et c'est Varg qui les arme. Un humain. Il vend l'ambre maudit aux possédés et il rit en comptant son or.",
-     "mood": "colere"
-    },
-    {
-     "who": "sylwen",
-     "text": "Alors allons lui rendre visite."
-    }
-   ]
-  },
-  "z02_l05_intro": {
-   "art": "campement",
-   "subject": "varg",
-   "lines": [
-    {
-     "who": "narrateur",
-     "text": "Le repaire de Varg : des palissades, des chariots volés, et des caisses d'ambre qui bourdonnent de violet."
-    },
-    {
-     "who": "varg",
-     "text": "Le Porteur d'Écho en personne ! On m'avait dit que tu étais plus grand.",
-     "mood": "joie"
-    },
-    {
-     "who": "varg",
-     "text": "Le Surge paie bien, l'ami. Mieux que les rois, mieux que les clans. Pourquoi est-ce que je refuserais ?"
-    },
-    {
-     "who": "brann",
-     "text": "Parce qu'on va te le faire regretter.",
-     "mood": "colere"
-    },
-    {
-     "who": "varg",
-     "text": "Les gars ! Lâchez les loups !",
-     "mood": "colere"
-    },
-    {
-     "who": "sylwen",
-     "text": "Il charge en ligne : quand le sol rougit, sors de son couloir."
-    }
-   ]
-  },
-  "z02_l05_outro": {
-   "art": "campement",
-   "subject": "varg",
-   "lines": [
-    {
-     "who": "varg",
-     "text": "D'accord… D'accord ! Je parle ! L'ambre, c'est pour Gharok, le seigneur de guerre. Il en veut toujours plus.",
-     "mood": "triste"
-    },
-    {
-     "who": "varg",
-     "text": "Il dit qu'une voix lui parle dans l'orage. Qu'elle lui promet les collines entières."
-    },
-    {
-     "who": "narrateur",
-     "text": "Une voix dans l'orage… Le Sceau d'Écho te brûle la paume, comme sous la Tour du Croissant."
-    },
-    {
-     "who": "voix",
-     "text": "Porteur… Tu ramasses les Échos que je sème. Comme c'est touchant.",
-     "mood": "joie"
-    },
-    {
-     "who": "brann",
-     "text": "On le livre à la prévôte. Elle saura quoi en faire."
-    }
-   ]
-  },
-  "z02_l06_intro": {
-   "art": "orage",
-   "subject": "storm_shaman",
-   "lines": [
-    {
-     "who": "narrateur",
-     "text": "Le campement de l'orage. Des chamans psalmodient sous un ciel noir ; leurs totems crachent la foudre."
-    },
-    {
-     "who": "krag",
-     "text": "Ce sont les miens. Les chamans de Croc-Tonnerre.",
-     "mood": "triste"
-    },
-    {
-     "who": "krag",
-     "text": "Abats leurs totems, pas leurs vies… si tu peux. Le Surge les tient, mais leurs âmes sont encore là."
-    },
-    {
-     "who": "sylwen",
-     "text": "Leurs éclairs visent tes créatures : ne les laisse pas s'agglutiner."
-    }
-   ]
-  },
-  "z02_l06_outro": {
-   "art": "orage",
-   "lines": [
-    {
-     "who": "narrateur",
-     "text": "Quand le dernier totem tombe, les chamans s'effondrent, hagards. Le violet quitte leurs yeux."
-    },
-    {
-     "who": "krag",
-     "text": "Ils respirent. Ils… respirent.",
-     "mood": "joie"
-    },
-    {
-     "who": "krag",
-     "text": "Tu aurais pu tous les écraser. Tu ne l'as pas fait. Je m'en souviendrai, Porteur."
-    },
-    {
-     "who": "brann",
-     "text": "Il commence à me plaire, ce gamin.",
-     "mood": "joie"
-    }
-   ]
-  },
-  "z02_l07_intro": {
-   "art": "steppe",
-   "subject": "caravan",
-   "lines": [
-    {
-     "who": "prevote",
-     "text": "Ambreval a faim. Ce chariot de vivres doit passer, coûte que coûte."
-    },
-    {
-     "who": "prevote",
-     "text": "Les loups des pillards rôdent le long de la route. Ils frappent toujours par les flancs."
-    },
-    {
-     "who": "krag",
-     "text": "Je connais ces loups. Ils chassent par trois. Tiens les côtés, le chariot tiendra."
-    },
-    {
-     "who": "prevote",
-     "text": "Un orc qui nous conseille ? Le monde marche sur la tête.",
-     "mood": "colere"
-    }
-   ]
-  },
-  "z02_l07_outro": {
-   "art": "moulins",
-   "subject": "caravan",
-   "lines": [
-    {
-     "who": "narrateur",
-     "text": "Le chariot franchit les portes d'Ambreval sous les vivats."
-    },
-    {
-     "who": "prevote",
-     "text": "…Merci. À vous aussi, l'orc."
-    },
-    {
-     "who": "krag",
-     "text": "Krag. Mon nom est Krag."
-    },
-    {
-     "who": "prevote",
-     "text": "Krag. Mon mari est mort au gué, il y a dix ans, sous une hache orque. Je n'oublierai pas… mais je retiendrai ton nom aussi.",
-     "mood": "triste"
-    }
-   ]
-  },
-  "z02_l08_intro": {
-   "art": "campement",
-   "subject": "bonesetter",
-   "lines": [
-    {
-     "who": "narrateur",
-     "text": "Au cœur des collines, une rebouteuse possédée soigne le Nexus en chantant. Deux sceaux de Surge le rendent intouchable."
-    },
-    {
-     "who": "krag",
-     "text": "Ourza ! Elle m'a soigné quand j'étais petit. Regarde ce qu'ils ont fait d'elle…",
-     "mood": "colere"
-    },
-    {
-     "who": "sylwen",
-     "text": "Purifie les sceaux. Sans eux, ses soins ne serviront plus à rien."
-    }
-   ]
-  },
-  "z02_l08_outro": {
-   "art": "campement",
-   "lines": [
-    {
-     "who": "narrateur",
-     "text": "Les sceaux se brisent. La vieille Ourza tombe à genoux, libérée. Elle saisit la main de Krag."
-    },
-    {
-     "who": "narrateur",
-     "text": "« Krag, mon petit… Ton père… Le Surge s'est logé dans son cœur, pas dans son âme. On peut encore l'en chasser. »"
-    },
-    {
-     "who": "krag",
-     "text": "Il est encore là, quelque part ? Après tout ce temps ?",
-     "mood": "surpris"
-    },
-    {
-     "who": "brann",
-     "text": "Ton père ?",
-     "mood": "surpris"
-    },
-    {
-     "who": "krag",
-     "text": "…Plus tard. Je vous dirai tout. Plus tard.",
-     "mood": "triste"
-    }
-   ]
-  },
-  "z02_l09_intro": {
-   "art": "traite",
-   "subject": "war_banner",
-   "lines": [
-    {
-     "who": "narrateur",
-     "text": "Les clans possédés déferlent sur deux fronts : sur Ambreval, et sur le campement des orcs restés libres."
-    },
-    {
-     "who": "prevote",
-     "text": "Ils sont aux portes ! Porteur, Ambreval a besoin de vous, maintenant !",
-     "mood": "colere"
-    },
-    {
-     "who": "krag",
-     "text": "Le campement aussi ! Les nôtres n'ont plus de chamans pour se défendre !",
-     "mood": "colere"
-    },
-    {
-     "who": "sylwen",
-     "text": "Brisons d'abord le siège : les deux Nexus doivent tomber. On décidera ensuite."
-    }
-   ]
-  },
-  "z02_l09_outro": {
-   "art": "traite",
-   "lines": [
-    {
-     "who": "narrateur",
-     "text": "Les Nexus s'effondrent. Les possédés refluent vers le fort de Gharok… mais la paix ne tient qu'à un fil."
-    },
-    {
-     "who": "prevote",
-     "text": "Mes miliciens veulent raser le campement. « Un orc reste un orc », disent-ils. Et je… je les comprends.",
-     "mood": "colere"
-    },
-    {
-     "who": "krag",
-     "text": "Les miens veulent reprendre l'ambre de vos silos. Ils disent que vous l'avez volé à nos ancêtres.",
-     "mood": "colere"
-    },
-    {
-     "who": "brann",
-     "text": "Ils vont s'entretuer avant même que Gharok lève le petit doigt."
-    },
-    {
-     "who": "sylwen",
-     "text": "C'est toi qu'ils écoutent, {pseudo}. Choisis bien."
-    },
-    {
-     "choice": "z02_l09",
-     "prompt": "Le Traité d'Ambre",
-     "options": [
-      {
-       "key": "A",
-       "text": "Défendre le village humain",
-       "effects": {
-        "set": [
-         "s1.traite_ambreval"
-        ],
-        "add": {
-         "rep.humains": 20,
-         "rep.orcs": -15
-        }
-       },
-       "then": [
-        {
-         "who": "prevote",
-         "text": "Ambreval s'en souviendra. Mes miliciens tiendront vos flancs contre Gharok.",
-         "mood": "joie"
-        },
-        {
-         "who": "krag",
-         "text": "…Les miens repartiront dans les steppes les mains vides. Je ne l'oublierai pas.",
-         "mood": "colere"
-        }
-       ]
-      },
-      {
-       "key": "B",
-       "text": "Défendre le campement orc",
-       "effects": {
-        "set": [
-         "s1.traite_campement"
-        ],
-        "add": {
-         "rep.orcs": 20,
-         "rep.humains": -15
-        }
-       },
-       "then": [
-        {
-         "who": "krag",
-         "text": "Tu as tenu parole pour nous. Les chamans du clan marcheront avec toi jusqu'au fort de Gharok.",
-         "mood": "joie"
-        },
-        {
-         "who": "prevote",
-         "text": "Faites comme vous voudrez. Ambreval se débrouillera seule, comme toujours.",
-         "mood": "triste"
-        }
-       ]
-      },
-      {
-       "key": "C",
-       "text": "Négocier le Traité d'Ambre",
-       "tag": "Humain / Clerc",
-       "only": {
-        "race": [
-         "humain"
-        ],
-        "class": [
-         "clerc"
-        ]
-       },
-       "effects": {
-        "set": [
-         "s1.traite_negocie"
-        ],
-        "add": {
-         "rep.humains": 10,
-         "rep.orcs": 10
-        }
-       },
-       "then": [
-        {
-         "who": "narrateur",
-         "text": "Toute la nuit, sous la tente du conseil, tu parles. À l'aube, deux mains se serrent au-dessus d'une carte des collines."
-        },
-        {
-         "who": "prevote",
-         "text": "Un traité. Avec des orcs. Mon père se retournerait dans sa tombe… mais il serait encore en vie s'il en avait signé un."
-        },
-        {
-         "who": "krag",
-         "text": "Humains et orcs, côte à côte. Les chamans n'ont jamais vu ça.",
-         "mood": "joie"
-        }
-       ]
-      }
-     ]
-    }
-   ]
-  },
-  "z02_l10_intro": {
-   "art": "fort",
-   "subject": "gharok",
-   "lines": [
-    {
-     "who": "narrateur",
-     "text": "Le fort de Gharok domine les collines. Trois bannières de guerre claquent dans l'orage ; le seigneur de guerre attend sur la palissade."
-    },
-    {
-     "who": "gharok",
-     "text": "Le Porteur d'Écho… La Voix m'a parlé de toi. Ton Sceau sera ma couronne.",
-     "mood": "colere"
-    },
-    {
-     "who": "krag",
-     "text": "Père… C'est moi. C'est Krag.",
-     "mood": "triste"
-    },
-    {
-     "who": "brann",
-     "text": "Son PÈRE ?!",
-     "mood": "surpris"
-    },
-    {
-     "who": "krag",
-     "text": "Gharok, seigneur de Croc-Tonnerre. Mon père. Le Surge l'a pris il y a un an. Je ne savais pas comment vous le dire.",
-     "mood": "triste"
-    },
-    {
-     "who": "gharok",
-     "text": "Je n'ai pas de fils. Je n'ai que la tempête."
-    },
-    {
-     "who": "prevote",
-     "text": "Mes miliciens tiennent les flancs ! Vos arrières sont couverts !",
-     "if": "s1.traite_ambreval"
-    },
-    {
-     "who": "krag",
-     "text": "Les chamans du clan sont avec nous. Ils affaiblissent son orage !",
-     "if": "s1.traite_campement"
-    },
-    {
-     "who": "narrateur",
-     "text": "Humains et orcs se rangent côte à côte derrière la Barrière. Les chamans chantent ; les miliciens lèvent leurs piques.",
-     "if": "s1.traite_negocie"
-    },
-    {
-     "who": "sylwen",
-     "text": "Ses bannières le protègent : tant qu'une seule tient, il ne craint presque rien. Abats-les d'abord."
-    }
-   ]
-  },
-  "z02_l10_outro": {
-   "art": "fort",
-   "subject": "gharok",
-   "lines": [
-    {
-     "who": "narrateur",
-     "text": "Gharok tombe à genoux. Une ombre violette se tord sous sa peau, prête à fuir… ou à mourir avec lui."
-    },
-    {
-     "who": "gharok",
-     "text": "Krag… mon fils… C'est toi ?",
-     "mood": "triste"
-    },
-    {
-     "who": "krag",
-     "text": "Porteur, ton Sceau peut chasser le Surge. Je t'en supplie : sauve-le.",
-     "mood": "triste"
-    },
-    {
-     "who": "brann",
-     "text": "Et s'il replonge ? Le clan entier replongera avec lui. Lysbourg a failli brûler pour moins que ça."
-    },
-    {
-     "who": "sylwen",
-     "text": "On a sauvé la Sylvarche. On peut le sauver, lui aussi.",
-     "if": "s1.sylvarche_purifiee"
-    },
-    {
-     "who": "sylwen",
-     "text": "La dernière fois, on a choisi la hache. Je ne veux pas revivre ça.",
-     "mood": "triste",
-     "if": "s1.sylvarche_abattue"
-    },
-    {
-     "choice": "z02_l10",
-     "major": true,
-     "prompt": "Gharok",
-     "options": [
-      {
-       "key": "A",
-       "text": "Exorciser Gharok",
-       "effects": {
-        "set": [
-         "s1.gharok_exorcise",
-         "s1.krag_allie"
-        ],
-        "add": {
-         "loy.krag": 10,
-         "rep.orcs": 20,
-         "loy.sylwen": 5
-        }
-       },
-       "then": [
-        {
-         "who": "narrateur",
-         "text": "Tu poses le Sceau sur le cœur du seigneur de guerre. L'orage hurle, puis se tait.",
-         "subject_tint": "F2C46B"
-        },
-        {
-         "who": "gharok",
-         "text": "La tempête… s'est tue. Krag. Pardonne-moi.",
-         "mood": "joie"
-        },
-        {
-         "who": "krag",
-         "text": "Père !",
-         "mood": "joie"
-        },
-        {
-         "who": "krag",
-         "text": "Porteur. Ma hache est à toi. Jusqu'au Cœur du Surge, s'il le faut."
-        },
-        {
-         "who": "narrateur",
-         "text": "Krag rejoint le groupe. Au Cercle de Havre-Aube, choisis les deux compagnons qui t'accompagnent."
-        }
-       ]
-      },
-      {
-       "key": "B",
-       "text": "Achever Gharok",
-       "effects": {
-        "set": [
-         "s1.gharok_acheve"
-        ],
-        "add": {
-         "rep.orcs": -10,
-         "loy.sylwen": -5
-        },
-        "grant": {
-         "base": "croc_gharok",
-         "rarity": "legendaire"
-        },
-        "also": [
-         {
-          "chose": {
-           "z02_l09": [
-            "B",
-            "C"
-           ]
-          },
-          "set": [
-           "s1.krag_allie"
-          ],
-          "add": {
-           "loy.krag": -30
-          }
-         },
-         {
-          "chose": {
-           "z02_l09": "A"
-          },
-          "set": [
-           "s1.krag_parti"
-          ]
-         }
-        ]
-       },
-       "then": [
-        {
-         "who": "narrateur",
-         "text": "Brann frappe. Le seigneur de guerre s'effondre, et l'ombre violette s'éteint avec lui.",
-         "subject": ""
-        },
-        {
-         "who": "krag",
-         "text": "…",
-         "mood": "triste"
-        },
-        {
-         "who": "krag",
-         "text": "Mon père est mort de ta main. Mais tu as défendu mon clan quand personne d'autre ne l'a fait. Je te suivrai. Pour eux. Pas pour toi.",
-         "mood": "colere",
-         "chose": {
-          "z02_l09": [
-           "B",
-           "C"
-          ]
-         }
-        },
-        {
-         "who": "narrateur",
-         "text": "Krag rejoint le groupe… mais sa loyauté est fragile.",
-         "chose": {
-          "z02_l09": [
-           "B",
-           "C"
-          ]
-         }
-        },
-        {
-         "who": "krag",
-         "text": "Tu as choisi les humains, puis la hache. Il n'y a rien pour moi à tes côtés.",
-         "mood": "colere",
-         "chose": {
-          "z02_l09": "A"
-         }
-        },
-        {
-         "who": "narrateur",
-         "text": "Krag disparaît dans les hautes herbes, sans se retourner.",
-         "chose": {
-          "z02_l09": "A"
-         }
-        },
-        {
-         "who": "brann",
-         "text": "Tiens. Un croc de sa mâchoire. La foudre y gronde encore."
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "who": "narrateur",
-     "text": "Acte 2 terminé : les Alliances. Au sud, les Marais Murmurants exhalent une brume grise… et le Cercle des Cendres y attend son heure.",
-     "art": "steppe"
-    },
-    {
-     "who": "brann",
-     "text": "Des marais. Évidemment. Mes bottes n'y survivront pas.",
-     "art": "steppe",
-     "mood": "joie"
-    }
-   ]
-  }
- },
- "barks": {
-  "start": [
-   {
-    "who": "brann",
-    "text": "Bouclier levé ! Qu'ils viennent !"
-   },
-   {
-    "who": "brann",
-    "text": "Le Bastion ne recule pas !"
-   },
-   {
-    "who": "sylwen",
-    "text": "Je couvre la droite. Vise les portes !"
-   },
-   {
-    "who": "sylwen",
-    "text": "Le vent est avec nous."
-   },
-   {
-    "who": "sylwen",
-    "loy_min": {
-     "sylwen": 75
-    },
-    "text": "Avec toi à mes côtés, je n'ai pas peur."
-   },
-   {
-    "who": "brann",
-    "loy_min": {
-     "brann": 75
-    },
-    "text": "Ensemble, on est une forteresse !"
-   },
-   {
-    "who": "sylwen",
-    "loy_max": {
-     "sylwen": 30
-    },
-    "text": "Finissons-en. Je n'ai pas envie de parler."
-   },
-   {
-    "who": "brann",
-    "loy_max": {
-     "brann": 30
-    },
-    "text": "Je me bats. Ne m'en demande pas plus."
-   },
-   {
-    "who": "sylwen",
-    "if": "s1.sylvarche_purifiee",
-    "text": "La Sylvarche veille sur nous. Je le sens."
-   },
-   {
-    "who": "sylwen",
-    "if": "s1.sylvarche_abattue",
-    "text": "La forêt est si silencieuse, maintenant…"
-   },
-   {
-    "who": "sylwen",
-    "text": "Le vent tourne… attention aux rafales."
-   },
-   {
-    "who": "krag",
-    "text": "Pour Croc-Tonnerre !"
-   },
-   {
-    "who": "krag",
-    "text": "La Fureur gronde. Laisse-moi la libérer !"
-   },
-   {
-    "who": "krag",
-    "text": "Mon père nous regarde. Pas de quartier.",
-    "if": "s1.gharok_exorcise"
-   },
-   {
-    "who": "krag",
-    "text": "Je me bats pour le clan. Pas pour toi.",
-    "loy_max": {
-     "krag": 30
-    }
-   },
-   {
-    "who": "krag",
-    "text": "Côte à côte, Porteur. Comme des frères de clan.",
-    "loy_min": {
-     "krag": 75
-    }
-   },
-   {
-    "who": "nyx",
-    "text": "Des collines. Du vent. Aucun mort à qui parler. Quel ennui."
-   }
-  ],
-  "barrier_low": [
-   {
-    "who": "brann",
-    "text": "La Barrière cède ! Vise ceux qui passent !"
-   },
-   {
-    "who": "sylwen",
-    "text": "Ils sont trop près ! Tire sur les premiers rangs !"
-   },
-   {
-    "who": "brann",
-    "text": "Je tiens, je tiens… mais pas éternellement !"
-   },
-   {
-    "who": "krag",
-    "text": "Ils passent ! Je les arrête à la hache !"
-   }
-  ],
-  "half": [
-   {
-    "who": "sylwen",
-    "text": "Il faiblit ! Continue !"
-   },
-   {
-    "who": "brann",
-    "text": "À moitié fait ! Le plus dur, c'est l'autre moitié."
-   },
-   {
-    "who": "krag",
-    "text": "Ça saigne ! Encore !"
-   },
-   {
-    "who": "nyx",
-    "text": "À moitié mort. Mon genre préféré."
-   }
-  ],
-  "boss_phase": [
-   {
-    "who": "brann",
-    "text": "Il s'énerve ! Bon signe : on lui fait mal."
-   },
-   {
-    "who": "sylwen",
-    "text": "Attention, il change de rythme !"
-   },
-   {
-    "who": "krag",
-    "text": "Il enrage ? Moi aussi !"
-   }
-  ],
-  "echo": [
-   {
-    "who": "sylwen",
-    "text": "Ton Sceau brille… Qu'as-tu vu ?"
-   },
-   {
-    "who": "brann",
-    "text": "Encore cet air bizarre. Bah, tant que ça marche !"
-   }
-  ],
-  "ultimate": [
-   {
-    "who": "brann",
-    "text": "Par la barbe de mes ancêtres ! Quelle puissance !"
-   },
-   {
-    "who": "sylwen",
-    "text": "Magnifique…"
-   }
-  ],
-  "crowd": [
-   {
-    "who": "brann",
-    "text": "Regarde-moi cette armée !"
-   },
-   {
-    "who": "sylwen",
-    "text": "Ton flux est puissant ! Garde le rythme !"
-   }
-  ],
-  "escort_low": [
-   {
-    "who": "sylwen",
-    "text": "La Lanterne faiblit ! Protège-la !"
-   },
-   {
-    "who": "brann",
-    "text": "Personne ne touche à cette lanterne !"
-   }
-  ]
- },
- "barks_level": {
-  "z02_l05": {
-   "start": [
-    {
-     "who": "brann",
-     "text": "Varg ! Ce pillard me doit une barrique de bière."
-    }
-   ],
-   "boss_phase": [
-    {
-     "who": "sylwen",
-     "text": "Il appelle sa bande ! Vise les loups !"
-    }
-   ]
-  },
-  "z02_l10": {
-   "start": [
-    {
-     "who": "brann",
-     "text": "Ses bannières ! Abats-les, son armure tombera."
-    },
-    {
-     "who": "sylwen",
-     "text": "La Nature le blesse, utilise les Racines !"
-    }
-   ],
-   "boss_phase": [
-    {
-     "who": "brann",
-     "text": "Des totems d'orage ! Détruis-les avant qu'ils ne frappent !"
-    }
-   ]
-  }
- }
 }

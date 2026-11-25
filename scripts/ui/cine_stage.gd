@@ -13,6 +13,7 @@ const PLATE_MOOD := {
 	"fracture": "arcane", "surge": "arcane", "nexus": "arcane", "college": "arcane", "sphinx": "arcane", "tour": "moon",
 	"lysbourg": "dawn", "foret": "mist", "sentier": "mist", "clairiere": "mist", "roncier": "arcane", "fougeres": "mist", "cercle_fees": "arcane", "foret_gueri": "dawn", "source": "mist", "pont": "mist", "sylvarche": "arcane", "collines": "dawn",
 	"steppe": "steppe", "moulins": "steppe", "campement": "campfire", "orage": "steppe", "traite": "steppe", "fort": "steppe",
+	"route": "steppe", "pylones": "steppe", "gue": "steppe", "caravane": "steppe", "rebouteux": "campfire",
 	"marais": "swamp", "cercle": "swamp", "hydre": "swamp", "refuge": "campfire",
 	"pics": "snow", "porte": "snow", "lac": "snow", "forteresse": "snow", "colosse": "forge", "forge": "forge",
 	"dunes": "desert", "oasis": "desert", "miroirs": "desert", "desert_nuit": "moon",
@@ -23,9 +24,9 @@ const PLATE_MOOD := {
 ## Décors où des feuilles tombent.
 const LEAFY := ["foret", "foret_gueri", "source", "pont", "collines", "lysbourg", "sylvarche", "sentier", "clairiere", "fougeres", "cercle_fees", "roncier"]
 ## Créatures et esprits : ils apparaissent en présence au centre, pas en buste.
-const PRESENCE := ["cerf", "sylvarche", "voix", "wyrm", "mere_dragon", "leviathan", "ourdisseur", "sphinx", "orrin", "morvaen"]
+const PRESENCE := ["cerf", "sylvarche", "voix", "wyrm", "mere_dragon", "leviathan", "ourdisseur", "sphinx", "orrin", "morvaen", "varg", "gharok"]
 ## Sujets de scène (sprites de combat) montrés par leur portrait.
-const SUBJECT_PORTRAIT := {"stag": "cerf", "sylvarche": "sylvarche", "pixie": "fee"}
+const SUBJECT_PORTRAIT := {"stag": "cerf", "sylvarche": "sylvarche", "pixie": "fee", "varg": "varg", "gharok": "gharok"}
 const MAX_FIGURES := 4
 ## Deux personnages au plus à l'écran : celui qui parle et celui à qui il répond, un de chaque côté.
 const MAX_VISIBLE := 2
@@ -34,7 +35,8 @@ const MAX_VISIBLE := 2
 const CAMS := ["zoom", "zoom_out", "reset", "punch", "shake", "tremble", "pan_left", "pan_right", "pan_up", "push", "pull", "kick", "focus"]
 const FXS := ["flash", "white", "fade", "lightning", "sparkles", "embers", "bloom", "ring", "rays", "bolt", "beam", "crack",
 	"seal", "spiral", "flux", "gate", "arrow", "swarm", "clang", "steam", "thorns", "glitter", "hooves", "drip", "ferns", "lanes", "timestop", "flicker", "wind", "eyes", "veins", "fountain", "heartbeat", "willo", "cage", "shatter", "roots", "splinters", "renewal",
-	"slash", "wisps", "charge", "burst", "leaves", "dust", "shock"]
+	"slash", "wisps", "charge", "burst", "leaves", "dust", "shock",
+	"smoke", "arcs", "shieldwall", "howl", "drums", "rain", "banners", "pact", "shadow", "coins", "chant", "sigils", "cheer", "bars"]
 const ACTS := ["jump", "hop", "shake", "hurt", "attack", "droop", "kneel", "glow", "fall", "exit", "enter", "rise", "turn", "step", "cast", "echo"]
 const SUBJECT_ACTS := ["roar", "hit", "fall", "glow", "rise", "fade", "appear"]
 const GRADES := {"none": "ffffff", "night": "8c98d8", "violet": "c8a0f0", "warm": "ffd8ac", "dawn": "ffe6cc", "cold": "b8d6ff",
@@ -673,7 +675,7 @@ func _effect(spec: String) -> void:
 		"shatter":
 			# La cage vole en éclats : barreaux en morceaux, poussière de lumière.
 			for e9 in _fx.duplicate():
-				if str(e9["kind"]) == "cage":
+				if str(e9["kind"]) in ["cage", "sigils", "bars"]:
 					_fx.erase(e9)
 			var sp3 := _anchor_pos(anchor)
 			for i in range(40):
@@ -748,6 +750,66 @@ func _effect(spec: String) -> void:
 			_start_leaves()
 		"dust":
 			_dust(_anchor_pos(anchor), 16)
+		# Collines d'Ambre (zone 2).
+		"smoke":
+			# Fumée noire qui monte au loin : une colonne de volutes qui s'élargit en montant.
+			var sm := _add_fx("emit_smoke", anchor if anchor != "auto" else "sky", col if col_s != "" else Color("6a6068"), "back", 5.0)
+			sm["rate"] = 9.0
+		"arcs":
+			# Les pylônes d'ambre crépitent : des arcs dorés sautent d'un cristal à l'autre.
+			var ac := _add_fx("arcs", anchor, col if col_s != "" else Color("ffc860"), "light", 2.6)
+			ac["r"] = sh * 0.4
+			_fx_set(_add_fx("bloom", anchor, col if col_s != "" else Color("ffc860"), "light", 1.0), "r", sh * 0.35)
+		"shieldwall":
+			# Mur de boucliers : une rangée de pavois se dresse d'un coup et frappe le sol.
+			_add_fx("shieldwall", anchor if anchor != "auto" else "ground", col if col_s != "" else Color("8a6a40"), "front", 3.2)
+			_dust(_anchor_pos("ground"), 18)
+			_kick_impulse(10.0)
+		"howl":
+			# Hurlement des loups : des ondes de son qui montent du repère, et le décor frissonne.
+			_add_fx("howl", anchor, col if col_s != "" else Color("d8e0f0"), "light", 2.2)
+			_kick_impulse(4.0)
+		"drums":
+			# Tambours de guerre : deux coups sourds puis un, le sol bat avec eux.
+			var dr := _add_fx("drums", "ground", col if col_s != "" else Color("c84a3a"), "back", 3.8)
+			dr["beat"] = -1
+		"rain":
+			# Pluie d'orage sur toute la scène.
+			_add_fx("rain", "center", col if col_s != "" else Color("a8b8e0"), "front", 1e9)
+		"banners":
+			# Les bannières de guerre claquent dans le vent de l'orage.
+			_add_fx("banners", "center", col if col_s != "" else Color("a82a2a"), "back", 1e9)
+		"pact":
+			# Le Traité : un ruban bleu et un ruban rouge viennent l'un vers l'autre, se nouent, et l'or jaillit.
+			_add_fx("pact", anchor if anchor != "auto" else "center", col if col_s != "" else Color("f2c46b"), "light", 3.0)
+		"shadow":
+			# Le Surge se tord sous la peau : des volutes violettes ondulent autour du repère.
+			var shd := _add_fx("shadow", anchor, col if col_s != "" else Color("b03ad8"), "light", 4.5)
+			shd["r"] = sh * 0.3
+		"coins":
+			# Pièces d'or jetées en l'air, qui retombent en tintant.
+			var cp := _anchor_pos(anchor)
+			for i in range(26):
+				_part({"p": cp + Vector2(randf_range(-10, 10), 0.0), "v": Vector2(randf_range(-120, 120), -randf_range(220, 380)), "max": randf_range(1.0, 1.5),
+					"col": [Color("f2c46b"), Color("ffe08a"), Color("c8902a")][i % 3], "size": 2.0, "layer": "front", "grav": Vector2(0, 700), "drag": 0.3, "kind": "sq"})
+		"chant":
+			# Le chant de la rebouteuse : des volutes vertes et dorées montent en spirale.
+			var ch := _add_fx("emit_chant", anchor, col if col_s != "" else Color("a8e070"), "light", 3.5)
+			ch["rate"] = 16.0
+			_fx_set(_add_fx("ring", anchor, col if col_s != "" else Color("a8e070"), "light", 1.2), "sq", 0.4)
+		"sigils":
+			# Deux sceaux de Surge flottent et pulsent de part et d'autre du repère (jusqu'à « shatter »).
+			var sg := _add_fx("sigils", anchor, col if col_s != "" else Color("d93cf2"), "light", 1e9)
+			sg["r"] = sh * 0.1
+		"cheer":
+			# Vivats : chapeaux et fleurs jetés en l'air sur toute la largeur.
+			for i in range(60):
+				_part({"p": Vector2(randf() * size.x, ground_y + 10.0), "v": Vector2(randf_range(-60, 60), -randf_range(280, 460)), "max": randf_range(1.4, 2.2),
+					"col": [Color("f2c46b"), Color("e85a3a"), Color("6fa8e8"), Color("f4f0e0")][i % 4], "size": 2.0 if i % 3 else 1.0, "layer": "front",
+					"grav": Vector2(0, 420), "drag": 0.5, "sway": 20.0, "kind": "leaf" if i % 2 else "sq"})
+		"bars":
+			# Cage de bois : barreaux et traverses autour du repère (jusqu'à « shatter »).
+			_fx_set(_add_fx("bars", anchor, col if col_s != "" else Color("7a5a32"), "front", 1e9), "r", sh * 0.26)
 
 
 func _fx_set(e: Dictionary, key: String, v: Variant) -> void:
@@ -1258,7 +1320,9 @@ func _update_presence(delta: float) -> void:
 	var sc := lerpf(0.9, 1.0, grow)
 	var alpha := grow
 	# Un portrait seul flotte doucement ; un personnage en pied respire, et seuls ceux qui volent planent.
-	var dy := sin(t * 0.9) * k * 1.5 if fig == "" or FigureArt.flies(fig) else 0.0
+	# Les sprites de combat (pillards, loups, gardes…) se tiennent au sol eux aussi.
+	var sprite_body := fig == "" and pid == ""
+	var dy := sin(t * 0.9) * k * 1.5 if (fig == "" and not sprite_body) or FigureArt.flies(fig) else 0.0
 	var dx := 0.0
 	var rot := 0.0
 	var flash := 0.0
@@ -1300,6 +1364,8 @@ func _update_presence(delta: float) -> void:
 	var base_y := ground_y + (fs.y * 0.1 if pid != "" else -sh * 0.04)
 	if narrow:
 		base_y = ground_y - _fig_scale() * 64.0 * 0.62
+	if sprite_body:
+		base_y = ground_y + sh * 0.04
 	if fig != "":
 		# Les pieds au sol du décor, derrière les bustes (qui cachent le bas du corps, comme au premier plan).
 		base_y = ground_y + sh * 0.08
@@ -1353,6 +1419,20 @@ func _update_fx(delta: float) -> void:
 			if hb2 != int(e["beat"]) and float(e["t"]) < float(e["dur"]) - 0.5:
 				e["beat"] = hb2
 				_punch = 0.6
+		if kind == "drums":
+			# Rythme : boum… boum… BOUM (le troisième plus fort).
+			var beat2 := int(float(e["t"]) / 0.55)
+			if beat2 != int(e["beat"]) and float(e["t"]) < float(e["dur"]) - 0.4:
+				e["beat"] = beat2
+				var strong := beat2 % 3 == 2
+				_kick_v += Vector2(0.0, 90.0 if strong else 45.0)
+				var g2 := _anchor_pos("ground")
+				var rg2 := _add_fx("ring", "", e["col"], "back", 0.6)
+				rg2["at"] = g2
+				rg2["sq"] = 0.22
+				rg2["R"] = _sh() * (0.5 if strong else 0.3)
+				if strong:
+					_dust(g2, 10)
 		if kind == "hooves":
 			var beat := int(float(e["t"]) / 0.42)
 			if beat != int(e["beat"]) and float(e["t"]) < float(e["dur"]) - 0.4:
@@ -1431,6 +1511,13 @@ func _emit(e: Dictionary) -> void:
 		"emit_embers":
 			_part({"p": Vector2(randf() * size.x, ground_y + 10.0), "v": Vector2(randf_range(-10, 10), randf_range(-90, -50)),
 				"max": randf_range(2.0, 3.5), "col": col.lerp(Color("ffe08a"), randf()), "size": 1.0, "layer": "light", "sway": 18.0, "kind": "sq"})
+		"emit_smoke":
+			_part({"p": c + Vector2(randf_range(-8, 8), randf_range(-4, 4)), "v": Vector2(randf_range(-4, 12), randf_range(-40, -22)), "max": randf_range(2.4, 3.4), "col": col,
+				"size": randf_range(3.0, 6.0), "layer": "back", "drag": 0.2, "sway": 10.0, "kind": "puff"})
+		"emit_chant":
+			var a6 := randf() * TAU
+			_part({"p": c + Vector2.from_angle(a6) * sh * 0.12, "v": Vector2.from_angle(a6 + PI * 0.5) * 50.0 + Vector2(0, -50), "max": randf_range(1.2, 1.8),
+				"col": col.lerp(Color("ffe08a"), randf() * 0.6), "size": 1.0, "layer": "light", "sway": 24.0, "kind": "star" if randf() < 0.4 else "sq"})
 		"emit_leaves":
 			var leaf_c: Array = [Color("4f8a3e"), Color("7ab04f"), Color("c8a040"), Color("a8602a")]
 			_part({"p": Vector2(randf_range(-0.1, 1.0) * size.x, -8.0), "v": Vector2(randf_range(20, 45), randf_range(28, 50)),
@@ -1765,6 +1852,125 @@ func _draw_fx(ci: CanvasItem, e: Dictionary, k: float) -> void:
 						ci.draw_rect(Rect2(op.floor() - Vector2.ONE, Vector2(2, 2)), Color(Color.WHITE, ta))
 					else:
 						ci.draw_rect(Rect2(op.floor(), Vector2.ONE), Color(col, ta * 0.6))
+		"arcs":
+			var a20 := minf(1.0, t / 0.15) * minf(1.0, (dur - t) / 0.5)
+			var ar2 := float(e["r"]) * k
+			# Les arcs changent de forme plusieurs fois par seconde.
+			var seed2 := int(t * 14.0)
+			for j in range(3):
+				var rs := RandomNumberGenerator.new()
+				rs.seed = seed2 * 31 + j * 7
+				var a0 := c + Vector2(-ar2 + rs.randf() * ar2 * 0.3, rs.randf_range(-0.4, 0.4) * ar2)
+				var b0 := c + Vector2(ar2 - rs.randf() * ar2 * 0.3, rs.randf_range(-0.4, 0.4) * ar2)
+				var pts6 := PackedVector2Array([a0])
+				for q in range(1, 8):
+					pts6.append(a0.lerp(b0, float(q) / 8.0) + Vector2(0.0, rs.randf_range(-1.0, 1.0) * ar2 * 0.18))
+				pts6.append(b0)
+				ci.draw_polyline(pts6, Color(col, a20 * 0.35), 3.0)
+				ci.draw_polyline(pts6, Color(Color("fff6d0"), a20), 1.0)
+		"shieldwall":
+			var gy3 := c.y + 4.0
+			var W4 := size.x * k
+			var up := _ease_out_back(clampf(t / 0.35, 0.0, 1.0))
+			var a21 := minf(1.0, (dur - t) / 0.6)
+			for i in range(7):
+				var sx3 := W4 * (0.08 + 0.14 * float(i))
+				var hgt := _sh() * k * 0.16 * up
+				var wd := W4 * 0.06
+				var rect := Rect2(Vector2(sx3 - wd * 0.5, gy3 - hgt), Vector2(wd, hgt))
+				ci.draw_rect(rect, Color(Color("1a1008"), a21))
+				ci.draw_rect(rect.grow(-1.0), Color(col, a21))
+				ci.draw_rect(Rect2(rect.position + Vector2(1, 1), Vector2(rect.size.x - 2.0, 2.0)), Color(col.lightened(0.3), a21))
+				ci.draw_circle(rect.get_center(), wd * 0.18, Color(Color("c8c8d0"), a21))
+		"howl":
+			for j in range(3):
+				var ht := t - float(j) * 0.3
+				if ht <= 0.0:
+					continue
+				var hu := clampf(ht / 1.4, 0.0, 1.0)
+				var hr := _sh() * k * (0.08 + 0.45 * hu)
+				ci.draw_arc(c, hr, -PI * 0.85, -PI * 0.15, 24, Color(col, (1.0 - hu) * 0.8), 1.0)
+				ci.draw_arc(c, hr * 0.92, -PI * 0.8, -PI * 0.2, 20, Color(col, (1.0 - hu) * 0.35), 1.0)
+		"rain":
+			var W5 := size.x * k
+			var H5 := size.y * k
+			for i in range(110):
+				var fx2 := fmod(float(i) * 37.13 + t * 40.0, W5 + 20.0) - 10.0
+				var fy := fmod(float(i) * 91.7 + t * (380.0 + float(i % 5) * 30.0), H5 + 20.0) - 10.0
+				ci.draw_line(Vector2(fx2, fy).floor(), Vector2(fx2 - 2.0, fy + 7.0).floor(), Color(col, 0.35 + 0.1 * float(i % 3)), 1.0)
+		"banners":
+			var W6 := size.x * k
+			var a22 := minf(1.0, t / 0.8)
+			# Sur les bords du cadre : le personnage du milieu reste dégagé.
+			for j in range(2):
+				var bx3 := W6 * (0.05 + 0.8 * float(j))
+				var by3 := top_y * k + _sh() * k * 0.08
+				var bh := _sh() * k * 0.16
+				ci.draw_line(Vector2(bx3, by3 - 4.0).floor(), Vector2(bx3, by3 + bh * 1.6).floor(), Color(Color("2a1a10"), a22), 2.0)
+				var cloth := PackedVector2Array()
+				var segs := 8
+				for q in range(segs + 1):
+					var f5 := float(q) / float(segs)
+					cloth.append(Vector2(bx3 + f5 * bh * 0.9, by3 + sin(_t * 6.0 - f5 * 4.0 + float(j)) * 3.0 * f5))
+				for q in range(segs, -1, -1):
+					var f6 := float(q) / float(segs)
+					cloth.append(Vector2(bx3 + f6 * bh * 0.9, by3 + bh + sin(_t * 6.0 - f6 * 4.0 + float(j)) * 3.0 * f6))
+				ci.draw_colored_polygon(cloth, Color(col, a22))
+				ci.draw_circle(Vector2(bx3 + bh * 0.4, by3 + bh * 0.5), bh * 0.14, Color(Color("e8e0c8"), a22))
+		"pact":
+			var pu := clampf(t / 1.4, 0.0, 1.0)
+			var a23 := minf(1.0, (dur - t) / 0.6)
+			var W7 := size.x * k
+			for side: float in [-1.0, 1.0]:
+				var rc := Color("4a7ae8") if side < 0.0 else Color("d83a2a")
+				var pts7 := PackedVector2Array()
+				for q in range(20):
+					var f7 := float(q) / 19.0 * pu
+					var x7 := lerpf(c.x + side * W7 * 0.5, c.x, f7)
+					pts7.append(Vector2(x7, c.y + sin(f7 * 9.0 + t * 4.0 + side) * 6.0 * (1.0 - f7)).floor())
+				ci.draw_polyline(pts7, Color(rc, a23), 3.0)
+				ci.draw_polyline(pts7, Color(rc.lightened(0.4), a23), 1.0)
+			if t > 1.4:
+				var gu := clampf((t - 1.4) / 0.8, 0.0, 1.0)
+				ci.draw_circle(c, _sh() * k * 0.25 * _ease_out(gu), Color(col, (1.0 - gu) * 0.35))
+				ci.draw_arc(c, _sh() * k * 0.32 * _ease_out(gu), 0.0, TAU, 40, Color(col, (1.0 - gu)), 1.0)
+				ci.draw_circle(c, 3.0, Color(Color.WHITE, a23))
+		"shadow":
+			var sr2 := float(e["r"]) * k
+			var a24 := minf(1.0, t / 0.6) * minf(1.0, (dur - t) / 0.8)
+			for j in range(7):
+				var ang2 := float(j) / 7.0 * TAU + t * 0.6
+				var pts8 := PackedVector2Array()
+				for q in range(12):
+					var f8 := float(q) / 11.0
+					var rr6 := sr2 * (0.3 + 0.9 * f8)
+					var wob := sin(t * 3.0 + f8 * 6.0 + float(j)) * 0.35
+					pts8.append((c + Vector2.from_angle(ang2 + wob * f8) * rr6).floor())
+				ci.draw_polyline(pts8, Color(col, a24 * 0.6), 2.0)
+				ci.draw_polyline(pts8, Color(col.lightened(0.4), a24 * 0.8), 1.0)
+		"sigils":
+			var sr3 := float(e["r"]) * k
+			var a25 := minf(1.0, t / 0.6)
+			for side2: float in [-1.0, 1.0]:
+				var sc2 := c + Vector2(side2 * _sh() * k * 0.32, -_sh() * k * 0.05 + sin(t * 1.5 + side2) * 3.0)
+				var pulse := 1.0 + 0.08 * sin(t * 4.0 + side2)
+				ci.draw_circle(sc2, sr3 * 1.6 * pulse, Color(col, a25 * 0.12))
+				ci.draw_arc(sc2, sr3 * pulse, 0.0, TAU, 32, Color(col, a25), 1.0)
+				ci.draw_arc(sc2, sr3 * 0.65 * pulse, t, t + PI * 1.4, 20, Color(col.lightened(0.4), a25), 1.0)
+				for q in range(6):
+					var rp := sc2 + Vector2.from_angle(float(q) / 6.0 * TAU - t * 0.8) * sr3 * 0.82 * pulse
+					ci.draw_rect(Rect2(rp.floor(), Vector2(2, 2)), Color(Color.WHITE, a25 * 0.8))
+		"bars":
+			var br3 := float(e["r"]) * k
+			var bg := clampf(t / 0.6, 0.0, 1.0)
+			var bottom2 := c.y + br3 * 1.1
+			var topb := bottom2 - br3 * 2.4 * bg
+			for i in range(6):
+				var bx4 := c.x - br3 + float(i) * br3 * 2.0 / 5.0
+				ci.draw_line(Vector2(bx4, bottom2).floor(), Vector2(bx4, topb).floor(), Color(Color("1a1008"), 1.0), 4.0)
+				ci.draw_line(Vector2(bx4, bottom2).floor(), Vector2(bx4, topb).floor(), Color(col, 1.0), 2.0)
+			for ty2: float in [topb, lerpf(topb, bottom2, 0.5), bottom2]:
+				ci.draw_line(Vector2(c.x - br3 - 3.0, ty2).floor(), Vector2(c.x + br3 + 3.0, ty2).floor(), Color(col.darkened(0.3), 1.0), 3.0)
 		"cage":
 			var cr := float(e["r"]) * k
 			var cg := clampf(t / 0.8, 0.0, 1.0)

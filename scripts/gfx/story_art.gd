@@ -24,7 +24,7 @@ static func plate(kind: String, size: Vector2i) -> ImageTexture:
 			_collines(img, rng)
 		"tour":
 			_tour(img, rng)
-		"steppe", "moulins", "campement", "orage", "traite", "fort":
+		"steppe", "moulins", "campement", "orage", "traite", "fort", "route", "pylones", "gue", "caravane", "rebouteux":
 			_ambre(img, rng, kind)
 		"marais", "cercle", "hydre", "refuge":
 			_marais(img, rng, kind)
@@ -551,7 +551,7 @@ static func _ambre(img: Image, rng: RandomNumberGenerator, kind: String) -> void
 	var storm := kind in ["orage", "fort"]
 	if storm:
 		_sky(img, rng, [[0.0, Color("140f22")], [0.4, Color("33264a")], [0.62, Color("5e4258")], [1.0, Color("7a5034")]], 0.0)
-	elif kind == "campement":
+	elif kind in ["campement", "rebouteux"]:
 		_sky(img, rng, [[0.0, Color("232454")], [0.42, Color("7a4458")], [0.62, Color("e0844a")], [1.0, Color("c8703a")]], 0.3)
 	else:
 		_sky(img, rng, [[0.0, Color("3f86c8")], [0.42, Color("8ec4e8")], [0.6, Color("f0d8a0")], [1.0, Color("c89858")]], 0.0)
@@ -568,7 +568,7 @@ static func _ambre(img: Image, rng: RandomNumberGenerator, kind: String) -> void
 				_px(img, int(p.x), int(p.y), Color("fff6a8"))
 				_px(img, int(p.x) + 1, int(p.y), Color(0.95, 0.85, 0.3, 0.5))
 				p += Vector2(rng.randf_range(-1.6, 1.6), 1.0)
-	elif kind != "campement":
+	elif kind not in ["campement", "rebouteux"]:
 		var sr := maxi(5, int(minf(w, h) * 0.06))
 		var sx := int(w * 0.78)
 		var sy := int(h * 0.14)
@@ -584,7 +584,7 @@ static func _ambre(img: Image, rng: RandomNumberGenerator, kind: String) -> void
 					_px(img, cx + dx, cy + k * 2, Color(1, 1, 1, 0.55 - 0.12 * float(k)))
 	else:
 		_disc(img, int(w * 0.3), int(h * 0.6), int(minf(w, h) * 0.07), Color("ffb070"))
-	var far := Color("4a3a5a") if storm else (Color("6a4a6a") if kind == "campement" else Color("8aa0b8"))
+	var far := Color("4a3a5a") if storm else (Color("6a4a6a") if kind in ["campement", "rebouteux"] else Color("8aa0b8"))
 	var mid := Color("6a4a2a") if storm else Color("b07a40")
 	var near := Color("4a3420") if storm else Color("8a5a2a")
 	_ridge(img, rng, int(h * 0.42), int(h * 0.05), far, far.lightened(0.2))
@@ -629,6 +629,80 @@ static func _ambre(img: Image, rng: RandomNumberGenerator, kind: String) -> void
 			for k in range(3):
 				_banner(img, int(w * (0.25 + 0.25 * float(k))), top + 2, int(h * 0.14), Color("a82a2a"))
 			_glow_px(img, int(w * 0.5), top - int(h * 0.06), 6, Color("d93cf2"), 0.25)
+		"route":
+			# Chariots renversés sur la route, et la colonne de fumée noire au loin.
+			for k in range(2):
+				var cx2 := int(w * (0.3 + 0.38 * float(k)))
+				var cy2 := mid_y + 10 + k * 4
+				img.fill_rect(Rect2i(cx2 - 12, cy2 - 7, 24, 7), Color("4a3020"))
+				img.fill_rect(Rect2i(cx2 - 10, cy2 - 9, 20, 2), Color("6a4a2a"))
+				for wx: int in [cx2 - 7, cx2 + 8]:
+					_disc(img, wx, cy2, 4, Color("2a1e14"))
+					_disc(img, wx, cy2, 2, Color("6a4a2a"))
+			var sp := Vector2(w * 0.62, float(mid_y - 2))
+			for st in range(int(h * 0.46)):
+				var r2 := 2 + st / 9
+				_disc(img, int(sp.x), int(sp.y), r2, Color(0.14, 0.11, 0.12, 0.08))
+				sp += Vector2(rng.randf_range(-0.2, 0.7), -1.0)
+		"pylones":
+			# La crête des pylônes : de grands cristaux d'ambre, la foudre court de l'un à l'autre.
+			var tops: Array[Vector2i] = []
+			for k in range(5):
+				var cx3 := int(w * (0.1 + 0.2 * float(k))) + rng.randi_range(-6, 6)
+				var cy3 := mid_y + rng.randi_range(-2, 6)
+				var ch := rng.randi_range(int(h * 0.1), int(h * 0.17))
+				for y in range(ch):
+					var half := int(float(ch - y) * 0.18) + 1
+					for dx in range(-half, half + 1):
+						_px(img, cx3 + dx, cy3 - y, Color("ffd070") if dx > 0 else (Color("fff0b0") if dx == 0 else Color("c8702a")))
+				_glow_px(img, cx3, cy3 - ch / 2, 10, Color("ffc060"), 0.22)
+				tops.append(Vector2i(cx3, cy3 - ch + 2))
+			for k in range(tops.size() - 1):
+				var a := Vector2(tops[k])
+				var b := Vector2(tops[k + 1])
+				for q in range(24):
+					var f := float(q) / 23.0
+					var p := a.lerp(b, f) + Vector2(0.0, rng.randf_range(-3.0, 3.0) - sin(f * PI) * 6.0)
+					_px(img, int(p.x), int(p.y), Color("fff6c0"))
+		"gue":
+			# Le gué de la Rivière-Sèche : un lit de galets clairs qui serpente, des totems sur l'autre rive.
+			for y in range(mid_y + 2, int(h * 0.8)):
+				var f2 := float(y - mid_y) / (h * 0.3)
+				var cx4 := int(w * 0.5 + sin(f2 * 3.0) * w * 0.15)
+				var half2 := int(4.0 + f2 * w * 0.16)
+				for dx in range(-half2, half2 + 1):
+					_px(img, cx4 + dx, y, Color("d8c8a0") if (dx + y) % 4 else Color("a89878"))
+			for k in range(4):
+				_totem(img, int(w * (0.12 + 0.25 * float(k))), mid_y + 2, int(h * 0.08))
+		"caravane":
+			# La route qui serpente vers Ambreval, le chariot de vivres, les moulins au loin.
+			for y in range(mid_y, int(h * 0.82)):
+				var f3 := float(y - mid_y) / (h * 0.3)
+				var cx5 := int(w * 0.5 + sin(f3 * 2.2 + 1.0) * w * 0.1)
+				var half3 := int(2.0 + f3 * w * 0.1)
+				img.fill_rect(Rect2i(cx5 - half3, y, half3 * 2, 1), Color("b8945a"))
+			for k in range(2):
+				_windmill(img, int(w * (0.15 + 0.7 * float(k))), mid_y - 2, int(h * 0.12), rng.randf() * PI)
+			var wx2 := int(w * 0.46)
+			var wy := mid_y + int(h * 0.09)
+			img.fill_rect(Rect2i(wx2 - 10, wy - 12, 20, 7), Color("f0e8d8"))
+			img.fill_rect(Rect2i(wx2 - 11, wy - 6, 22, 5), Color("6a4a2a"))
+			for wx3: int in [wx2 - 7, wx2 + 7]:
+				_disc(img, wx3, wy, 3, Color("2a1e14"))
+		"rebouteux":
+			# Le campement de la rebouteuse : sa hutte ronde, des tentes, une fumée verte qui monte.
+			for k in range(4):
+				_tent(img, int(w * (0.08 + 0.22 * float(k))) + rng.randi_range(-6, 6), mid_y + rng.randi_range(4, 10), rng.randi_range(10, 14))
+			var hx := int(w * 0.55)
+			for y in range(14):
+				var half4 := int(sqrt(maxf(0.0, 196.0 - float(14 - y) * float(14 - y))) * 1.1)
+				img.fill_rect(Rect2i(hx - half4, mid_y + 6 - 14 + y, half4 * 2, 1), Color("6a5a3a") if y % 3 else Color("8a7a4a"))
+			img.fill_rect(Rect2i(hx - 2, mid_y - 2, 4, 8), Color("1a1410"))
+			var sp2 := Vector2(float(hx), float(mid_y - 10))
+			for st2 in range(int(h * 0.3)):
+				_disc(img, int(sp2.x), int(sp2.y), 2 + st2 / 12, Color(0.55, 0.8, 0.45, 0.06))
+				sp2 += Vector2(rng.randf_range(-0.6, 0.6), -1.0)
+			_fire(img, rng, int(w * 0.3), mid_y + 14)
 		"steppe":
 			for k in range(3):
 				var cx := int(w * (0.15 + 0.35 * float(k))) + rng.randi_range(-8, 8)

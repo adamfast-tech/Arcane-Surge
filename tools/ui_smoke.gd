@@ -2132,16 +2132,17 @@ func _cine_ok() -> bool:
 		if PortraitArt.frame(who, "colere", 0, true).get_image().get_data() == PortraitArt.texture(who, "colere").get_image().get_data():
 			errs.append("pas de clignement : " + who)
 	var ids: Array = ["prologue"]
-	for n in range(1, 11):
-		ids.append("z01_l%02d_intro" % n)
-		ids.append("z01_l%02d_outro" % n)
+	for z in [1, 2]:
+		for n in range(1, 11):
+			ids.append("z%02d_l%02d_intro" % [z, n])
+			ids.append("z%02d_l%02d_outro" % [z, n])
 	var saved: Dictionary = (Story.st() as Dictionary).duplicate(true)
 	main.call("_show_dialogue", ids, Callable(main, "_show_map"))
 	await _frames(3)
 	var max_actors := 0
 	var lines := 0
 	var guard := 0
-	while _screen() is DialogueScreen and guard < 600:
+	while _screen() is DialogueScreen and guard < 1200:
 		var d: DialogueScreen = _screen()
 		if d.get("_waiting_choice"):
 			for ch in d.choice_box.get_children():
@@ -2162,7 +2163,7 @@ func _cine_ok() -> bool:
 	if not errs.is_empty():
 		push_error("cinématiques : %s" % [errs])
 		return false
-	print("cinématiques : %d répliques mises en scène · zone 1 jouée (%d répliques, %d personnages à l'écran au plus)" % [cued, lines, max_actors])
+	print("cinématiques : %d répliques mises en scène · zones 1 et 2 jouées (%d répliques, %d personnages à l'écran au plus)" % [cued, lines, max_actors])
 	return true
 
 
