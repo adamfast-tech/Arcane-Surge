@@ -171,6 +171,7 @@ static func _disc(img: Image, cx: int, cy: int, r: int, c: Color) -> void:
 static func ground_texture(healed: bool = false) -> ImageTexture:
 	var w := int(GROUND_SIZE.x * PX_PER_M)
 	var h := int(GROUND_SIZE.y * PX_PER_M)
+	var pal := scene_palette(scene) if zone == 1 else {}
 	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 4242
@@ -181,6 +182,8 @@ static func ground_texture(healed: bool = false) -> ImageTexture:
 			col = Color("2c2a48").lerp(Color("2a3a3a"), clampf((16.5 - ly) / 3.7, 0.0, 1.0))
 		elif ly > 1.0:
 			col = Color("2a4a36").lerp(Color("35593f"), clampf((12.8 - ly) / 11.8, 0.0, 1.0))
+			if not pal.is_empty():
+				col = (pal["grass"] as Color).lerp((pal["grass"] as Color).lightened(0.15), clampf((12.8 - ly) / 11.8, 0.0, 1.0))
 			if healed:
 				col = col.lerp(Color("3f7a3a"), 0.45)
 		else:
@@ -218,14 +221,43 @@ static func ground_texture(healed: bool = false) -> ImageTexture:
 	var x1 := int((5.65 - GROUND_MIN.x) * PX_PER_M)
 	var y_top := int((GROUND_MIN.y + GROUND_SIZE.y - 14.3) * PX_PER_M)
 	var y_bot := int((GROUND_MIN.y + GROUND_SIZE.y - 1.0) * PX_PER_M)
-	_cobbles(img, rng, Rect2i(x0, y_top, x1 - x0, y_bot - y_top), 5)
+	var path_kind := str(pal.get("path", "cobbles"))
+	if path_kind == "dirt":
+		# Chemin de terre battue, bords irréguliers.
+		for y in range(y_top, y_bot):
+			var wob := int(sin(float(y) * 0.07) * 3.0)
+			for x in range(x0 - 4 + wob, x1 + 4 + wob):
+				var edge := mini(x - (x0 - 4 + wob), (x1 + 4 + wob) - x)
+				if edge < 3 and rng.randf() < 0.5:
+					continue
+				var dc := Color("4a3e30") if rng.randf() < 0.7 else Color("5a4a38")
+				_px(img, x, y, dc if rng.randf() < 0.92 else Color("6a5a48"))
+	elif path_kind == "moss":
+		_cobbles(img, rng, Rect2i(x0, y_top, x1 - x0, y_bot - y_top), 5)
+		for i in range((x1 - x0) * (y_bot - y_top) / 3):
+			_px(img, rng.randi_range(x0, x1), rng.randi_range(y_top, y_bot), Color("3f6a44") if rng.randf() < 0.6 else Color("4f7a4a"))
+	elif path_kind == "grass":
+		# Pas de chemin : l'herbe foulée, un peu plus claire.
+		for i in range((x1 - x0) * (y_bot - y_top) / 2):
+			var gx := rng.randi_range(x0, x1)
+			var gy := rng.randi_range(y_top, y_bot)
+			_px(img, gx, gy, _pget(img, gx, gy).lightened(0.08))
+	else:
+		_cobbles(img, rng, Rect2i(x0, y_top, x1 - x0, y_bot - y_top), 5)
 	# Parvis derrière la Barrière : grandes dalles.
 	_cobbles(img, rng, Rect2i(0, y_bot, w, h - y_bot), 8)
 	# Bordures de la chaussée (pierres de taille, mousse).
 	var ex0 := int((0.0 - GROUND_MIN.x) * PX_PER_M)
 	var ex1 := int((9.0 - GROUND_MIN.x) * PX_PER_M)
-	_cobbles(img, rng, Rect2i(0, 0, ex0, h), 6)
-	_cobbles(img, rng, Rect2i(ex1, 0, w - ex1, h), 6)
+	if pal.is_empty():
+		_cobbles(img, rng, Rect2i(0, 0, ex0, h), 6)
+		_cobbles(img, rng, Rect2i(ex1, 0, w - ex1, h), 6)
+	else:
+		# Au sol de la forêt : de l'herbe jusqu'au bord, pas de pierres de taille.
+		for r2 in [Rect2i(0, 0, ex0, y_bot), Rect2i(ex1, 0, w - ex1, y_bot)]:
+			for y in range(r2.position.y, r2.end.y):
+				for x in range(r2.position.x, r2.end.x):
+					_px(img, x, y, (pal["moss"] as Color).lightened(0.05) if rng.randf() < 0.6 else (pal["moss"] as Color).darkened(0.1))
 	for y in range(h):
 		_px(img, ex0 - 1, y, Color("1a1f2a"))
 		_px(img, ex1, y, Color("1a1f2a"))
@@ -577,8 +609,9 @@ static func backdrop(size: Vector2i) -> ImageTexture:
 			_px(img, x + sx, y + int(sin(float(sx) * 0.15) * 2.0), Color(0.55, 0.55, 0.9, 0.22))
 	# Montagnes lointaines.
 	_ridge(img, rng, int(h * 0.36), int(h * 0.12), Color("1f1e48"), Color("3a3a78"))
-	# Tour du Croissant (avec faisceau violet).
-	var castle := castle_image()
+	var forest_scene := scene != "" and scene != "pont"
+	# Tour du Croissant (avec faisceau violet) : on la voit depuis le pont.
+	var castle := castle_image() if not forest_scene else Image.create_empty(2, 2, false, Image.FORMAT_RGBA8)
 	var cx := int(w * 0.66) - castle.get_width() / 2
 	var cy := int(h * 0.5) - castle.get_height()
 	for y in range(0, cy + 14):
@@ -588,6 +621,16 @@ static func backdrop(size: Vector2i) -> ImageTexture:
 	img.blend_rect(castle, Rect2i(Vector2i.ZERO, castle.get_size()), Vector2i(cx, cy))
 	# Montagnes proches et brume.
 	_ridge(img, rng, int(h * 0.5), int(h * 0.08), Color("17163a"), Color("2a2a5c"))
+	if forest_scene:
+		# L'horizon du lieu, puis la lisière de sapins devant.
+		_backdrop_scene(img, rng, scene)
+		for i in range(int(w / 4.0)):
+			var px2 := rng.randi_range(-4, w + 4)
+			var ph := rng.randi_range(int(h * 0.05), int(h * 0.11))
+			var pb := int(h * 0.58) + rng.randi_range(-2, 3)
+			for yy in range(ph):
+				var half := int(float(yy) * 0.35) + 1
+				img.fill_rect(Rect2i(px2 - half, pb - ph + yy, half * 2 + 1, 1), Color("0e1828") if scene not in ["coeur", "sylvarche", "roncier"] else Color("1a1028"))
 	for i in range(int(w * h / 900.0)):
 		var y := rng.randi_range(int(h * 0.52), h - 1)
 		var x := rng.randi_range(-40, w)
@@ -970,3 +1013,252 @@ static func _ridge(img: Image, rng: RandomNumberGenerator, base_y: int, amp: int
 		if top <= prev:
 			_px(img, x, top, edge)
 		prev = top
+
+
+# ---------------------------------------------------------------- zone 1 · un lieu par niveau
+
+## Chaque niveau du Bois des Lucioles a son lieu (docs/design/41-cinematiques.md, « Combats ») : le même que
+## ses cinématiques. Le pont (1-7) garde la chaussée au-dessus du vide ; les autres sont au sol de la forêt.
+const LEVEL_SCENE := {
+	"z01_l01": "lisiere", "z01_l02": "sentier", "z01_l03": "clairiere", "z01_l04": "roncier", "z01_l05": "fougeres",
+	"z01_l06": "cercle", "z01_l07": "pont", "z01_l08": "source", "z01_l09": "coeur", "z01_l10": "sylvarche",
+}
+static var scene := "" ## lieu du combat en cours (zone 1), "" ailleurs
+
+
+## Couleurs d'un lieu : herbe, chemin, brume, lucioles.
+static func scene_palette(s: String) -> Dictionary:
+	match s:
+		"lisiere":
+			return {"grass": Color("2f4a36"), "path": "dirt", "mist": Color("9a8ab8"), "moss": Color("3f5a3a"), "motes": Color(1.0, 0.85, 0.55)}
+		"sentier":
+			return {"grass": Color("23402e"), "path": "dirt", "mist": Color("8a9ad0"), "moss": Color("2f5a3a"), "motes": Color(1.0, 0.95, 0.55)}
+		"clairiere":
+			return {"grass": Color("31523a"), "path": "grass", "mist": Color("8a8ad0"), "moss": Color("3f6a3a"), "motes": Color(1.0, 0.95, 0.6)}
+		"roncier":
+			return {"grass": Color("2a3330"), "path": "dirt", "mist": Color("8a6ab0"), "moss": Color("3a3a40"), "motes": Color(0.85, 0.55, 1.0)}
+		"fougeres":
+			return {"grass": Color("284a3a"), "path": "grass", "mist": Color("a0b8e8"), "moss": Color("2f5a40"), "motes": Color(0.8, 0.95, 1.0)}
+		"cercle":
+			return {"grass": Color("2c4636"), "path": "moss", "mist": Color("c08ad0"), "moss": Color("3a5a40"), "motes": Color(1.0, 0.7, 0.92)}
+		"source":
+			return {"grass": Color("2a4a40"), "path": "dirt", "mist": Color("8ac8e0"), "moss": Color("2f5a48"), "motes": Color(0.7, 0.95, 1.0)}
+		"coeur":
+			return {"grass": Color("2a2440"), "path": "dirt", "mist": Color("a050d0"), "moss": Color("3a2a4a"), "motes": Color(0.9, 0.5, 1.0)}
+		"sylvarche":
+			return {"grass": Color("2a2c3c"), "path": "dirt", "mist": Color("9060c8"), "moss": Color("332e44"), "motes": Color(0.85, 0.55, 1.0)}
+	return {}
+
+
+static func _sprite(w: int, h: int) -> Image:
+	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	return img
+
+
+## Chaumière de Lysbourg : murs à colombages, toit de chaume, fenêtre allumée, porte.
+static func cottage_texture() -> ImageTexture:
+	var img := _sprite(40, 36)
+	img.fill_rect(Rect2i(6, 16, 28, 20), Color("4a3e50"))
+	img.fill_rect(Rect2i(30, 16, 4, 20), Color("5e5068"))
+	for x in [6, 19, 33]:
+		img.fill_rect(Rect2i(x, 16, 1, 20), Color("2a2030"))
+	img.fill_rect(Rect2i(6, 24, 28, 1), Color("2a2030"))
+	for r in range(14):
+		img.fill_rect(Rect2i(2 + r, 16 - r, 36 - r * 2, 1), Color("6a5030") if r % 3 != 0 else Color("8a6a3a"))
+	img.fill_rect(Rect2i(10, 19, 6, 5), Color("f2c46b"))
+	img.fill_rect(Rect2i(12, 19, 1, 5), Color("a87a28"))
+	img.fill_rect(Rect2i(23, 26, 6, 10), Color("2a1e18"))
+	img.fill_rect(Rect2i(26, 6, 3, 8), Color("3a3048"))
+	return _tex(img)
+
+
+## Lanterne sur poteau (bord du chemin).
+static func lamp_texture() -> ImageTexture:
+	var img := _sprite(8, 26)
+	img.fill_rect(Rect2i(3, 6, 2, 20), Color("3a2a1a"))
+	img.fill_rect(Rect2i(1, 2, 6, 5), Color("2a2038"))
+	img.fill_rect(Rect2i(2, 3, 4, 3), Color("ffd070"))
+	return _tex(img)
+
+
+## Souche éclatée et tronc couché (la clairière brisée).
+static func stump_texture() -> ImageTexture:
+	var img := _sprite(18, 14)
+	img.fill_rect(Rect2i(3, 4, 12, 10), Color("3a2a22"))
+	img.fill_rect(Rect2i(12, 4, 3, 10), Color("5a4232"))
+	for k in range(12):
+		var jag := (k * 7) % 5
+		img.fill_rect(Rect2i(3 + k, 4 - jag, 1, jag), Color("6a5040") if k % 2 == 0 else Color("3a2a22"))
+	return _tex(img)
+
+
+static func log_texture() -> ImageTexture:
+	var img := _sprite(38, 10)
+	img.fill_rect(Rect2i(0, 2, 34, 8), Color("4a3428"))
+	img.fill_rect(Rect2i(0, 2, 34, 1), Color("6a5040"))
+	_disc(img, 34, 6, 4, Color("7a5a40"))
+	_disc(img, 34, 6, 2, Color("4a3428"))
+	return _tex(img)
+
+
+## Roncier maudit : buisson d'épines violettes.
+static func bramble_texture() -> ImageTexture:
+	var img := _sprite(30, 22)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 33
+	for i in range(18):
+		var p := Vector2(rng.randf_range(4, 26), 21.0)
+		var d := Vector2.from_angle(rng.randf_range(-PI * 0.85, -PI * 0.15))
+		for s in range(rng.randi_range(10, 20)):
+			_px(img, int(p.x), int(p.y), Color("2a1430") if s % 3 else Color("4a2458"))
+			if s % 4 == 1:
+				_px(img, int(p.x) + 1, int(p.y) - 1, Color("b07cff"))
+			d = d.rotated(rng.randf_range(-0.4, 0.4))
+			p += d
+	return _tex(img)
+
+
+## Pierre runique dressée (la porte maudite).
+static func runestone_texture() -> ImageTexture:
+	var img := _sprite(12, 28)
+	img.fill_rect(Rect2i(2, 2, 8, 26), Color("4a4660"))
+	img.fill_rect(Rect2i(8, 2, 2, 26), Color("6a6680"))
+	img.fill_rect(Rect2i(3, 0, 6, 2), Color("4a4660"))
+	for k in range(5):
+		_px(img, 5, 5 + k * 4, Color("d93cf2"))
+		_px(img, 6, 6 + k * 4, Color("d93cf2"))
+	return _tex(img)
+
+
+## Grande fougère.
+static func fern_texture() -> ImageTexture:
+	var img := _sprite(28, 20)
+	for f in range(6):
+		var ang := lerpf(-PI * 0.92, -PI * 0.08, float(f) / 5.0)
+		var p := Vector2(14, 19)
+		var d := Vector2.from_angle(ang)
+		var col := Color("2f6a44") if f % 2 == 0 else Color("3f7a4a")
+		for k in range(13):
+			_px(img, int(p.x), int(p.y), col.darkened(0.2))
+			var n := d.orthogonal()
+			if k % 2 == 0 and k > 1:
+				_px(img, int(p.x + n.x * 2.0), int(p.y + n.y * 2.0), col)
+				_px(img, int(p.x - n.x * 2.0), int(p.y - n.y * 2.0), col.lightened(0.1))
+			d = d.rotated(0.06 if ang < -PI * 0.5 else -0.06)
+			p += d
+	return _tex(img)
+
+
+## Champignon lumineux (le cercle des fées).
+static func mushroom_texture() -> ImageTexture:
+	var img := _sprite(10, 11)
+	img.fill_rect(Rect2i(4, 5, 2, 6), Color("e8dcc0"))
+	for y in range(5):
+		var half := 4 - absi(2 - y) / 2 if y > 0 else 2
+		img.fill_rect(Rect2i(5 - half, y + 1, half * 2, 1), Color("f7a8e0") if y > 0 else Color("ffd8f4"))
+	_px(img, 3, 3, Color("ffffff"))
+	_px(img, 6, 2, Color("ffffff"))
+	return _tex(img)
+
+
+## Roseaux (la Source).
+static func reeds_texture() -> ImageTexture:
+	var img := _sprite(14, 20)
+	for k in range(7):
+		var x := 1 + k * 2
+		var top := 2 + (k * 5) % 7
+		img.fill_rect(Rect2i(x, top, 1, 20 - top), Color("3f7a4a") if k % 2 else Color("5a8a4a"))
+		if k % 3 == 0:
+			img.fill_rect(Rect2i(x, top, 1, 3), Color("6a4a2a"))
+	return _tex(img)
+
+
+## Cristal du Surge (le Cœur corrompu).
+static func crystal_texture() -> ImageTexture:
+	var img := _sprite(16, 30)
+	for y in range(30):
+		var half := int(7.0 * (1.0 - absf(float(y) - 20.0) / 20.0)) if y < 20 else int(7.0 * (1.0 - float(y - 20) / 12.0))
+		for x in range(-half, half + 1):
+			var c := Color("5a2a7a") if x < 0 else Color("b07cff")
+			if absi(x) <= 0:
+				c = Color("ffb0ff")
+			_px(img, 8 + x, y, c)
+	return _tex(img)
+
+
+## Racine qui sort du sol (le domaine de la Sylvarche).
+static func root_texture() -> ImageTexture:
+	var img := _sprite(30, 14)
+	for k in range(30):
+		var y := int(12.0 - sin(float(k) / 29.0 * PI) * 10.0)
+		img.fill_rect(Rect2i(k, y, 1, 14 - y), Color("3a2e2a") if k % 5 else Color("5a4030"))
+		if k % 7 == 3:
+			_px(img, k, y + 1, Color("b07cff"))
+	return _tex(img)
+
+
+## Fond du combat selon le lieu (zone 1) : le ciel de nuit commun, puis l'horizon du lieu.
+static func _backdrop_scene(img: Image, rng: RandomNumberGenerator, s: String) -> void:
+	var w := img.get_width()
+	var h := img.get_height()
+	match s:
+		"lisiere":
+			# Les toits de Lysbourg sur l'horizon, fenêtres allumées, fumées.
+			var x := int(w * 0.1)
+			while x < int(w * 0.9):
+				var hw := rng.randi_range(10, 18)
+				var hh := rng.randi_range(6, 10)
+				var base := int(h * 0.5)
+				img.fill_rect(Rect2i(x, base - hh, hw, hh + 4), Color("1a1830"))
+				for r in range(hh / 2 + 2):
+					img.fill_rect(Rect2i(x - 1 + r, base - hh - r, maxi(1, hw + 2 - r * 2), 1), Color("201a30"))
+				_px(img, x + hw / 2, base - hh + 3, Color("f2c46b"))
+				_px(img, x + hw / 2 + 1, base - hh + 3, Color("f2c46b"))
+				for k in range(18):
+					_px(img, x + hw / 2 + int(sin(float(k) * 0.4) * 2.0), base - hh - 4 - k, Color(0.6, 0.55, 0.8, 0.25))
+				x += hw + rng.randi_range(4, 12)
+		"fougeres":
+			# Un grand rai de lune tombe sur la clairière.
+			for y in range(h):
+				var t := float(y) / float(h)
+				var cx := lerpf(w * 0.78, w * 0.5, t)
+				var half := lerpf(w * 0.03, w * 0.2, t)
+				for xx in range(int(cx - half), int(cx + half)):
+					_px(img, xx, y, Color(0.75, 0.82, 1.0, 0.06 * (1.0 - absf(float(xx) - cx) / half)))
+		"cercle":
+			# Une aurore rose au-dessus des arbres.
+			for y in range(int(h * 0.2), int(h * 0.45)):
+				var a := 0.08 * sin(float(y - int(h * 0.2)) / (h * 0.25) * PI)
+				for xx in range(w):
+					_px(img, xx, y + int(sin(float(xx) * 0.05) * 4.0), Color(1.0, 0.55, 0.9, a))
+		"coeur", "roncier":
+			# La lueur violette du Surge monte de l'horizon.
+			for y in range(int(h * 0.3), int(h * 0.6)):
+				var a := (0.2 if s == "coeur" else 0.12) * (1.0 - absf(float(y) - h * 0.5) / (h * 0.2))
+				if a > 0.0:
+					for xx in range(w):
+						_px(img, xx, y, Color(0.69, 0.24, 0.95, a))
+			if s == "coeur":
+				var cx2 := int(w * 0.5)
+				for y in range(int(h * 0.28), int(h * 0.5)):
+					var half := int(float(y - int(h * 0.28)) * 0.35)
+					for xx in range(-half, half + 1):
+						_px(img, cx2 + xx, y, Color("5a2a7a") if xx < 0 else Color("b07cff"))
+		"sylvarche":
+			# L'arbre-mère sur l'horizon : un tronc immense et sa couronne violette.
+			var cx3 := int(w * 0.5)
+			var base2 := int(h * 0.52)
+			for y in range(int(h * 0.22), base2):
+				var half := int(lerpf(w * 0.03, w * 0.06, float(y - int(h * 0.22)) / float(base2 - int(h * 0.22))))
+				img.fill_rect(Rect2i(cx3 - half, y, half * 2, 1), Color("1a1422"))
+			for c in [[0.5, 0.16, 0.22, 0.1], [0.36, 0.22, 0.14, 0.07], [0.64, 0.22, 0.14, 0.07], [0.5, 0.26, 0.18, 0.06]]:
+				var ccx := int(w * float(c[0]))
+				var ccy := int(h * float(c[1]))
+				var rx := int(w * float(c[2]))
+				var ry := int(h * float(c[3]))
+				for yy in range(-ry, ry + 1):
+					var half2 := int(float(rx) * sqrt(maxf(0.0, 1.0 - float(yy * yy) / float(ry * ry))))
+					img.fill_rect(Rect2i(ccx - half2, ccy + yy, half2 * 2, 1), Color("2a1640"))
+			for i in range(40):
+				_px(img, rng.randi_range(int(w * 0.25), int(w * 0.75)), rng.randi_range(int(h * 0.1), int(h * 0.32)), Color("b07cff"))

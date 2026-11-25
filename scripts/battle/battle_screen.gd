@@ -119,6 +119,7 @@ func configure(id: String, solo_mode: bool, opts: Dictionary = {}) -> void:
 
 func _exit_tree() -> void:
 	WorldArt.zone = 1
+	WorldArt.scene = ""
 	# Casse la référence circulaire simulation <-> terrain (sinon fuite mémoire).
 	if sim != null:
 		sim.terrain.sim = null
@@ -148,6 +149,7 @@ func _ready() -> void:
 	arena = Arena3D.new()
 	vp.add_child(arena)
 	WorldArt.zone = int(_level.get("zone", 1))
+	WorldArt.scene = str(WorldArt.LEVEL_SCENE.get(level_id, "")) if WorldArt.zone == 1 else ""
 	if _opts.has("look"):
 		SpriteAtlas.set_player(_opts["look"], str(_opts.get("player_race", "elfe")), str(_opts.get("player_class", "mage")))
 	arena.setup(sim, UiTheme.font(), bool(_opts.get("healed", false)))

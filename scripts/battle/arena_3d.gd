@@ -278,15 +278,26 @@ func _build_terrain() -> void:
 	add_child(top)
 	# Murs de la chaussée et piles du pont qui plongent dans la brume.
 	var c := WorldArt.GROUND_MIN + WorldArt.GROUND_SIZE * 0.5
+	# Zone 1 : chaque niveau a son lieu ; seul le pont (1-7) est une chaussée au-dessus du vide.
+	var sc := WorldArt.scene if WorldArt.zone == 1 else ""
+	var floor_set := sc != "" and sc != "pont"
+	var pal := WorldArt.scene_palette(sc)
 	_box(Vector3(WorldArt.GROUND_SIZE.x, 2.6, WorldArt.GROUND_SIZE.y), w3(c, -1.31), _stone_mat)
-	for y in [0.5, 5.5, 10.5, 15.5]:
-		for x in [0.6, 8.4]:
-			_box(Vector3(1.4, 14.0, 1.4), w3(Vector2(x, y), -8.5), _stone_mat)
-	# Falaises boisées de part et d'autre.
+	if not floor_set:
+		for y in [0.5, 5.5, 10.5, 15.5]:
+			for x in [0.6, 8.4]:
+				_box(Vector3(1.4, 14.0, 1.4), w3(Vector2(x, y), -8.5), _stone_mat)
+	# Falaises boisées de part et d'autre (ou, au sol de la forêt, de l'herbe au niveau du chemin).
 	var rock := _triplanar(WorldArt.rock_texture(), 0.4)
 	var moss := _triplanar(WorldArt.moss_texture(), 0.5)
+	if floor_set:
+		moss.albedo_color = (pal["moss"] as Color).lerp(Color.WHITE, 0.35)
 	for side in [-1, 1]:
 		var cx := 4.5 + float(side) * 14.5
+		if floor_set:
+			_box(Vector3(18.0, 2.0, 46.0), Vector3(cx, -1.12, -9.0), rock)
+			_box(Vector3(18.0, 0.2, 46.0), Vector3(cx, -0.1, -9.0), moss)
+			continue
 		_box(Vector3(18.0, 10.0, 46.0), Vector3(cx, -7.6, -9.0), rock)
 		_box(Vector3(18.0, 0.2, 46.0), Vector3(cx, -2.5, -9.0), moss)
 		for k in range(4):
@@ -306,6 +317,9 @@ func _build_terrain() -> void:
 		layers = [[-1.3, Color("6a3a30"), 0.5, Vector2(0.01, 0.006)], [-2.8, Color("3a2020"), 0.6, Vector2(-0.008, 0.008)]]
 	elif abyss:
 		layers = [[-1.3, Color("4fa8c8"), 0.45, Vector2(0.014, 0.004)], [-2.8, Color("1a5a7a"), 0.6, Vector2(-0.01, 0.006)]]
+	if floor_set:
+		# Brume au ras du sol de la forêt, à la couleur du lieu.
+		layers = [[0.25, pal["mist"], 0.18, Vector2(0.012, 0.004)], [1.4, (pal["mist"] as Color).darkened(0.3), 0.1, Vector2(-0.008, 0.006)]]
 	for l in layers:
 		var mi := MeshInstance3D.new()
 		var mp := PlaneMesh.new()
@@ -330,14 +344,19 @@ func _build_terrain() -> void:
 	var spots: Array = []
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 808
-	for i in range(90):
+	# Densité des arbres selon le lieu : clairsemés à la lisière, serrés sur le sentier.
+	var tree_n: int = {"lisiere": 30, "sentier": 120, "clairiere": 44, "roncier": 80, "fougeres": 58, "cercle": 66, "source": 60, "coeur": 84, "sylvarche": 70}.get(sc, 90)
+	var dmin: float = {"lisiere": 10.0, "sentier": 6.2, "clairiere": 9.0, "roncier": 7.0, "fougeres": 8.0, "cercle": 7.5, "source": 9.0, "coeur": 6.8, "sylvarche": 7.5}.get(sc, 6.0)
+	var ty := -0.1 if floor_set else -2.5
+	for i in range(tree_n):
 		var side := -1.0 if i % 2 == 0 else 1.0
-		var x := 4.5 + side * rng.randf_range(6.0, 17.0)
+		var x := 4.5 + side * rng.randf_range(dmin, 17.0)
 		var y := rng.randf_range(-6.0, 34.0)
-		spots.append([Vector3(x, -2.5, -y), rng.randf_range(3.0, 6.0), rng.randi_range(0, 2)])
-	for i in range(14):
-		var side := -1.0 if i % 2 == 0 else 1.0
-		spots.append([Vector3(4.5 + side * rng.randf_range(5.6, 7.0), -7.0, -rng.randf_range(-2.0, 22.0)), rng.randf_range(6.0, 8.5), rng.randi_range(0, 2)])
+		spots.append([Vector3(x, ty, -y), rng.randf_range(3.0, 6.0), rng.randi_range(0, 2)])
+	if not floor_set:
+		for i in range(14):
+			var side := -1.0 if i % 2 == 0 else 1.0
+			spots.append([Vector3(4.5 + side * rng.randf_range(5.6, 7.0), -7.0, -rng.randf_range(-2.0, 22.0)), rng.randf_range(6.0, 8.5), rng.randi_range(0, 2)])
 	mm.instance_count = spots.size()
 	for i in range(spots.size()):
 		var s: Array = spots[i]
@@ -345,7 +364,7 @@ func _build_terrain() -> void:
 		var tf := Transform3D(Basis.from_scale(Vector3(hgt * 20.0 / 44.0, hgt, 1.0)), s[0])
 		mm.set_instance_transform(i, tf)
 		var shade := rng.randf_range(0.8, 1.05)
-		mm.set_instance_color(i, Color(shade, shade, shade * 1.05))
+		mm.set_instance_color(i, Color(shade, shade, shade * 1.05) if not (sc in ["coeur", "sylvarche", "roncier"]) else Color(shade * 0.85, shade * 0.7, shade * 1.1))
 		var v: int = s[2]
 		mm.set_instance_custom_data(i, Color(float(v) / 3.0, 0.0, 1.0 / 3.0, 1.0))
 	var tmi := MultiMeshInstance3D.new()
@@ -485,8 +504,141 @@ func _build_props() -> void:
 		ramp.add_point(0.5, Color(1.0, 0.92, 0.75, 0.75))
 		ff.initial_velocity_max = 0.5
 		ff.gravity = Vector3(0.12, 0.0, 0.0)
+	var pal2 := WorldArt.scene_palette(WorldArt.scene if WorldArt.zone == 1 else "")
+	if not pal2.is_empty():
+		# Lucioles à la couleur du lieu, nombreuses sur le sentier.
+		var mc: Color = pal2["motes"]
+		ramp = Gradient.new()
+		ramp.set_color(0, Color(mc, 0.0))
+		ramp.set_color(1, Color(mc, 0.0))
+		ramp.add_point(0.2, Color(mc, 1.0))
+		ramp.add_point(0.8, Color(mc.lightened(0.2), 0.9))
+		ff.amount = {"sentier": 110, "cercle": 70, "coeur": 60, "sylvarche": 60, "source": 50, "lisiere": 24}.get(WorldArt.scene, 40)
 	ff.color_ramp = ramp
 	add_child(ff)
+	_build_scene_props()
+
+
+## Objets propres au lieu du combat (zone 1) : sur les bords, au sol de la forêt.
+func _build_scene_props() -> void:
+	if WorldArt.zone != 1:
+		return
+	var sc := WorldArt.scene
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(sc)
+	match sc:
+		"lisiere":
+			var cot := WorldArt.cottage_texture()
+			for i in range(6):
+				var side := -1.0 if i % 2 == 0 else 1.0
+				_prop(cot, Vector2(4.5 + side * rng.randf_range(7.0, 8.5), 1.5 + float(i / 2) * 6.0 + rng.randf_range(-1.0, 1.0)), 1.6)
+			var lamp := WorldArt.lamp_texture()
+			for i in range(6):
+				var side2 := -1.0 if i % 2 == 0 else 1.0
+				var lp := Vector2(4.5 + side2 * 5.9, 1.0 + float(i / 2) * 6.0)
+				_prop(lamp, lp, 1.0)
+				_prop_light(lp, 1.4, Color("ffc870"), 0.9, 3.0)
+		"sentier":
+			var lamp2 := WorldArt.lamp_texture()
+			for i in range(8):
+				var side3 := -1.0 if i % 2 == 0 else 1.0
+				var lp2 := Vector2(4.5 + side3 * 5.8, -0.5 + float(i / 2) * 4.6)
+				_prop(lamp2, lp2, 0.9, Color(0.9, 1.1, 0.8))
+				_prop_light(lp2, 1.2, Color("e8f28b"), 0.6, 2.5)
+		"clairiere":
+			var stump := WorldArt.stump_texture()
+			var lg := WorldArt.log_texture()
+			for i in range(12):
+				_prop(stump, _side_spot(rng), rng.randf_range(1.0, 1.6))
+			for i in range(4):
+				_prop(lg, _side_spot(rng), 1.3)
+		"roncier":
+			var br := WorldArt.bramble_texture()
+			for i in range(18):
+				_prop(br, _side_spot(rng), rng.randf_range(1.0, 1.7))
+			var rs := WorldArt.runestone_texture()
+			for x: float in [-1.7, 10.7]:
+				_prop(rs, Vector2(x, 15.5), 1.5)
+				_prop_light(Vector2(x, 15.5), 1.2, Color("d93cf2"), 0.8, 3.0)
+		"fougeres":
+			var fern := WorldArt.fern_texture()
+			for i in range(26):
+				_prop(fern, _side_spot(rng), rng.randf_range(1.2, 2.0))
+			var moon := OmniLight3D.new()
+			moon.light_color = Color("b8d0ff")
+			moon.light_energy = 0.8
+			moon.omni_range = 14.0
+			moon.position = w3(Vector2(4.5, 12.0), 7.0)
+			add_child(moon)
+		"cercle":
+			var mush := WorldArt.mushroom_texture()
+			for side4: float in [-1.0, 1.0]:
+				var ctr := Vector2(4.5 + side4 * 8.0, 9.0)
+				for k in range(14):
+					var a := float(k) / 14.0 * TAU
+					_prop(mush, ctr + Vector2(cos(a) * 2.4, sin(a) * 3.4), 1.2, Color(1.3, 1.1, 1.3))
+				_prop_light(ctr, 0.6, Color("ff9ce8"), 1.0, 4.0)
+		"source":
+			for side5: float in [-1.0, 1.0]:
+				var water := MeshInstance3D.new()
+				var wm := PlaneMesh.new()
+				wm.size = Vector2(4.0, 14.0)
+				water.mesh = wm
+				var mat := StandardMaterial3D.new()
+				mat.albedo_color = Color(0.25, 0.6, 0.7, 0.8)
+				mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+				mat.emission_enabled = true
+				mat.emission = Color("2f8f9a")
+				mat.emission_energy_multiplier = 0.35
+				mat.roughness = 0.2
+				water.material_override = mat
+				water.position = w3(Vector2(4.5 + side5 * 7.6, 8.0), 0.02)
+				add_child(water)
+			var reeds := WorldArt.reeds_texture()
+			for i in range(16):
+				var side6 := -1.0 if i % 2 == 0 else 1.0
+				_prop(reeds, Vector2(4.5 + side6 * rng.randf_range(5.4, 5.9), rng.randf_range(1.5, 15.0)), 1.1)
+		"coeur":
+			var cr := WorldArt.crystal_texture()
+			for i in range(10):
+				var sp := _side_spot(rng)
+				_prop(cr, sp, rng.randf_range(1.0, 1.8), Color(1.2, 1.0, 1.3))
+				if i % 3 == 0:
+					_prop_light(sp, 1.0, Color("d93cf2"), 0.9, 3.5)
+		"sylvarche":
+			var root := WorldArt.root_texture()
+			for i in range(14):
+				_prop(root, _side_spot(rng), rng.randf_range(1.2, 2.0))
+
+
+func _side_spot(rng: RandomNumberGenerator) -> Vector2:
+	var side := -1.0 if rng.randf() < 0.5 else 1.0
+	return Vector2(4.5 + side * rng.randf_range(5.6, 9.0), rng.randf_range(-0.5, 18.0))
+
+
+## Objet du décor : une image dressée face à la caméra, posée au sol de la forêt.
+func _prop(tex: Texture2D, p: Vector2, scale: float, mod: Color = Color.WHITE) -> Sprite3D:
+	var s3 := Sprite3D.new()
+	s3.texture = tex
+	s3.pixel_size = TEXEL * scale
+	s3.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+	s3.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	s3.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+	s3.shaded = false
+	s3.modulate = mod
+	s3.offset = Vector2(0.0, float(tex.get_height()) * 0.5)
+	s3.position = w3(p, -0.1)
+	add_child(s3)
+	return s3
+
+
+func _prop_light(p: Vector2, h: float, col: Color, energy: float, rng_m: float) -> void:
+	var l := OmniLight3D.new()
+	l.light_color = col
+	l.light_energy = energy
+	l.omni_range = rng_m
+	l.position = w3(p, h)
+	add_child(l)
 
 
 ## Pylônes d'ambre (zone 2) : cristal sur socle, s'illumine avant de surcharger son portail.
