@@ -99,7 +99,7 @@ func handle(e: Dictionary) -> bool:
 		"storm":
 			_rain(e, col)
 			_line_fx.append({"kind": "storm", "pos": e["pos"], "r": float(e["r"]), "age": 0.0, "dur": float(e["dur"]), "color": col})
-		"shot_fire", "shot_hit", "shot_beam", "shot_end", "rise", "fireflies":
+		"shot_fire", "shot_hit", "shot_beam", "shot_end", "shot_shock", "rise", "fireflies":
 			# Tirs de classe (scripts/battle/shot_fx.gd).
 			ShotFx.play(self, e)
 		_:

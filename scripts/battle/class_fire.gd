@@ -7,28 +7,37 @@ extends RefCounted
 ## (dédoublé par +N et ×N, coloré par un portail d'élément, absorbé par -N…), touche les tours, le boss et
 ## le Nexus, mais aucun ennemi ne peut le viser ni le blesser.
 
-const ONDE_RANGE := 5.6 ## l'onde de l'Épéiste s'éteint après 5,6 cases ; un portail positif la relance
-## every : secondes entre deux salves (à cadence de base) ; n : unités ou tirs par salve ;
-## mult : dégâts par rapport aux troupes de la classe (son familier) ; speed (cases/s), radius (cases).
+## every : secondes entre deux salves (à cadence de base) ; min_every : jamais plus vite, quels que soient
+## les bonus ; n : unités ou tirs par salve ; mult : dégâts par rapport aux troupes de la classe (son familier) ;
+## speed (cases/s), radius (cases), pierce : ennemis traversés au plus.
 const SPEC := {
-	"necromancien": {"every": 0.3, "n": 2, "atk": 2.0, "hp": 2.0, "size": 1.1, "rise": 0.45},
-	"mage": {"every": 0.2, "n": 3},
-	"archer": {"every": 0.5, "shot": "fleche", "mult": 3.0, "speed": 12.0, "radius": 0.16, "pierce": 3},
-	"epeiste": {"every": 0.4, "shot": "onde", "mult": 1.5, "speed": 8.0, "radius": 0.9, "range": ONDE_RANGE},
+	"necromancien": {"every": 1.2, "min_every": 1.2, "n": 2, "atk": 2.0, "hp": 2.0, "size": 1.1, "rise": 0.45},
+	"mage": {"every": 1.2, "min_every": 1.2, "n": 3},
+	"archer": {"every": 1.7, "shot": "fleche", "mult": 3.0, "speed": 12.0, "radius": 0.22, "pierce": 8},
+	"epeiste": {"every": 1.5, "shot": "onde", "mult": 1.5, "speed": 8.0, "radius": 0.9},
 	"clerc": {"every": 0.6, "shot": "lumiere", "mult": 1.5, "speed": 6.5, "radius": 0.22},
-	"chevalier": {"every": 0.8, "shot": "bouclier", "mult": 4.0, "speed": 9.0, "radius": 0.26},
-	"berserker": {"every": 0.15, "n": 2, "shot": "hache", "mult": 0.7, "speed": 10.0, "radius": 0.16},
+	"chevalier": {"every": 2.0, "shot": "bouclier", "mult": 4.0, "speed": 9.0, "radius": 0.26},
+	"berserker": {"every": 2.0, "n": 2, "shot": "hache", "mult": 0.7, "speed": 10.0, "radius": 0.16},
 }
+const SCATTER := Vector2(0.42, 0.28) ## troupes invoquées : écart au hasard autour de leur place (x, y)…
+const STAGGER := 0.22 ## … et léger décalage de leur apparition (secondes, au plus)
 const LIGHT_AOE := 0.95 ## rayon du rayon de lumière du Clerc
 const LIGHT_HEAL := 0.4 ## Barrière rendue par ennemi touché par le rayon…
 const LIGHT_HEAL_MAX := 1.6 ## … et au plus par rayon
 const SHIELD_PUSH := 0.45 ## recul de l'ennemi frappé par le bouclier du Chevalier (la moitié autour de lui)
 const SHIELD_SLOW := 1.2 ## secondes de ralentissement
+const SHOCK_R := 1.0 ## onde de choc du bouclier : rayon (4 ou 5 ennemis d'un groupe)…
+const SHOCK_MULT := 0.5 ## … et dégâts, en part du coup du bouclier (×4 → ×2)
 const AXE_FAN := 1.7 ## vitesse latérale de départ des haches (éventail), qui s'amortit
 ## Couleur propre à chaque classe (traînées, éclats) : on reconnaît le tir d'un coup d'œil.
 const COLOR := {
 	"necromancien": "B07CFF", "mage": "4FE3D2", "archer": "B8F07A", "epeiste": "CFE8FF",
 	"clerc": "FFE27A", "chevalier": "8FB8FF", "berserker": "FF5A4A",
+}
+## Nom du tir de chaque classe (Cercle, documentation).
+const LABEL := {
+	"necromancien": "2 squelettes qui sortent de terre", "mage": "3 lucioles", "archer": "flèche perçante",
+	"epeiste": "onde d'épée", "clerc": "rayon de lumière", "chevalier": "bouclier à onde de choc", "berserker": "haches en éventail",
 }
 const SHOT_CLASS := {"fleche": "archer", "onde": "epeiste", "lumiere": "clerc", "bouclier": "chevalier", "hache": "berserker"}
 
@@ -39,15 +48,12 @@ static func spec(class_id: String) -> Dictionary:
 
 ## Ancien Flux : un familier toutes les 0,25 s.
 const LEGACY := {"every": 0.25, "n": 1}
-## Les compagnons gardent l'ancien Flux (leurs troupes tiennent le terrain) : s'ils tiraient eux aussi, plus
-## personne ne retiendrait les ennemis (simulations : 0 victoire sur 4 au Colosse runique, 4-5, et au 6-8 pour
-## l'Archer, le Clerc et le Chevalier ; 4 sur 4 avec leurs troupes).
-const COMPANIONS_FIRE := false
 
 
-## Tir d'un lanceur : celui de sa classe pour le héros ; l'ancien Flux pour les compagnons.
+## Tir d'un lanceur : celui de sa classe pour le héros ; pour un compagnon, au choix du joueur (le Cercle) :
+## ses troupes (l'ancien Flux, par défaut : elles tiennent le terrain) ou le tir de sa classe.
 static func spec_of(c: BattleSim.Caster) -> Dictionary:
-	if c.is_bot and not COMPANIONS_FIRE:
+	if c.is_bot and not c.class_fire:
 		return LEGACY
 	return spec(c.class_id)
 
@@ -67,6 +73,9 @@ static func rate(s: BattleSim, c: BattleSim.Caster) -> float:
 		r *= rage(s)
 	if s.time < s.shot_buff_until:
 		r *= 1.0 + float(s.shot_buff.get("aspd", 0.0))
+	if sp.has("min_every"):
+		# Nécromancien et Mage : une salve toutes les 1,2 s au plus vite, bonus compris.
+		r = minf(r, 1.0 / float(sp["min_every"]))
 	return r
 
 
@@ -91,21 +100,41 @@ static func volley(s: BattleSim, c: BattleSim.Caster) -> void:
 	s._event({"t": "shot_fire", "kind": kind, "c": c.idx, "pos": Vector2(c.x, BattleSim.CASTER_Y + 0.3), "color": color(c.class_id)})
 
 
-## Nécromancien : deux squelettes sortent de terre devant lui ; Mage : trois lucioles d'un coup.
+## Nécromancien : deux squelettes sortent de terre devant lui ; Mage : trois lucioles. Chacun apparaît un peu
+## à côté de sa place (devant, derrière, à gauche, à droite) et un peu après les autres : jamais en rang.
 static func _troops(s: BattleSim, c: BattleSim.Caster, sp: Dictionary, n: int, y0: float) -> void:
-	var pts: Array = []
 	var rise := float(sp.get("rise", 0.0))
 	for i in range(n):
-		var off := 0.0 if n == 1 else lerpf(-0.34, 0.34, float(i) / float(n - 1))
-		var p := Vector2(clampf(c.x + off + s.rng.randf_range(-0.06, 0.06), 0.3, BattleSim.W - 0.3), y0 + (0.35 if rise > 0.0 else 0.0) + s.rng.randf_range(-0.05, 0.05))
-		var u := s._spawn_familiar(c, p, float(sp.get("atk", 1.0)), float(sp.get("hp", 1.0)), float(sp.get("size", 1.0)), rise)
-		if u != null:
-			pts.append(u.pos)
-	if c.class_id == "necromancien":
-		for p: Vector2 in pts:
-			s._event({"t": "rise", "pos": p, "c": c.idx, "color": color(c.class_id)})
-	elif c.class_id == "mage":
-		s._event({"t": "fireflies", "from": Vector2(c.x, BattleSim.CASTER_Y + 0.3), "pts": pts, "c": c.idx, "color": color(c.class_id)})
+		var off := 0.0 if n == 1 else lerpf(-0.3, 0.3, float(i) / float(n - 1))
+		var p := Vector2(c.x + off + s.rng.randf_range(-SCATTER.x, SCATTER.x), y0 + (0.35 if rise > 0.0 else 0.1) + s.rng.randf_range(-SCATTER.y * 0.4, SCATTER.y))
+		p.x = clampf(p.x, 0.3, BattleSim.W - 0.3)
+		# La première apparaît tout de suite, les autres un peu après.
+		s.class_spawns.append({"t": 0.0 if i == 0 else s.rng.randf_range(0.04, STAGGER), "c": c.idx, "pos": p, "sp": sp})
+	update_spawns(s, 0.0)
+
+
+## Fait apparaître les troupes dont le moment est venu (décalage de STAGGER au plus).
+static func update_spawns(s: BattleSim, dt: float) -> void:
+	var i := 0
+	while i < s.class_spawns.size():
+		var job: Dictionary = s.class_spawns[i]
+		job["t"] = float(job["t"]) - dt
+		if float(job["t"]) > 0.0:
+			i += 1
+			continue
+		s.class_spawns.remove_at(i)
+		var c: BattleSim.Caster = s.casters[int(job["c"])]
+		var sp: Dictionary = job["sp"]
+		var u := s._spawn_familiar(c, job["pos"], float(sp.get("atk", 1.0)), float(sp.get("hp", 1.0)), float(sp.get("size", 1.0)), float(sp.get("rise", 0.0)))
+		if u == null:
+			continue
+		if c.class_id == "mage" and sp.has("min_every"):
+			# Les lucioles ne volent pas tout droit : chacune dérive un peu de son côté.
+			u.vx = s.rng.randf_range(-0.35, 0.35)
+			s._event({"t": "fireflies", "from": Vector2(c.x, BattleSim.CASTER_Y + 0.3), "pts": [u.pos], "c": c.idx, "color": color(c.class_id)})
+		elif c.class_id == "necromancien" and sp.has("rise"):
+			u.vx = s.rng.randf_range(-0.12, 0.12)
+			s._event({"t": "rise", "pos": u.pos, "c": c.idx, "color": color(c.class_id)})
 
 
 static func _make_shot(s: BattleSim, c: BattleSim.Caster, sp: Dictionary, kind: String, p: Vector2) -> Unit:
@@ -174,13 +203,6 @@ static func move(s: BattleSim, u: Unit) -> void:
 			s._event({"t": "shot_end", "kind": u.shot, "pos": u.pos, "color": color(str(SHOT_CLASS.get(u.shot, "")))})
 
 
-## L'onde de l'Épéiste repart de plus belle en traversant un portail positif (sinon elle ne quitterait
-## jamais les abords du mur).
-static func on_portal(_s: BattleSim, p: Portal, u: Unit) -> void:
-	if u.shot == "onde" and not p.mirage and not p.is_negative():
-		u.travel = maxf(u.travel, ONDE_RANGE)
-
-
 # ---------------------------------------------------------------- impacts
 
 static func hits(s: BattleSim) -> void:
@@ -226,7 +248,7 @@ static func _hit_line(s: BattleSim, u: Unit) -> void:
 		u.hit_ids[e.id] = true
 		s._hit(u, e)
 		if u.shot == "bouclier":
-			_shield_bash(s, e)
+			_shield_bash(s, u, e)
 		s._event({"t": "shot_hit", "kind": u.shot, "pos": e.pos, "color": color(str(SHOT_CLASS.get(u.shot, "")))})
 		u.pierce -= 1
 		if u.pierce <= 0:
@@ -234,18 +256,27 @@ static func _hit_line(s: BattleSim, u: Unit) -> void:
 			return
 
 
-## Bouclier du Chevalier : l'ennemi frappé recule et ralentit, ceux d'à côté un peu moins.
-static func _shield_bash(s: BattleSim, tgt: Unit) -> void:
-	for e: Unit in s._query(s._grid_e, tgt.pos, 0.75):
+## Bouclier du Chevalier : il frappe le premier ennemi et déclenche une onde de choc qui blesse le groupe
+## autour (4 ou 5 ennemis) ; tous reculent et ralentissent, l'ennemi frappé plus que les autres.
+static func _shield_bash(s: BattleSim, u: Unit, tgt: Unit) -> void:
+	var n := 0
+	for e: Unit in s._query(s._grid_e, tgt.pos, SHOCK_R):
 		if not e.alive:
 			continue
 		var k := 1.0 if e == tgt else 0.5
+		if e != tgt and _valid(s, u, e):
+			u.hit_ids[e.id] = true
+			s._hit(u, e, SHOCK_MULT)
+			n += 1
+		if not e.alive:
+			continue
 		e.slow_stacks = maxi(e.slow_stacks, 2)
 		e.slow_t = maxf(e.slow_t, SHIELD_SLOW * k)
 		if e.role in ["boss", "rune", "tete", "banniere"] or e.hold_y > 0.0:
 			continue
 		var push := SHIELD_PUSH * k * (0.5 if e.elite else 1.0)
 		e.pos.y = minf(BattleSim.H - 0.6, e.pos.y + push)
+	s._event({"t": "shot_shock", "pos": tgt.pos, "r": SHOCK_R, "n": n, "color": color("chevalier")})
 
 
 ## Onde de l'Épéiste : un large arc qui touche tout ce qu'il balaie.

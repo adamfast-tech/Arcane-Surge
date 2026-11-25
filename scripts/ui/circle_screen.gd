@@ -1,7 +1,7 @@
 class_name CircleScreen
 extends Control
 ## Le Cercle : réglages des compagnons pour les prochaines parties (les 2 emmenés en combat,
-## ordre par défaut, sort emporté, côtés), loyauté et bonus d'amitié (+5 % de stats à partir de 75).
+## ordre par défaut, tir normal : troupes ou tir de classe, sort emporté, côtés), loyauté et bonus d'amitié (+5 % de stats à partir de 75).
 ## Étape 13.4 : chaque compagnon a son niveau et son XP, sa voie (classe) et son équipement.
 
 signal back
@@ -179,6 +179,30 @@ func _companion_card(bd: Dictionary, circ: Dictionary, is_active: bool = true) -
 			_save()
 			_rebuild.call_deferred())
 		og.add_child(ob)
+	# Tir normal (docs/design/42-tirs-de-classe.md) : ses troupes, ou le tir de sa classe.
+	v.add_child(UiTheme.section("Tir normal"))
+	var fg := HBoxContainer.new()
+	fg.add_theme_constant_override("separation", 8)
+	v.add_child(fg)
+	var cls := Profile.companion_class(who)
+	var fam := str((party["classes"].get(cls, {}) as Dictionary).get("familiar", ""))
+	var fam_name := str((GameData.units().get(fam, {}) as Dictionary).get("name", "ses troupes"))
+	var fire_now := str(mine.get("fire", "troupes"))
+	for opt: Array in [["troupes", "Troupes", fam_name], ["classe", "Tir de classe", str(ClassFire.LABEL.get(cls, ""))]]:
+		var on := fire_now == str(opt[0])
+		var fb := UiTheme.button("%s\n%s" % [opt[1], opt[2]], 17)
+		fb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		fb.custom_minimum_size = Vector2(0, 66)
+		if on:
+			fb.add_theme_color_override("font_color", col)
+			fb.add_theme_stylebox_override("normal", UiTheme.box(Color(UiTheme.PANEL2, 0.96), col, 10, 2, 6))
+		var choice := str(opt[0])
+		fb.pressed.connect(func() -> void:
+			Profile.set_circle(who, "fire", choice)
+			_save()
+			_rebuild.call_deferred())
+		fg.add_child(fb)
+	v.add_child(UiTheme.wrap("Ses troupes tiennent le terrain ; son tir de classe frappe plus fort et plus loin, mais ne retient personne.", 15, UiTheme.MUTED))
 	# Sort emporté.
 	v.add_child(UiTheme.section("Sort"))
 	var sg := HBoxContainer.new()

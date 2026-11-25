@@ -1539,6 +1539,10 @@ func _put_unit(u: Unit, n: int, cam_right: Vector3, cam_back: Vector3) -> int:
 	var h := SpriteAtlas.height_m(u.sprite) * u.scale
 	var w := h * float(fr["w"]) / float(fr["h"])
 	var bob := absf(sin(u.anim * 9.0)) * 0.035 if moving else 0.0
+	if u.sprite == "luciole":
+		# Luciole : elle vole, ailes battantes, et sa lueur pulse.
+		fr = SpriteAtlas.frame(u.sprite, u.element, int(u.anim * 14.0))
+		bob = 0.34 + sin(u.anim * 4.0 + float(u.id)) * 0.08
 	if u.rise_t > 0.0:
 		# Squelette du Nécromancien qui sort de terre (le sol cache ce qui est encore dessous).
 		var rk := clampf(u.rise_t / float(ClassFire.SPEC["necromancien"]["rise"]), 0.0, 1.0)
@@ -1576,10 +1580,8 @@ func _put_shot(u: Unit, n: int) -> int:
 	if u.shot == "lumiere":
 		lift += sin(u.anim * 9.0) * 0.06
 	elif u.shot == "onde":
-		# L'onde s'élargit en avançant, puis s'amincit avant de s'éteindre.
-		var life := clampf(u.travel / ClassFire.ONDE_RANGE, 0.0, 1.0)
-		w *= 0.85 + 0.25 * (1.0 - life)
-		h *= 0.6 + 0.4 * minf(1.0, life * 3.0)
+		# L'onde s'élargit en quittant la lame.
+		w *= 0.8 + 0.25 * minf(1.0, u.anim / 0.5)
 	_units_mm.set_instance_transform(n, Transform3D(Basis.from_scale(Vector3(w, h, 1.0)), w3(lp, lift)))
 	var glow := 1.8 if u.shot == "lumiere" else 1.35
 	_units_mm.set_instance_color(n, Color(glow, glow, glow))
@@ -1680,6 +1682,9 @@ func _tint(u: Unit) -> Color:
 	if u.poison_t > 0.0 and int(t * 8.0) % 3 == 0:
 		return Color(0.8, 1.3, 0.75)
 	if u.team == 0:
+		if u.sprite == "luciole":
+			var gl := 1.3 + 0.25 * sin(u.anim * 6.0 + float(u.id))
+			return Color(gl, gl, gl)
 		return Color(1.12, 1.12, 1.18)
 	return Color.WHITE
 

@@ -33,12 +33,14 @@ const HEIGHT_M := {
 	"ice_goblin": 0.6, "white_wolf": 0.55, "yeti": 1.1, "stalactite_kobold": 0.55, "ice_golem": 0.85, "blizzard_elemental": 0.9, "aurora_spirit": 0.9, "ancient_sentinel": 1.2, "rune_sentinel": 1.6, "rune_colossus": 3.2, "body_rune": 0.7, "rune_cart": 1.1,
 	"glass_scarab": 0.45, "sand_jackal": 0.55, "sandstone_golem": 0.9, "mummy_archer": 0.75, "mirror_construct": 1.0, "college_specter": 0.9, "solar_priestess": 0.85, "crystal_scorpion": 0.75, "glass_mirror": 1.5, "sun_scarab": 1.9, "glass_sphinx": 2.8, "desert_caravan": 1.1,
 	"fishman": 0.6, "thunder_eel": 0.45, "titan_crab": 0.85, "naga_archer": 0.75, "coral_guard": 0.8, "tide_mage": 0.85, "siren": 0.85, "abyss_horror": 1.3, "young_kraken": 2.4, "leviathan": 3.4, "diving_bell": 1.2,
-	"tir_fleche": 0.95, "tir_onde": 0.5, "tir_lumiere": 0.55, "tir_bouclier": 0.85, "tir_hache": 0.5,
+	"luciole": 0.6, "tir_fleche": 0.95, "tir_onde": 0.5, "tir_lumiere": 0.55, "tir_bouclier": 0.85, "tir_hache": 0.5,
 	"ssareth": 1.3, "mere_dragon": 3.4, "ignara": 1.4, "brann_cendre": 1.25, "sylwen_cendre": 1.45, "krag_cendre": 1.55, "nyx_cendre": 1.05, "wyrm_mark": 2.2,
 	"ember_imp": 0.55, "salamander": 0.45, "drakonid": 0.8, "wyvernling": 0.6, "magma_golem": 1.0, "wyrm_cultist": 0.85, "minor_phoenix": 0.8, "ash_demon": 1.35, "dragon_egg": 0.7, "ancient_drake": 2.4, "ash_wyrm": 3.2, "refugee_convoy": 1.2,
 }
 ## Tirs de classe (docs/design/42-tirs-de-classe.md), dessinés par le code, aux couleurs de leur élément.
 const SHOTS := ["tir_fleche", "tir_onde", "tir_lumiere", "tir_bouclier", "tir_hache"]
+## Créatures dessinées par le code, aux couleurs de leur élément : la luciole du Mage.
+const DRAWN := ["luciole"]
 ## Sprites dont les lettres o/d/m/l prennent les couleurs de l'élément.
 const RECOLOR := ["familiar", "knight", "archer", "golem", "fusion", "berserker", "champion_ranger", "champion_blademaster", "champion_guardian", "champion_bone", "champion_paladin", "champion_warlord", "duelist", "body_rune"]
 
@@ -2900,7 +2902,7 @@ static func frame_count(name: String) -> int:
 
 
 static func _recolor(name: String) -> bool:
-	return RECOLOR.has(name) or SHOTS.has(name)
+	return RECOLOR.has(name) or SHOTS.has(name) or DRAWN.has(name)
 
 
 ## Texture autonome d'une image de sprite (icônes de l'interface).
@@ -2916,7 +2918,7 @@ static func _build() -> void:
 	var entries: Array = [] # [key, Image]
 	for img in _images_for("player", ""):
 		entries.append(["player", img])
-	for name in DEFS.keys() + SHOTS:
+	for name in DEFS.keys() + SHOTS + DRAWN:
 		if _recolor(str(name)):
 			for el in ELEM.keys():
 				var imgs := _images_for(str(name), str(el))
@@ -2980,6 +2982,9 @@ static func _images_for(name: String, element: String) -> Array[Image]:
 		return out
 	if SHOTS.has(name):
 		return _gen_shot(name, element if ELEM.has(element) else "physique")
+	if name == "luciole":
+		return [_gen_firefly(element if ELEM.has(element) else "physique", 0), _gen_firefly(element if ELEM.has(element) else "physique", 1),
+			_gen_firefly(element if ELEM.has(element) else "physique", 2)]
 	var d: Dictionary = DEFS[name]
 	if bool(d.get("procedural", false)):
 		out.append(_gen_sylvarche(0))
@@ -3429,4 +3434,41 @@ static func _shot_axe(r: Array[Color]) -> Image:
 				continue
 			img.set_pixel(x, y, r[3] if b > 3.0 else (r[2] if b > 1.6 else r[1]))
 	_outline(img, r[0].darkened(0.4))
+	return img
+
+
+## Luciole du Mage, vue de dos en vol : tête et corselet sombres, antennes, ailes claires qui battent, gros
+## abdomen lumineux. Sans élément, la lueur est le jaune-vert des lucioles ; un portail d'élément la colore.
+static func _gen_firefly(element: String, f: int) -> Image:
+	var glow: Array[Color] = [Color("4a5a10"), Color("9ab828"), Color("d8f060"), Color("fbffd8")]
+	if element != "physique":
+		var ec: Array = ELEM[element]
+		glow = [Color(str(ec[0])), Color(str(ec[1])), Color(str(ec[2])), Color(str(ec[3]))]
+	var img := Image.create_empty(15, 15, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	# Ailes : déployées, levées, puis rabattues (3 images de battement).
+	var wing := [Color("cfe0ff"), Color("eef4ff")]
+	var wy: Array[float] = [5.0, 3.6, 6.2]
+	var wr: Array[Vector2] = [Vector2(3.2, 1.8), Vector2(2.4, 2.4), Vector2(3.4, 1.3)]
+	for side: float in [-1.0, 1.0]:
+		var cx := 7.0 + side * (3.6 if f != 1 else 3.0)
+		for y in range(15):
+			for x in range(15):
+				var d := Vector2((float(x) - cx) / wr[f].x, (float(y) - wy[f]) / wr[f].y)
+				if d.length() <= 1.0:
+					img.set_pixel(x, y, wing[1] if d.length() < 0.5 else wing[0])
+	# Abdomen lumineux.
+	for y in range(15):
+		for x in range(15):
+			var d2 := Vector2((float(x) - 7.0) / 2.6, (float(y) - 9.6) / 3.2)
+			var l := d2.length()
+			if l <= 1.0:
+				img.set_pixel(x, y, Color.WHITE if l < 0.35 else (glow[3] if l < 0.6 else (glow[2] if l < 0.85 else glow[1])))
+	# Corselet, tête, antennes.
+	for p: Vector2i in [Vector2i(6, 5), Vector2i(7, 5), Vector2i(8, 5), Vector2i(6, 6), Vector2i(7, 6), Vector2i(8, 6), Vector2i(7, 4), Vector2i(6, 3), Vector2i(7, 3), Vector2i(8, 3)]:
+		img.set_pixel(p.x, p.y, Color("2a2238"))
+	img.set_pixel(7, 4, Color("4a3e60"))
+	for p2: Vector2i in [Vector2i(6, 2), Vector2i(5, 1), Vector2i(8, 2), Vector2i(9, 1)]:
+		img.set_pixel(p2.x, p2.y, Color("3a3050"))
+	_outline(img, Color("120e1a"))
 	return img

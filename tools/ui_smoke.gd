@@ -2278,8 +2278,9 @@ func _class_fire_ok() -> bool:
 				units += 1
 				kinds[a.shot if a.shot != "" else a.kind] = true
 		var sp: Dictionary = ClassFire.SPEC[cls]
-		var want := 3.0 * (pc.cadence / 4.0) / float(sp["every"]) * (int(sp.get("n", 1)) if cls == "necromancien" else 1)
-		if absf(float(volleys) - want) > maxf(2.0, want * 0.1):
+		var per_s := minf((pc.cadence / 4.0) / float(sp["every"]), 1.0 / float(sp.get("min_every", 0.01)))
+		var want: float = (floorf(3.0 * per_s - 0.001) + 1.0) * (int(sp.get("n", 1)) if not sp.has("shot") else 1)
+		if absf(float(volleys) - want) > 1.0:
 			errs.append("%s : %d salves en 3 s (attendu %.0f)" % [cls, volleys, want])
 		out.append("%s %d" % [cls, volleys])
 		if cls == "necromancien":
@@ -2291,6 +2292,17 @@ func _class_fire_ok() -> bool:
 			var base := float(GameData.units()[pc.familiar]["atk"]) * pc.atk_mult
 			if sk == null or absf(sk.scale - 1.1) > 0.001 or absf(sk.atk / base - 2.0) > 0.05:
 				errs.append("nécromancien : squelette %s" % (str([sk.scale, sk.atk / base]) if sk != null else "absent"))
+		if not sp.has("shot"):
+			# Jamais en rang : les troupes d'une salve n'ont ni la même place ni le même instant.
+			var s2 := _fire_sim(cls)
+			ClassFire.volley(s2, s2.player())
+			var first := s2._pending_allies.size()
+			_fire_steps(s2, 8)
+			var ys := {}
+			for a in s2.allies:
+				ys[snappedf(a.pos.y - a.prev_pos.y * 0.0, 0.001)] = true
+			if first >= int(sp["n"]) or s2.allies.size() != int(sp["n"]) or ys.size() < 2:
+				errs.append("%s : troupes alignées ou simultanées (%d d'un coup, %d places)" % [cls, first, ys.size()])
 	# Archer : la flèche traverse 2 ennemis et s'arrête dans le 3e.
 	var ar := _fire_sim("archer")
 	var foes: Array[Unit] = []
@@ -2303,9 +2315,9 @@ func _class_fire_ok() -> bool:
 	for e in foes:
 		if e.hp < e.max_hp:
 			touched += 1
-	if touched != 3:
-		errs.append("archer : %d ennemis touchés (3 attendus)" % touched)
-	# Épéiste : l'onde touche tout l'arc, s'éteint vers 5,6 cases, repart après un portail positif.
+	if touched != 5:
+		errs.append("archer : %d ennemis touchés (5 attendus)" % touched)
+	# Épéiste : l'onde touche tout l'arc et file jusqu'au bout du terrain.
 	var ep := _fire_sim("epeiste")
 	var row: Array[Unit] = []
 	for k in range(4):
@@ -2313,7 +2325,7 @@ func _class_fire_ok() -> bool:
 	ep._flush()
 	ClassFire.volley(ep, ep.player())
 	var far := 0.0
-	for k in range(40):
+	for k in range(75):
 		ep.step()
 		for a in ep.allies:
 			if a.shot == "onde":
@@ -2322,23 +2334,8 @@ func _class_fire_ok() -> bool:
 	for e in row:
 		if e.hp < e.max_hp:
 			arc_hits += 1
-	var ep2 := _fire_sim("epeiste")
-	var gate := Portal.new()
-	gate.id = 900
-	gate.kind = "haste"
-	gate.x = ep2.player().x
-	gate.y = 4.0
-	gate.width = 2.0
-	ep2.portals.append(gate)
-	ClassFire.volley(ep2, ep2.player())
-	var far2 := 0.0
-	for k in range(60):
-		ep2.step()
-		for a in ep2.allies:
-			if a.shot == "onde":
-				far2 = maxf(far2, a.pos.y)
-	if arc_hits != 4 or far > 6.8 or far < 5.8 or far2 < 9.0:
-		errs.append("épéiste : arc %d/4 · portée %.1f · relancée %.1f" % [arc_hits, far, far2])
+	if arc_hits != 4 or far < 13.5:
+		errs.append("épéiste : arc %d/4 · portée %.1f" % [arc_hits, far])
 	# Clerc : le rayon tombe sur le groupe et rend de la Barrière.
 	var cl := _fire_sim("clerc")
 	for k in range(3):
@@ -2358,6 +2355,7 @@ func _class_fire_ok() -> bool:
 	# Chevalier : le bouclier frappe le premier ennemi, le repousse et le ralentit.
 	var kn := _fire_sim("chevalier")
 	var front := _foe(kn, Vector2(kn.player().x, 4.0))
+	var side := _foe(kn, Vector2(kn.player().x + 0.7, 4.1))
 	var back := _foe(kn, Vector2(kn.player().x, 6.0))
 	kn._flush()
 	ClassFire.volley(kn, kn.player())
@@ -2366,8 +2364,8 @@ func _class_fire_ok() -> bool:
 		kn.step()
 		if front.hp < front.max_hp and y_hit == 0.0:
 			y_hit = front.pos.y
-	if front.hp >= front.max_hp or back.hp < back.max_hp or y_hit < 4.3 or front.slow_stacks < 2:
-		errs.append("chevalier : premier %s · second épargné %s · recul %.2f" % [front.hp < front.max_hp, back.hp >= back.max_hp, y_hit - 4.0])
+	if front.hp >= front.max_hp or side.hp >= side.max_hp or back.hp < back.max_hp or y_hit < 4.3 or front.slow_stacks < 2:
+		errs.append("chevalier : premier %s · onde de choc %s · loin épargné %s · recul %.2f" % [front.hp < front.max_hp, side.hp < side.max_hp, back.hp >= back.max_hp, y_hit - 4.0])
 	# Berserker : cadence ×2 quand la Barrière est basse.
 	var bz := _fire_sim("berserker")
 	var r_full := ClassFire.rate(bz, bz.player())
@@ -2402,7 +2400,17 @@ func _class_fire_ok() -> bool:
 				in_grid = true
 	if arrows != 2 or not safe or in_grid:
 		errs.append("portail ×2 : %d flèches · intouchables %s · hors grille %s" % [arrows, safe, not in_grid])
-	print("tirs de classe : salves en 3 s ", out, " · flèche ", touched, " ennemis · onde ", arc_hits, " en arc, portée %.1f, relancée %.1f · clerc barrière %.1f · chevalier recul %.2f · rage berserker ×%.1f · ×2 → %d flèches" % [far, far2, cl.barrier_hp, y_hit - 4.0, r_low / r_full, arrows])
+	# Compagnon : ses troupes par défaut, le tir de sa classe si le Cercle le demande.
+	var cs := BattleSim.new()
+	cs.setup(GameData.level("z01_l05"), GameData.party(), 12, {"circle": {"brann": {"fire": "classe"}}, "active": ["brann", "sylwen"]})
+	var comp_ok := cs.casters.size() == 3
+	for c in cs.casters:
+		if c.is_bot:
+			var shoots := ClassFire.spec_of(c).has("shot")
+			comp_ok = comp_ok and shoots == (c.id == "brann")
+	if not comp_ok:
+		errs.append("compagnons : choix du tir ignoré")
+	print("tirs de classe : apparitions en 3 s ", out, " · flèche ", touched, " ennemis · onde ", arc_hits, " en arc, portée %.1f · clerc barrière %.1f · chevalier recul %.2f · rage berserker ×%.1f · ×2 → %d flèches · compagnons %s" % [far, cl.barrier_hp, y_hit - 4.0, r_low / r_full, arrows, comp_ok])
 	if not errs.is_empty():
 		push_error("tirs de classe : %s" % [errs])
 		return false

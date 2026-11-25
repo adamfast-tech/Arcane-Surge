@@ -48,7 +48,7 @@ class Caster:
 	var max_x := 8.5
 	var move_speed := 9.0
 	var firing := false
-	var fire_acc := 0.0
+	var fire_acc := 1.0 ## 1 : prêt à tirer (le premier appui tire aussitôt)
 	var cadence := 4.0
 	var familiar := "familiar_mage"
 	var element := "physique"
@@ -65,6 +65,7 @@ class Caster:
 	var think_interval := 0.4
 	var aim_error := 0.4
 	var brain: BotBrain = null
+	var class_fire := false ## compagnon : tir de sa classe (choix du Cercle) au lieu de ses troupes
 
 
 var rng := RandomNumberGenerator.new()
@@ -270,6 +271,7 @@ var frenzy_until := 0.0 ## fin de la dernière frénésie lancée (Rage de sang 
 var sacrificed := 0 ## invocations sacrifiées (Moisson d'âmes)
 ## Sorts à impact différé (projectile, météore) et zones actives (pluie, racines, vortex).
 var pending_impacts: Array[Dictionary] = []
+var class_spawns: Array[Dictionary] = [] ## troupes de classe qui vont apparaître (décalées de quelques centièmes)
 var _champ_acc := 0.0 ## charge du Champion : au rythme de l'ancien Flux (4 par seconde), quelle que soit la classe
 var shot_buff_until := 0.0 ## Renfort lancé : les tirs de classe partent renforcés jusque-là
 var shot_buff: Dictionary = {} ## {atk, crit, aspd, steal}
@@ -775,6 +777,7 @@ func _setup_casters(party: Dictionary, opts: Dictionary = {}) -> void:
 			bdd["order"] = str(mine["order"])
 		if mine.has("spell") and spells_db.has(str(mine["spell"])):
 			bdd["spells"] = [str(mine["spell"])]
+		var class_fire := str(mine.get("fire", "")) == "classe"
 		var heritage := flags.has("s1.heritage_" + str(bd.get("id", "")))
 		if heritage:
 			# Héritage de cendre : Sang du Wyrm (familiers de Feu, +15 %), Souffle de cendre, aura de braise.
@@ -789,6 +792,7 @@ func _setup_casters(party: Dictionary, opts: Dictionary = {}) -> void:
 		if heritage:
 			c.atk_mult *= 1.15
 		c.is_bot = true
+		c.class_fire = class_fire
 		c.side = str(bd.get("side", "left"))
 		if chosen.size() == 2:
 			c.side = "left" if bi == 0 else "right"
@@ -913,6 +917,8 @@ func step() -> void:
 
 
 func _update_casters() -> void:
+	if not class_spawns.is_empty():
+		ClassFire.update_spawns(self, TICK)
 	for c in casters:
 		c.prev_x = c.x
 		if c.brain != null:
@@ -923,7 +929,8 @@ func _update_casters() -> void:
 		for k in c.spell_cd.keys():
 			c.spell_cd[k] = maxf(0.0, float(c.spell_cd[k]) - TICK)
 		if not c.firing:
-			c.fire_acc = minf(c.fire_acc, 0.99)
+			# Le tir se recharge pendant qu'on ne tire pas : un nouvel appui tire aussitôt si l'intervalle est passé.
+			c.fire_acc = minf(1.0, c.fire_acc + TICK * ClassFire.rate(self, c))
 			continue
 		if c.idx == 0:
 			# Le Champion se charge au même rythme pour toutes les classes (l'ancien Flux : 4 par seconde).
@@ -1112,8 +1119,6 @@ func _cross_portals() -> void:
 				continue
 			if u.prev_pos.y < p.y and u.pos.y >= p.y and absf(u.pos.x - p.x) <= p.width * 0.5 and not u.crossed.has(p.id):
 				u.crossed[p.id] = true
-				if u.shot != "":
-					ClassFire.on_portal(self, p, u)
 				_apply_portal(p, u)
 				if not u.alive:
 					break

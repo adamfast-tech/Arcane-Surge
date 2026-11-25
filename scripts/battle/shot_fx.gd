@@ -32,12 +32,17 @@ static func play(fx: SpellFx, e: Dictionary) -> void:
 				"onde":
 					_line(fx, "tir_slash", pos, col, 0.2)
 				"bouclier":
-					fx._line_fx.append({"kind": "shock", "pos": pos, "r": 0.8, "age": 0.0, "dur": 0.35, "color": col})
 					fx._burst(SpellFx.w3(pos, 0.15), 12, [Color("d8ccb0"), Color("8a7a60"), Color(0.5, 0.45, 0.35, 0.0)], 2.2, 0.09, 0.45, -5.0, 70.0)
 					fx._flash(SpellFx.w3(pos, 0.45), 0.8, col.lerp(Color.WHITE, 0.4), 0.18)
 				"hache":
 					fx._burst(p3, 5, [Color("ffd0a0"), col, Color(col, 0.0)], 1.8, 0.05, 0.22, -5.0, 70.0)
 					_line(fx, "tir_spark", pos, col, 0.12)
+		"shot_shock":
+			# Onde de choc du bouclier : deux anneaux qui balaient le groupe, poussière soulevée.
+			var r := float(e.get("r", 1.0))
+			fx._line_fx.append({"kind": "shock", "pos": pos, "r": r * 1.15, "age": 0.0, "dur": 0.45, "color": col})
+			fx._line_fx.append({"kind": "shock", "pos": pos, "r": r * 0.7, "age": -0.08, "dur": 0.4, "color": col.lerp(Color.WHITE, 0.5)})
+			fx.dust(SpellFx.w3(pos, 0.1), Vector3(r * 0.8, 0.1, r * 0.8), Color("c8b89a"), 18)
 		"shot_beam":
 			# Le rayon tombe du ciel sur le groupe ; un éclat d'or rejoint la Barrière qu'il soigne.
 			fx._pillar(SpellFx.w3(pos), col, 5.5, 0.45, 0.85)

@@ -8,13 +8,17 @@ Dégâts exprimés par rapport à un coup des troupes de la classe (son familier
 
 | Classe | Toutes les | Tir | Effet | Repère visuel (couleur de classe) |
 |---|---|---|---|---|
-| Nécromancien | 0,3 s | 2 squelettes qui sortent de terre devant lui | 10 % plus grands, ×2 dégâts, ×2 PV ; immobiles le temps de se lever (0,45 s) | cercle de runes violet au sol, terre et os projetés, le squelette émerge du sol |
-| Mage | 0,2 s | 3 lucioles d'un coup | mêmes stats que ses troupes | trois éclats cyan jaillissent du bâton et filent chacun à sa place |
-| Archer | 0,5 s | flèche perçante | ×3 dégâts ; traverse 2 ennemis et s'arrête dans le 3ᵉ, sur toute la ligne visée | corde qui claque ; flèche à empennage vert, longue traînée verte ; étincelles à l'impact |
-| Épéiste | 0,4 s | onde de coup d'épée | ×1,5 dégâts à **tous** les ennemis de l'arc (≈ 1,8 case de large) ; courte portée : s'éteint après 5,6 cases | arc balayé devant l'Épéiste ; croissant blanc-bleu et ses échos ; entailles en biais |
+| Nécromancien | 1,2 s (jamais plus vite, bonus compris) | 2 squelettes qui sortent de terre devant lui | 10 % plus grands, ×2 dégâts, ×2 PV ; immobiles le temps de se lever (0,45 s) | cercle de runes violet au sol, terre et os projetés, le squelette émerge du sol |
+| Mage | 1,2 s (jamais plus vite, bonus compris) | 3 lucioles | mêmes stats que ses troupes ; elles volent et dérivent chacune un peu | lucioles ailées à l'abdomen lumineux (jaune-vert, ou la couleur de leur élément) ; un éclat cyan jaillit du bâton vers chacune |
+| Archer | 1,7 s | flèche perçante | ×3 dégâts ; traverse jusqu'à 8 ennemis sur toute la ligne visée | corde qui claque ; flèche à empennage vert, longue traînée verte ; étincelles à l'impact |
+| Épéiste | 1,5 s | onde de coup d'épée | ×1,5 dégâts à **tous** les ennemis de l'arc (≈ 1,8 case de large), jusqu'au bout du terrain | arc balayé devant l'Épéiste ; croissant blanc-bleu et ses échos ; entailles en biais |
 | Clerc | 0,6 s | orbe de lumière | file vers le groupe le plus proche devant elle ; au contact, un rayon tombe du ciel : ×1,5 dégâts dans un rayon de 0,95 case ; +0,4 Barrière par ennemi touché (1,6 au plus par rayon) | halo doré ; orbe-étoile flottante ; colonne de lumière, puis un éclat d'or qui rejoint la Barrière |
-| Chevalier | 0,8 s | bouclier lancé | ×4 dégâts au premier ennemi de la ligne ; il recule de 0,45 case (ceux d'à côté de moitié, les élites de moitié, jamais les boss) et ralentit 1,2 s | bouclier bleu qui tournoie ; onde de choc et poussière à l'impact |
-| Berserker | 0,15 s | 2 petites haches en éventail | ×0,7 dégâts, une cible chacune ; la cadence monte quand la Barrière baisse : ×1 pleine, ×2 à 25 % ou moins | haches qui tournoient, sillage d'étincelles rouges |
+| Chevalier | 2 s | bouclier lancé | ×4 dégâts au premier ennemi de la ligne, puis une onde de choc : ×2 à tous les ennemis dans un rayon d'une case (4 ou 5 d'un groupe) ; ils reculent (0,45 case pour le premier, la moitié pour les autres et les élites, jamais les boss) et ralentissent | bouclier bleu qui tournoie ; double anneau de choc et poussière soulevée |
+| Berserker | 2 s | 2 petites haches en éventail | ×0,7 dégâts, une cible chacune ; la cadence monte quand la Barrière baisse : ×1 pleine, ×2 à 25 % ou moins | haches qui tournoient, sillage d'étincelles rouges |
+
+**Apparitions naturelles** : les squelettes et les lucioles d'une salve n'apparaissent jamais en rang. Chacun se pose un peu à côté de sa place (jusqu'à 0,42 case à gauche ou à droite, un peu devant ou derrière) et un peu après les autres (jusqu'à 0,22 s). Ensuite, chacun dérive légèrement de son côté.
+
+Le premier appui tire aussitôt. Le tir se recharge aussi quand on ne tire pas.
 
 Le lanceur recule d'un cheveu à chaque tir, et la lueur de son arme prend la couleur de sa classe.
 
@@ -22,35 +26,18 @@ Le lanceur recule d'un cheveu à chaque tir, et la lueur de son arme prend la co
 
 Un tir est une unité alliée particulière (`Unit.shot`), qui **traverse les portails comme une invocation** :
 
-- +N et ×N le dédoublent (le double garde sa course : mêmes ennemis déjà touchés, même portée restante) ;
+- +N et ×N le dédoublent (le double garde sa course : mêmes ennemis déjà touchés) ;
 - un portail d'élément le recolore (la flèche devient rouge après FEU) et ses coups appliquent l'élément ; la Lumière passe les portails négatifs et affaiblit les sceaux ;
 - PUISSANCE ×1,5 dégâts, GÉANT élargit le tir (×1,3), HÂTE l'accélère ; -N l'absorbe, ÷N et CORRUPTION aussi, ENTRAVE le ralentit ;
-- il compte pour les énigmes du Sphinx, touche les tours, le boss (même en vol) et le Nexus ;
-- **l'onde de l'Épéiste repart** de plus belle (portée remise à 5,6 cases) en traversant un portail positif : sans portails, elle ne quitte jamais les abords du mur ; en les enfilant, elle atteint le Nexus.
+- il compte pour les énigmes du Sphinx, touche les tours, le boss (même en vol) et le Nexus ; en fin de course, il s'infléchit vers sa cible comme les troupes.
 
 Aucun ennemi ne peut viser ni blesser un tir (ni coups, ni zones, ni feu, ni tourbillons) ; il ne compte pas dans le plafond de 300 invocations.
 
 ## Les compagnons
 
-Le tir de classe est celui du **héros**. Les compagnons gardent l'ancien Flux (leur familier, un toutes les 0,25 s) : leurs troupes tiennent le terrain pendant que les tirs frappent. S'ils tiraient eux aussi, il ne resterait plus d'armée pour retenir les ennemis (`ClassFire.COMPANIONS_FIRE`). Simulations (4 parties chacune) :
+Le joueur choisit, **au Cercle**, pour chaque compagnon : **Troupes** (l'ancien Flux, un familier toutes les 0,25 s : elles tiennent le terrain, réglage par défaut) ou **Tir de classe** (le tir ci-dessus, propre à sa classe). Réglage enregistré dans `circle.<compagnon>.fire` (`troupes` ou `classe`).
 
-| Combat | Tout le monde tire | Compagnons avec leurs troupes (réglage retenu) |
-|---|---|---|
-| 4-5, Colosse runique | 0/4 sauf Épéiste et Berserker 3/4 | 4/4 pour toutes, sauf Mage 2/4 |
-
-Réglage retenu, toutes les classes (victoires sur 4 · durée moyenne ; ancien Flux entre parenthèses) :
-
-| Classe | 3-8 (réf. 158 s) | 4-5 (réf. 220 s) | 6-8 (réf. 220 s) |
-|---|---|---|---|
-| Mage | 4/4 · 40 s | 2/4 · 251 s (3/4) | 4/4 · 38 s (2/4) |
-| Nécromancien | 4/4 · 42 s | 4/4 · 198 s (4/4) | 4/4 · 47 s (3/4) |
-| Archer | 4/4 · 125 s | 4/4 · 178 s (4/4) | **0/4** (3/4) |
-| Épéiste | 4/4 · 55 s | 4/4 · 185 s (4/4) | 4/4 · 147 s (4/4) |
-| Clerc | **0/4** | 4/4 · 236 s (4/4) | **0/4** (1/4) |
-| Chevalier | 3/4 · 74 s | 4/4 · 234 s (4/4) | **0/4** (1/4) |
-| Berserker | 4/4 · 55 s | 4/4 · 166 s (4/4) | **0/4** (4/4) |
-
-À régler : le Mage et le Nécromancien écrasent tout (3 à 5 fois plus d'unités qu'avant) ; l'Archer, le Clerc, le Chevalier et le Berserker ne tiennent plus en fin de jeu (zone 6), le Clerc dès la zone 3 (son orbe s'arrête au premier groupe, ses dégâts sont faibles et il atteint rarement le Nexus).
+Premières mesures, avec les anciennes cadences (4 parties par combat) : quand tout le monde tirait, il ne restait plus d'armée pour retenir les ennemis. Au boss 4-5, toutes les classes perdaient leurs 4 parties, sauf l'Épéiste et le Berserker (3 sur 4). Avec les troupes des compagnons, toutes gagnaient 4 fois sur 4, sauf le Mage (2 sur 4).
 
 ## Le reste du combat
 
