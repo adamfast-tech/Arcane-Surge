@@ -111,6 +111,8 @@ Les sorts de l'arbre (Prière, Lance solaire, Exorcisme) restent à part. Ils se
 
 Les sorts de l'arbre (Horde, Malédiction de masse, Sacrifice d'âmes) restent à part. Ils se débloquent par l'arbre du Nécromancien.
 
+**Portée** : tous les sorts du Nécromancien (grimoire et arbre) couvrent 30 % de diamètre en plus que la valeur de départ : rayons des zones et des invocations (Horde 2,08, Malédiction de masse 3,12…), largeur des colonnes (Pique d'os 0,65, Néant absolu 3,38), portée des sauts de chaîne (Flétrissure 3,12, Pandémie 3,9). Les Renforts du sang (Pacte, Armure, Rituel, Festin) n'ont pas de zone.
+
 **Mécaniques ajoutées pour le Nécromancien :**
 - **Affaiblissement** (`weak`) : l'ennemi frappe 30 % moins fort (invocations et Barrière). Les ennemis affaiblis clignotent en violet.
 - **Cimetières** (`spawn`, `spawn_every`) : une zone fait sortir une invocation à intervalle régulier (squelettes, archers squelettes, chevaliers de la mort).
