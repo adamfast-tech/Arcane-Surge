@@ -10,6 +10,8 @@ const CPS := 45.0
 const AUTO_DELAY := 1.4
 
 var scenes: Array[String] = []
+## Scènes revues (mission déjà réussie) : mise en scène et choix déjà faits, sans en rejouer les effets.
+var replay := false
 
 var _scene_i := -1
 var _scene_id := ""
@@ -278,7 +280,7 @@ func _advance() -> void:
 			_show_choice(l)
 			return
 		_apply_visuals(l)
-		if l.has("effects"):
+		if l.has("effects") and not replay:
 			_show_feedback(Story.apply(l["effects"], _ilvl()))
 		if l.has("text"):
 			_show_line(l)
@@ -535,7 +537,7 @@ func _skip() -> void:
 			_show_choice(l)
 			return
 		_apply_visuals(l)
-		if l.has("effects"):
+		if l.has("effects") and not replay:
 			Story.apply(l["effects"], _ilvl())
 		if l.has("text"):
 			last = l

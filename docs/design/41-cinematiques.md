@@ -53,10 +53,18 @@ Exemple (1-5, le Sceau) :
 | 1-9 | La Sylvarche fait trembler le Cœur de la Forêt ; les fées libérées brillent, ou s'éteignent si on les abandonne ; Brann file |
 | 1-10 | La Sylvarche se dresse, rugit ; purifiée elle brille (le héros aussi), la forêt guérit ; abattue, Brann frappe, Sylwen s'en va seule |
 
+## Revoir ou passer (missions déjà réussies)
+
+- Une scène déjà vue ne se rejoue pas d'elle-même. Pour une mission déjà réussie qui a une intro ou une fin, l'écran de **préparation** (sous le choix Deck ou Tiroir) propose **Passer** (par défaut : droit au combat) ou **Revoir** (l'intro avant le combat, la fin après la victoire).
+- Le choix est mémorisé dans le profil (`replay_scenes`) et vaut pour toutes les missions déjà réussies.
+- Une scène revue (`DialogueScreen.replay`) suit les choix déjà faits sans les redemander et ne rejoue aucun effet (drapeaux, loyauté, objets).
+- Une mission jamais réussie n'affiche pas ce choix : ses scènes non vues se jouent toujours.
+
 ## Outils
 
 - Les indications de chaque zone sont listées dans `tools/cine/cues_zNN.py` et posées par `python3 tools/cine_cues.py data/dialogues/fr/zNN.json tools/cine/cues_zNN.py`, dans le texte du fichier de dialogues, sans changer sa mise en forme (une indication déjà posée est laissée telle quelle).
 - `tools/ui_smoke.gd` (`_cine_ok`) contrôle le vocabulaire des indications de toutes les zones (`CineStage.check_cues`), les images de bouche et de clignement de 5 portraits, puis joue le prologue et la zone 1 réplique par réplique (3 acteurs en scène au moins).
+- `tools/ui_smoke.gd` (`_replay_scenes_ok`) contrôle que le choix n'apparaît qu'une fois la mission réussie, que « Passer » mène au combat et que « Revoir » rejoue l'intro sans redemander le choix ni en rejouer les effets.
 - Aperçu web : `?scene=prologue`, `?scene=z01_l05_outro`, `?scene=z01_l10_intro`.
 
 ## Suite

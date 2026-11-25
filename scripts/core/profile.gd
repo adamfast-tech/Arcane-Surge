@@ -1421,6 +1421,22 @@ static func set_spell_mode(m: String) -> void:
 	data["spell_mode"] = "drawer" if m == "drawer" else "deck"
 
 
+## Missions déjà réussies : revoir leurs cinématiques (intro et fin) ou les passer (par défaut).
+## Le choix se fait à la préparation et reste mémorisé.
+static func replay_scenes() -> bool:
+	return bool(data.get("replay_scenes", false))
+
+
+static func set_replay_scenes(on: bool) -> void:
+	data["replay_scenes"] = on
+
+
+## Le choix de revoir les cinématiques s'offre-t-il pour ce niveau (réussi, avec une intro ou une fin) ?
+static func can_replay_scenes(level_id: String) -> bool:
+	return int(level_record(level_id)["clears"]) > 0 \
+		and (Dialogues.has_scene(level_id + "_intro") or Dialogues.has_scene(level_id + "_outro"))
+
+
 ## Sorts du tiroir : tous les sorts connus du Mage, dans l'ordre du grimoire.
 static func drawer_spells() -> Array[String]:
 	var known := known_spells()

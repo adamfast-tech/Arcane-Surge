@@ -38,6 +38,14 @@ func _rebuild() -> void:
 	var mode := Profile.spell_mode()
 	col.add_child(_mode_card("deck", mode == "deck"))
 	col.add_child(_mode_card("drawer", mode == "drawer"))
+	if Profile.can_replay_scenes(level_id):
+		# Mission déjà réussie : revoir ou passer l'intro et la fin.
+		col.add_child(UiTheme.section("Cinématiques"))
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 12)
+		col.add_child(row)
+		row.add_child(_scene_card(false, not Profile.replay_scenes()))
+		row.add_child(_scene_card(true, Profile.replay_scenes()))
 	if _msg != "":
 		col.add_child(UiTheme.wrap(_msg, 18, UiTheme.GOLD))
 	var go: Array = UiTheme.rich_button(84, "primary")
@@ -102,6 +110,34 @@ func _mode_card(m: String, on: bool) -> Button:
 		Profile.set_spell_mode(m)
 		Profile.save_local()
 		_msg = "Mode Deck : 7 sorts." if m == "deck" else "Mode Tiroir : %d sorts à portée de doigt." % known.size()
+		_rebuild.call_deferred())
+	return bt
+
+
+## Carte « Passer » ou « Revoir » des cinématiques d'une mission déjà réussie.
+func _scene_card(watch: bool, on: bool) -> Button:
+	var rb: Array = UiTheme.rich_button(112)
+	var bt: Button = rb[0]
+	var h: HBoxContainer = rb[1]
+	bt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	if on:
+		bt.add_theme_stylebox_override("normal", UiTheme.box(Color(UiTheme.PANEL2, 0.96), UiTheme.TEAL, 14, 3, 0, UiTheme.TEAL))
+	var v := VBoxContainer.new()
+	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	v.add_theme_constant_override("separation", 2)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	h.add_child(v)
+	var top := HBoxContainer.new()
+	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	top.add_theme_constant_override("separation", 8)
+	v.add_child(top)
+	top.add_child(UiTheme.icon_rect("play" if watch else "chevron", 22, UiTheme.TEAL if on else UiTheme.MUTED))
+	top.add_child(UiTheme.title("REVOIR" if watch else "PASSER", 24, UiTheme.TEAL if on else UiTheme.TEXT))
+	v.add_child(_wrap("L'intro et la fin de la mission, mises en scène." if watch else "Directement au combat, sans l'intro ni la fin."))
+	bt.pressed.connect(func() -> void:
+		Profile.set_replay_scenes(watch)
+		Profile.save_local()
+		_msg = "Cinématiques : revues à chaque mission déjà réussie." if watch else "Cinématiques : passées pour les missions déjà réussies."
 		_rebuild.call_deferred())
 	return bt
 

@@ -376,9 +376,10 @@ func _show_forge(uid: String = "", origin: String = "hub", who: String = "player
 	_set_screen(f)
 
 
-func _show_dialogue(ids: Array, then: Callable) -> void:
+func _show_dialogue(ids: Array, then: Callable, replay: bool = false) -> void:
 	var d := DialogueScreen.new()
 	d.configure(ids)
+	d.replay = replay
 	d.finished.connect(then)
 	_set_screen(d)
 
@@ -398,12 +399,18 @@ func _launch(level_id: String, solo: bool) -> void:
 	if level_id == "z01_l01" and not Story.seen("prologue") and int(Profile.level_record("z01_l01")["clears"]) == 0:
 		ids.append("prologue")
 	var intro := level_id + "_intro"
-	if Dialogues.has_scene(intro) and not Story.seen(intro):
+	var replay := _replaying(level_id)
+	if Dialogues.has_scene(intro) and (not Story.seen(intro) or replay):
 		ids.append(intro)
 	if ids.is_empty():
 		_start(level_id, solo)
 	else:
-		_show_dialogue(ids, _start.bind(level_id, solo))
+		_show_dialogue(ids, _start.bind(level_id, solo), replay and Story.seen(intro))
+
+
+## Mission déjà réussie, avec « Revoir les cinématiques » choisi à la préparation.
+func _replaying(level_id: String) -> bool:
+	return Profile.replay_scenes() and Profile.can_replay_scenes(level_id)
 
 
 func _start(level_id: String, solo: bool, extra: Dictionary = {}) -> void:
@@ -420,6 +427,8 @@ func _after_battle(dest: String, b: BattleScreen, level_id: String, solo: bool) 
 	var won := b.sim != null and b.sim.state == "victory"
 	if won and Dialogues.has_scene(outro) and not Story.seen(outro):
 		_show_dialogue([outro], _go.bind(dest, level_id, solo))
+	elif won and Dialogues.has_scene(outro) and _replaying(level_id):
+		_show_dialogue([outro], _go.bind(dest, level_id, solo), true)
 	else:
 		_go(dest, level_id, solo)
 

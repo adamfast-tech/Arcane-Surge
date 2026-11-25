@@ -1084,6 +1084,9 @@ func _run() -> void:
 	if not await _cine_ok():
 		quit(1)
 		return
+	if not await _replay_scenes_ok():
+		quit(1)
+		return
 	main.call("_show_room", "circle")
 	await _frames(5)
 	Profile.swap_active("krag", "brann")
@@ -2154,4 +2157,74 @@ func _cine_ok() -> bool:
 		push_error("cinématiques : %s" % [errs])
 		return false
 	print("cinématiques : %d répliques mises en scène · zone 1 jouée (%d répliques, %d acteurs au plus)" % [cued, lines, max_actors])
+	return true
+
+
+## Revoir ou passer les cinématiques (préparation) : le choix n'apparaît que pour une mission déjà réussie ;
+## « Passer » va droit au combat ; « Revoir » rejoue l'intro, ses choix déjà faits, sans en rejouer les effets.
+func _prep_has_scene_choice(p: PrepScreen) -> bool:
+	for l in p.find_children("*", "Label", true, false):
+		if (l as Label).text.to_upper() == "CINÉMATIQUES":
+			return true
+	return false
+
+
+func _replay_scenes_ok() -> bool:
+	var errs: Array[String] = []
+	var lid := "z01_l03"
+	var saved_levels: Dictionary = (Profile.data["levels"] as Dictionary).duplicate(true)
+	var saved_story: Dictionary = (Story.st() as Dictionary).duplicate(true)
+	var saved_replay := Profile.replay_scenes()
+	(Profile.data["levels"] as Dictionary).erase(lid)
+	main.call("_play", lid, false)
+	await _frames(3)
+	if _prep_has_scene_choice(_screen() as PrepScreen):
+		errs.append("choix visible sur une mission jamais réussie")
+	(Profile.data["levels"] as Dictionary)[lid] = {"stars": 3, "best": 60.0, "clears": 1}
+	Story.mark_seen(lid + "_intro")
+	Story.mark_seen(lid + "_outro")
+	if Story.choice("z01_l03") == "":
+		Story.st()["choices"]["z01_l03"] = "A"
+	main.call("_play", lid, false)
+	await _frames(3)
+	var prep: PrepScreen = _screen()
+	if not _prep_has_scene_choice(prep):
+		errs.append("choix absent sur une mission réussie")
+	Profile.set_replay_scenes(false)
+	prep.start.emit()
+	await _frames(3)
+	var skipped := _screen() is BattleScreen
+	if not skipped:
+		errs.append("Passer : %s au lieu du combat" % _screen().get_class())
+	Profile.set_replay_scenes(true)
+	var loy := Story.loyalty("brann")
+	main.call("_play", lid, false)
+	await _frames(3)
+	(_screen() as PrepScreen).start.emit()
+	await _frames(3)
+	var replayed := _screen() is DialogueScreen and bool((_screen() as DialogueScreen).replay)
+	if not replayed:
+		errs.append("Revoir : %s au lieu de l'intro" % _screen().get_class())
+	var guard := 0
+	while _screen() is DialogueScreen and guard < 200:
+		var d: DialogueScreen = _screen()
+		if d.get("_waiting_choice"):
+			errs.append("Revoir : choix redemandé")
+			break
+		d._tap()
+		guard += 1
+		await _frames(2)
+	if not (_screen() is BattleScreen):
+		errs.append("Revoir : pas de combat après l'intro")
+	if Story.loyalty("brann") != loy:
+		errs.append("Revoir : effets rejoués (Brann %d -> %d)" % [loy, Story.loyalty("brann")])
+	Profile.data["levels"] = saved_levels
+	Profile.data["story"] = saved_story
+	Profile.set_replay_scenes(saved_replay)
+	main.call("_show_map")
+	await _frames(3)
+	if not errs.is_empty():
+		push_error("cinématiques revues : %s" % [errs])
+		return false
+	print("cinématiques revues : choix réservé aux missions réussies · Passer -> combat · Revoir -> intro rejouée (%d répliques), sans effets" % guard)
 	return true
