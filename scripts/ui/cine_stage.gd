@@ -31,9 +31,9 @@ const MAX_FIGURES := 4
 ## Vocabulaire des indications (vérifié par tools/ui_smoke.gd).
 const CAMS := ["zoom", "zoom_out", "reset", "punch", "shake", "tremble", "pan_left", "pan_right", "pan_up", "push", "pull", "kick", "focus"]
 const FXS := ["flash", "white", "fade", "lightning", "sparkles", "embers", "bloom", "ring", "rays", "bolt", "beam", "crack",
-	"seal", "spiral", "flux", "gate", "arrow", "swarm", "clang", "steam", "thorns", "glitter", "hooves",
+	"seal", "spiral", "flux", "gate", "arrow", "swarm", "clang", "steam", "thorns", "glitter", "hooves", "drip", "ferns", "lanes",
 	"slash", "wisps", "charge", "burst", "leaves", "dust", "shock"]
-const ACTS := ["jump", "hop", "shake", "hurt", "attack", "droop", "kneel", "glow", "fall", "exit", "enter", "rise", "turn", "step", "cast"]
+const ACTS := ["jump", "hop", "shake", "hurt", "attack", "droop", "kneel", "glow", "fall", "exit", "enter", "rise", "turn", "step", "cast", "echo"]
 const SUBJECT_ACTS := ["roar", "hit", "fall", "glow", "rise", "fade", "appear"]
 const GRADES := {"none": "ffffff", "night": "8c98d8", "violet": "c8a0f0", "warm": "ffd8ac", "dawn": "ffe6cc", "cold": "b8d6ff",
 	"red": "ff9c8c", "green": "c8f2b8", "dark": "6c6c8c", "gold": "fff0c4"}
@@ -577,6 +577,22 @@ func _effect(spec: String) -> void:
 			# Poussière de fée : de petites étoiles qui scintillent et s'éteignent autour du repère.
 			var gl := _add_fx("emit_glitter", anchor, col if col_s != "" else Color("ffb8f0"), "light", 3.5)
 			gl["rate"] = 45.0
+		"drip":
+			# Lumière qui ruisselle (des bois du Cerf) : des gouttes tombent du haut du repère.
+			var dr := _add_fx("emit_drip", anchor, col if col_s != "" else Color("b07cff"), "light", 4.0)
+			dr["rate"] = 18.0
+		"ferns":
+			# Les fougères volent quand une bête en jaillit.
+			var gp2 := _anchor_pos(anchor if anchor != "auto" else "ground")
+			for i in range(36):
+				var a := randf_range(-PI * 0.9, -PI * 0.1)
+				_part({"p": gp2 + Vector2(randf_range(-0.3, 0.3) * size.x * 0.5, 0.0), "v": Vector2.from_angle(a) * randf_range(120, 300),
+					"max": randf_range(1.0, 1.6), "col": [Color("3f7a4a"), Color("5fa05a"), Color("2a5a36")][i % 3], "size": 1.0, "layer": "front",
+					"grav": Vector2(0, 240), "drag": 1.2, "sway": 20.0, "kind": "leaf"})
+		"lanes":
+			# Couloirs de danger : des bandes rouges clignotent au sol, là où la bête va charger.
+			var ln := _add_fx("lanes", "ground", col if col_s != "" else Color("ff4a3a"), "back", 2.6)
+			ln["pts"] = PackedVector2Array([Vector2(randf_range(0.22, 0.36), 0), Vector2(randf_range(0.45, 0.55), 0), Vector2(randf_range(0.64, 0.78), 0)])
 		"hooves":
 			# Martèlement au loin : le sol bat, la poussière saute, à intervalles réguliers.
 			var hv := _add_fx("hooves", "ground", Color("d8c8b0"), "back", 3.2)
@@ -705,6 +721,8 @@ func _act(id: String, what: String) -> void:
 			f["persist"] = what
 		"turn":
 			f["flip"] = not bool(f["flip"])
+		"echo":
+			f["echo_n"] = 0
 		"glow", "cast":
 			var col: Color = f["glow_col"]
 			_fx_set(_add_fx("bloom", id, col, "light", 1.4), "r", _sh() * 0.32)
@@ -994,6 +1012,16 @@ func _update_figures(delta: float) -> void:
 					s["rot"] = 0.0 if toward > 0.0 else PI
 					_burst(hit, f["glow_col"], 26, "light")
 					_kick_impulse(9.0)
+			"echo":
+				# Échos du temps : des doubles du personnage glissent de part et d'autre et s'effacent.
+				var n_e := int(at / 0.28)
+				if n_e > int(f.get("echo_n", 0)) and n_e <= 6:
+					f["echo_n"] = n_e
+					var g := _spawn_ghost(r, Color("9ff0ff"))
+					g["dx"] = (1.0 if n_e % 2 == 0 else -1.0) * fs.x * (0.12 + 0.05 * float(n_e))
+					g["life"] = 0.9
+				flash = 0.25 * clampf(1.0 - at / 0.4, 0.0, 1.0)
+				flash_col = Color("9ff0ff")
 			"glow", "cast":
 				var env3 := clampf(1.0 - at / 1.6, 0.0, 1.0)
 				flash = 0.45 * clampf(1.0 - at / 0.6, 0.0, 1.0)
@@ -1020,7 +1048,7 @@ func _update_figures(delta: float) -> void:
 		f["S"] = fs.y * s2 * cs * sy
 
 
-func _spawn_ghost(r: TextureRect, col: Color) -> void:
+func _spawn_ghost(r: TextureRect, col: Color) -> Dictionary:
 	var g := TextureRect.new()
 	g.texture = r.texture
 	g.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -1038,15 +1066,20 @@ func _spawn_ghost(r: TextureRect, col: Color) -> void:
 	cm.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 	g.material = cm
 	_ghost_box.add_child(g)
-	_ghosts.append({"r": g, "t": 0.0})
+	var gd := {"r": g, "t": 0.0, "x0": g.position.x, "dx": 0.0, "life": 0.28}
+	_ghosts.append(gd)
+	return gd
 
 
 func _update_ghosts(delta: float) -> void:
 	for g in _ghosts.duplicate():
 		g["t"] = float(g["t"]) + delta
 		var r: TextureRect = g["r"]
-		r.modulate.a = 0.5 * clampf(1.0 - float(g["t"]) / 0.28, 0.0, 1.0)
-		if float(g["t"]) > 0.28:
+		var life := float(g["life"])
+		var gu := clampf(float(g["t"]) / life, 0.0, 1.0)
+		r.modulate.a = 0.5 * (1.0 - gu)
+		r.position.x = float(g["x0"]) + float(g["dx"]) * _ease_out(gu)
+		if float(g["t"]) > life:
 			r.queue_free()
 			_ghosts.erase(g)
 
@@ -1191,6 +1224,10 @@ func _emit(e: Dictionary) -> void:
 			var p3 := c + Vector2(randf_range(-1.0, 1.0) * hs, randf_range(-1.0, 1.0) * hs)
 			_part({"p": p3, "v": Vector2(randf_range(-10, 10), randf_range(-70, -30)), "max": randf_range(1.0, 1.8), "col": col.lightened(0.3),
 				"size": 1.0 if randf() < 0.6 else 2.0, "layer": "light", "sway": 12.0, "kind": "sq"})
+		"emit_drip":
+			var top := c + Vector2(randf_range(-1.0, 1.0) * sh * 0.3, -sh * randf_range(0.25, 0.45))
+			_part({"p": top, "v": Vector2(0.0, randf_range(10, 30)), "max": randf_range(0.9, 1.4), "col": col.lightened(0.2), "size": 1.0,
+				"layer": "light", "grav": Vector2(0, 220), "drag": 0.2, "kind": "sq"})
 		"emit_glitter":
 			var gp := c + Vector2.from_angle(randf() * TAU) * sh * randf_range(0.05, 0.32)
 			_part({"p": gp, "v": Vector2(randf_range(-6, 6), randf_range(-14, 4)), "max": randf_range(0.5, 0.9), "col": col.lerp(Color.WHITE, randf() * 0.6),
@@ -1457,6 +1494,16 @@ func _draw_fx(ci: CanvasItem, e: Dictionary, k: float) -> void:
 					var sp2 := pts3[j]
 					var sd2 := 1.0 if j % 2 == 0 else -1.0
 					ci.draw_line(sp2, sp2 + Vector2(sd2 * 3.0, -2.0), Color(col.lightened(0.3), a11), 1.0)
+		"lanes":
+			var xs: PackedVector2Array = e["pts"]
+			var gy := (_anchor_pos("ground") * k).y
+			var a12 := minf(1.0, t / 0.2) * minf(1.0, (dur - t) / 0.5) * (0.55 + 0.45 * sin(t * 14.0))
+			var lw := size.x * k * 0.07
+			for q3 in xs:
+				var lx2 := q3.x * size.x * k
+				ci.draw_rect(Rect2(lx2 - lw * 0.5, gy - _sh() * k * 0.75, lw, _sh() * k * 0.75), Color(col, a12 * 0.22))
+				ci.draw_rect(Rect2(lx2 - lw * 0.5, gy - _sh() * k * 0.75, 1.0, _sh() * k * 0.75), Color(col, a12 * 0.7))
+				ci.draw_rect(Rect2(lx2 + lw * 0.5 - 1.0, gy - _sh() * k * 0.75, 1.0, _sh() * k * 0.75), Color(col, a12 * 0.7))
 		"swarm":
 			var seeds2: PackedVector2Array = e["pts"]
 			var rs := float(e["r"]) * k

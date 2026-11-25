@@ -122,10 +122,10 @@
       "subject": "stag",
       "cast": ["porteur", "sylwen", "brann"],
       "lines": [
-        {"act": {"subject": "roar"}, "fx": "flash:d93cf2", "cam": "zoom", "who": "narrateur", "text": "Un cerf immense jaillit des fougères. Ses bois ruissellent d'une lumière violette."},
-        {"who": "sylwen", "mood": "surpris", "text": "Grand Cerf ! C'est nous, les Vigiles… Il ne me reconnaît plus."},
-        {"act": {"subject": "roar"}, "cam": ["shake", "reset"], "who": "brann", "mood": "colere", "text": "Il baisse la tête : il va charger ! Méfie-toi des couloirs rouges, c'est là qu'il frappera !"},
-        {"who": "sylwen", "mood": "triste", "text": "Brise sa corruption, pas son cœur. Je t'en prie."}
+        {"act": {"subject": "rise"}, "fx": ["ferns@ground", "drip@subject:b07cff"], "cam": "push", "grade": "violet", "who": "narrateur", "text": "Un cerf immense jaillit des fougères. Ses bois ruissellent d'une lumière violette."},
+        {"cam": "reset", "who": "sylwen", "mood": "surpris", "text": "Grand Cerf ! C'est nous, les Vigiles… Il ne me reconnaît plus."},
+        {"act": {"subject": "roar"}, "fx": "lanes:ff4a3a", "grade": "red", "who": "brann", "mood": "colere", "text": "Il baisse la tête : il va charger ! Méfie-toi des couloirs rouges, c'est là qu'il frappera !"},
+        {"fx": "drip@subject:b07cff", "grade": "violet", "cam": "push", "who": "sylwen", "mood": "triste", "text": "Brise sa corruption, pas son cœur. Je t'en prie."}
       ]
     },
     "z01_l05_outro": {
@@ -133,13 +133,13 @@
       "subject": "stag",
       "cast": ["porteur", "sylwen", "brann"],
       "lines": [
-        {"act": {"subject": "rise"}, "fx": "sparkles:cfe6ff", "who": "narrateur", "subject_tint": "CFE6FF", "text": "La corruption s'échappe des bois du Cerf en volutes violettes. Il se relève, apaisé."},
-        {"act": {"subject": "glow"}, "cam": "zoom", "who": "cerf", "text": "Canalisateur… Le Sceau attendait une main comme la tienne. Il est à toi, désormais."},
+        {"act": {"subject": "rise"}, "fx": "wisps@subject:b07cff", "grade": "none", "who": "narrateur", "subject_tint": "CFE6FF", "text": "La corruption s'échappe des bois du Cerf en volutes violettes. Il se relève, apaisé."},
+        {"act": {"subject": "glow"}, "cam": "focus:subject", "grade": "cold", "who": "cerf", "text": "Canalisateur… Le Sceau attendait une main comme la tienne. Il est à toi, désormais."},
         {"act": {"porteur": "glow"}, "fx": ["beam@porteur:9ff0ff", "seal@porteur:9ff0ff", "white"], "cam": "focus:porteur", "who": "narrateur", "text": "Une lumière brûle ta paume, puis s'y grave : un cercle runique traversé d'une ligne. Le Sceau d'Écho."},
         {"effects": {"set": ["s1.sceau_echo"]}},
-        {"who": "cerf", "text": "Avec lui, tu entendras les échos du temps. Le dernier qui l'a porté a voulu tout réparer…"},
-        {"cam": "zoom_out", "who": "cerf", "mood": "triste", "text": "…et il a tout brisé. Ne l'oublie jamais."},
-        {"fx": "sparkles:cfe6ff", "cam": "reset", "who": "sylwen", "mood": "surpris", "subject": "", "text": "Il est parti… Un Sceau d'Écho ? Je croyais que ce n'était qu'une légende de Vigile."}
+        {"act": {"porteur": "echo"}, "cam": "reset", "who": "cerf", "text": "Avec lui, tu entendras les échos du temps. Le dernier qui l'a porté a voulu tout réparer…"},
+        {"cam": "pull", "grade": "dark", "who": "cerf", "mood": "triste", "text": "…et il a tout brisé. Ne l'oublie jamais."},
+        {"fx": "glitter@subject:cfe6ff", "cam": "reset", "grade": "none", "who": "sylwen", "mood": "surpris", "subject": "", "text": "Il est parti… Un Sceau d'Écho ? Je croyais que ce n'était qu'une légende de Vigile."}
       ]
     },
 

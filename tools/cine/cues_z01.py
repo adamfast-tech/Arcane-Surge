@@ -56,14 +56,18 @@ CUES = [
     ("z01_l04_outro", "Les fées causent BEAUCOUP", {"fx": "thorns@right:8a4aa8", "emote": {"sylwen": "note"}}),
     ("z01_l04_outro", "Ce martèlement.", {"fx": "hooves", "cam": "push"}),
     ("z01_l04_outro", "S'il a été touché par le Surge", {"grade": "cold", "cam": "reset"}),
-    # 1-5 : le Grand Cerf et le Sceau.
-    ("z01_l05_intro", "Un cerf immense jaillit", {"act": {"subject": "roar"}, "fx": "flash:d93cf2", "cam": "zoom"}),
-    ("z01_l05_intro", "Il baisse la tête", {"act": {"subject": "roar"}, "cam": ["shake", "reset"]}),
-    ("z01_l05_outro", "La corruption s'échappe", {"act": {"subject": "rise"}, "fx": "sparkles:cfe6ff"}),
-    ("z01_l05_outro", "Canalisateur… Le Sceau attendait", {"act": {"subject": "glow"}, "cam": "zoom"}),
+    # 1-5 : le Grand Cerf et le Sceau. Il jaillit des fougères, la lumière violette ruisselle de ses bois, les couloirs
+    # rouges de sa charge ; apaisé, la corruption s'échappe ; le Sceau se grave ; les échos du temps.
+    ("z01_l05_intro", "Un cerf immense jaillit", {"act": {"subject": "rise"}, "fx": ["ferns@ground", "drip@subject:b07cff"], "cam": "push", "grade": "violet"}),
+    ("z01_l05_intro", "Grand Cerf ! C'est nous", {"cam": "reset"}),
+    ("z01_l05_intro", "Il baisse la tête", {"act": {"subject": "roar"}, "fx": "lanes:ff4a3a", "grade": "red"}),
+    ("z01_l05_intro", "Brise sa corruption, pas son cœur", {"fx": "drip@subject:b07cff", "grade": "violet", "cam": "push"}),
+    ("z01_l05_outro", "La corruption s'échappe", {"act": {"subject": "rise"}, "fx": "wisps@subject:b07cff", "grade": "none"}),
+    ("z01_l05_outro", "Canalisateur… Le Sceau attendait", {"act": {"subject": "glow"}, "cam": "focus:subject", "grade": "cold"}),
     ("z01_l05_outro", "Une lumière brûle ta paume", {"act": {"porteur": "glow"}, "fx": ["beam@porteur:9ff0ff", "seal@porteur:9ff0ff", "white"], "cam": "focus:porteur"}),
-    ("z01_l05_outro", "…et il a tout brisé.", {"cam": "zoom_out"}),
-    ("z01_l05_outro", "Il est parti… Un Sceau d'Écho", {"fx": "sparkles:cfe6ff", "cam": "reset"}),
+    ("z01_l05_outro", "Avec lui, tu entendras les échos du temps", {"act": {"porteur": "echo"}, "cam": "reset"}),
+    ("z01_l05_outro", "…et il a tout brisé.", {"cam": "pull", "grade": "dark"}),
+    ("z01_l05_outro", "Il est parti… Un Sceau d'Écho", {"fx": "glitter@subject:cfe6ff", "cam": "reset", "grade": "none"}),
     # 1-6 : les fées sombres, le premier Écho.
     ("z01_l06_intro", "Des tireuses, des porte-boucliers", {"act": {"subject": "roar"}}),
     ("z01_l06_intro", "Et toi, surveille ton Sceau", {"act": {"porteur": "glow"}}),
