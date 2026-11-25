@@ -2148,15 +2148,15 @@ func _cine_ok() -> bool:
 				lines += 1
 		await _frames(2)
 		if _screen() is DialogueScreen:
-			max_actors = maxi(max_actors, ((_screen() as DialogueScreen).stage.get("_order") as Array).size())
+			max_actors = maxi(max_actors, ((_screen() as DialogueScreen).stage.get("_visible") as Array).size())
 		guard += 1
 	Profile.data["story"] = saved
-	if max_actors < 3:
-		errs.append("acteurs en scène : %d" % max_actors)
+	if max_actors != 2:
+		errs.append("personnages à l'écran : %d au plus (2 attendus)" % max_actors)
 	if not errs.is_empty():
 		push_error("cinématiques : %s" % [errs])
 		return false
-	print("cinématiques : %d répliques mises en scène · zone 1 jouée (%d répliques, %d acteurs au plus)" % [cued, lines, max_actors])
+	print("cinématiques : %d répliques mises en scène · zone 1 jouée (%d répliques, %d personnages à l'écran au plus)" % [cued, lines, max_actors])
 	return true
 
 

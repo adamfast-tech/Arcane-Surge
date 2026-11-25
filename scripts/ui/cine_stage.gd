@@ -27,6 +27,8 @@ const PRESENCE := ["cerf", "sylvarche", "voix", "wyrm", "mere_dragon", "leviatha
 ## Sujets de scène (sprites de combat) montrés par leur portrait.
 const SUBJECT_PORTRAIT := {"stag": "cerf", "sylvarche": "sylvarche", "pixie": "fee"}
 const MAX_FIGURES := 4
+## Deux personnages au plus à l'écran : celui qui parle et celui à qui il répond, un de chaque côté.
+const MAX_VISIBLE := 2
 
 ## Vocabulaire des indications (vérifié par tools/ui_smoke.gd).
 const CAMS := ["zoom", "zoom_out", "reset", "punch", "shake", "tremble", "pan_left", "pan_right", "pan_up", "push", "pull", "kick", "focus"]
@@ -56,6 +58,8 @@ var top_y := 0.0
 var px := 4.0 ## taille d'un pixel des effets
 var talking := false ## l'orateur parle (le texte s'écrit)
 var cast_fixed := false
+var hold := false ## carton-titre : plan d'ensemble, sans personnages
+var _visible: Array[String] = []
 
 var _t := 0.0
 var _scene_t := 0.0
@@ -259,6 +263,7 @@ func begin_scene(sc: Dictionary) -> void:
 		(_figs[id]["rect"] as TextureRect).queue_free()
 	_figs.clear()
 	_order.clear()
+	_visible.clear()
 	_speaker = ""
 	_fx.clear()
 	_parts.clear()
@@ -286,7 +291,8 @@ func begin_scene(sc: Dictionary) -> void:
 			side = -1.0
 		elif str(cd.get("side", "")) == "right":
 			side = 1.0
-		_add_fig(Dialogues.resolve_who(str(cd["id"])), side, bool(cd.get("hidden", false)))
+		if _visible.size() < MAX_VISIBLE and not bool(cd.get("hidden", false)):
+			_show_fig(Dialogues.resolve_who(str(cd["id"])), side)
 	if sc.has("cam"):
 		for c in _list(sc["cam"]):
 			_camera(c)
@@ -381,14 +387,10 @@ func speak(who: String, mood: String) -> void:
 			set_subject("portrait:" + who)
 		_pres["mood"] = mood
 		return
+	_show_fig(who, 0.0)
 	if not _figs.has(who):
-		if cast_fixed and _order.size() >= MAX_FIGURES:
-			return
-		_add_fig(who, 0.0, false)
+		return
 	var f: Dictionary = _figs[who]
-	if bool(f["hidden"]):
-		f["hidden"] = false
-		f["ex"] = 0.0
 	var before := str(f["mood"])
 	f["mood"] = mood
 	(f["rect"] as TextureRect).move_to_front()
@@ -442,8 +444,10 @@ func play_cues(l: Dictionary) -> void:
 				_subject_act(what)
 				_last_anchor = "subject"
 			else:
-				if not _figs.has(w) and PortraitArt.has_portrait(w) and not (w in PRESENCE) and what != "exit":
-					_add_fig(w, 0.0, false)
+				if what != "exit":
+					_show_fig(w, 0.0)
+				else:
+					_visible.erase(w)
 				if _figs.has(w):
 					_act(w, what)
 					_last_anchor = w
@@ -629,7 +633,7 @@ func _effect(spec: String) -> void:
 			ey["pts"] = pairs
 		"veins":
 			# La corruption rampe : des veines violettes se ramifient sur le sol depuis le repère.
-			var vn := _add_fx("veins", anchor if anchor != "auto" else "ground", col if col_s != "" else Color("b07cff"), "light", 4.0)
+			var vn := _add_fx("veins", anchor if anchor != "auto" else "ground", col if col_s != "" else Color("b07cff"), "back", 4.0)
 			var branches: Array = []
 			for i in range(8):
 				var dir := -1.0 if i % 2 == 0 else 1.0
@@ -675,7 +679,7 @@ func _effect(spec: String) -> void:
 			_kick_impulse(8.0)
 		"roots":
 			# Racines qui se tordent : elles sortent du sol par les côtés et rampent vers le centre.
-			var rt := _add_fx("roots", anchor if anchor != "auto" else "ground", col if col_s != "" else Color("5a3a2a"), "front", 4.5)
+			var rt := _add_fx("roots", anchor if anchor != "auto" else "ground", col if col_s != "" else Color("5a3a2a"), "back", 4.5)
 			var rs2 := PackedVector2Array()
 			for i in range(6):
 				rs2.append(Vector2(-1.0 if i % 2 == 0 else 1.0, randf_range(0.0, 1.0)))
@@ -772,23 +776,40 @@ func _add_fx(kind: String, anchor: String, col: Color, layer: String, dur: float
 
 # ---------------------------------------------------------------- personnages
 
+## Met un personnage en scène. S'il y en a déjà deux, le plus ancien sort ; le nouveau prend le côté libre
+## (le héros à gauche, les autres à droite, de préférence).
+func _show_fig(id: String, side_pref: float) -> void:
+	if id == "" or not PortraitArt.has_portrait(id) or id in PRESENCE:
+		return
+	if _visible.has(id) and _figs.has(id) and float(_figs[id]["xt"]) < 0.0:
+		_visible.erase(id)
+		_visible.append(id)
+		return
+	_visible.erase(id)
+	while _visible.size() >= MAX_VISIBLE:
+		var old: String = _visible[0]
+		_visible.remove_at(0)
+		if _figs.has(old):
+			_figs[old]["xt"] = 0.0
+	var side := side_pref
+	if side == 0.0:
+		side = -1.0 if id == "porteur" else 1.0
+	if _visible.size() == 1 and _figs.has(_visible[0]) and float(_figs[_visible[0]]["side"]) == side:
+		side = -side
+	if _figs.has(id):
+		# Il sortait : on le remplace par une entrée neuve.
+		(_figs[id]["rect"] as TextureRect).queue_free()
+		_figs.erase(id)
+		_order.erase(id)
+	_add_fig(id, side, false)
+	_visible.append(id)
+
+
 func _add_fig(id: String, side: float, hidden: bool) -> void:
 	if id == "" or _figs.has(id) or not PortraitArt.has_portrait(id) or id in PRESENCE:
 		return
-	if _order.size() >= MAX_FIGURES:
-		# Plus de place : le plus ancien personnage silencieux quitte la scène.
-		for old in _order:
-			if old != _speaker and float(_figs[old]["xt"]) < 0.0:
-				_act(old, "exit")
-				break
 	if side == 0.0:
 		side = -1.0 if id == "porteur" else 1.0
-		var n_side := 0
-		for o in _order:
-			if float(_figs[o]["side"]) == side:
-				n_side += 1
-		if n_side >= 2:
-			side = -side
 	var r := TextureRect.new()
 	r.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	r.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -980,23 +1001,18 @@ func _update_camera(delta: float) -> void:
 
 
 func _fig_scale() -> float:
-	return clampf(floorf(minf(_sh() * 1.0, size.x * 0.5) / 64.0), 2.0, 10.0)
-
-
-## Places : chaque côté a une place extérieure et une place intérieure, dans l'ordre d'arrivée.
-func _reflow() -> void:
-	var counts := {-1.0: 0, 1.0: 0}
 	var narrow := size.x < size.y
+	return clampf(floorf(minf(_sh() * (0.62 if narrow else 0.95), size.x * (0.46 if narrow else 0.3)) / 64.0), 2.0, 10.0)
+
+
+## Places : une par côté ; avec une créature au centre, les bustes s'écartent vers les bords.
+func _reflow() -> void:
+	var narrow := size.x < size.y
+	var x := 0.25 if narrow else (0.16 if not _pres.is_empty() else 0.22)
 	for id in _order:
 		var f: Dictionary = _figs[id]
-		var side := float(f["side"])
-		var i := int(counts[side])
-		counts[side] = i + 1
-		var outer := 0.22 if narrow else 0.16
-		var inner := 0.42 if narrow else 0.31
-		var x := outer if i == 0 else inner
-		f["slot"] = x if side < 0.0 else 1.0 - x
-		f["rank"] = i
+		f["slot"] = x if float(f["side"]) < 0.0 else 1.0 - x
+		f["rank"] = 0
 
 
 func _update_figures(delta: float) -> void:
@@ -1040,7 +1056,13 @@ func _update_figures(delta: float) -> void:
 				r.queue_free()
 				_figs.erase(id)
 				_order.erase(id)
+				_visible.erase(id)
 				continue
+		if hold:
+			# Plan d'ensemble (carton-titre) : les personnages entreront après.
+			r.visible = false
+			f["ex"] = 0.0
+			continue
 		# L'orateur s'avance dans la lumière, les autres reculent dans l'ombre.
 		var lit: bool = speaking or _speaker == "" or not _figs.has(_speaker)
 		f["dark"] = lerpf(float(f["dark"]), 0.0 if lit else 0.55, clampf(delta * 6.0, 0.0, 1.0))
@@ -1097,14 +1119,15 @@ func _update_figures(delta: float) -> void:
 					d = 1.0
 				elif at < 0.62:
 					d = 1.0 - _ease_in_out((at - 0.32) / 0.3)
-				dx += toward * size.x * 0.17 * d
-				rot += toward * 0.07 * d
+				var foe := not _pres.is_empty()
+				dx += toward * size.x * (0.12 if foe else 0.05) * d
+				rot += toward * (0.06 if foe else 0.03) * d
 				if at < 0.2:
 					f["ghost_t"] = float(f["ghost_t"]) - delta
 					if float(f["ghost_t"]) <= 0.0:
 						f["ghost_t"] = 0.035
 						_spawn_ghost(r, f["glow_col"])
-				if at >= 0.16 and not bool(f["slashed"]):
+				if at >= 0.16 and not bool(f["slashed"]) and not _pres.is_empty():
 					f["slashed"] = true
 					var hit := Vector2(tx + dx + toward * fs.x * 0.45, ground_y - fs.y * 0.45)
 					var s := _add_fx("slash", "", Color.WHITE, "light", 0.45)
@@ -1193,7 +1216,12 @@ func _update_presence(delta: float) -> void:
 	var sh := _sh()
 	var tw := float(subject.texture.get_width())
 	var th := float(subject.texture.get_height())
-	var k := clampf(floorf(minf(sh * 1.15, size.x * 0.62) / th), 2.0, 14.0) if pid != "" else clampf(floorf(sh * 0.42 / th), 2.0, 24.0)
+	var narrow := size.x < size.y
+	var k := 2.0
+	if pid != "":
+		k = clampf(floorf(minf(sh * (0.6 if narrow else 1.0), size.x * (0.78 if narrow else 0.4)) / th), 2.0, 14.0)
+	else:
+		k = clampf(floorf(sh * (0.3 if narrow else 0.42) / th), 2.0, 24.0)
 	var fs := Vector2(tw, th) * k
 	if pid != "":
 		var talk := _mouth if _speaker == pid else 0
@@ -1242,7 +1270,11 @@ func _update_presence(delta: float) -> void:
 				return
 		"rise":
 			sc *= lerpf(0.94, 1.0, clampf(at / 0.8, 0.0, 1.0))
-	var bottom := Vector2(size.x * 0.5 + dx, ground_y + (fs.y * 0.1 if pid != "" else -sh * 0.04) + dy)
+	# Sur un écran en hauteur, la créature se tient au-dessus des bustes (dans le ciel du décor), sinon au centre.
+	var base_y := ground_y + (fs.y * 0.1 if pid != "" else -sh * 0.04)
+	if narrow:
+		base_y = ground_y - _fig_scale() * 64.0 * 0.62
+	var bottom := Vector2(size.x * 0.5 + dx, base_y + dy)
 	var b2 := _cam_point(bottom, 0.7)
 	var cs := 1.0 + (_cam_s - 1.0) * 0.7
 	subject.size = fs
@@ -1839,6 +1871,8 @@ func _draw_emote(ci: CanvasItem, em: Dictionary, k: float) -> void:
 	var big := 0.0
 	if _figs.has(who):
 		var f: Dictionary = _figs[who]
+		if hold or bool(f["hidden"]) or float(f["xt"]) >= 0.0:
+			return
 		var toward := -float(f["side"])
 		big = float(f.get("S", _fig_scale() * 64.0))
 		base = (f.get("bottom", f["head"]) as Vector2) + Vector2(toward * sp.x * big, sp.y * big)

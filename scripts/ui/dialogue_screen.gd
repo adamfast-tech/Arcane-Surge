@@ -260,6 +260,7 @@ func _load_scene(id: String) -> void:
 	if id == "prologue" or id.ends_with("_intro"):
 		stage.title_card.call_deferred(title_label.text)
 		_hold = 2.2
+		stage.hold = true
 
 
 func _scene_title(id: String, sc: Dictionary) -> String:
@@ -525,6 +526,7 @@ func _skip() -> void:
 	if _waiting_choice or _overlay_open or _done:
 		return
 	_hold = 0.0
+	stage.hold = false
 	stage.end_title()
 	panel.visible = true
 	panel.modulate.a = 1.0
@@ -539,6 +541,7 @@ func _skip() -> void:
 				return
 			_load_scene(scenes[_scene_i])
 			_hold = 0.0
+			stage.hold = false
 			continue
 		var l: Dictionary = _queue.pop_front()
 		if not Story.check(l):
@@ -599,6 +602,7 @@ func _unhandled_input(ev: InputEvent) -> void:
 ## Fin du carton-titre : le panneau revient, la première réplique commence.
 func _end_hold() -> void:
 	_hold = 0.0
+	stage.hold = false
 	stage.end_title()
 	panel.visible = true
 	panel.modulate.a = 0.0
