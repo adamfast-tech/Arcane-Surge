@@ -32,7 +32,7 @@
         {"fx": "flash:b07cff", "cam": "shake", "who": "ancien", "mood": "surpris", "text": "Debout ! Le ciel est devenu violet au-dessus du bois… Le Surge frappe Lysbourg !"},
         {"cam": "pan_right", "who": "ancien", "mood": "triste", "text": "Un Nexus a germé près du vieux pont. Ses créatures marchent déjà sur le village."},
         {"fx": "sparkles:4fe3d2", "cam": "reset", "who": "porteur", "mood": "colere", "text": "Je peux les arrêter. Le Surge n'est qu'une énergie de plus : il suffit de la canaliser."},
-        {"act": {"act": {"porteur": "glow"}, "porteur": "glow"}, "who": "ancien", "text": "Alors canalise ! Les portes runiques du chemin amplifieront ton flux. Vise-les !"},
+        {"act": {"porteur": "glow"}, "who": "ancien", "text": "Alors canalise ! Les portes runiques du chemin amplifieront ton flux. Vise-les !"},
         {"act": {"porteur": "exit"}, "cam": "punch", "who": "ancien", "mood": "colere", "text": "Et tant que la Barrière tient, le village tient. Va !"}
       ]
     },
@@ -40,7 +40,7 @@
       "art": "lysbourg",
       "cast": ["porteur"],
       "lines": [
-        {"fx": "sparkles:f2c46b", "act": {"fx": "sparkles:f2c46b", "act": {"porteur": "hop"}, "porteur": "hop"}, "who": "ancien", "mood": "joie", "text": "Le Nexus s'est brisé ! Par les Veines… tu as sauvé Lysbourg."},
+        {"fx": "sparkles:f2c46b", "act": {"porteur": "hop"}, "who": "ancien", "mood": "joie", "text": "Le Nexus s'est brisé ! Par les Veines… tu as sauvé Lysbourg."},
         {"cam": "pan_right", "who": "ancien", "mood": "triste", "text": "Mais regarde la forêt : les lueurs violettes s'étendent. Ce n'était qu'une première vague."},
         {"who": "ancien", "text": "Les Vigiles Sylvestres gardent le Bois. Tu les trouveras sur le Sentier des Lucioles."}
       ]
@@ -50,7 +50,7 @@
       "art": "foret",
       "cast": ["porteur"],
       "lines": [
-        {"cam": "punch", "act": {"cam": "punch", "act": {"porteur": "hurt"}, "porteur": "hurt"}, "who": "sylwen", "mood": "colere", "text": "Halte ! Un pas de plus et… Oh. C'est toi qui as brisé le Nexus de Lysbourg ?"},
+        {"cam": "punch", "act": {"porteur": "hurt"}, "who": "sylwen", "mood": "colere", "text": "Halte ! Un pas de plus et… Oh. C'est toi qui as brisé le Nexus de Lysbourg ?"},
         {"who": "sylwen", "text": "Je suis Sylwen, des Vigiles Sylvestres. Le Bois souffre depuis trois nuits."},
         {"fx": "sparkles:fff3b0", "who": "sylwen", "text": "Les lucioles fuient le Surge. Fais passer ton flux à travers elles : elles te rendront du mana."},
         {"who": "sylwen", "mood": "joie", "text": "Je couvre ton flanc droit. Mes flèches iront où ta magie ne va pas."}
@@ -72,7 +72,7 @@
       "lines": [
         {"act": {"brann": "attack"}, "cam": "shake", "who": "brann", "mood": "colere", "text": "Enfin des renforts ! Je tiens cette clairière depuis l'aube, avec mon bouclier et ma mauvaise humeur."},
         {"who": "brann", "text": "Brann Forgecœur, du Bastion d'Argent. Un nain ne fuit jamais, mais un nain apprécie qu'on l'aide."},
-        {"act": {"act": {"brann": "hurt"}, "brann": "hurt"}, "who": "sylwen", "mood": "joie", "text": "Il ronfle. Toute la nuit. Les sangliers ont fui la clairière à cause de lui, pas du Surge."},
+        {"act": {"brann": "hurt"}, "who": "sylwen", "mood": "joie", "text": "Il ronfle. Toute la nuit. Les sangliers ont fui la clairière à cause de lui, pas du Surge."},
         {"cam": "punch", "who": "brann", "mood": "colere", "text": "Je ne ronfle pas, l'elfe. Je respire avec conviction."},
         {"choice": "z01_l03", "prompt": "Brann et Sylwen te regardent.", "options": [
           {"key": "A", "text": "« Respirer avec conviction, c'est tout un art. »", "effects": {"add": {"loy.brann": 3}},
@@ -99,7 +99,7 @@
       "cast": ["porteur", "sylwen", "brann"],
       "lines": [
         {"act": {"subject": "glow"}, "fx": "sparkles:ff9bf0", "who": "sylwen", "text": "Les fées sont nées de la magie pure des Veines. Le Surge les rend folles… et sombres."},
-        {"act": {"act": {"subject": "roar"}, "subject": "roar"}, "who": "sylwen", "mood": "triste", "text": "Leurs ronces ont maudit certaines portes : elles retirent des invocations au lieu d'en ajouter."},
+        {"act": {"subject": "roar"}, "who": "sylwen", "mood": "triste", "text": "Leurs ronces ont maudit certaines portes : elles retirent des invocations au lieu d'en ajouter."},
         {"act": {"porteur": "glow"}, "fx": "sparkles:fff3b0", "who": "brann", "text": "Ton sort Purifier nettoie une porte maudite. Et pour changer notre tactique, donne-nous un ordre."},
         {"who": "brann", "mood": "joie", "text": "Je ne mords pas. Enfin, rarement."}
       ]
@@ -145,9 +145,9 @@
       "subject": "pixie",
       "cast": ["porteur", "sylwen", "brann"],
       "lines": [
-        {"act": {"act": {"subject": "roar"}, "subject": "roar"}, "who": "sylwen", "mood": "surpris", "text": "Des tireuses, des porte-boucliers… Les fées sombres s'organisent. C'est nouveau."},
+        {"act": {"subject": "roar"}, "who": "sylwen", "mood": "surpris", "text": "Des tireuses, des porte-boucliers… Les fées sombres s'organisent. C'est nouveau."},
         {"who": "brann", "text": "Les boucliers, je m'en charge. Les machins qui volent, c'est ton affaire, l'elfe."},
-        {"act": {"act": {"porteur": "glow"}, "porteur": "glow"}, "who": "sylwen", "text": "Et toi, surveille ton Sceau. S'il s'éveille pendant le combat… écoute-le."}
+        {"act": {"porteur": "glow"}, "who": "sylwen", "text": "Et toi, surveille ton Sceau. S'il s'éveille pendant le combat… écoute-le."}
       ]
     },
     "z01_l06_outro": {
@@ -177,7 +177,7 @@
       "cast": ["porteur", "sylwen", "brann"],
       "lines": [
         {"fx": ["white", "sparkles:ffd070"], "who": "narrateur", "text": "La flamme de la Lanterne avale le Nexus. Le vieux pont s'illumine d'une lueur dorée."},
-        {"cam": "zoom", "act": {"cam": "zoom", "act": {"sylwen": "jump"}, "sylwen": "jump"}, "who": "sylwen", "mood": "surpris", "text": "Regardez, au loin, au-delà des montagnes… Cette tour, sous le croissant de lune."},
+        {"cam": "zoom", "act": {"sylwen": "jump"}, "who": "sylwen", "mood": "surpris", "text": "Regardez, au loin, au-delà des montagnes… Cette tour, sous le croissant de lune."},
         {"who": "brann", "mood": "triste", "text": "La Tour du Croissant. Mon grand-père disait qu'on ne la voyait jamais d'ici. Jamais."},
         {"cam": "zoom_out", "who": "sylwen", "mood": "triste", "text": "Elle se rapproche… ou c'est le monde qui rétrécit."}
       ]
@@ -189,7 +189,7 @@
       "lines": [
         {"cam": "pan_right", "who": "sylwen", "mood": "triste", "text": "La Source des Lucioles… Elle nourrissait tout le Bois. Le Surge l'a scellée de runes noires."},
         {"who": "sylwen", "text": "Purifie les deux sceaux pour atteindre le Nexus. Et abats d'abord les dryades : elles le soignent."},
-        {"act": {"act": {"brann": "attack"}, "brann": "attack"}, "who": "brann", "mood": "joie", "text": "Toi, tu purifies avec la Lumière. Moi, je tape. Chacun sa façon de purifier."}
+        {"act": {"brann": "attack"}, "who": "brann", "mood": "joie", "text": "Toi, tu purifies avec la Lumière. Moi, je tape. Chacun sa façon de purifier."}
       ]
     },
     "z01_l08_outro": {
@@ -220,7 +220,7 @@
       "subject_tint": "FFE4F6",
       "cast": ["porteur", "sylwen", "brann"],
       "lines": [
-        {"fx": "flash:d93cf2", "cam": "shake", "act": {"fx": "flash:d93cf2", "cam": "shake", "act": {"subject": "rise"}, "subject": "rise"}, "who": "narrateur", "text": "Les Nexus s'effondrent. Derrière eux, des cages de ronces : des dizaines de fées, pâles et captives."},
+        {"fx": "flash:d93cf2", "cam": "shake", "act": {"subject": "rise"}, "who": "narrateur", "text": "Les Nexus s'effondrent. Derrière eux, des cages de ronces : des dizaines de fées, pâles et captives."},
         {"who": "fee", "mood": "triste", "text": "Aidez-nous… La Sylvarche boit notre lumière. Chaque instant nous éteint un peu plus…"},
         {"who": "brann", "text": "Si on s'arrête pour les libérer, la Sylvarche aura le temps de s'enraciner. Elle sera plus forte."},
         {"who": "sylwen", "mood": "triste", "text": "Et si on les laisse, elles mourront. Je… je ne sais pas. C'est à toi de décider."},
@@ -232,8 +232,8 @@
            ]},
           {"key": "B", "text": "Poursuivre la Sylvarche", "effects": {"set": ["s1.sylvarche_poursuivie"]},
            "then": [
-             {"act": {"act": {"brann": "exit"}, "brann": "exit"}, "who": "brann", "text": "On fonce. Désolé, les minuscules : on revient vous chercher après."},
-             {"act": {"act": {"subject": "fall"}, "subject": "fall"}, "who": "fee", "mood": "triste", "text": "Après… il sera trop tard…"},
+             {"act": {"brann": "exit"}, "who": "brann", "text": "On fonce. Désolé, les minuscules : on revient vous chercher après."},
+             {"act": {"subject": "fall"}, "who": "fee", "mood": "triste", "text": "Après… il sera trop tard…"},
              {"who": "sylwen", "mood": "triste", "text": "…Allons-y. Vite."}
            ]}
         ]}
@@ -245,12 +245,12 @@
       "subject": "sylvarche",
       "cast": ["porteur", "sylwen", "brann"],
       "lines": [
-        {"fx": "fade", "cam": "zoom_out", "act": {"fx": "fade", "cam": "zoom_out", "act": {"subject": "rise"}, "subject": "rise"}, "who": "narrateur", "text": "Au centre de la forêt se dresse la Sylvarche. Son écorce suinte de violet, ses racines labourent la terre."},
+        {"fx": "fade", "cam": "zoom_out", "act": {"subject": "rise"}, "who": "narrateur", "text": "Au centre de la forêt se dresse la Sylvarche. Son écorce suinte de violet, ses racines labourent la terre."},
         {"who": "sylwen", "mood": "triste", "text": "Mentore… C'est moi, Sylwen. Tu m'entends ?"},
         {"act": {"subject": "roar"}, "fx": "flash:d93cf2", "cam": "tremble", "who": "sylvarche", "mood": "triste", "text": "Sylwen… petite pousse… Le Surge chante si fort… Je ne veux plus… avoir mal…"},
         {"fx": "sparkles:ffe4f6", "who": "fee", "mood": "joie", "if": "s1.fees_liberees", "text": "Nous sommes là, comme promis ! Nos lueurs protégeront ta Barrière et nourriront ta magie !"},
         {"who": "brann", "if": "s1.sylvarche_poursuivie", "mood": "colere", "text": "Elle n'a pas fini de s'enraciner ! Frappe maintenant, tant qu'elle est faible !"},
-        {"fx": "embers", "act": {"fx": "embers", "act": {"brann": "attack"}, "brann": "attack"}, "who": "brann", "mood": "colere", "text": "Son écorce ne craint que le feu. Les portails de feu, là ! Et brûle les fleurs qui la soignent !"},
+        {"fx": "embers", "act": {"brann": "attack"}, "who": "brann", "mood": "colere", "text": "Son écorce ne craint que le feu. Les portails de feu, là ! Et brûle les fleurs qui la soignent !"},
         {"who": "sylwen", "text": "Brise sa corruption… Ensuite, nous verrons ce qu'il reste à sauver."}
       ]
     },
@@ -280,7 +280,7 @@
            "then": [
              {"act": {"brann": "attack"}, "fx": "white", "cam": "shake", "who": "narrateur", "subject": "", "text": "Brann frappe, encore et encore. Le vieux tronc gémit une dernière fois, puis se tait."},
              {"who": "sylwen", "mood": "triste", "text": "…"},
-             {"act": {"act": {"sylwen": "exit"}, "sylwen": "exit"}, "who": "sylwen", "mood": "colere", "text": "Tu as fait ton choix. J'ai besoin de marcher un peu. Seule."},
+             {"act": {"sylwen": "exit"}, "who": "sylwen", "mood": "colere", "text": "Tu as fait ton choix. J'ai besoin de marcher un peu. Seule."},
              {"who": "fee", "if": "s1.fees_liberees", "mood": "triste", "text": "Tu nous as sauvées, nous… Sylwen s'en souviendra aussi. Laisse-lui du temps."},
              {"who": "brann", "text": "Elle reviendra. Tiens : sa première branche tombée. Le bâton le plus puissant que j'aie jamais vu."}
            ]}

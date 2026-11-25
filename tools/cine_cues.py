@@ -28,7 +28,8 @@ for sid, snip, cues in m.CUES:
     n = block.count(snip)
     assert n == 1, (sid, snip, n)
     i = block.index(snip)
-    o = block.rfind('{"', 0, i)
+    # Une réplique par ligne : son objet commence au premier « { » de la ligne.
+    o = block.index('{', block.rfind('\n', 0, i) + 1)
     obj_end = block.index('\n', i)
     if any(('"%s":' % k) in block[o:obj_end] for k in cues):
         continue
