@@ -31,7 +31,7 @@ const MAX_FIGURES := 4
 ## Vocabulaire des indications (vérifié par tools/ui_smoke.gd).
 const CAMS := ["zoom", "zoom_out", "reset", "punch", "shake", "tremble", "pan_left", "pan_right", "pan_up", "push", "pull", "kick", "focus"]
 const FXS := ["flash", "white", "fade", "lightning", "sparkles", "embers", "bloom", "ring", "rays", "bolt", "beam", "crack",
-	"seal", "spiral", "flux", "gate", "arrow", "swarm", "clang", "steam", "thorns", "glitter", "hooves", "drip", "ferns", "lanes", "timestop",
+	"seal", "spiral", "flux", "gate", "arrow", "swarm", "clang", "steam", "thorns", "glitter", "hooves", "drip", "ferns", "lanes", "timestop", "flicker", "wind", "eyes",
 	"slash", "wisps", "charge", "burst", "leaves", "dust", "shock"]
 const ACTS := ["jump", "hop", "shake", "hurt", "attack", "droop", "kneel", "glow", "fall", "exit", "enter", "rise", "turn", "step", "cast", "echo"]
 const SUBJECT_ACTS := ["roar", "hit", "fall", "glow", "rise", "fade", "appear"]
@@ -601,6 +601,30 @@ func _effect(spec: String) -> void:
 				bands.append(Vector2(randf(), randf_range(1.0, 5.0)))
 			ts["pts"] = bands
 			_fx_set(_add_fx("ring", anchor, col if col_s != "" else Color("9ff0ff"), "light", 2.4), "R", sh * 1.2)
+		"flicker":
+			# Flamme fragile (la Lanterne) : un halo chaud qui vacille, des étincelles qui montent.
+			var fl := _add_fx("flicker", anchor, col if col_s != "" else Color("ffc860"), "light", 4.5)
+			fl["r"] = sh * 0.3
+			var fs2 := _add_fx("emit_embers_at", anchor, col if col_s != "" else Color("ffc860"), "light", 4.5)
+			fs2["rate"] = 10.0
+		"wind":
+			# Coup de vent : des traînées traversent l'écran ; la flamme et les feuilles ploient.
+			var wd := _add_fx("wind", anchor, Color("d8e8ff"), "front", 1.6)
+			var streaks := PackedVector2Array()
+			for i in range(14):
+				streaks.append(Vector2(randf(), randf_range(0.0, 0.5)))
+			wd["pts"] = streaks
+			for f in _fx:
+				if str(f["kind"]) == "flicker":
+					f["gust"] = 1.0
+		"eyes":
+			# Embuscade : des paires d'yeux s'allument dans les fourrés, sur les flancs.
+			var ey := _add_fx("eyes", anchor, col if col_s != "" else Color("ff5a3a"), "light", 3.5)
+			var pairs := PackedVector2Array()
+			for i in range(6):
+				var left := i % 2 == 0
+				pairs.append(Vector2(randf_range(0.02, 0.2) if left else randf_range(0.8, 0.98), randf_range(0.45, 0.85)))
+			ey["pts"] = pairs
 		"hooves":
 			# Martèlement au loin : le sol bat, la poussière saute, à intervalles réguliers.
 			var hv := _add_fx("hooves", "ground", Color("d8c8b0"), "back", 3.2)
@@ -1101,7 +1125,7 @@ func _update_presence(delta: float) -> void:
 	var sh := _sh()
 	var tw := float(subject.texture.get_width())
 	var th := float(subject.texture.get_height())
-	var k := clampf(floorf(minf(sh * 1.15, size.x * 0.62) / th), 2.0, 14.0) if pid != "" else clampf(floorf(sh * 0.5 / th), 2.0, 12.0)
+	var k := clampf(floorf(minf(sh * 1.15, size.x * 0.62) / th), 2.0, 14.0) if pid != "" else clampf(floorf(sh * 0.42 / th), 2.0, 24.0)
 	var fs := Vector2(tw, th) * k
 	if pid != "":
 		var talk := _mouth if _speaker == pid else 0
@@ -1232,6 +1256,9 @@ func _emit(e: Dictionary) -> void:
 			var p3 := c + Vector2(randf_range(-1.0, 1.0) * hs, randf_range(-1.0, 1.0) * hs)
 			_part({"p": p3, "v": Vector2(randf_range(-10, 10), randf_range(-70, -30)), "max": randf_range(1.0, 1.8), "col": col.lightened(0.3),
 				"size": 1.0 if randf() < 0.6 else 2.0, "layer": "light", "sway": 12.0, "kind": "sq"})
+		"emit_embers_at":
+			_part({"p": c + Vector2(randf_range(-1.0, 1.0) * sh * 0.05, -sh * 0.05), "v": Vector2(randf_range(-12, 12), randf_range(-60, -30)),
+				"max": randf_range(0.8, 1.4), "col": col.lerp(Color.WHITE, randf() * 0.4), "size": 1.0, "layer": "light", "sway": 10.0, "kind": "sq"})
 		"emit_drip":
 			var top := c + Vector2(randf_range(-1.0, 1.0) * sh * 0.3, -sh * randf_range(0.25, 0.45))
 			_part({"p": top, "v": Vector2(0.0, randf_range(10, 30)), "max": randf_range(0.9, 1.4), "col": col.lightened(0.2), "size": 1.0,
@@ -1515,6 +1542,39 @@ func _draw_fx(ci: CanvasItem, e: Dictionary, k: float) -> void:
 				if on:
 					ci.draw_rect(Rect2(off2, by, W, bd.y), Color(col, a13 * 0.13))
 					ci.draw_rect(Rect2(off2 + W * 0.1 * float(i % 3), by, W * 0.25, 1.0), Color(Color.WHITE, a13 * 0.35))
+		"flicker":
+			var gust := float(e.get("gust", 0.0))
+			e["gust"] = maxf(0.0, gust - 0.016)
+			var fa := minf(1.0, t / 0.4) * minf(1.0, (dur - t) / 0.6)
+			var jit := 0.85 + 0.1 * sin(_t * 17.0) + 0.06 * sin(_t * 31.0) - gust * 0.45
+			var fr := float(e["r"]) * k * jit
+			for i in range(6):
+				var fq := 1.0 - float(i) / 6.0
+				ci.draw_circle(c + Vector2(gust * 6.0 * fq, 0.0), fr * fq, Color(col, fa * 0.11))
+			ci.draw_circle(c, fr * 0.12, Color(Color("fff6d0"), fa * 0.7 * jit))
+		"wind":
+			var st3: PackedVector2Array = e["pts"]
+			var W2 := size.x * k
+			var H2 := _sh() * k
+			for i in range(st3.size()):
+				var sd3 := st3[i]
+				var sx := fmod(sd3.x * W2 + t * W2 * (0.9 + sd3.y), W2 * 1.3) - W2 * 0.15
+				var sy2 := H2 * (0.15 + 0.7 * fmod(sd3.x * 7.3, 1.0)) + sin(t * 6.0 + float(i)) * 3.0
+				var ln2 := W2 * (0.06 + 0.06 * sd3.y)
+				ci.draw_line(Vector2(sx, sy2).floor(), Vector2(sx - ln2, sy2 + 1.0).floor(), Color(col, (1.0 - u) * 0.45), 1.0)
+		"eyes":
+			var pr: PackedVector2Array = e["pts"]
+			var a14 := minf(1.0, (dur - t) / 0.5)
+			for i in range(pr.size()):
+				var on2 := clampf((t - 0.25 * float(i)) / 0.3, 0.0, 1.0)
+				var blink2 := fmod(t + float(i) * 0.7, 2.3) < 0.12
+				if on2 <= 0.0 or blink2:
+					continue
+				var ep := Vector2(pr[i].x * size.x, top_y + pr[i].y * _sh()) * k
+				var ec2 := Color(col, a14 * on2)
+				ci.draw_circle(ep + Vector2(3.0, 0.5), 6.0, Color(col, a14 * on2 * 0.18))
+				ci.draw_rect(Rect2(ep.floor(), Vector2(2, 1)), ec2)
+				ci.draw_rect(Rect2(ep.floor() + Vector2(5, 0), Vector2(2, 1)), ec2)
 		"lanes":
 			var xs: PackedVector2Array = e["pts"]
 			var gy := (_anchor_pos("ground") * k).y

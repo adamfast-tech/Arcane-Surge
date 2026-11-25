@@ -76,13 +76,15 @@ CUES = [
     ("z01_l06_outro", "Encore un Porteur…", {"fx": "wisps@subject:6a3aa8", "grade": "dark", "cam": "reset"}),
     ("z01_l06_outro", "Hé ! Ton visage a perdu", {"subject": "", "grade": "none"}),
     ("z01_l06_outro", "Les Échos sont des fragments", {"cam": "reset"}),
-    # 1-7 : la Lanterne de l'Aube, la Tour du Croissant.
-    ("z01_l07_intro", "Les villageois portent la Lanterne", {"act": {"subject": "glow"}, "fx": "sparkles:ffd070"}),
-    ("z01_l07_intro", "Mais elle est fragile.", {"cam": "zoom"}),
-    ("z01_l07_intro", "Des embuscades viendront des flancs", {"cam": ["reset", "pan_left"]}),
-    ("z01_l07_outro", "La flamme de la Lanterne", {"fx": ["white", "sparkles:ffd070"]}),
-    ("z01_l07_outro", "Regardez, au loin", {"cam": "zoom", "act": {"sylwen": "jump"}}),
-    ("z01_l07_outro", "Elle se rapproche…", {"cam": "zoom_out"}),
+    # 1-7 : la Lanterne de l'Aube (flamme fragile, coup de vent), l'embuscade dans les fourrés ; la Tour du Croissant.
+    ("z01_l07_intro", "Les villageois portent la Lanterne", {"fx": "flicker@subject", "grade": "night"}),
+    ("z01_l07_intro", "Mais elle est fragile.", {"fx": "wind", "emote": {"porteur": "drop"}}),
+    ("z01_l07_intro", "Escorter une lanterne.", {"cam": "focus:brann"}),
+    ("z01_l07_intro", "Des embuscades viendront des flancs", {"fx": "eyes", "cam": "reset", "grade": "dark"}),
+    ("z01_l07_outro", "La flamme de la Lanterne", {"fx": ["bloom@center:ffd070", "rays@center:ffd070"], "grade": "warm"}),
+    ("z01_l07_outro", "Regardez, au loin", {"fx": "bloom@sky:c8b8ff", "cam": "focus:sky", "grade": "cold"}),
+    ("z01_l07_outro", "La Tour du Croissant. Mon grand-père", {"grade": "cold"}),
+    ("z01_l07_outro", "Elle se rapproche…", {"cam": "pull", "grade": "dark"}),
     # 1-8 : la Source des Lucioles.
     ("z01_l08_intro", "La Source des Lucioles…", {"cam": "pan_right"}),
     ("z01_l08_intro", "Toi, tu purifies avec la Lumière", {"act": {"brann": "attack"}}),

@@ -169,20 +169,20 @@
       "subject": "lantern",
       "cast": ["porteur", "sylwen", "brann"],
       "lines": [
-        {"act": {"subject": "glow"}, "fx": "sparkles:ffd070", "who": "ancien", "text": "Les villageois portent la Lanterne de l'Aube jusqu'au Nexus du pont. Sa flamme peut le purifier."},
-        {"cam": "zoom", "who": "ancien", "mood": "triste", "text": "Mais elle est fragile. Si elle s'éteint, tout est perdu. Protège-la, je t'en prie."},
-        {"who": "brann", "mood": "joie", "text": "Escorter une lanterne. Le Bastion m'a formé à escorter des rois, mais une lanterne parle moins."},
-        {"cam": ["reset", "pan_left"], "who": "sylwen", "text": "Des embuscades viendront des flancs. Je les verrai venir."}
+        {"fx": "flicker@subject", "grade": "night", "who": "ancien", "text": "Les villageois portent la Lanterne de l'Aube jusqu'au Nexus du pont. Sa flamme peut le purifier."},
+        {"fx": "wind", "emote": {"porteur": "drop"}, "who": "ancien", "mood": "triste", "text": "Mais elle est fragile. Si elle s'éteint, tout est perdu. Protège-la, je t'en prie."},
+        {"cam": "focus:brann", "who": "brann", "mood": "joie", "text": "Escorter une lanterne. Le Bastion m'a formé à escorter des rois, mais une lanterne parle moins."},
+        {"fx": "eyes", "cam": "reset", "grade": "dark", "who": "sylwen", "text": "Des embuscades viendront des flancs. Je les verrai venir."}
       ]
     },
     "z01_l07_outro": {
       "art": "tour",
       "cast": ["porteur", "sylwen", "brann"],
       "lines": [
-        {"fx": ["white", "sparkles:ffd070"], "who": "narrateur", "text": "La flamme de la Lanterne avale le Nexus. Le vieux pont s'illumine d'une lueur dorée."},
-        {"cam": "zoom", "act": {"sylwen": "jump"}, "who": "sylwen", "mood": "surpris", "text": "Regardez, au loin, au-delà des montagnes… Cette tour, sous le croissant de lune."},
-        {"who": "brann", "mood": "triste", "text": "La Tour du Croissant. Mon grand-père disait qu'on ne la voyait jamais d'ici. Jamais."},
-        {"cam": "zoom_out", "who": "sylwen", "mood": "triste", "text": "Elle se rapproche… ou c'est le monde qui rétrécit."}
+        {"fx": ["bloom@center:ffd070", "rays@center:ffd070"], "grade": "warm", "who": "narrateur", "text": "La flamme de la Lanterne avale le Nexus. Le vieux pont s'illumine d'une lueur dorée."},
+        {"fx": "bloom@sky:c8b8ff", "cam": "focus:sky", "grade": "cold", "who": "sylwen", "mood": "surpris", "text": "Regardez, au loin, au-delà des montagnes… Cette tour, sous le croissant de lune."},
+        {"grade": "cold", "who": "brann", "mood": "triste", "text": "La Tour du Croissant. Mon grand-père disait qu'on ne la voyait jamais d'ici. Jamais."},
+        {"cam": "pull", "grade": "dark", "who": "sylwen", "mood": "triste", "text": "Elle se rapproche… ou c'est le monde qui rétrécit."}
       ]
     },
 
