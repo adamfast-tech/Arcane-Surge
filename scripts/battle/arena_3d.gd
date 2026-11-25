@@ -305,15 +305,13 @@ func _build_terrain() -> void:
 	var moss := _triplanar(WorldArt.moss_texture(), 0.5)
 	if floor_set:
 		moss.albedo_color = (pal["moss"] as Color).lerp(Color("3f6a3a"), 0.5).lightened(0.15)
-	if floor_set:
-		# Derrière le Nexus, la forêt continue : plus de vide où le ciel apparaîtrait au ras du sol.
-		_box(Vector3(11.0, 2.0, 26.0), w3(Vector2(4.5, 30.5), -1.72), rock)
-		_box(Vector3(11.0, 0.2, 26.0), w3(Vector2(4.5, 30.5), -0.7), moss)
 	for side in [-1, 1]:
 		var cx := 4.5 + float(side) * 14.5
 		if floor_set:
 			# Le sol de la forêt, un peu en contrebas du chemin : la brume s'y couche, comme sous le pont.
-			_box(Vector3(18.0, 2.0, 46.0), Vector3(cx, -1.72, -9.0), rock)
+			# Ses parois descendent profond : derrière le Nexus, entre elles, s'ouvre le portail sombre d'où
+			# viennent les ennemis, comme sur le pont.
+			_box(Vector3(18.0, 12.0, 46.0), Vector3(cx, -6.8, -9.0), rock)
 			_box(Vector3(18.0, 0.2, 46.0), Vector3(cx, -0.7, -9.0), moss)
 			continue
 		_box(Vector3(18.0, 10.0, 46.0), Vector3(cx, -7.6, -9.0), rock)
@@ -336,8 +334,24 @@ func _build_terrain() -> void:
 	elif abyss:
 		layers = [[-1.3, Color("4fa8c8"), 0.45, Vector2(0.014, 0.004)], [-2.8, Color("1a5a7a"), 0.6, Vector2(-0.01, 0.006)]]
 	if floor_set:
-		# Brume au ras du sol de la forêt, à la couleur du lieu.
-		layers = [[-0.22, (pal["mist"] as Color).lerp(Color("8a8ad0"), 0.4), 0.45, Vector2(0.012, 0.004)], [-0.48, (pal["mist"] as Color).darkened(0.35), 0.55, Vector2(-0.008, 0.006)]]
+		# Brume du sol de la forêt, de part et d'autre seulement : le portail derrière le Nexus garde sa
+		# brume profonde (les deux nappes d'origine, plus bas).
+		var side_mist := [[-0.22, (pal["mist"] as Color).lerp(Color("8a8ad0"), 0.4), 0.45, Vector2(0.012, 0.004)], [-0.48, (pal["mist"] as Color).darkened(0.35), 0.55, Vector2(-0.008, 0.006)]]
+		for l2 in side_mist:
+			for sx: float in [-15.5, 24.5]:
+				var smi := MeshInstance3D.new()
+				var smp := PlaneMesh.new()
+				smp.size = Vector2(30.0, 60.0)
+				smi.mesh = smp
+				var ssm := ShaderMaterial.new()
+				ssm.shader = mist_shader
+				ssm.set_shader_parameter("noise_tex", noise)
+				ssm.set_shader_parameter("tint", l2[1])
+				ssm.set_shader_parameter("strength", l2[2])
+				ssm.set_shader_parameter("speed", l2[3])
+				smi.material_override = ssm
+				smi.position = Vector3(sx, float(l2[0]), -10.0)
+				add_child(smi)
 	for l in layers:
 		var mi := MeshInstance3D.new()
 		var mp := PlaneMesh.new()
@@ -375,12 +389,6 @@ func _build_terrain() -> void:
 		var x := 4.5 + side * rng.randf_range(dmin, 17.0)
 		var y := rng.randf_range(-6.0, 34.0)
 		spots.append([Vector3(x, ty, -y), rng.randf_range(3.0, 6.0), _pick(rng, weights) if floor_set else rng.randi_range(0, 2)])
-	if floor_set:
-		# Lisière serrée derrière le Nexus : le fond de la clairière.
-		for i in range(46):
-			var bx := rng.randf_range(-3.0, 12.0)
-			var by := rng.randf_range(19.0, 36.0)
-			spots.append([Vector3(bx, ty, -by), rng.randf_range(4.0, 7.0), _pick(rng, weights)])
 	if not floor_set:
 		for i in range(14):
 			var side := -1.0 if i % 2 == 0 else 1.0
@@ -720,10 +728,6 @@ func _build_foliage() -> void:
 	# Sur le terrain : quelques touffes basses et cailloux.
 	for i in range(55):
 		items.append([w3(Vector2(rng.randf_range(0.6, 8.4), rng.randf_range(0.8, 14.5)), 0.0), rng.randf_range(0.16, 0.26), [0, 1, 7, 11, 2][rng.randi_range(0, 4)]])
-	# Derrière le Nexus : buissons, fougères et herbes hautes au pied de la lisière.
-	for i in range(40):
-		var f3: int = [4, 4, 6, 10, 2, 3, 5, 8][rng.randi_range(0, 7)]
-		items.append([w3(Vector2(rng.randf_range(-1.0, 10.0), rng.randf_range(17.9, 22.0)), -0.6), rng.randf_range(0.5, 1.0) * (1.5 if f3 in [4, 5, 8] else 1.0), f3])
 	# Sol de la forêt de part et d'autre : tout, plus grand, avec les détails du lieu.
 	for i in range(200):
 		var side2 := -1.0 if i % 2 == 0 else 1.0
