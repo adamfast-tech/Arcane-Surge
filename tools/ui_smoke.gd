@@ -2528,6 +2528,9 @@ func _audio_ok() -> bool:
 			casts += 1
 		if str(n).begins_with("voice/"):
 			voices += 1
+	if AudioServer.bus_count != 1:
+		# Sur le web, un bus ajouté en cours de route n'est pas raccordé à la sortie : plus aucun son.
+		errs.append("%d bus audio (le Master seul est raccordé sur le web)" % AudioServer.bus_count)
 	if Snd._a() == null:
 		errs.append("autoload Audio absent")
 	elif played.is_empty():

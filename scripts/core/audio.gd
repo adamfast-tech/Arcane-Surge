@@ -1,11 +1,14 @@
 extends Node
 ## Son du jeu (autoload « Audio » ; docs/design/43-audio.md).
-## Quatre bus sous le Master : Musique (deux lecteurs en fondu enchaîné), Ambiance (couches en boucle),
-## Effets (réserve de lecteurs, limite par son et anti-rafale) et Voix (babillage des personnages).
-## Les sons sont des OGG de assets/audio (sfx, music, amb, voice), générés par tools/audio.
-## Aucun effet de bus (réverbération, filtres) : le web les ignore ; tout est « cuit » dans les fichiers.
+## Quatre catégories : Musique (deux lecteurs en fondu enchaîné), Ambiance (couches en boucle), Effets (réserve
+## de lecteurs, limite par son et anti-rafale) et Voix (babillage des personnages).
+## Tout passe par le seul bus Master : sur le web, des bus créés en cours de route ne sont pas raccordés à la
+## sortie (silence complet). Le volume de chaque catégorie (Options) s'applique donc à chaque lecteur : son
+## niveau de base (fondus compris) plus le réglage de sa catégorie et le général.
+## Les sons sont des OGG de assets/audio (sfx, music, amb, voice), générés par tools/audio. Aucun effet de bus :
+## tout est « cuit » dans les fichiers.
 
-const BUSES := ["Music", "Sfx", "Voice", "Amb"]
+const CATS := ["music", "sfx", "voice", "amb"]
 const POOL := 28
 const MAX_SAME := 3 ## un même son ne joue pas plus de 3 fois à la fois
 
@@ -28,45 +31,55 @@ var _voice: Array[AudioStreamPlayer] = []
 var _voice_next := 0
 var _t := 0.0
 var _duck := 0.0 ## atténuation de la musique (dB, négatif), qui revient doucement
+var _off: Dictionary = {"music": 0.0, "sfx": 0.0, "voice": 0.0, "amb": 0.0} ## réglage de chaque catégorie (dB)
+var _live: Array[AudioStreamPlayer] = [] ## tous les lecteurs (pour réappliquer les volumes)
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	for b in BUSES:
-		if AudioServer.get_bus_index(b) < 0:
-			AudioServer.add_bus()
-			var i := AudioServer.bus_count - 1
-			AudioServer.set_bus_name(i, b)
-			AudioServer.set_bus_send(i, "Master")
 	for i in range(POOL):
-		var p := AudioStreamPlayer.new()
-		p.bus = "Sfx"
-		add_child(p)
-		_pool.append(p)
+		_pool.append(_player("sfx"))
 	for i in range(2):
-		var m := AudioStreamPlayer.new()
-		m.bus = "Music"
-		m.volume_db = -80.0
-		add_child(m)
+		var m := _player("music")
+		m.set_meta("base", -80.0)
 		_music.append(m)
 	for i in range(3):
-		var v := AudioStreamPlayer.new()
-		v.bus = "Voice"
-		add_child(v)
-		_voice.append(v)
+		_voice.append(_player("voice"))
 	apply_volumes()
 
 
-## Volumes du profil (0 à 1) appliqués aux bus ; « son coupé » coupe le Master.
+func _player(cat: String) -> AudioStreamPlayer:
+	var p := AudioStreamPlayer.new()
+	p.set_meta("cat", cat)
+	p.set_meta("base", 0.0)
+	add_child(p)
+	_live.append(p)
+	return p
+
+
+## Volumes du profil (0 à 1) : général × catégorie, « son coupé » = silence ; appliqués tout de suite.
 func apply_volumes() -> void:
-	var mi := AudioServer.get_bus_index("Master")
-	AudioServer.set_bus_mute(mi, not Profile.sound_on())
-	AudioServer.set_bus_volume_db(mi, linear_to_db(maxf(0.0001, Profile.audio_vol("master"))))
-	for b in BUSES:
-		var i := AudioServer.get_bus_index(b)
-		var v := Profile.audio_vol(str(b).to_lower())
-		AudioServer.set_bus_mute(i, v <= 0.001)
-		AudioServer.set_bus_volume_db(i, linear_to_db(maxf(0.0001, v)))
+	var master := Profile.audio_vol("master") if Profile.sound_on() else 0.0
+	for c in CATS:
+		var v := master * Profile.audio_vol(str(c))
+		_off[c] = linear_to_db(v) if v > 0.001 else -80.0
+	for p in _live:
+		if is_instance_valid(p):
+			_apply(p)
+
+
+## Volume réel d'un lecteur : son niveau de base + le réglage de sa catégorie (+ l'atténuation de la musique).
+func _apply(p: AudioStreamPlayer) -> void:
+	var cat := str(p.get_meta("cat", "sfx"))
+	var db := float(p.get_meta("base", 0.0)) + float(_off.get(cat, 0.0))
+	if cat == "music":
+		db += _duck
+	p.volume_db = maxf(-80.0, db)
+
+
+func _set_base(p: AudioStreamPlayer, db: float) -> void:
+	p.set_meta("base", db)
+	_apply(p)
 
 
 # ---------------------------------------------------------------- flux
@@ -115,7 +128,7 @@ func sfx(name: String, vol_db: float = 0.0, pitch: float = 1.0, gap: float = 0.0
 		return null
 	var pl := _free_player()
 	pl.stream = s
-	pl.volume_db = vol_db
+	_set_base(pl, vol_db)
 	pl.pitch_scale = clampf(pitch, 0.25, 4.0)
 	pl.set_meta("snd", name)
 	pl.play()
@@ -135,7 +148,7 @@ func loop_for(name: String, dur: float, vol_db: float = 0.0, pitch: float = 1.0,
 	pl.stream = s
 	pl.pitch_scale = pitch
 	pl.set_meta("snd", name)
-	pl.volume_db = -40.0
+	_set_base(pl, -40.0)
 	pl.play()
 	_fade(pl, -40.0, vol_db, fade_in, false)
 	_timed.append({"p": pl, "t": maxf(0.2, dur), "fade": 0.7, "db": vol_db})
@@ -175,7 +188,7 @@ func voice(name: String, idx: int, vol_db: float = 0.0, pitch: float = 1.0) -> v
 		if f["p"] == pl:
 			_fades.erase(f)
 	pl.stream = s
-	pl.volume_db = vol_db
+	_set_base(pl, vol_db)
 	pl.pitch_scale = clampf(pitch, 0.5, 2.0)
 	pl.play(float(idx) * VOICE_SLOT)
 	_timed.append({"p": pl, "t": (VOICE_SLOT - 0.04) / pl.pitch_scale, "fade": 0.02, "db": vol_db})
@@ -191,7 +204,7 @@ func music(name: String, fade: float = 1.6, vol_db: float = 0.0) -> void:
 		return
 	var old := _music[_music_cur]
 	if old.playing:
-		_fade(old, old.volume_db, -60.0, fade, true)
+		_fade(old, float(old.get_meta("base", 0.0)), -60.0, fade, true)
 	_music_name = name
 	_music_db = vol_db
 	if name == "":
@@ -204,7 +217,7 @@ func music(name: String, fade: float = 1.6, vol_db: float = 0.0) -> void:
 	_music_cur = 1 - _music_cur
 	var m := _music[_music_cur]
 	m.stream = s
-	m.volume_db = -50.0
+	_set_base(m, -50.0)
 	m.play()
 	_fade(m, -50.0, vol_db, fade, false)
 	_log("music/" + name)
@@ -226,24 +239,22 @@ func ambience(layers: Dictionary, fade: float = 1.5) -> void:
 	for n in _amb.keys():
 		if not layers.has(n):
 			var p: AudioStreamPlayer = _amb[n]
-			_fade(p, p.volume_db, -60.0, fade, true)
+			_fade(p, float(p.get_meta("base", 0.0)), -60.0, fade, true)
 			_amb.erase(n)
 	for n in layers.keys():
 		var db := float(layers[n])
 		if _amb.has(n):
 			var p2: AudioStreamPlayer = _amb[n]
-			_fade(p2, p2.volume_db, db, fade, false)
+			_fade(p2, float(p2.get_meta("base", 0.0)), db, fade, false)
 			continue
 		var s := stream("amb/" + str(n))
 		if s == null:
 			continue
 		if s is AudioStreamOggVorbis:
 			(s as AudioStreamOggVorbis).loop = true
-		var pl := AudioStreamPlayer.new()
-		pl.bus = "Amb"
+		var pl := _player("amb")
 		pl.stream = s
-		pl.volume_db = -50.0
-		add_child(pl)
+		_set_base(pl, -50.0)
 		pl.play(randf() * maxf(0.0, s.get_length() - 0.5))
 		_fade(pl, -50.0, db, fade, false)
 		_amb[n] = pl
@@ -275,12 +286,13 @@ func _process(delta: float) -> void:
 		f["t"] = float(f["t"]) + delta
 		var u := clampf(float(f["t"]) / float(f["d"]), 0.0, 1.0)
 		# Fondu en puissance (dB interpolés) : naturel à l'oreille.
-		p.volume_db = lerpf(float(f["a"]), float(f["b"]), u)
+		_set_base(p, lerpf(float(f["a"]), float(f["b"]), u))
 		if u >= 1.0:
 			_fades.erase(f)
 			if bool(f["stop"]):
 				p.stop()
-				if p.bus == "Amb" and not _amb.values().has(p):
+				if str(p.get_meta("cat", "")) == "amb" and not _amb.values().has(p):
+					_live.erase(p)
 					p.queue_free()
 	for tm in _timed.duplicate():
 		tm["t"] = float(tm["t"]) - delta
@@ -288,13 +300,16 @@ func _process(delta: float) -> void:
 			_timed.erase(tm)
 			var p3: AudioStreamPlayer = tm["p"]
 			if is_instance_valid(p3) and p3.playing:
-				_fade(p3, p3.volume_db, -50.0, float(tm["fade"]), true)
+				_fade(p3, float(p3.get_meta("base", 0.0)), -50.0, float(tm["fade"]), true)
 	# Atténuation de la musique : revient en 1,5 s environ.
 	if _duck < 0.0:
 		_duck = minf(0.0, _duck + delta * 6.0)
 	var m := _music[_music_cur]
 	if m.playing and not _is_fading(m):
-		m.volume_db = _music_db + _duck
+		_set_base(m, _music_db)
+	for mm in _music:
+		if mm.playing:
+			_apply(mm)
 
 
 func _is_fading(p: AudioStreamPlayer) -> bool:

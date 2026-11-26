@@ -26,7 +26,7 @@ Régénérer : `python3 tools/audio/sfx_bank.py`, `amb_bank.py`, `voices.py`, `m
 
 | Code | Rôle |
 |---|---|
-| `scripts/core/audio.gd` (autoload `Audio`) | Quatre bus sous le Master : Musique, Effets, Voix, Ambiance. Musique en fondu enchaîné, que l'on peut atténuer un instant pendant un grand sort. Ambiances en couches qui apparaissent et s'éteignent en fondu. Réserve de 28 lecteurs d'effets : un même son joue 3 fois au plus en même temps, avec un intervalle minimal par son contre les rafales. Sons en boucle pour une durée donnée (zones de sorts). Syllabes de voix lues par tranche. Aucun effet de bus : le web les ignore, tout est inclus dans les fichiers. |
+| `scripts/core/audio.gd` (autoload `Audio`) | Quatre catégories, Musique, Effets, Voix et Ambiance, toutes sur le **seul bus Master**. Sur le web, des bus ajoutés en cours de route ne sont pas raccordés à la sortie : plus aucun son, sur aucun appareil (corrigé, et contrôlé par le test de fumée). Le volume de chaque catégorie s'applique à chaque lecteur : son niveau de base, fondus compris, plus le réglage de sa catégorie et le général. Musique en fondu enchaîné, que l'on peut atténuer un instant pendant un grand sort. Ambiances en couches qui apparaissent et s'éteignent en fondu. Réserve de 28 lecteurs d'effets : un même son joue 3 fois au plus en même temps, avec un intervalle minimal par son contre les rafales. Sons en boucle pour une durée donnée (zones de sorts). Syllabes de voix lues par tranche. Aucun effet de bus : le web les ignore, tout est inclus dans les fichiers. |
 | `scripts/core/snd.gd` (`Snd`) | Accès statique, sans risque là où l'autoload n'existe pas (outils). |
 | `scripts/core/spell_audio.gd` (`SpellAudio`) | Signature sonore de chaque sort (voir plus bas). |
 | `scripts/battle/battle_audio.gd` (`BattleAudio`) | Son du combat. Il lit les évènements de la simulation avant l'arène et compare son état d'une image à l'autre. |
@@ -168,7 +168,10 @@ Les très petits fichiers OGG paient chacun environ 3 Ko d'en-tête : les syllab
 `tools/ui_smoke.gd` (`_audio_ok`) vérifie :
 - que chaque sort a tous ses sons et une signature unique ;
 - que chaque son référencé existe : familles, tirs, cris, invocations, effets et gestes des cinématiques, ambiances de chaque zone et de chaque écran, musiques, voix ;
-- que des sons sont vraiment partis pendant les combats et les cinématiques du test.
+- que des sons sont vraiment partis pendant les combats et les cinématiques du test ;
+- qu'il n'y a qu'un bus audio (le Master), le seul raccordé à la sortie sur le web.
+
+Dans un navigateur, on peut suivre chaque source Web Audio jusqu'à la sortie : chaque source doit atteindre la destination avec un gain non nul (le contrôle qui a révélé le silence complet).
 
 ## Suite possible
 
