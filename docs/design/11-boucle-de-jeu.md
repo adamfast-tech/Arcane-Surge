@@ -16,7 +16,7 @@ Jouer sans compte ───────────┴─> Havre-Aube ─┬─>
 | **Connexion** | Pseudo (ou e-mail) et mot de passe du compte Académie, ou « Jouer sans compte » (sauvegarde sur l'appareil) |
 | **Havre-Aube** | Profil (pseudo, niveau, XP, or, poussière), état du compte, bouton « Continuer », accès à la carte et à l'équipement. Salles à venir : Bibliothèque, Entraînement, Cercle, Observatoire |
 | **Carte** | Les 10 niveaux de la zone 1 : étoiles, record, verrouillage (un niveau s'ouvre quand le précédent est gagné), puissance recommandée, mode solo |
-| **Équipement & Forge** | 5 stats et puissance ; 10 emplacements ; inventaire avec Équiper, Améliorer (or, jusqu'au maximum de la rareté) et Recycler (contre de la poussière) |
+| **Équipement & Forge** | 5 stats et puissance ; 10 emplacements ; inventaire avec Équiper, Améliorer (or, jusqu'au maximum de la rareté) et Recycler (contre de la poussière) ; un objet porté s'améliore aussi sur place, sans le retirer |
 | **Récompenses** | XP (et niveaux gagnés), or, matériaux, objets. Rejouer, Carte ou Havre-Aube |
 
 ## 2. Progression

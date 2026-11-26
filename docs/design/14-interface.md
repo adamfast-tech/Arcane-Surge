@@ -21,7 +21,7 @@
 |---|---|
 | Chargement | « ARCANE » (or) / « SURGE », séparateur runique, illustration, « Éveil des runes » et barre de chargement (1,2 s minimum) |
 | Havre-Aube | Profil (portrait, niveau, or, poussière, barre d'XP), titre, **Continuer** (bouton principal), tuiles Carte et Équipement, liste « Prochainement » avec cadenas (loyauté du Cercle, fil de l'Observatoire), état de la sauvegarde et du compte |
-| Équipement & Forge | Retour, monnaies, puissance et élément, 5 stats, objets équipés (icône, emplacement, nom à la couleur de la rareté, stats, Retirer), emplacements vides (un toucher filtre l'inventaire), inventaire avec Équiper, Améliorer, Recycler |
+| Équipement & Forge | Retour, monnaies, puissance et élément, 5 stats, objets équipés (icône, emplacement, nom à la couleur de la rareté, stats, Retirer, et « Améliorer en +N · prix » sous chaque objet porté, avec l'or qui manque : pas besoin de le retirer), emplacements vides (un toucher filtre l'inventaire), inventaire avec Équiper, Améliorer, Recycler |
 | Carte | Même style ; bouton Jouer principal, cadenas sur les niveaux verrouillés, étoiles au trait |
 | Combat | Icône de chaque sort au-dessus de son nom, icônes de pause et d'Ultime, étoiles de fin au trait |
 

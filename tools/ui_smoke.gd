@@ -1660,18 +1660,34 @@ func _compare_ok() -> bool:
 	var ok2 := bool(c_ring["better"]) and str(c_ring["vs"]) == str(r_lo["uid"]) and str(eq["ring1"]) == str(r_hi["uid"]) and str(eq["ring2"]) == str(r_new["uid"])
 	# Écran : le meilleur objet en tête de l'inventaire, avec son bandeau.
 	eq["ring2"] = str(r_lo["uid"])
+	var gold0 := Profile.gold()
+	Profile.data["gold"] = gold0 + 100000
 	var es := EquipmentScreen.new()
 	root.add_child(es)
 	await _frames(2)
 	var ok3 := es._better_by_slot.get(EquipmentScreen._slot_key(feet_slot), 0) as int >= 1 and bool(es._cmp[str(strong["uid"])]["better"])
+	# Améliorer un objet porté sans le retirer : le bouton est sur la ligne de l'objet équipé.
+	var up0 := int(weak.get("up", 0))
+	var p0 := Profile.power()
+	var up_btn: Button = null
+	for b in es.find_children("*", "Button", true, false):
+		if str((b as Button).get_meta("uid", "")) == str(weak["uid"]) and not (b as Button).disabled:
+			up_btn = b
+			break
+	var found := up_btn != null
+	if found:
+		up_btn.pressed.emit() ## l'écran se reconstruit : le bouton est libéré
+		await _frames(2)
+	var ok4 := found and int(weak.get("up", 0)) == up0 + 1 and str(eq.get(feet_slot, "")) == str(weak["uid"]) and Profile.power() >= p0
+	Profile.data["gold"] = gold0
 	es.queue_free()
 	for it in [weak, strong, worse, r_lo, r_hi, r_new]:
 		inv.erase(it)
 	eq.clear()
 	for k in saved_eq.keys():
 		eq[k] = saved_eq[k]
-	print("comparaison : bottes meilleures %s · anneau le plus faible remplacé %s · écran %s" % [ok1, ok2, ok3])
-	if not (ok1 and ok2 and ok3):
+	print("comparaison : bottes meilleures %s · anneau le plus faible remplacé %s · écran %s · amélioration sans retirer %s" % [ok1, ok2, ok3, ok4])
+	if not (ok1 and ok2 and ok3 and ok4):
 		push_error("comparaison avec l'équipé incorrecte")
 		return false
 	return true

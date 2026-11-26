@@ -2,6 +2,7 @@ class_name EquipmentScreen
 extends Control
 ## Équipement et Forge (concept UI) : puissance et stats, objets équipés avec leur icône,
 ## emplacements vides (un toucher filtre l'inventaire), inventaire avec Équiper, Améliorer, Recycler.
+## Un objet porté s'améliore aussi sur place (bouton sous l'objet), sans avoir à le retirer.
 ## Étape 13.4 : le porteur se choisit en haut (toi ou un compagnon recruté).
 
 signal back
@@ -242,7 +243,34 @@ func _equipped_row(slot: String, it: Dictionary) -> PanelContainer:
 	var n := int(_better_by_slot.get(_slot_key(slot), 0))
 	if n > 0:
 		bt.add_child(_better_button(slot, n))
+	# Améliorer sans retirer : l'objet reste porté, ses stats montent tout de suite.
+	(c[1] as VBoxContainer).add_child(_upgrade_button(it, 18))
 	return c[0]
+
+
+## Bouton « Améliorer · N or » d'un objet (porté ou en réserve) : niveau atteint, prix, or manquant.
+func _upgrade_button(it: Dictionary, fs: int) -> Button:
+	var uid := str(it["uid"])
+	var max_up := int(Profile.rarity_of(it).get("max_up", 5))
+	var lvl := int(it.get("up", 0))
+	var cost := Profile.upgrade_cost(it)
+	var txt := "Niveau max (+%d)" % max_up
+	if lvl < max_up:
+		txt = "Améliorer en +%d · %d or" % [lvl + 1, cost]
+		if Profile.gold() < cost:
+			txt += " (il manque %d)" % (cost - Profile.gold())
+	var up := UiTheme.button(txt, fs)
+	up.set_meta("uid", uid)
+	up.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	up.custom_minimum_size = Vector2(0, 50)
+	up.disabled = not Profile.can_upgrade(it)
+	if not up.disabled:
+		up.add_theme_color_override("font_color", UiTheme.GOLD)
+		up.add_theme_stylebox_override("normal", UiTheme.box(Color(UiTheme.WARM, 0.94), Color(UiTheme.GOLD, 0.8), 12, 2, 8))
+	up.pressed.connect(func() -> void: _act(func() -> void:
+		if Profile.upgrade(uid):
+			Snd.sfx("ui_anvil", -4.0, randf_range(0.97, 1.03))))
+	return up
 
 
 ## « 2 mieux » : n'affiche dans l'inventaire que les objets de cet emplacement (re-toucher : tout).
@@ -341,7 +369,9 @@ func _item_card(it: Dictionary) -> PanelContainer:
 	up.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	up.custom_minimum_size = Vector2(0, 52)
 	up.disabled = not Profile.can_upgrade(it)
-	up.pressed.connect(func() -> void: _act(func() -> void: Profile.upgrade(uid)))
+	up.pressed.connect(func() -> void: _act(func() -> void:
+		if Profile.upgrade(uid):
+			Snd.sfx("ui_anvil", -4.0, randf_range(0.97, 1.03))))
 	row.add_child(up)
 	var sv := UiTheme.button("Recycler · +%d" % Profile.salvage_value(it), 18)
 	sv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
