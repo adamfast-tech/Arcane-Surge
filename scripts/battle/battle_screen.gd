@@ -13,6 +13,7 @@ const TOP_H_LAND := 92.0
 var level_id := "z01_l08"
 var solo := false
 var sim: BattleSim
+var audio: BattleAudio ## musique, ambiance et sons du combat (scripts/battle/battle_audio.gd)
 var arena: Arena3D
 var backdrop: TextureRect
 var flash_rect: ColorRect
@@ -153,6 +154,10 @@ func _ready() -> void:
 	if _opts.has("look"):
 		SpriteAtlas.set_player(_opts["look"], str(_opts.get("player_race", "elfe")), str(_opts.get("player_class", "mage")))
 	arena.setup(sim, UiTheme.font(), bool(_opts.get("healed", false)))
+	audio = BattleAudio.new(sim, WorldArt.zone, WorldArt.scene)
+	audio.start()
+	if sim.boss != null:
+		audio.boss_intro()
 	if _mode == "drawer":
 		for id in sim.player().spells:
 			# Sorts de classe (grimoire ou arbre de l'Entraînement) : dans leur discipline, page de la classe.
@@ -931,8 +936,12 @@ func _process(delta: float) -> void:
 			sim.end_reason = "Aperçu de la victoire"
 	arena.alpha = clampf(_acc / BattleSim.TICK, 0.0, 1.0)
 	if not sim.events.is_empty():
+		if audio != null:
+			audio.on_events(sim.events)
 		arena.consume_events(sim.events)
 		sim.events.clear()
+	if audio != null and not paused:
+		audio.update(delta)
 	arena.aim_active = aiming != "" and _hover_in
 	arena.aim_pos = _hover
 	flash_rect.color.a = clampf(arena.flash * 1.2, 0.0, 0.8)
@@ -1503,6 +1512,8 @@ func _open_end() -> void:
 	_end_open = true
 	aiming = ""
 	var win := sim.state == "victory"
+	if audio != null:
+		audio.end(win)
 	if _rewards.is_empty():
 		Story.on_battle(_present)
 		_rewards = Profile.apply_battle(level_id, win, sim.stars, sim.time, _present, sim.bonus_unique, sim.story_out)

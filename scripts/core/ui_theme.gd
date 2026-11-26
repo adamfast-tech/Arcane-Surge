@@ -137,6 +137,7 @@ static func button(text: String, size: int = 24) -> Button:
 	b.text = text
 	b.focus_mode = Control.FOCUS_NONE
 	b.add_theme_font_size_override("font_size", size)
+	b.pressed.connect(Snd.click)
 	return b
 
 

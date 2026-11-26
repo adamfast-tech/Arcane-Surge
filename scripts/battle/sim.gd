@@ -2254,7 +2254,11 @@ func _update_telegraphs() -> void:
 			# Souffle de venin : des mares de poison restent le long du couloir.
 			for k in range(3):
 				terrain.add_poison(Vector2(r.get_center().x, lerpf(r.position.y + 1.5, r.end.y - 1.0, float(k) / 2.0)), 0.8, 10.0, false)
-		_event({"t": "strike", "rect": r, "dur": 0.35})
+		var sk := "hit"
+		for key in ["tentacle", "fire", "venom", "wave", "dragon", "avalanche", "sun"]:
+			if bool(tg.get(key, false)):
+				sk = key
+		_event({"t": "strike", "rect": r, "dur": 0.35, "kind": sk})
 		telegraphs.remove_at(i)
 
 

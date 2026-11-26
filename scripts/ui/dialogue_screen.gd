@@ -17,6 +17,8 @@ var _scene_i := -1
 var _scene_id := ""
 var _queue: Array = []
 var _typing := false
+var _babble := VoiceBabble.new() ## voix du personnage pendant que sa réplique s'écrit
+var _caudio := CineAudio.new() ## ambiance, musique et sons de la mise en scène
 var _shown := 0.0
 var _auto := false
 var _auto_t := 0.0
@@ -252,7 +254,9 @@ func _load_scene(id: String) -> void:
 	var sc := Dialogues.scene(id)
 	_queue = (sc.get("lines", []) as Array).duplicate()
 	stage.begin_scene(sc)
-	_set_art(str(sc.get("art", "foret")))
+	var art0 := str(sc.get("art", "foret"))
+	_caudio.scene(str(CineStage.PLATE_MOOD.get(art0, "mist")), art0)
+	_set_art(art0)
 	_subject = "~" ## une nouvelle scène repose toujours son sujet (ou efface la présence de la précédente)
 	_set_subject(str(sc.get("subject", "")))
 	stage.set_tint(Color(str(sc.get("subject_tint", "ffffff"))))
@@ -312,6 +316,7 @@ func _inline_known_choice(l: Dictionary) -> bool:
 func _apply_visuals(l: Dictionary) -> void:
 	if l.has("art"):
 		_set_art(str(l["art"]))
+		_caudio.plate(str(CineStage.PLATE_MOOD.get(str(l["art"]), "mist")))
 	if l.has("subject"):
 		_set_subject(str(l["subject"]))
 	if l.has("subject_tint"):
@@ -362,6 +367,8 @@ func _show_line(l: Dictionary) -> void:
 	_blink = false
 	stage.speak(who, _mood)
 	stage.play_cues(l)
+	_caudio.cues(l, stage)
+	_babble.start(who if not narr else "narrateur", _mood, text)
 	# Le personnage est sur scène, en grand : le panneau ne garde que son nom.
 	portrait_frame.visible = false
 	if not narr:
@@ -566,6 +573,7 @@ func _finish() -> void:
 	if _done:
 		return
 	_done = true
+	_caudio.finish()
 	Profile.save_local()
 	if Cloud.instance != null:
 		Cloud.instance.push()
@@ -629,10 +637,12 @@ func _process(delta: float) -> void:
 		if _hold <= 0.0:
 			_end_hold()
 		return
+	_caudio.tick(delta)
 	if _typing:
 		_shown += delta * CPS
 		var n := text_label.get_total_character_count()
 		text_label.visible_characters = int(_shown)
+		_babble.tick(delta, int(_shown))
 		if int(_shown) >= n:
 			_complete_line()
 	_animate_portrait(delta)

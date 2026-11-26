@@ -385,6 +385,9 @@ func _spell_card(id: String, known: bool, in_deck: bool, how: String = "", info_
 			t.add_theme_stylebox_override("normal", UiTheme.box(Color(UiTheme.PANEL2, 0.94), UiTheme.TEAL, 10, 2, 6))
 		t.pressed.connect(func() -> void:
 			_msg = Profile.toggle_deck(id)
+			if not in_deck:
+				# Le sort rejoint le deck : on entend sa signature.
+				SpellAudio.preview(id)
 			_save()
 			_rebuild.call_deferred())
 		h.add_child(t)
@@ -405,6 +408,8 @@ func _spell_card(id: String, known: bool, in_deck: bool, how: String = "", info_
 	lb.pressed.connect(func() -> void:
 		if Profile.learn(id):
 			_msg = "%s appris." % str(sp["name"])
+			Snd.sfx("loot_rare", -6.0)
+			SpellAudio.preview(id)
 			if int(l.get("corruption", 0)) > 0:
 				_msg += " La Corruption grandit (+%d)." % int(l["corruption"])
 			_save()

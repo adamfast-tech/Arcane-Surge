@@ -1153,6 +1153,32 @@ static func set_auto_fire(v: bool) -> void:
 	save_local()
 
 
+## Son (docs/design/43-audio.md) : coupé ou non, et volume (0 à 1) du général, de la musique, des effets,
+## des voix et des ambiances.
+const AUDIO_DEFAULTS := {"master": 1.0, "music": 0.65, "sfx": 0.85, "voice": 0.8, "amb": 0.6}
+
+
+static func sound_on() -> bool:
+	return bool(_options().get("sound", true))
+
+
+static func set_sound_on(v: bool) -> void:
+	_options()["sound"] = v
+	Snd.apply_volumes()
+
+
+static func audio_vol(bus: String) -> float:
+	var vols: Dictionary = _options().get("vol", {})
+	return clampf(float(vols.get(bus, AUDIO_DEFAULTS.get(bus, 1.0))), 0.0, 1.0)
+
+
+static func set_audio_vol(bus: String, v: float) -> void:
+	if not (_options().get("vol") is Dictionary):
+		_options()["vol"] = {}
+	(_options()["vol"] as Dictionary)[bus] = clampf(snappedf(v, 0.05), 0.0, 1.0)
+	Snd.apply_volumes()
+
+
 ## Ambiance enrichie des menus (rayons, brume, particules, panneaux en relief, titres dorés).
 static func ambience_on() -> bool:
 	return bool(_options().get("ambience", true))

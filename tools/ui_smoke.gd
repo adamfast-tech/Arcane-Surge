@@ -1093,6 +1093,9 @@ func _run() -> void:
 	if not await _replay_scenes_ok():
 		quit(1)
 		return
+	if not _audio_ok():
+		quit(1)
+		return
 	main.call("_show_room", "circle")
 	await _frames(5)
 	Profile.swap_active("krag", "brann")
@@ -2454,4 +2457,83 @@ func _drawer_groups_ok() -> bool:
 	if not errs.is_empty():
 		push_error("sorts de classe mal rangés : %s" % [errs])
 		return false
+	return true
+
+
+
+## Son (docs/design/43-audio.md) : chaque sort a ses sons et une signature unique ; tous les sons référencés
+## (combat, cinématiques, voix, ambiances, musiques, écrans) existent ; des sons sont vraiment partis.
+func _audio_ok() -> bool:
+	var errs: Array[String] = []
+	var need: Dictionary = {}
+	var sigs: Dictionary = {}
+	for id in GameData.spells().keys():
+		for n in SpellAudio.sounds_of(str(id)):
+			need["sfx/" + n] = "sort " + str(id)
+		var p := SpellAudio.profile(str(id))
+		var sg := SpellAudio._sig(p)
+		if sigs.has(sg):
+			errs.append("même son : %s et %s" % [sigs[sg], id])
+		sigs[sg] = id
+	for fam in SpellAudio.FAMILIES:
+		for part in ["cast", "hit", "boom", "loop"]:
+			need["sfx/%s_%s" % [fam, part]] = "famille"
+	for v in BattleAudio.SHOT.values():
+		need["sfx/" + str(v)] = "tir"
+	for v in BattleAudio.ROAR.values():
+		need["sfx/roar_" + str(v)] = "cri"
+	for v in CineAudio.CREATURE.values():
+		need["sfx/roar_" + str(v)] = "cri"
+	for v in SpellAudio.SUMMON.values():
+		need["sfx/summon_" + str(v)] = "invocation"
+	for table in [CineAudio.FX, CineAudio.ACT]:
+		for v in (table as Dictionary).values():
+			need["sfx/" + str((v as Array)[0])] = "cinématique"
+	for v in CineAudio.FX_AMB.values():
+		need["amb/" + str((v as Array)[0])] = "cinématique"
+	for v in CineAudio.MOOD_AMB.values():
+		for k in (v as Dictionary).keys():
+			need["amb/" + str(k)] = "cinématique"
+	for v in CineAudio.MOOD_MUSIC.values():
+		need["music/" + str(v)] = "cinématique"
+	for v in CineAudio.GRADE_MUSIC.values():
+		need["music/" + str(v)] = "cinématique"
+	for z in range(1, 8):
+		need["music/battle_z%d" % z] = "combat"
+		for sc in ["", "orage", "congeres", "coulee"]:
+			for k in BattleAudio.ambience_for(z, sc, true).keys():
+				need["amb/" + str(k)] = "combat"
+		for k2 in BattleAudio.ambience_for(z, "", false).keys():
+			need["amb/" + str(k2)] = "combat"
+	for n in ["boss_1", "boss_2", "havre", "map", "cine_heroic"]:
+		need["music/" + n] = "musique"
+	for n in ["havre", "library", "meditation", "campfire", "forge", "forest_day", "forest_night", "wind_plains", "cave", "underwater"]:
+		need["amb/" + n] = "écran"
+	for n in ["ui_click", "ui_confirm", "victory", "defeat", "barrier_hit", "nexus_hit", "nexus_break", "telegraph", "whirlpool",
+			"thunder_far", "dragon_pass", "avalanche", "tentacle", "wave_crash", "level_up", "loot_rare", "ultimate", "grand_cast", "forbidden"]:
+		need["sfx/" + n] = "combat"
+	for v in VoiceBabble.VOICES:
+		need["voice/" + str(v)] = "voix"
+	var missing := 0
+	for path in need.keys():
+		if not Snd.has(str(path)):
+			errs.append("son absent : %s (%s)" % [path, need[path]])
+			missing += 1
+	# Des sons sont vraiment partis pendant les combats et les cinématiques joués plus haut.
+	var played := Snd.played()
+	var casts := 0
+	var voices := 0
+	for n in played:
+		if str(n).ends_with("_cast"):
+			casts += 1
+		if str(n).begins_with("voice/"):
+			voices += 1
+	if Snd._a() == null:
+		errs.append("autoload Audio absent")
+	elif played.is_empty():
+		errs.append("aucun son joué")
+	if not errs.is_empty():
+		push_error("son : %s" % [errs.slice(0, 20)])
+		return false
+	print("son : %d sorts, %d signatures uniques · %d sons vérifiés · journal %d (lancements %d, syllabes %d)" % [GameData.spells().size(), sigs.size(), need.size(), played.size(), casts, voices])
 	return true
