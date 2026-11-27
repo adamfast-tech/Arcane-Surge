@@ -781,6 +781,9 @@ func _run() -> void:
 	if not await _map_ok():
 		quit(1)
 		return
+	if not _hero_model_ok():
+		quit(1)
+		return
 	# Bibliothèque, onglet Classes : Ultime, sorts d'arbre et sorts de compagnon de chaque classe.
 	var cs := LibraryScreen.class_spells("chevalier")
 	var tree_ids: Array[String] = []
@@ -1646,6 +1649,39 @@ func _autofire_ok() -> bool:
 
 
 ## Comparaison avec l'équipé : objets meilleurs signalés et triés en tête, anneau le plus faible remplacé.
+## Héros en volume (Équipement) : chaque classe et chaque race se rend sous tous les angles ; la face, le dos et
+## les profils diffèrent ; la vue tournante de l'Équipement existe pour le héros.
+func _hero_model_ok() -> bool:
+	var errs: Array[String] = []
+	var races: Array = (GameData.party()["races"] as Dictionary).keys()
+	var classes: Array = (GameData.party()["classes"] as Dictionary).keys()
+	for i in range(maxi(races.size(), classes.size())):
+		var race := str(races[i % races.size()])
+		var cls := str(classes[i % classes.size()])
+		var m := HeroModel.new()
+		m.build({"head": PlayerLook.HEADS.keys()[i % 4], "sil": i % 2, "face": i % 3}, race, cls)
+		var seen: Dictionary = {}
+		for k in range(0, HeroModel.STEPS, 6):
+			var img := m.image_at(float(k) / float(HeroModel.STEPS) * TAU)
+			var used := img.get_used_rect()
+			if used.size.x < 8 or used.size.y < 22:
+				errs.append("%s %s : image vide à l'angle %d (%s)" % [race, cls, k, used])
+			seen[Marshalls.raw_to_base64(img.get_data()).sha256_text()] = true
+		if seen.size() < 6:
+			errs.append("%s %s : %d vues différentes seulement" % [race, cls, seen.size()])
+	var es := EquipmentScreen.new()
+	root.add_child(es)
+	var tt := es.find_children("*", "HeroTurntable", true, false)
+	es.queue_free()
+	if tt.is_empty():
+		errs.append("pas de vue tournante dans l'Équipement")
+	if not errs.is_empty():
+		push_error("héros en volume : %s" % [errs])
+		return false
+	print("héros en volume : %d races, %d classes, %d angles · vue tournante dans l'Équipement" % [races.size(), classes.size(), HeroModel.STEPS])
+	return true
+
+
 ## Carte du monde : un médaillon par niveau, toucher un niveau le choisit, JOUER le lance.
 func _map_ok() -> bool:
 	var m := MapScreen.new()

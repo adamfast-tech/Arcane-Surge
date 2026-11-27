@@ -152,14 +152,37 @@ func _doll(eqd: Dictionary) -> PanelContainer:
 	ped.offset_bottom = -30
 	stage.add_child(ped)
 	if who == "player":
-		SpriteAtlas.set_player(Profile.look(), Profile.race(), Profile.player_class())
-	var fig := GearUi.figure(who, 230)
-	fig.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	fig.offset_left = -95
-	fig.offset_right = 95
-	fig.offset_top = -270
-	fig.offset_bottom = -52
-	stage.add_child(fig)
+		# Le héros en volume : on le fait tourner en le glissant vers la gauche ou la droite.
+		var tt := HeroTurntable.new()
+		tt.setup(Profile.look(), Profile.race(), Profile.player_class())
+		tt.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+		var hw := float(HeroModel.W * HeroTurntable.SCALE) * 0.5
+		tt.offset_left = -hw
+		tt.offset_right = hw
+		tt.offset_top = -40.0 - float(HeroModel.H * HeroTurntable.SCALE)
+		tt.offset_bottom = -40.0
+		stage.add_child(tt)
+		var hint := HBoxContainer.new()
+		hint.alignment = BoxContainer.ALIGNMENT_CENTER
+		hint.add_theme_constant_override("separation", 6)
+		hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		hint.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+		hint.offset_left = -120
+		hint.offset_right = 120
+		hint.offset_top = -26
+		hint.offset_bottom = -4
+		hint.add_child(UiTheme.icon_rect("back", 14, Color(UiTheme.MUTED, 0.8)))
+		hint.add_child(UiTheme.label("Glisse pour le faire tourner", 13, Color(UiTheme.MUTED, 0.8)))
+		hint.add_child(UiTheme.icon_rect("chevron", 14, Color(UiTheme.MUTED, 0.8)))
+		stage.add_child(hint)
+	else:
+		var fig := GearUi.figure(who, 230)
+		fig.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+		fig.offset_left = -95
+		fig.offset_right = 95
+		fig.offset_top = -270
+		fig.offset_bottom = -52
+		stage.add_child(fig)
 	var pw := UiTheme.label("PUISSANCE %d" % (Profile.power() if who == "player" else Profile.companion_power(who)), 26, UiTheme.GOLD)
 	pw.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mid.add_child(pw)
