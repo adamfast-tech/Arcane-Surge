@@ -54,3 +54,11 @@
 - **Fiche du sort**, fixe en bas : grande tuile, nom, rang, école ou discipline, stats en pastilles (Puissance, Mana, Recharge, Zone, Dégâts, Durée), description, bouton Écouter (la signature sonore du sort), et l'action : AJOUTER AU DECK / RETIRER DU DECK, ou APPRENDRE avec le prix et ce qui bloque (niveau, or manquant, voie, Corruption).
 - Aperçus : `?room=library`, `&tab=feu` (ou une autre école, `classes`), `&class=archer`.
 
+## Salle de méditation (`scripts/ui/meditation_screen.gd`)
+
+- **Sœur Aelis** commente en bandeau ; sa phrase change avec l'onglet (et quand la Corruption atteint 30).
+- Trois onglets à icône : VOIES, CONFIGURATIONS, HARMONIE.
+- **VOIES** : un mandala (cercles de runes, couronne de traits qui tourne lentement, étoile à 7 branches) ; le héros au centre, les 7 voies en médaillons autour (emblème : leur Ultime ; point sarcelle sur la voie actuelle). Toucher une voie l'illumine et ouvre sa fiche : le héros dans cette voie (sa tenue et son arme), la description, les points déjà placés dans son arbre, l'Ultime, les disciplines du grimoire, puis EMPRUNTER CETTE VOIE. Plus bas, chaque compagnon : portrait, voie actuelle et les 7 voies en petits médaillons (un toucher change sa voie).
+- **CONFIGURATIONS** : 3 sceaux (I, II, III). Un sceau gravé montre la voie, les points de l'arbre, le deck en icônes et les Clés de voûte ; CHARGER (gratuit) ou REMPLACER. Un sceau libre propose ENREGISTRER ICI.
+- **HARMONIE** : la Corruption sur une jauge circulaire (repères à 30 et 60), son état en une phrase, MÉDITER (prix, Corruption −5) ; puis la réinitialisation de l'arbre de la voie actuelle, en deux touchers.
+
