@@ -2,9 +2,9 @@ extends Node
 ## Son du jeu (autoload « Audio » ; docs/design/43-audio.md).
 ## Trois catégories : Musique (deux lecteurs en fondu enchaîné), Effets (réserve de lecteurs, limite par son et
 ## anti-rafale) et Voix (babillage des personnages).
-## Sur le web, le navigateur bloque le son jusqu'au premier geste du joueur : la sortie reste coupée jusque-là,
-## puis s'ouvre en fondu et la musique repart de son début (sans cela, le son accumulé pendant l'attente sort
-## d'un coup, fort et haché).
+## Sur le web, la sortie reste coupée jusqu'à ce que la sauvegarde soit chargée (volumes du joueur en place)
+## et que le navigateur laisse jouer le son ; elle s'ouvre alors en fondu. Le navigateur peut exiger un premier
+## geste du joueur (règle des navigateurs mobiles) : une bulle discrète le dit, et n'importe quel toucher suffit.
 ## Tout passe par le seul bus Master : sur le web, des bus créés en cours de route ne sont pas raccordés à la
 ## sortie (silence complet). Le volume de chaque catégorie (Options) s'applique donc à chaque lecteur : son
 ## niveau de base (fondus compris) plus le réglage de sa catégorie et le général.
@@ -37,11 +37,17 @@ var _off: Dictionary = {"music": 0.0, "sfx": 0.0, "voice": 0.0} ## réglage de c
 var _live: Array[AudioStreamPlayer] = [] ## tous les lecteurs (pour réappliquer les volumes)
 var _applied := "" ## réglages de son appliqués (empreinte)
 var _sync_t := 0.0
-var _locked := false ## web : son bloqué par le navigateur tant que le joueur n'a rien touché
-var _unlock_t := -1.0 ## délai après le premier geste, le temps que le navigateur relance le son
+var _locked := false ## web : sortie coupée (sauvegarde pas encore chargée, ou son bloqué par le navigateur)
+var _profile_ok := false ## la sauvegarde est chargée : les volumes du joueur sont en place
+var _gesture := false ## un geste du joueur a été vu
+var _poll_t := 0.0
+var _resume_tries := 0
+var _ready_t := -1.0 ## petit délai avant l'ouverture, le temps que le navigateur relance le son
+var _blocked_t := 0.0 ## temps passé bloqué par le navigateur, sauvegarde chargée
 var _open_t := -1.0 ## fondu d'ouverture de la sortie (s écoulées), -1 : aucun
+var _hint: CanvasLayer
 
-const OPEN_FADE := 0.9
+const OPEN_FADE := 0.8
 
 
 func _ready() -> void:
@@ -60,36 +66,110 @@ func _ready() -> void:
 		AudioServer.set_bus_volume_db(0, -80.0)
 
 
-## Premier geste du joueur (toucher, clic, touche) : le navigateur autorise le son.
+## La sauvegarde est chargée (main) : ses volumes s'appliquent, et le son peut s'ouvrir.
+func profile_loaded() -> void:
+	_profile_ok = true
+	apply_volumes()
+
+
+## Premier geste du joueur (toucher, clic, touche) : on demande au navigateur de relancer le son.
 func _input(e: InputEvent) -> void:
-	if not _locked or _unlock_t >= 0.0:
+	if not _locked or _gesture:
 		return
 	if (e is InputEventMouseButton and (e as InputEventMouseButton).pressed) or (e is InputEventScreenTouch and (e as InputEventScreenTouch).pressed) \
 			or (e is InputEventKey and (e as InputEventKey).pressed):
-		_unlock_t = 0.3
+		_gesture = true
+		_ctx_state(true)
+		_poll_t = 0.0
 
 
-## Le navigateur a-t-il déjà vu un geste du joueur (au cas où il aurait eu lieu hors du jeu) ?
-func _activated() -> bool:
+## État du son du navigateur : « running », « suspended »… ou « none » si on ne le connaît pas (la page
+## l'expose par html/head_include, voir export_presets.cfg).
+func _ctx_state(try_resume: bool) -> String:
 	if not OS.has_feature("web"):
-		return true
+		return "running"
+	var js := "(function(){var a=window.__actxs||[];if(!a.length)return 'none';var c=a[a.length-1];%sreturn c.state;})()" \
+		% ("if(c.state!=='running'){try{c.resume();}catch(e){}}" if try_resume else "")
+	return str(JavaScriptBridge.eval(js, true))
+
+
+## Le navigateur a-t-il déjà vu un geste du joueur ?
+func _activated() -> bool:
 	return bool(JavaScriptBridge.eval("(navigator.userActivation ? navigator.userActivation.hasBeenActive : false)", true))
 
 
-## Ouvre la sortie en fondu et relance la musique de l'écran depuis son début.
+## Web : la sortie s'ouvre dès que la sauvegarde est chargée et que le navigateur laisse jouer le son.
+func _gate(delta: float) -> void:
+	if _ready_t >= 0.0:
+		_ready_t -= delta
+		if _ready_t <= 0.0:
+			_unlock()
+		return
+	if not _profile_ok:
+		return
+	_poll_t -= delta
+	if _poll_t > 0.0:
+		return
+	_poll_t = 0.2
+	var st := _ctx_state(_resume_tries < 2)
+	_resume_tries += 1
+	if st == "running" or (st == "none" and (_gesture or _activated())):
+		_ready_t = 0.12
+		return
+	_blocked_t += 0.2
+	if _blocked_t >= 0.8 and _hint == null:
+		_show_hint()
+
+
+## Ouvre la sortie en fondu ; une musique lancée pendant l'attente repart de son début.
 func _unlock() -> void:
 	_locked = false
 	_open_t = 0.0
-	print("Son : ouvert (premier geste du joueur)")
 	var m := _music[_music_cur]
 	if m.playing:
 		m.play(0.0)
 		_set_base(m, -50.0)
-		_fade(m, -50.0, _music_db, 1.6, false)
+		_fade(m, -50.0, _music_db, 1.4, false)
 	for p in _pool:
 		p.stop()
 	for v in _voice:
 		v.stop()
+	if _hint != null:
+		var h := _hint
+		_hint = null
+		var tw := create_tween()
+		tw.tween_property(h.get_child(0), "modulate:a", 0.0, 0.4)
+		tw.tween_callback(h.queue_free)
+
+
+## Bulle discrète en haut de l'écran : le navigateur attend un toucher pour laisser jouer le son.
+func _show_hint() -> void:
+	_hint = CanvasLayer.new()
+	_hint.layer = 120
+	add_child(_hint)
+	var root := Control.new()
+	root.theme = UiTheme.build()
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.modulate.a = 0.0
+	_hint.add_child(root)
+	var box := HBoxContainer.new()
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	box.offset_top = 158.0
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(box)
+	var pc := PanelContainer.new()
+	pc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pc.add_theme_stylebox_override("panel", UiTheme.box(Color(0.03, 0.05, 0.09, 0.92), Color(UiTheme.TEAL, 0.7), 18, 1, 10))
+	box.add_child(pc)
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 8)
+	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pc.add_child(h)
+	h.add_child(UiTheme.icon_rect("sound", 20, UiTheme.TEAL))
+	h.add_child(UiTheme.label("Touche l'écran pour activer le son", 16, UiTheme.TEXT))
+	create_tween().tween_property(root, "modulate:a", 1.0, 0.4)
 
 
 func _player(cat: String) -> AudioStreamPlayer:
@@ -302,12 +382,7 @@ func _fade(p: AudioStreamPlayer, from_db: float, to_db: float, dur: float, stop_
 func _process(delta: float) -> void:
 	_t += delta
 	if _locked:
-		if _unlock_t < 0.0 and int(_t * 4.0) != int((_t - delta) * 4.0) and _activated():
-			_unlock_t = 0.3
-		if _unlock_t >= 0.0:
-			_unlock_t -= delta
-			if _unlock_t <= 0.0:
-				_unlock()
+		_gate(delta)
 	elif _open_t >= 0.0:
 		_open_t += delta
 		var u := clampf(_open_t / OPEN_FADE, 0.0, 1.0)

@@ -15,7 +15,7 @@ func _ready() -> void:
 	cloud = Cloud.new()
 	add_child(cloud)
 	Profile.load_local()
-	Snd.apply_volumes() ## l'audio a démarré avant la sauvegarde : ses volumes s'appliquent tout de suite
+	Snd.profile_loaded() ## l'audio a démarré avant la sauvegarde : ses volumes s'appliquent, puis le son s'ouvre
 	if _url_flag("fx"):
 		# Aperçu de l'ambiance enrichie (« &fx=1 »), sans changer la sauvegarde.
 		Profile._options()["ambience"] = true

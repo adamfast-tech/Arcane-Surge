@@ -58,6 +58,13 @@ static func stop_all(fade: float = 0.6) -> void:
 		a.call("stop_all", fade)
 
 
+## La sauvegarde est chargée : volumes du joueur, puis ouverture du son (web).
+static func profile_loaded() -> void:
+	var a := _a()
+	if a != null:
+		a.call("profile_loaded")
+
+
 static func apply_volumes() -> void:
 	var a := _a()
 	if a != null:
