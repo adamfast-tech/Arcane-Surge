@@ -3,8 +3,8 @@ extends Node
 ## Trois catégories : Musique (deux lecteurs en fondu enchaîné), Effets (réserve de lecteurs, limite par son et
 ## anti-rafale) et Voix (babillage des personnages).
 ## Sur le web, la sortie reste coupée jusqu'à ce que la sauvegarde soit chargée (volumes du joueur en place)
-## et que le navigateur laisse jouer le son ; elle s'ouvre alors en fondu. Le navigateur peut exiger un premier
-## geste du joueur (règle des navigateurs mobiles) : une bulle discrète le dit, et n'importe quel toucher suffit.
+## et que le navigateur laisse jouer le son ; elle s'ouvre alors en fondu, sans clic. Si le navigateur exige
+## malgré tout un premier geste (règle de certains navigateurs mobiles), le premier toucher, quel qu'il soit, suffit.
 ## Tout passe par le seul bus Master : sur le web, des bus créés en cours de route ne sont pas raccordés à la
 ## sortie (silence complet). Le volume de chaque catégorie (Options) s'applique donc à chaque lecteur : son
 ## niveau de base (fondus compris) plus le réglage de sa catégorie et le général.
@@ -43,9 +43,7 @@ var _gesture := false ## un geste du joueur a été vu
 var _poll_t := 0.0
 var _resume_tries := 0
 var _ready_t := -1.0 ## petit délai avant l'ouverture, le temps que le navigateur relance le son
-var _blocked_t := 0.0 ## temps passé bloqué par le navigateur, sauvegarde chargée
 var _open_t := -1.0 ## fondu d'ouverture de la sortie (s écoulées), -1 : aucun
-var _hint: CanvasLayer
 
 const OPEN_FADE := 0.8
 
@@ -115,10 +113,6 @@ func _gate(delta: float) -> void:
 	_resume_tries += 1
 	if st == "running" or (st == "none" and (_gesture or _activated())):
 		_ready_t = 0.12
-		return
-	_blocked_t += 0.2
-	if _blocked_t >= 0.8 and _hint == null:
-		_show_hint()
 
 
 ## Ouvre la sortie en fondu ; une musique lancée pendant l'attente repart de son début.
@@ -134,42 +128,6 @@ func _unlock() -> void:
 		p.stop()
 	for v in _voice:
 		v.stop()
-	if _hint != null:
-		var h := _hint
-		_hint = null
-		var tw := create_tween()
-		tw.tween_property(h.get_child(0), "modulate:a", 0.0, 0.4)
-		tw.tween_callback(h.queue_free)
-
-
-## Bulle discrète en haut de l'écran : le navigateur attend un toucher pour laisser jouer le son.
-func _show_hint() -> void:
-	_hint = CanvasLayer.new()
-	_hint.layer = 120
-	add_child(_hint)
-	var root := Control.new()
-	root.theme = UiTheme.build()
-	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.modulate.a = 0.0
-	_hint.add_child(root)
-	var box := HBoxContainer.new()
-	box.alignment = BoxContainer.ALIGNMENT_CENTER
-	box.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
-	box.offset_top = 158.0
-	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(box)
-	var pc := PanelContainer.new()
-	pc.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	pc.add_theme_stylebox_override("panel", UiTheme.box(Color(0.03, 0.05, 0.09, 0.92), Color(UiTheme.TEAL, 0.7), 18, 1, 10))
-	box.add_child(pc)
-	var h := HBoxContainer.new()
-	h.add_theme_constant_override("separation", 8)
-	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	pc.add_child(h)
-	h.add_child(UiTheme.icon_rect("sound", 20, UiTheme.TEAL))
-	h.add_child(UiTheme.label("Touche l'écran pour activer le son", 16, UiTheme.TEXT))
-	create_tween().tween_property(root, "modulate:a", 1.0, 0.4)
 
 
 func _player(cat: String) -> AudioStreamPlayer:
