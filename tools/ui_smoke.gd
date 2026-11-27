@@ -778,6 +778,9 @@ func _run() -> void:
 	if not await _compare_ok():
 		quit(1)
 		return
+	if not await _map_ok():
+		quit(1)
+		return
 	# Bibliothèque, onglet Classes : Ultime, sorts d'arbre et sorts de compagnon de chaque classe.
 	var cs := LibraryScreen.class_spells("chevalier")
 	var tree_ids: Array[String] = []
@@ -1632,6 +1635,39 @@ func _autofire_ok() -> bool:
 
 
 ## Comparaison avec l'équipé : objets meilleurs signalés et triés en tête, anneau le plus faible remplacé.
+## Carte du monde : un médaillon par niveau, toucher un niveau le choisit, JOUER le lance.
+func _map_ok() -> bool:
+	var m := MapScreen.new()
+	m.zone = 1
+	root.add_child(m)
+	await _frames(3)
+	var board: MapBoard = m._board
+	var ok1 := board != null and board._medals.size() == m._ids.size() and m._ids.size() >= 10 and board.size.y > 1500.0
+	var got: Array[String] = [""]
+	m.play.connect(func(id: String, _solo: bool) -> void: got[0] = id)
+	var target := str(m._ids[0])
+	(board._medals[target] as MapBoard.Medal).pressed.emit()
+	await _frames(1)
+	var ok2 := m.selected == target and board.selected == target
+	for b in m.find_children("*", "Button", true, false):
+		if (b as Button).text in ["JOUER", "REJOUER"] and not (b as Button).disabled:
+			(b as Button).pressed.emit()
+			break
+	var ok3 := got[0] == target
+	# Changer de zone reconstruit la carte avec les niveaux de la zone.
+	m.zone = 2
+	m.selected = ""
+	m._build()
+	await _frames(2)
+	var ok4 := str(m._ids[0]) == "z02_l01" and m._board.zone == 2
+	m.queue_free()
+	if not (ok1 and ok2 and ok3 and ok4):
+		push_error("carte : %s %s %s %s" % [ok1, ok2, ok3, ok4])
+		return false
+	print("carte : %d médaillons, choix et JOUER" % m._ids.size())
+	return true
+
+
 func _compare_ok() -> bool:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7

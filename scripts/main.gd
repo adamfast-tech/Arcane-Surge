@@ -31,6 +31,9 @@ func _ready() -> void:
 	if _url_flag("gear"):
 		# Aperçu : un assortiment d'objets et de runes (« &gear=1 »), pour la Forge et l'Équipement.
 		_preview_gear()
+	if str(_query().get("prog", "")) != "":
+		# Aperçu : les N premiers niveaux gagnés (« &prog=14 »), avec des étoiles variées.
+		_preview_progress(int(str(_query().get("prog", "0"))))
 	if str(_query().get("lvl", "")) != "":
 		# Aperçu : héros à un niveau donné (« &lvl=40 »), et quelques points investis dans l'arbre (« &build=1 »).
 		Profile.data["player"]["level"] = int(str(_query().get("lvl", "1")))
@@ -48,8 +51,8 @@ func _ready() -> void:
 			_screen.call("_rebuild")
 		return
 	if room == "map":
-		# Aperçu de la carte (« ?room=map »).
-		_show_map()
+		# Aperçu de la carte (« ?room=map », « &zone=3 »).
+		_show_map(int(str(_query().get("zone", "0"))))
 		return
 	if room == "hub":
 		# Aperçu de Havre-Aube (« ?room=hub ») : héros déjà créé, sans écran de connexion.
@@ -291,8 +294,9 @@ func _show_creation(mirror: bool) -> void:
 	_set_screen(c)
 
 
-func _show_map() -> void:
+func _show_map(z: int = 0) -> void:
 	var m := MapScreen.new()
+	m.zone = z
 	m.back.connect(_show_hub)
 	m.play.connect(_play)
 	_set_screen(m)
@@ -345,6 +349,12 @@ func _preview_build() -> void:
 				var id := str(node["id"])
 				if Profile.skill_points_spent() < 26 and Profile.invest_block(id) == "" and (Profile.skill_rank(id) < 2 or str(node.get("kind", "")) != "passive"):
 					Profile.invest(id)
+
+
+func _preview_progress(n: int) -> void:
+	var ids: Array = GameData.level_index()["levels"]
+	for i in range(mini(n, ids.size())):
+		Profile.data["levels"][str(ids[i])] = {"stars": 3 - (i * 7) % 3 if i % 4 != 3 else 1, "best": 140.0 + float(i * 13 % 90), "clears": 1}
 
 
 func _preview_gear() -> void:
