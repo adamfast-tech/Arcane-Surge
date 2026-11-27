@@ -114,12 +114,21 @@ La rareté Mythique ne s'obtient que par fusion de 3 légendaires.
 
 On y accède par une nouvelle salle d'Havre-Aube, par le bouton « Forge » de l'Équipement, ou par le bouton « Runes » de chaque objet. Elle a trois onglets.
 
+**Présentation** (`scripts/ui/forge_screen.gd`, tuiles communes dans `scripts/ui/gear_ui.gd`) :
+- titre « LA FORGE de Durgan Enclume », bourse (or, poussière) ;
+- un bandeau de Durgan (portrait, nom, bulle) commente l'atelier, ce qui est choisi et le résultat de chaque action ;
+- trois grands onglets à icône, avec un sous-titre (« Runes sur un objet », « 3 objets en 1 meilleur », « Réserve, fusion, recyclage ») ;
+- les objets et les runes sont des tuiles carrées : cadre à la couleur de la rareté, lueur, icône, pastille « +N » ou niveau en chiffres romains, emplacements de runes.
+
 ### GRAVURE
-- Choisir un objet, équipé ou en réserve. Ses emplacements s'affichent, avec l'effet de chaque rune pour sa catégorie.
+- Choisir un objet dans la grille (objets portés, puis réserve). Il est posé sur **l'enclume** : l'objet en grand, ses stats, et ses emplacements de runes en grand (gravés ou libres).
+- Toucher une rune de la besace affiche sa fiche : son effet sur cette catégorie d'objet, ce qui l'empêche, le prix, et « Graver ». Les emplacements libres s'allument : les toucher grave aussi.
+- Toucher une rune gravée affiche son effet et « Retirer ».
 - Graver coûte 25 or × niveau × valeur de rareté de la rune.
 - Retirer une rune coûte 15 or × niveau ; elle revient en réserve.
 
 ### FUSION (d'objets)
+- Un cercle rituel accueille les 3 objets choisis dans la grille de réserve, et montre le résultat (modèle du premier, rareté au-dessus, niveau d'objet, emplacements). Les objets d'une autre rareté que la sélection sont grisés.
 - 3 objets de même rareté donnent 1 objet de la rareté au-dessus (3 légendaires → Mythique).
 - Le premier objet choisi donne son modèle. Le niveau d'objet est le plus haut des trois. Les affixes sont tirés à nouveau.
 - Le résultat est marqué **« Issu d'une fusion »** : il ne peut plus fusionner.
@@ -128,12 +137,18 @@ On y accède par une nouvelle salle d'Havre-Aube, par le bouton « Forge » de l
 - Coût : 120 / 360 / 900 / 2 400 or selon la rareté, +3 % par niveau d'objet.
 
 ### RUNES
-- La réserve : chaque rune affiche ses 4 effets.
+- La réserve en grille. Toucher des runes les place dans la barre de fusion (3 places) ; la dernière touchée a sa fiche : ses 4 effets et « Recycler ».
 - Fusion de 3 runes identiques (famille, niveau, rareté) : niveau +1, jusqu'à V. Coût : 40 or × niveau.
 - Recyclage : 2 × niveau × valeur de rareté en Poussière d'arcane.
 
 ### Écrans touchés
-- **Équipement** : icônes en couleurs, emplacements de runes et leurs effets sur chaque objet, bouton « Runes », mention « Issu d'une fusion ».
+- **Équipement** (« ARMURERIE », `scripts/ui/equipment_screen.gd`) :
+  - onglets du porteur (toi, chaque compagnon) avec son sprite ;
+  - **poupée** : le personnage sur un socle à la couleur de son élément, entouré de ses 10 emplacements (arme, tête, armure, mains, pieds à gauche ; main secondaire, amulette, 2 anneaux, charme à droite), sa Puissance, son niveau et son élément ; une flèche verte sur un emplacement signale un meilleur objet en réserve ;
+  - les 5 stats en cases colorées ;
+  - **fiche** de l'emplacement ou de l'objet touché : grande icône, rareté, niveau d'objet, jauge d'amélioration, stats, runes et leurs effets ; pour un objet porté : Améliorer (sans le retirer), Runes, Retirer ; pour un objet de réserve : comparaison avec l'équipé, Équiper, Améliorer, Recycler ;
+  - **réserve** : filtres par emplacement (avec le nombre), grille de tuiles, les meilleurs d'abord ;
+  - mention « Issu d'une fusion ».
 - **Comparaison avec l'équipé** (`Profile.compare_to_equipped`, `better_items`) :
   - chaque objet de réserve est comparé à celui que porte le personnage affiché (toi ou un compagnon) au même emplacement ; pour les anneaux, au plus faible des deux ;
   - le score d'un objet est la somme de ses stats (améliorations, affixes et runes de stats compris), et l'écart est donné en Puissance ;

@@ -1670,6 +1670,9 @@ func _compare_ok() -> bool:
 	var up0 := int(weak.get("up", 0))
 	var p0 := Profile.power()
 	var up_btn: Button = null
+	es._sel = "slot:" + feet_slot ## la fiche montre l'emplacement choisi
+	es._rebuild()
+	await _frames(2)
 	for b in es.find_children("*", "Button", true, false):
 		if str((b as Button).get_meta("uid", "")) == str(weak["uid"]) and not (b as Button).disabled:
 			up_btn = b
