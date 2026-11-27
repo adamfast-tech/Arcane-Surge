@@ -11,6 +11,18 @@ signal back
 const ALDRIC := Color("e0a050")
 const TABS := [["equip", "ÉQUIPEMENT", "forge", "Arrivage toutes les 5 h"], ["curios", "CURIOSITÉS", "sparkle", "Kits cosmétiques"]]
 
+## Bruits de la boutique, un par arrivage.
+const RUMORS: Array[String] = [
+	"Les caisses arrivent par la route des Collines. Parfois, une merveille dort sous la paille.",
+	"Aldric garde sa plus belle pièce pour la vitrine. Certains jours, elle brille plus que d'habitude.",
+	"On raconte qu'une lame mythique est passée par ici. Elle n'est pas restée une heure.",
+	"Tout ce qui est ici a été aiguisé et poli par Aldric lui-même. Enfin, presque tout.",
+	"Ce qui part ne revient jamais : la charrette ne repasse pas deux fois avec la même cargaison.",
+	"Plus tu vas loin, plus Aldric fait venir du solide. Il suit tes exploits de près.",
+	"Le perroquet du comptoir n'est pas à vendre. Il a essayé de mordre le dernier qui a demandé.",
+	"Une rumeur court : les clients patients repartent avec ce qui brille le plus.",
+]
+
 var _tab := "equip"
 var _msg := ""
 var _msg_col := UiTheme.GOLD
@@ -141,16 +153,16 @@ func _equip(col: VBoxContainer) -> void:
 	h.add_child(UiTheme.label("Prochain arrivage dans", 16, UiTheme.MUTED))
 	_count = UiTheme.label(_clock(_left), 18, UiTheme.GOLD)
 	h.add_child(_count)
-	var odds := HFlowContainer.new()
-	odds.add_theme_constant_override("h_separation", 6)
-	odds.add_theme_constant_override("v_separation", 4)
-	v.add_child(odds)
-	odds.add_child(UiTheme.label("Vitrine :", 14, UiTheme.MUTED))
-	var rars: Dictionary = Profile.items_db()["rarities"]
-	odds.add_child(GearUi.pill("Mythique 1 sur 8", Color(str(rars["mythique"]["color"])), 13))
-	odds.add_child(GearUi.pill("Épique ou Légendaire 1 sur 6", Color(str(rars["legendaire"]["color"])), 13))
-	odds.add_child(GearUi.pill("Rare sinon", Color(str(rars["rare"]["color"])), 13))
-	odds.add_child(UiTheme.label("· niveau d'objet %d" % Profile.shop_ilvl(), 14, UiTheme.MUTED))
+	# Un bruit de boutique, qui change à chaque arrivage.
+	var rumor := HBoxContainer.new()
+	rumor.add_theme_constant_override("separation", 8)
+	v.add_child(rumor)
+	var ri := UiTheme.icon_rect("sparkle", 16, Color(ALDRIC, 0.7))
+	ri.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	rumor.add_child(ri)
+	var rl := UiTheme.wrap(RUMORS[posmod(Profile.shop_period(), RUMORS.size())], 14, Color(UiTheme.TEXT, 0.72))
+	rl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	rumor.add_child(rl)
 	if offers.is_empty():
 		return
 	col.add_child(UiTheme.section("Vitrine du jour", ALDRIC))

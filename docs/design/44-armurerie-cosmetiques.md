@@ -18,7 +18,7 @@ Aldric, armurier et marchand de curiosités, tient boutique à Havre-Aube (tuile
 | Légendaire | 5,7 % | — |
 | Mythique | **12,5 % (1 sur 8)** | — |
 
-Épique ou légendaire ensemble : **1 sur 6** (16,7 %), partagés 66/34. La tuile de l'accueil annonce « Vitrine : Mythique ! » (ou Légendaire, Épique) tant qu'une vitrine de haute rareté n'est pas vendue, sinon le temps avant le prochain arrivage.
+Épique ou légendaire ensemble : **1 sur 6** (16,7 %), partagés 66/34. Les chances ne sont pas affichées : sous le compte à rebours, un « bruit de boutique » (8 phrases d'Aldric, une par arrivage) laisse deviner qu'une merveille peut tomber. La tuile de l'accueil annonce « Vitrine : Mythique ! » (ou Légendaire, Épique) tant qu'une vitrine de haute rareté n'est pas vendue, sinon le temps avant le prochain arrivage.
 
 **Prix** : base × (1 + 0,15 × niveau d'objet), arrondi à 5 or. Bases : commun 60, rare 180, épique 600, légendaire 1 800, mythique 5 000. Au niveau d'objet 15 : 195 / 585 / 1 950 / 5 850 / 16 250 or.
 
