@@ -8,7 +8,7 @@ extends Node
 ## Les sons sont des OGG de assets/audio (sfx, music, amb, voice), générés par tools/audio. Aucun effet de bus :
 ## tout est « cuit » dans les fichiers.
 
-const CATS := ["music", "sfx", "voice", "amb"]
+const CATS := ["music", "sfx", "voice"]
 const POOL := 28
 const MAX_SAME := 3 ## un même son ne joue pas plus de 3 fois à la fois
 
@@ -24,15 +24,16 @@ var _music: Array[AudioStreamPlayer] = []
 var _music_name := ""
 var _music_cur := 0
 var _music_db := 0.0
-var _amb: Dictionary = {} ## nom -> lecteur
 var _fades: Array[Dictionary] = []
 var _timed: Array[Dictionary] = []
 var _voice: Array[AudioStreamPlayer] = []
 var _voice_next := 0
 var _t := 0.0
 var _duck := 0.0 ## atténuation de la musique (dB, négatif), qui revient doucement
-var _off: Dictionary = {"music": 0.0, "sfx": 0.0, "voice": 0.0, "amb": 0.0} ## réglage de chaque catégorie (dB)
+var _off: Dictionary = {"music": 0.0, "sfx": 0.0, "voice": 0.0} ## réglage de chaque catégorie (dB)
 var _live: Array[AudioStreamPlayer] = [] ## tous les lecteurs (pour réappliquer les volumes)
+var _applied := "" ## réglages de son appliqués (empreinte)
+var _sync_t := 0.0
 
 
 func _ready() -> void:
@@ -59,6 +60,7 @@ func _player(cat: String) -> AudioStreamPlayer:
 
 ## Volumes du profil (0 à 1) : général × catégorie, « son coupé » = silence ; appliqués tout de suite.
 func apply_volumes() -> void:
+	_applied = _vol_key()
 	var master := Profile.audio_vol("master") if Profile.sound_on() else 0.0
 	for c in CATS:
 		var v := master * Profile.audio_vol(str(c))
@@ -66,6 +68,14 @@ func apply_volumes() -> void:
 	for p in _live:
 		if is_instance_valid(p):
 			_apply(p)
+
+
+## Empreinte des réglages de son du profil (pour savoir s'ils ont changé).
+func _vol_key() -> String:
+	var k := "1" if Profile.sound_on() else "0"
+	for c in ["master"] + CATS:
+		k += "|%.2f" % Profile.audio_vol(str(c))
+	return k
 
 
 ## Volume réel d'un lecteur : son niveau de base + le réglage de sa catégorie (+ l'atténuation de la musique).
@@ -232,38 +242,8 @@ func duck(db: float) -> void:
 	_duck = minf(_duck, db)
 
 
-# ---------------------------------------------------------------- ambiances
-
-## Couches d'ambiance en boucle : {nom: volume dB}. Les couches absentes s'éteignent en fondu.
-func ambience(layers: Dictionary, fade: float = 1.5) -> void:
-	for n in _amb.keys():
-		if not layers.has(n):
-			var p: AudioStreamPlayer = _amb[n]
-			_fade(p, float(p.get_meta("base", 0.0)), -60.0, fade, true)
-			_amb.erase(n)
-	for n in layers.keys():
-		var db := float(layers[n])
-		if _amb.has(n):
-			var p2: AudioStreamPlayer = _amb[n]
-			_fade(p2, float(p2.get_meta("base", 0.0)), db, fade, false)
-			continue
-		var s := stream("amb/" + str(n))
-		if s == null:
-			continue
-		if s is AudioStreamOggVorbis:
-			(s as AudioStreamOggVorbis).loop = true
-		var pl := _player("amb")
-		pl.stream = s
-		_set_base(pl, -50.0)
-		pl.play(randf() * maxf(0.0, s.get_length() - 0.5))
-		_fade(pl, -50.0, db, fade, false)
-		_amb[n] = pl
-		_log("amb/" + str(n))
-
-
 func stop_all(fade: float = 0.6) -> void:
 	music("", fade)
-	ambience({}, fade)
 
 
 # ---------------------------------------------------------------- temps
@@ -278,6 +258,14 @@ func _fade(p: AudioStreamPlayer, from_db: float, to_db: float, dur: float, stop_
 
 func _process(delta: float) -> void:
 	_t += delta
+	# Le profil peut être chargé (sauvegarde locale, cloud, configuration) après le démarrage de l'audio :
+	# ses volumes sont réappliqués dès qu'ils diffèrent de ceux en place.
+	_sync_t -= delta
+	if _sync_t <= 0.0:
+		_sync_t = 0.5
+		var key := _vol_key()
+		if key != _applied:
+			apply_volumes()
 	for f in _fades.duplicate():
 		var p: AudioStreamPlayer = f["p"]
 		if not is_instance_valid(p):
@@ -291,9 +279,6 @@ func _process(delta: float) -> void:
 			_fades.erase(f)
 			if bool(f["stop"]):
 				p.stop()
-				if str(p.get_meta("cat", "")) == "amb" and not _amb.values().has(p):
-					_live.erase(p)
-					p.queue_free()
 	for tm in _timed.duplicate():
 		tm["t"] = float(tm["t"]) - delta
 		if float(tm["t"]) <= 0.0:

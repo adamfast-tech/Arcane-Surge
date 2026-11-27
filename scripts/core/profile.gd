@@ -1152,8 +1152,8 @@ static func set_auto_fire(v: bool) -> void:
 
 
 ## Son (docs/design/43-audio.md) : coupé ou non, et volume (0 à 1) du général, de la musique, des effets,
-## des voix et des ambiances.
-const AUDIO_DEFAULTS := {"master": 1.0, "music": 0.65, "sfx": 0.85, "voice": 0.8, "amb": 0.6}
+## et des voix.
+const AUDIO_DEFAULTS := {"master": 1.0, "music": 0.65, "sfx": 0.85, "voice": 0.8}
 
 
 static func sound_on() -> bool:

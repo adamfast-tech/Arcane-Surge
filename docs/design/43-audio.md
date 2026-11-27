@@ -1,8 +1,7 @@
-# 43 — Son : musique, ambiances, effets, voix
+# 43 — Son : musique, effets, voix
 
 Le jeu avait des images, pas de son. Il a maintenant :
 - des musiques composées pour chaque zone, les boss, les cinématiques et les menus ;
-- des ambiances en boucle (pluie, vent, marais, blizzard, désert, incendie, profondeurs, salles de Havre-Aube) ;
 - un son propre à **chaque sort** (447 sorts, 447 signatures différentes) ;
 - les sons du combat (tirs de classe, coups, morts, Barrière, Nexus, attaques annoncées, cris des boss) ;
 - les voix des personnages pendant les cinématiques ;
@@ -16,24 +15,23 @@ Tout est **fabriqué par nos outils** (`tools/audio/`), sans banque de sons ache
 |---|---|
 | `tools/audio/synth.py` | Boîte à outils de synthèse. Oscillateurs à bande limitée, bruits blanc, rose et brun, crépitements à fenêtre douce. Enveloppes. Filtres fixes et filtre balayé à variables d'état « TPT » (stable à toutes les fréquences). FM, corde pincée (Karplus-Strong), objets résonants (cloches, verre, métal, os). Distorsion. Réverbération, chorus, délai et compression (pedalboard). Notes d'instruments réels par FluidSynth et la banque FluidR3 GM (licence MIT) : chœur, cordes, cors, harpe, célesta, timbales, taikos, cloches. Mixage aux bords adoucis, sonie mesurée, normalisation avec compresseur (jamais de saturation), encodage OGG Vorbis (ffmpeg), spectrogrammes. |
 | `tools/audio/sfx_bank.py` | Les effets : 33 familles de sorts, cris des créatures, tirs de classe, combat, interface, évènements de l'arène. 246 sons, 24 kHz, 2,3 Mo. |
-| `tools/audio/amb_bank.py` | 20 ambiances en boucle sans couture de 12 s (la fin est fondue dans le début), 22 kHz, 1 Mo. |
 | `tools/audio/voices.py` | 29 voix : 6 syllabes inventées par personnage, rangées dans une « bande » par voix. 0,27 Mo. |
 | `tools/audio/music.py` | 15 morceaux écrits en Python (tonalité, mode, grille d'accords, mélodies, arrangement), joués par FluidSynth, polis (salle, compression, limiteur) et bouclés sans couture : la queue de réverbération est repliée sur le début. Stéréo, 24 kHz, 3,2 Mo. |
 
-Régénérer : `python3 tools/audio/sfx_bank.py`, `amb_bank.py`, `voices.py`, `music.py` (`--only motif` pour un seul son, `--png dossier` pour les spectres). Prérequis : numpy, scipy, pedalboard, mido, matplotlib, ffmpeg (libvorbis), fluidsynth et `fluid-soundfont-gm`. Puis `godot --headless --path . --import`.
+Régénérer : `python3 tools/audio/sfx_bank.py`, `voices.py`, `music.py` (`--only motif` pour un seul son, `--png dossier` pour les spectres). Prérequis : numpy, scipy, pedalboard, mido, matplotlib, ffmpeg (libvorbis), fluidsynth et `fluid-soundfont-gm`. Puis `godot --headless --path . --import`.
 
 ## Dans le jeu
 
 | Code | Rôle |
 |---|---|
-| `scripts/core/audio.gd` (autoload `Audio`) | Quatre catégories, Musique, Effets, Voix et Ambiance, toutes sur le **seul bus Master**. Sur le web, des bus ajoutés en cours de route ne sont pas raccordés à la sortie : plus aucun son, sur aucun appareil (corrigé, et contrôlé par le test de fumée). Le volume de chaque catégorie s'applique à chaque lecteur : son niveau de base, fondus compris, plus le réglage de sa catégorie et le général. Musique en fondu enchaîné, que l'on peut atténuer un instant pendant un grand sort. Ambiances en couches qui apparaissent et s'éteignent en fondu. Réserve de 28 lecteurs d'effets : un même son joue 3 fois au plus en même temps, avec un intervalle minimal par son contre les rafales. Sons en boucle pour une durée donnée (zones de sorts). Syllabes de voix lues par tranche. Aucun effet de bus : le web les ignore, tout est inclus dans les fichiers. |
+| `scripts/core/audio.gd` (autoload `Audio`) | Trois catégories, Musique, Effets et Voix, toutes sur le **seul bus Master**. Sur le web, des bus ajoutés en cours de route ne sont pas raccordés à la sortie : plus aucun son, sur aucun appareil (corrigé, et contrôlé par le test de fumée). Le volume de chaque catégorie s'applique à chaque lecteur : son niveau de base, fondus compris, plus le réglage de sa catégorie et le général. Musique en fondu enchaîné, que l'on peut atténuer un instant pendant un grand sort. Les volumes du profil sont réappliqués dès que le profil change (chargement de la sauvegarde locale ou du cloud) : l'audio démarre avant le chargement de la sauvegarde. Réserve de 28 lecteurs d'effets : un même son joue 3 fois au plus en même temps, avec un intervalle minimal par son contre les rafales. Sons en boucle pour une durée donnée (zones de sorts). Syllabes de voix lues par tranche. Aucun effet de bus : le web les ignore, tout est inclus dans les fichiers. |
 | `scripts/core/snd.gd` (`Snd`) | Accès statique, sans risque là où l'autoload n'existe pas (outils). |
 | `scripts/core/spell_audio.gd` (`SpellAudio`) | Signature sonore de chaque sort (voir plus bas). |
 | `scripts/battle/battle_audio.gd` (`BattleAudio`) | Son du combat. Il lit les évènements de la simulation avant l'arène et compare son état d'une image à l'autre. |
 | `scripts/ui/cine_audio.gd` (`CineAudio`), `voice_babble.gd` (`VoiceBabble`) | Son des cinématiques et voix des personnages. |
-| `scripts/main.gd` (`_screen_sound`) | Musique et ambiance de chaque écran. |
+| `scripts/main.gd` (`_screen_sound`) | Musique de chaque écran. |
 
-**Options** (clé à molette) : Son oui ou non, et cinq volumes (Général, Musique, Effets, Voix, Ambiances) par pas de 10 %, avec un son d'essai à chaque changement. Le réglage est enregistré dans `options.sound` et `options.vol`.
+**Options** (clé à molette) : Son oui ou non, et quatre volumes (Général, Musique, Effets, Voix) par pas de 10 %, avec un son d'essai à chaque changement. Le réglage est enregistré dans `options.sound` et `options.vol`.
 
 ## Un son pour chaque sort
 
@@ -73,21 +71,17 @@ Les sons suivent l'animation du sort :
 
 | Évènement | Son |
 |---|---|
-| Début | Musique de la zone (ou du boss : `boss_1` pour les zones 1 à 3, `boss_2` pour les zones 4 à 7) et ambiance du lieu. Ambiances par zone : forêt de nuit ; vent des steppes, ou pluie sous l'orage avec du tonnerre lointain au hasard ; marais ; vent glacé, ou blizzard ; vent du désert, ou nuit du désert ; incendie, avec la lave en plus sur les coulées ; profondeurs. Au premier coup de gong du jour ou de la nuit, l'ambiance du désert change. |
+| Début | Musique de la zone (ou du boss : `boss_1` pour les zones 1 à 3, `boss_2` pour les zones 4 à 7). |
 | Tir de classe | Squelettes qui sortent de terre, luciole, corde d'arc, onde d'épée, orbe de lumière, bouclier qui tournoie, haches. Plus bas pour les compagnons. |
 | Coups, morts | Coups et chutes variés, limités en rafale. |
 | Barrière, Nexus | Barrière frappée, cœur qui bat quand elle est basse, Nexus qui tinte, éclats quand il tombe. |
 | Attaques annoncées | Alarme à l'annonce. À l'impact : tentacule, souffle de feu, venin, vague, avalanche, passage de dragon. |
 | Boss | Un cri propre à chaque boss à son arrivée et à chaque phase, avec la musique qui s'efface un instant ; un cri plus grave à sa chute. 19 cris : dragon, wyrm, bête, loup, ours, golem, hydre, arbre, sphinx, créature des mers, kraken, mort-vivant, orc, insecte, cerf, phénix, démon, esprit, petite créature. |
 | Surge pleine, Champion | Montée scintillante, fanfare. |
-| Fin | Fanfare de victoire ou complainte de défaite ; la musique et l'ambiance s'éteignent. |
+| Fin | Fanfare de victoire ou complainte de défaite ; la musique s'éteint. |
 
 ## Les cinématiques
 
-- **Ambiance du décor** :
-  - par humeur : forêt de nuit (brume, lune), forêt de jour (aube), bourdonnement arcanique, steppes, feu de camp, marais, neige, forge, désert, incendie, profondeurs ;
-  - par décor : caverne pour l'antre et la caldeira ; profondeurs pour l'antre du kraken, la fosse et les Archives ;
-  - certains effets ajoutent une couche : pluie, blizzard, tempête de sable, cendre.
 - **Musique de la scène** :
   - `cine_calm` (paisible), `cine_mystery` (mystère), `cine_tension` (danger), `cine_heroic` (fin d'acte, serment) ;
   - elle suit l'humeur du décor, puis l'étalonnage des répliques fortes (rouge et sombre : danger ; violet : mystère ; or : héroïque), pas plus d'un changement toutes les 10 s ;
@@ -121,16 +115,12 @@ Les sons suivent l'animation du sort :
 
 ## Les écrans
 
-| Écran | Musique | Ambiance |
-|---|---|---|
-| Connexion, création | Havre-Aube | Forêt de nuit |
-| Havre-Aube | Havre-Aube (thème principal) | Village : oiseaux, vent, cloche lointaine |
-| Carte | Carte | Vent léger |
-| Bibliothèque, Sauvegardes, Options | Havre-Aube | Horloge, pages, chandelle |
-| Méditation | Havre-Aube | Eau qui clapote, carillons |
-| Le Cercle, Préparation | Havre-Aube | Feu de camp, grillons |
-| Forge, Équipement | Havre-Aube | Feu de forge, enclume, soufflet |
-| Entraînement | Havre-Aube | Forêt de jour |
+| Écran | Musique |
+|---|---|
+| Carte | Carte |
+| Tous les autres écrans (connexion, Havre-Aube, salles) | Havre-Aube (thème principal) |
+
+Il n'y a plus d'ambiances sonores en boucle (retirées : leurs grains aigus évoquaient un verre qu'on tapote).
 
 Dans la Bibliothèque, un sort ajouté au deck ou appris fait entendre sa signature. Chaque bouton créé par `UiTheme.button` fait un clic.
 
@@ -157,7 +147,6 @@ Le pck passe de 4,4 Mo à environ 11 Mo : 6,8 Mo de son au total.
 | Contenu | Poids |
 |---|---|
 | Effets | 2,3 Mo, 24 kHz |
-| Ambiances | 1 Mo, 22 kHz |
 | Voix | 0,27 Mo |
 | Musique | 3,2 Mo, stéréo 24 kHz |
 
@@ -167,7 +156,7 @@ Les très petits fichiers OGG paient chacun environ 3 Ko d'en-tête : les syllab
 
 `tools/ui_smoke.gd` (`_audio_ok`) vérifie :
 - que chaque sort a tous ses sons et une signature unique ;
-- que chaque son référencé existe : familles, tirs, cris, invocations, effets et gestes des cinématiques, ambiances de chaque zone et de chaque écran, musiques, voix ;
+- que chaque son référencé existe : familles, tirs, cris, invocations, effets et gestes des cinématiques, musiques, voix ;
 - que des sons sont vraiment partis pendant les combats et les cinématiques du test ;
 - qu'il n'y a qu'un bus audio (le Master), le seul raccordé à la sortie sur le web.
 

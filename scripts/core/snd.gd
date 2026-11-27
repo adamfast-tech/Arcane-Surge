@@ -34,12 +34,6 @@ static func music_name() -> String:
 	return str(a.call("music_name")) if a != null else ""
 
 
-static func ambience(layers: Dictionary, fade: float = 1.5) -> void:
-	var a := _a()
-	if a != null:
-		a.call("ambience", layers, fade)
-
-
 static func voice(name: String, idx: int, vol_db: float = 0.0, pitch: float = 1.0) -> void:
 	var a := _a()
 	if a != null:

@@ -1,15 +1,9 @@
 class_name CineAudio
 extends RefCounted
-## Son des cinématiques (docs/design/43-audio.md) : ambiance du lieu (forêt de nuit, steppe, marais, neige,
-## désert, incendie, profondeurs…), musique selon l'humeur de la scène, un son pour chaque effet mis en scène
+## Son des cinématiques (docs/design/43-audio.md) : musique selon l'humeur de la scène, un son pour chaque effet mis en scène
 ## (éclair, pluie, ombre d'ailes, cloche, chaînes brisées…), pour les gestes (coup, chute, sort) et les cris
 ## des créatures, et le babillage de chaque personnage pendant que sa réplique s'écrit (VoiceBabble).
 
-## Humeur du décor (CineStage.PLATE_MOOD) -> ambiance.
-const MOOD_AMB := {"mist": {"forest_night": -8.0}, "moon": {"forest_night": -10.0}, "dawn": {"forest_day": -8.0},
-	"arcane": {"arcane_hum": -8.0}, "steppe": {"wind_plains": -9.0}, "campfire": {"campfire": -8.0}, "swamp": {"swamp": -8.0},
-	"snow": {"wind_snow": -9.0}, "forge": {"forge": -9.0}, "desert": {"desert_wind": -9.0}, "cinder": {"fire_forest": -8.0},
-	"abyss": {"underwater": -7.0}}
 ## Humeur du décor -> musique de fond.
 const MOOD_MUSIC := {"mist": "cine_calm", "moon": "cine_calm", "dawn": "cine_calm", "arcane": "cine_mystery", "steppe": "cine_calm",
 	"campfire": "cine_calm", "swamp": "cine_mystery", "snow": "cine_calm", "forge": "cine_tension", "desert": "cine_calm",
@@ -46,9 +40,6 @@ const FX := {
 	"song": ["ames_cast", -5.0], "threads": ["astral_cast", -6.0], "bellring": ["gong_day", -2.0], "nacre": ["shield_up", -5.0],
 	"blacktide": ["malefice_hit", -5.0],
 }
-## Effets qui ajoutent une couche d'ambiance à la scène.
-const FX_AMB := {"rain": ["rain", -7.0], "blizzard": ["blizzard", -7.0], "sandstorm": ["desert_wind", -6.0], "ashfall": ["fire_forest", -9.0],
-	"aurora": ["arcane_hum", -10.0]}
 ## Gestes des personnages (bustes) -> son.
 const ACT := {"attack": ["lame_hit", -6.0], "hurt": ["hit_1", -4.0], "fall": ["die_0", -4.0], "cast": ["arcane_cast", -9.0],
 	"glow": ["sw_spark", -9.0], "echo": ["sw_glass", -7.0], "kneel": ["sw_air", -14.0], "enter": ["sw_air", -12.0]}
@@ -56,35 +47,19 @@ const ACT := {"attack": ["lame_hit", -6.0], "hurt": ["hit_1", -4.0], "fall": ["d
 const CREATURE := {"cerf": "stag", "stag": "stag", "sylvarche": "tree", "mere_dragon": "dragon", "wyrm": "wyrm", "ash_wyrm": "wyrm",
 	"leviathan": "sea", "sphinx": "sphinx", "glass_sphinx": "sphinx", "gharok": "orc", "varg": "beast", "fee": "small", "pixie": "small"}
 
-var _scene_amb: Dictionary = {}
-var _extra_amb: Dictionary = {}
 var _music := ""
 var _music_t := -99.0
 var _t := 0.0
 
 
-## Début de scène : ambiance de son décor, musique de son humeur.
-func scene(plate_mood: String, art: String) -> void:
-	_extra_amb = {}
-	_scene_amb = (MOOD_AMB.get(plate_mood, {"forest_night": -10.0}) as Dictionary).duplicate()
-	if art in ["orage", "route"] or art.contains("storm"):
-		_scene_amb["rain"] = -8.0
-	if art in ["antre", "caldeira", "kraken", "fosse", "archives", "fil"]:
-		_scene_amb = {"cave": -8.0} if art in ["antre", "caldeira"] else {"underwater": -9.0, "cave": -12.0}
-	_apply_amb()
+## Début de scène : musique de son humeur.
+func scene(plate_mood: String, _art: String) -> void:
 	_set_music(str(MOOD_MUSIC.get(plate_mood, "cine_calm")), true)
 
 
-## Changement de décor au milieu d'une scène.
-func plate(plate_mood: String) -> void:
-	_scene_amb = (MOOD_AMB.get(plate_mood, _scene_amb) as Dictionary).duplicate()
-	_apply_amb()
-
-
-func _apply_amb() -> void:
-	var all := _scene_amb.duplicate()
-	all.merge(_extra_amb, true)
-	Snd.ambience(all, 2.0)
+## Changement de décor au milieu d'une scène (la musique suit l'étalonnage des répliques).
+func plate(_plate_mood: String) -> void:
+	pass
 
 
 func _set_music(name: String, force: bool = false) -> void:
@@ -104,10 +79,6 @@ func cues(l: Dictionary, stage: CineStage) -> void:
 		if FX.has(kind):
 			var fx: Array = FX[kind]
 			Snd.sfx(str(fx[0]), float(fx[1]), randf_range(0.96, 1.04), 0.15)
-		if FX_AMB.has(kind):
-			var a: Array = FX_AMB[kind]
-			_extra_amb[str(a[0])] = float(a[1])
-			_apply_amb()
 	var acts: Dictionary = l.get("act", {}) if l.get("act") is Dictionary else {}
 	for who in acts.keys():
 		var what := str(acts[who])
@@ -155,7 +126,7 @@ func tick(delta: float) -> void:
 
 ## Fin des cinématiques : on laisse la place à l'écran suivant.
 func finish() -> void:
-	Snd.ambience({}, 1.2)
+	pass
 
 
 static func _list(v: Variant) -> Array:

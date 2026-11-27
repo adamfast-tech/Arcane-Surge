@@ -6,8 +6,6 @@ extends RefCounted
 ## Lit les évènements de la simulation avant l'arène, et compare son état d'une image à l'autre.
 
 const STORM := ["orage", "repaire", "fort"]
-const BLIZZARD := ["congeres", "col", "colosse", "aurore"]
-const LAVA := ["coulee", "antre", "drake"]
 ## Genre de boss (ou de créature) -> cri.
 const ROAR := {"stag": "stag", "sylvarche": "tree", "varg": "beast", "gharok": "orc", "croc_lich": "undead", "hydra": "hydra",
 	"rune_sentinel": "golem", "rune_colossus": "golem", "sun_scarab": "insect", "glass_sphinx": "sphinx", "ancient_drake": "dragon",
@@ -56,41 +54,14 @@ func _snapshot() -> void:
 	_boss_alive = sim.boss != null and sim.boss.alive
 
 
-## Début du combat : musique, ambiance, sons courants chargés d'avance.
+## Début du combat : musique, sons courants chargés d'avance.
 func start() -> void:
 	var boss := sim.boss != null
 	Snd.music(("boss_%d" % (1 if zone <= 3 else 2)) if boss else "battle_z%d" % clampi(zone, 1, 7), 2.0, -2.0)
-	Snd.ambience(ambience_for(zone, scene, sim.is_day), 2.5)
 	var pre: Array = ["hit_0", "hit_1", "hit_2", "die_0", "die_1", "die_2", "barrier_hit", "nexus_hit", "portal", "flux", "telegraph"]
 	for c in sim.casters:
 		pre.append(str(SHOT.get(c.class_id, "shot_mage")))
 	Snd.preload_list(pre.map(func(n: Variant) -> String: return "sfx/" + str(n)))
-
-
-## Couches d'ambiance d'un lieu de combat : {son: volume dB}.
-static func ambience_for(z: int, sc: String, day: bool = true) -> Dictionary:
-	match z:
-		1:
-			return {"forest_night": -6.0}
-		2:
-			if sc in STORM:
-				return {"rain": -6.0, "wind_plains": -12.0}
-			return {"wind_plains": -8.0}
-		3:
-			return {"swamp": -6.0}
-		4:
-			if sc in BLIZZARD:
-				return {"blizzard": -6.0}
-			return {"wind_snow": -8.0}
-		5:
-			return {"desert_wind": -8.0} if day else {"desert_night": -8.0}
-		6:
-			if sc in LAVA:
-				return {"lava": -6.0, "fire_forest": -12.0}
-			return {"fire_forest": -7.0}
-		7:
-			return {"underwater": -5.0}
-	return {"forest_night": -8.0}
 
 
 func on_events(events: Array[Dictionary]) -> void:
@@ -130,7 +101,6 @@ func _event(e: Dictionary) -> void:
 			Snd.sfx("trap_snap", -3.0, randf_range(0.95, 1.05), 0.1)
 		"daynight":
 			Snd.sfx("gong_day", -4.0)
-			Snd.ambience(ambience_for(zone, scene, bool(e.get("day", true))), 3.0)
 		"wave":
 			Snd.sfx("wave_crash", -1.0, 1.0, 0.5)
 		"strike":
@@ -271,7 +241,6 @@ func end(victory: bool) -> void:
 		return
 	_ended = true
 	Snd.music("", 0.8)
-	Snd.ambience({}, 2.0)
 	if victory:
 		Snd.sfx("nexus_break", -3.0)
 		Snd.sfx("victory", 0.0)

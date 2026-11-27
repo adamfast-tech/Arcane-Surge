@@ -15,6 +15,7 @@ func _ready() -> void:
 	cloud = Cloud.new()
 	add_child(cloud)
 	Profile.load_local()
+	Snd.apply_volumes() ## l'audio a démarré avant la sauvegarde : ses volumes s'appliquent tout de suite
 	if _url_flag("fx"):
 		# Aperçu de l'ambiance enrichie (« &fx=1 »), sans changer la sauvegarde.
 		Profile._options()["ambience"] = true
@@ -483,27 +484,9 @@ func _query() -> Dictionary:
 
 
 
-## Musique et ambiance de chaque écran (docs/design/43-audio.md). Le combat et les cinématiques ont les leurs
+## Musique de chaque écran (docs/design/43-audio.md). Le combat et les cinématiques ont les leurs
 ## (BattleAudio, CineAudio).
 func _screen_sound(c: Control) -> void:
 	if c is BattleScreen or c is DialogueScreen:
 		return
-	var music := "havre"
-	var amb: Dictionary = {"havre": -12.0}
-	if c is MapScreen:
-		music = "map"
-		amb = {"wind_plains": -16.0}
-	elif c is LibraryScreen or c is SaveScreen or c is OptionsScreen:
-		amb = {"library": -10.0}
-	elif c is MeditationScreen:
-		amb = {"meditation": -8.0}
-	elif c is CircleScreen or c is PrepScreen:
-		amb = {"campfire": -10.0}
-	elif c is ForgeScreen or c is EquipmentScreen:
-		amb = {"forge": -10.0}
-	elif c is SkillTreeScreen:
-		amb = {"forest_day": -12.0}
-	elif c is LoginScreen or c is CreationScreen:
-		amb = {"forest_night": -12.0}
-	Snd.music(music, 1.8, -4.0)
-	Snd.ambience(amb, 1.5)
+	Snd.music("map" if c is MapScreen else "havre", 1.8, -4.0)

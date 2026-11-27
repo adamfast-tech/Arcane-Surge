@@ -1096,7 +1096,7 @@ func _run() -> void:
 	if not await _replay_scenes_ok():
 		quit(1)
 		return
-	if not _audio_ok():
+	if not await _audio_ok():
 		quit(1)
 		return
 	main.call("_show_room", "circle")
@@ -2555,26 +2555,14 @@ func _audio_ok() -> bool:
 	for table in [CineAudio.FX, CineAudio.ACT]:
 		for v in (table as Dictionary).values():
 			need["sfx/" + str((v as Array)[0])] = "cinématique"
-	for v in CineAudio.FX_AMB.values():
-		need["amb/" + str((v as Array)[0])] = "cinématique"
-	for v in CineAudio.MOOD_AMB.values():
-		for k in (v as Dictionary).keys():
-			need["amb/" + str(k)] = "cinématique"
 	for v in CineAudio.MOOD_MUSIC.values():
 		need["music/" + str(v)] = "cinématique"
 	for v in CineAudio.GRADE_MUSIC.values():
 		need["music/" + str(v)] = "cinématique"
 	for z in range(1, 8):
 		need["music/battle_z%d" % z] = "combat"
-		for sc in ["", "orage", "congeres", "coulee"]:
-			for k in BattleAudio.ambience_for(z, sc, true).keys():
-				need["amb/" + str(k)] = "combat"
-		for k2 in BattleAudio.ambience_for(z, "", false).keys():
-			need["amb/" + str(k2)] = "combat"
 	for n in ["boss_1", "boss_2", "havre", "map", "cine_heroic"]:
 		need["music/" + n] = "musique"
-	for n in ["havre", "library", "meditation", "campfire", "forge", "forest_day", "forest_night", "wind_plains", "cave", "underwater"]:
-		need["amb/" + n] = "écran"
 	for n in ["ui_click", "ui_confirm", "victory", "defeat", "barrier_hit", "nexus_hit", "nexus_break", "telegraph", "whirlpool",
 			"thunder_far", "dragon_pass", "avalanche", "tentacle", "wave_crash", "level_up", "loot_rare", "ultimate", "grand_cast", "forbidden"]:
 		need["sfx/" + n] = "combat"
@@ -2594,6 +2582,24 @@ func _audio_ok() -> bool:
 			casts += 1
 		if str(n).begins_with("voice/"):
 			voices += 1
+	# Volumes de la sauvegarde : appliqués même quand ils changent sans passer par les Options (chargement local
+	# ou cloud après le démarrage de l'audio), sinon on entend les volumes par défaut jusqu'au premier réglage.
+	var opts := Profile._options()
+	if not (opts.get("vol") is Dictionary):
+		opts["vol"] = {}
+	var vols: Dictionary = opts["vol"]
+	var had := vols.has("music")
+	var old_m := float(vols.get("music", 0.0))
+	vols["music"] = 0.3
+	await create_timer(0.8).timeout
+	var want := linear_to_db(Profile.audio_vol("master") * 0.3) if Profile.sound_on() else -80.0
+	var got := float((Snd._a().get("_off") as Dictionary).get("music", 0.0)) if Snd._a() != null else 0.0
+	if absf(got - want) > 0.1:
+		errs.append("volume de la sauvegarde non appliqué : musique %.1f dB au lieu de %.1f dB" % [got, want])
+	if had:
+		vols["music"] = old_m
+	else:
+		vols.erase("music")
 	if AudioServer.bus_count != 1:
 		# Sur le web, un bus ajouté en cours de route n'est pas raccordé à la sortie : plus aucun son.
 		errs.append("%d bus audio (le Master seul est raccordé sur le web)" % AudioServer.bus_count)

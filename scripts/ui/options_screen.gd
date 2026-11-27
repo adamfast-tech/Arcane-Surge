@@ -39,10 +39,10 @@ func _rebuild() -> void:
 	# Son : coupé ou non, et volume de chaque partie (musique, effets, voix, ambiances).
 	col.add_child(UiTheme.section("Son"))
 	var son := Profile.sound_on()
-	col.add_child(_choice("SON : %s" % ("OUI" if son else "NON"), "Musique, effets des sorts et du combat, voix des personnages et ambiances (pluie, vent, forêt).", "sparkle", son, func() -> void:
+	col.add_child(_choice("SON : %s" % ("OUI" if son else "NON"), "Musique, effets des sorts et du combat, voix des personnages.", "sparkle", son, func() -> void:
 		Profile.set_sound_on(not Profile.sound_on())
 		_changed("Son : %s." % ("activé" if Profile.sound_on() else "coupé"))))
-	for row in [["master", "Général"], ["music", "Musique"], ["sfx", "Effets (sorts, combat)"], ["voice", "Voix des personnages"], ["amb", "Ambiances (pluie, vent…)"]]:
+	for row in [["master", "Général"], ["music", "Musique"], ["sfx", "Effets (sorts, combat)"], ["voice", "Voix des personnages"]]:
 		col.add_child(_vol_row(str(row[0]), str(row[1])))
 
 	# Sorts en combat : Deck ou Tiroir.
@@ -257,7 +257,7 @@ func _vol_row(bus: String, title: String) -> PanelContainer:
 	var pct := UiTheme.label("%d %%" % roundi(Profile.audio_vol(bus) * 100.0), 17, UiTheme.MUTED)
 	pct.custom_minimum_size = Vector2(62, 0)
 	pct.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	var test := {"master": "loot", "music": "ui_confirm", "sfx": "feu_hit", "voice": "ui_confirm", "amb": "ui_page"}
+	var test := {"master": "loot", "music": "ui_confirm", "sfx": "feu_hit", "voice": "ui_confirm"}
 	var step := func(d: float) -> void:
 		Profile.set_audio_vol(bus, Profile.audio_vol(bus) + d)
 		bar.value = Profile.audio_vol(bus) * 100.0
