@@ -818,6 +818,8 @@ func build_companion(who: String, cls: String) -> void:
 			_ignara(cls)
 		"ssareth":
 			_ssareth(cls)
+		"durgan":
+			_durgan()
 	_build_surface()
 
 
@@ -1020,6 +1022,115 @@ func _sylwen(cls: String) -> void:
 	else:
 		_part = "hand"
 		_weapon(cls, [hood_d, tunic_d, tunic, hood], eyes)
+
+
+## Durgan Enclume, le forgeron : vieux nain chauve au crâne noirci de suie, grande barbe grise tressée d'anneaux de
+## fer, lunettes de forge (partie « goggles » : relevées sur le front, elles descendent sur les yeux), manches
+## retroussées sur des avant-bras noueux, tablier de cuir à sangles, marteau de forge dans la main droite.
+func _durgan() -> void:
+	pivots = BRANN_PIVOTS.duplicate()
+	pivots["goggles"] = Vector3(0, 17, -2)
+	var skin := [Color("8a4a3a"), Color("c07a5a"), Color("e0a07a")]
+	var grey := [Color("5a5a68"), Color("9a9aa8"), Color("cfcfd8"), Color("f0f0f6")]
+	var tunic := [Color("3a1e14"), Color("6a3420"), Color("8a4a2a")]
+	var leather := [Color("2a1a10"), Color("4a2e1a"), Color("6a4428"), Color("8a5e38")]
+	var brass := Color("e0a840")
+	var iron := [Color("2a2834"), Color("4a4858"), Color("7a7890"), Color("b0aec0")]
+	# Jambes (chausses) et bottes de cuir.
+	_part = "legs"
+	for side: int in [-2, 1]:
+		for y in range(0, 4):
+			for x in range(side, side + 2):
+				for z in range(-1, 1):
+					_put(x, y, z, leather[0] if y < 2 else tunic[0])
+	# Corps trapu, tunique.
+	_part = "body"
+	for y in range(4, 12):
+		var rx := 4.8 + (0.4 if y >= 6 and y <= 9 else 0.0)
+		_disc(y, 0.0, 0.0, rx, 3.1, tunic[1] if (y + 1) % 4 else tunic[2])
+	# Tablier de cuir devant, sangles sur les épaules, poche aux outils.
+	for y in range(3, 11):
+		for x in range(-3, 4):
+			_put(x, y, _front(x, y) - (1 if y < 4 else 0), leather[2] if absi(x) < 3 else leather[1])
+	for y in range(10, 12):
+		for side: int in [-1, 1]:
+			_put(side * 2, y, _front(side * 2, y), leather[1])
+			_put(side * 2, y, _back(side * 2, y), leather[1])
+	for x in range(-2, 1):
+		_put(x, 6, _front(x, 6) - 1, leather[3])
+	_put(-1, 7, _front(-1, 7) - 1, iron[2])
+	_put(-2, 7, _front(-2, 7) - 1, iron[1])
+	# Ceinture.
+	for x in range(-6, 7):
+		for z in range(-4, 5):
+			if vox.has(Vector3i(x, 4, z)) and str(vox[Vector3i(x, 4, z)][2]) == "body":
+				_put(x, 4, z, leather[1])
+	# Bras : manches retroussées, avant-bras nus, brassard de cuir à droite, mains noircies.
+	_part = "arms"
+	for side: int in [-1, 1]:
+		for y in range(9, 12):
+			for x in range(5, 7):
+				for z in range(-1, 1):
+					_put(side * x, y, z, tunic[2] if y > 9 else tunic[1])
+		for y in range(5, 9):
+			_put(side * 6, y, 0, skin[1] if side < 0 or y > 7 else leather[2])
+			_put(side * 6, y, -1, skin[2] if side < 0 or y > 7 else leather[3])
+		_put(side * 6, 4, 0, skin[0])
+		_put(side * 6, 4, -1, skin[0])
+	# Tête chauve, suie, oreilles, nez épais, yeux sous des sourcils broussailleux.
+	_part = "head"
+	for y in range(12, 19):
+		var dy := (float(y) - 15.0) / 3.4
+		var k := sqrt(maxf(0.0, 1.0 - dy * dy))
+		_disc(y, 0.0, 0.0, 3.4 * k + 0.15, 3.1 * k + 0.15, skin[1])
+	_keep = true
+	for p in vox.keys():
+		var q: Vector3i = p
+		if str(vox[q][2]) == "head" and q.y >= 17 and (q.x * 5 + q.z * 3 + q.y) % 4 == 0:
+			_put(q.x, q.y, q.z, skin[0])
+	_keep = false
+	for side: int in [-1, 1]:
+		_put(side * 4, 15, 0, skin[1])
+		_put(side, 15, _front(side, 15), Color("1a1010"))
+		_put(side, 16, _front(side, 16), grey[1])
+		_put(side * 2, 16, _front(side * 2, 16), grey[1])
+	_put(0, 14, _front(0, 14) - 1, skin[0])
+	_put(0, 15, _front(0, 15) - 1, skin[1])
+	# Barbe grise, longue, tressée, avec deux anneaux de fer ; moustache.
+	for y in range(6, 15):
+		for x in range(-3, 4):
+			var w := 3 if y > 11 else (2 if y > 8 else 1)
+			if absi(x) > w:
+				continue
+			var ring := (y == 9 or y == 7) and absi(x) <= 1
+			_put(x, y, _front(x, y) - (1 if y < 12 else 0), iron[2] if ring else (grey[2] if (x + y) % 3 else grey[1]))
+	for x in range(-3, 4):
+		_put(x, 14, _front(x, 14), grey[3] if absi(x) > 1 else grey[2])
+	# Lunettes de forge : sangle de cuir autour du crâne, deux verres cerclés de laiton, relevées sur le front.
+	_part = "goggles"
+	for x in range(-4, 5):
+		for z in range(-4, 5):
+			var d := Vector2(float(x) / 3.6, float(z) / 3.3).length()
+			if d <= 1.08 and d >= 0.85 and z >= -1:
+				_put(x, 17, z, leather[0])
+	for side: int in [-1, 1]:
+		var cx := side * 2 - (1 if side < 0 else 0)
+		for q in [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]:
+			_put(cx + q.x, 17 + q.y, -4, Color("7ad0e0"), q.x == 0 and q.y == 1)
+		for q in [Vector2i(-1, 0), Vector2i(2, 0), Vector2i(-1, 1), Vector2i(2, 1), Vector2i(0, 2), Vector2i(1, 2), Vector2i(0, -1), Vector2i(1, -1)]:
+			_put(cx + q.x, 17 + q.y, -4, brass)
+	_put(0, 17, -4, leather[1])
+	# Marteau de forge dans la main droite : manche de bois, tête d'acier (dans l'axe avant-arrière).
+	_part = "hand"
+	_wx = 1
+	_wy = -3
+	for y in range(3, 14):
+		_pw(6, y, -1, Color("6a4428") if y % 3 else Color("4a2e1a"))
+	for y in range(14, 17):
+		for z in range(-4, 3):
+			_pw(6, y, z, iron[3] if (z == -4 or z == 2) else (iron[2] if y == 16 else iron[1]))
+			_pw(5, y, z, iron[1])
+			_pw(7, y, z, iron[1])
 
 
 ## Corps commun des autres compagnons : jambes, robe longue ou tunique, ceinture, col, bras et mains, cou, tête
@@ -1393,6 +1504,7 @@ func _skeleton(pose_d: Dictionary) -> Dictionary:
 	var out := {"root": root, "body": body, "legR": root * _xf("legR", pose_d), "legL": root * _xf("legL", pose_d)}
 	for part in ON_BODY:
 		out[part] = body * _xf(str(part), pose_d)
+	out["goggles"] = (out["head"] as Transform3D) * _xf("goggles", pose_d)
 	out["wpnR"] = (out["armR"] as Transform3D) * _xf("wpnR", pose_d)
 	out["wpnL"] = (out["armL"] as Transform3D) * _xf("wpnL", pose_d)
 	return out
@@ -1413,6 +1525,95 @@ func frame_budgeted(yaw: float, anim: String, f: int, light: String = "jour") ->
 		return null
 	_budget_frame = now
 	return frame_at(yaw, anim, f, light)
+
+
+## Image d'une pose libre (dictionnaire de pose(), clé donnée pour le cache) sous l'angle yaw.
+func frame_pose(yaw: float, key: String, pose_d: Dictionary, light: String = "jour") -> Image:
+	var step := posmod(int(round(yaw / TAU * float(STEPS))), STEPS)
+	var k := "P|%s|%d|%s" % [key, step, light]
+	if not _cache.has(k):
+		if _cache.size() > 600:
+			_cache.clear()
+		_cache[k] = render(float(step) / float(STEPS) * TAU, pose_d, light)
+	return _cache[k]
+
+
+func has_pose(yaw: float, key: String, light: String = "jour") -> bool:
+	var step := posmod(int(round(yaw / TAU * float(STEPS))), STEPS)
+	return _cache.has("P|%s|%d|%s" % [key, step, light])
+
+
+## Où tombe dans l'image (en pixels, depuis son coin haut gauche) un point du modèle porté par une partie, pour une
+## pose et un angle : la main qui tient un objet, le haut de l'enclume…
+func project(yaw: float, pose_d: Dictionary, part: String, p: Vector3) -> Vector2:
+	var step := posmod(int(round(yaw / TAU * float(STEPS))), STEPS)
+	var y2 := float(step) / float(STEPS) * TAU
+	var right := Vector3(cos(y2), 0.0, -sin(y2))
+	var xf: Transform3D = _skeleton(pose_d).get(part, Transform3D.IDENTITY)
+	var q := xf * p
+	return Vector2(q.dot(right) + float(W) * 0.5, float(H - 2) - q.y + 0.5)
+
+
+## Un objet en volume d'après son icône en pixel art : chaque pixel devient une colonne de cubes (épaisseur thick).
+## L'icône est vue de face sous l'angle 0, posée sur y = 0.
+static func from_icon(img: Image, thick: int = 2) -> HeroModel:
+	var m := HeroModel.new()
+	var w := img.get_width()
+	var h := img.get_height()
+	for iy in range(h):
+		for ix in range(w):
+			var c := img.get_pixel(ix, iy)
+			if c.a < 0.5:
+				continue
+			for z in range(thick):
+				m.vox[Vector3i(ix - w / 2, h - 1 - iy, -z)] = [Color(c.r, c.g, c.b), false, "body"]
+	m._build_surface()
+	return m
+
+
+## L'enclume de Durgan : pied, taille, table, bigorne et talon, en fer noirci.
+static func anvil() -> HeroModel:
+	var m := HeroModel.new()
+	var dk := Color("1e1c26")
+	var mid := Color("3a3848")
+	var lt := Color("5e5c70")
+	var shine := Color("8a88a0")
+	for y in range(0, 3):
+		for x in range(-5, 6):
+			for z in range(-3, 3):
+				m._put(x, y, z, dk if y == 0 else mid)
+	for y in range(3, 5):
+		for x in range(-2, 3):
+			for z in range(-2, 2):
+				m._put(x, y, z, mid)
+	for y in range(5, 8):
+		for x in range(-6, 8):
+			for z in range(-3, 3):
+				m._put(x, y, z, shine if y == 7 and absi(x) < 5 else (lt if y == 7 else mid))
+	# Bigorne (la corne) et talon.
+	for k in range(0, 5):
+		var half := 2 - k / 2
+		for y in range(7 - half, 8):
+			for z in range(-half, half):
+				m._put(-7 - k, y, z, lt if y == 7 else mid)
+	m._build_surface()
+	return m
+
+
+## Établi de bois où attendent les objets.
+static func bench() -> HeroModel:
+	var m := HeroModel.new()
+	var wd := [Color("3a2414"), Color("5a3a22"), Color("7a5230"), Color("9a6a3a")]
+	for x in [-9, 8]:
+		for z in [-3, 2]:
+			for y in range(0, 6):
+				m._put(x, y, z, wd[1])
+	for y in range(6, 8):
+		for x in range(-10, 10):
+			for z in range(-4, 4):
+				m._put(x, y, z, wd[3] if y == 7 and (x + z) % 5 else wd[2])
+	m._build_surface()
+	return m
 
 
 ## Image déjà rendue, ou null (pour ne rendre qu'un nombre limité d'images par image d'écran).
@@ -1452,6 +1653,8 @@ const LIGHTS := {
 		"shade": Color("1a0404"), "s1": 0.36, "s2": 0.6, "tint": Color("801a10"), "tint_k": 0.16},
 	"abysses": {"name": "Abysses", "space": "view", "dir": Vector3(0.2, 0.9, 0.3), "key": Color("70f0e0"), "lit": 0.3,
 		"shade": Color("021420"), "s1": 0.34, "s2": 0.56, "tint": Color("1a6a7a"), "tint_k": 0.3, "rim": Color("8ff0ff"), "rim_dir": Vector3(0.6, 0.3, -0.7)},
+	"forge": {"name": "Forge", "hidden": true, "space": "view", "dir": Vector3(0.75, 0.25, 0.55), "key": Color("ffb060"), "lit": 0.36,
+		"shade": Color("1a0c18"), "s1": 0.34, "s2": 0.56, "tint": Color("c08050"), "tint_k": 0.14, "rim": Color("ff7a30"), "rim_dir": Vector3(-0.85, 0.3, -0.3)},
 	"camp": {"name": "Bivouac", "hidden": true, "space": "world", "dir": Vector3(0.35, 0.12, -1.0), "key": Color("ffa050"), "lit": 0.42,
 		"shade": Color("120a22"), "s1": 0.38, "s2": 0.6, "tint": Color("b06038"), "tint_k": 0.16, "rim": Color("9ab0ff"), "rim_dir": Vector3(-0.85, 0.45, -0.2)},
 	"lampe": {"name": "Lanterne", "space": "view", "dir": Vector3(0.6, 0.55, 0.6), "key": Color("ffd890"), "lit": 0.3,

@@ -77,6 +77,9 @@ func _ready() -> void:
 		if str(_query().get("tab", "")) != "":
 			_screen.set("tab", str(_query().get("tab", "")))
 			_screen.call("_rebuild")
+		if str(_query().get("fx", "")) != "":
+			# Aperçu des gestes de Durgan (« &fx=fusion », « &fx=gravure »).
+			_screen.call("demo_scene", str(_query().get("fx", "")))
 		return
 	var direct := _level_from_url()
 	if direct != "":

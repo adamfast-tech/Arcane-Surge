@@ -793,6 +793,9 @@ func _run() -> void:
 	if not await _troupe_ok():
 		quit(1)
 		return
+	if not await _forge_scene_ok():
+		quit(1)
+		return
 	# Bibliothèque, onglet Classes : Ultime, sorts d'arbre et sorts de compagnon de chaque classe.
 	var cs := LibraryScreen.class_spells("chevalier")
 	var tree_ids: Array[String] = []
@@ -2024,6 +2027,99 @@ func _troupe_ok() -> bool:
 		push_error("personnages en volume : %s" % [errs])
 		return false
 	print("personnages en volume : %d compagnons en volume · combat (se tourne, lance, célèbre) · Cercle autour du feu · marche sur la carte · troupe des cinématiques" % HeroModel.COMPANIONS.size())
+	return true
+
+
+## Les gestes de Durgan à la Forge (docs/design/46-forge-animee.md) : la fusion (lunettes, trois objets posés sur
+## l'enclume, trois coups de marteau, l'objet né de la fusion) et la gravure (l'objet, la rune choisie, les coups de
+## burin, le glyphe allumé), lancées par les vrais boutons de la Forge, jouées jusqu'au bout ou passées.
+func _forge_scene_ok() -> bool:
+	var errs: Array[String] = []
+	var saved: Dictionary = Profile.data.duplicate(true)
+	# Durgan en volume : lunettes relevées, puis rabattues sur les yeux.
+	var dm := HeroModel.new()
+	dm.build_companion("durgan", "")
+	var up := dm.frame_pose(PI, "t_up", ForgeScene.dpose("rest", false), "forge")
+	var down := dm.frame_pose(PI, "t_down", ForgeScene.dpose("rest", true), "forge")
+	if up.get_used_rect().size.y < 16 or up.get_data() == down.get_data():
+		errs.append("Durgan : modèle ou lunettes incorrects")
+	var hi := dm.project(PI, ForgeScene.dpose("raise", true), "wpnR", ForgeScene.HAMMER)
+	var lo := dm.project(PI, ForgeScene.dpose("strike", true), "wpnR", ForgeScene.HAMMER)
+	if hi.y >= lo.y:
+		errs.append("Durgan : le marteau ne s'abat pas (%s → %s)" % [hi, lo])
+	# Les objets et la rune en volume, d'après leurs icônes.
+	var icon := HeroModel.from_icon((ItemArt.rune("pyr", 3, ItemArt.S) as ImageTexture).get_image())
+	if icon.frame_at(0.0, "", 0, "forge").get_used_rect().size.x < 14:
+		errs.append("rune en volume vide")
+	# Les deux scènes jouées jusqu'au bout.
+	var fs := ForgeScreen.new()
+	root.add_child(fs)
+	await _frames(1)
+	for kind in ["fusion", "gravure"]:
+		var sc := fs.demo_scene(kind)
+		sc.size = Vector2(720, 1280)
+		await _frames(1)
+		var steps := 0
+		for i in range(400):
+			sc._process(0.05)
+			steps = maxi(steps, sc._si)
+			if sc._done:
+				break
+		if not sc._done or steps < 10:
+			errs.append("%s : scène inachevée (%d étapes)" % [kind, steps])
+		if kind == "fusion" and not bool(sc._props["out"]["vis"]):
+			errs.append("fusion : l'objet né de la fusion n'apparaît pas")
+		if kind == "gravure" and (sc._emblem <= 0.0 or bool(sc._props["rune"]["vis"])):
+			errs.append("gravure : le glyphe ne s'allume pas sur l'objet")
+		sc.queue_free()
+	# Passer la scène : l'état final tout de suite.
+	var sk := fs.demo_scene("fusion")
+	sk.size = Vector2(720, 1280)
+	await _frames(1)
+	sk.skip()
+	if not sk._done or not bool(sk._props["out"]["vis"]):
+		errs.append("passer la fusion ne montre pas le résultat")
+	sk.queue_free()
+	# Les vrais boutons : FUSIONNER et la gravure lancent la scène.
+	Profile.data["gold"] = 1000000
+	Profile.data["inventory"] = []
+	Profile.data["equipped"] = {}
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 5
+	var uids: Array[String] = []
+	for b in ["epee_ecuyer", "lame_verre", "rapiere_aube", "baton_chene"]:
+		var it := Profile.make_item(str(b), "rare", 20, rng)
+		(Profile.data["inventory"] as Array).append(it)
+		uids.append(str(it["uid"]))
+	fs.tab = "fusion"
+	fs._sel.assign(uids.slice(0, 3))
+	fs._rebuild()
+	await _frames(1)
+	for bt in fs.find_children("*", "Button", true, false):
+		if (bt as Button).text.begins_with("FUSIONNER") and not (bt as Button).disabled:
+			(bt as Button).pressed.emit()
+			break
+	await _frames(1)
+	if fs.find_children("*", "ForgeScene", false, false).is_empty():
+		errs.append("FUSIONNER ne lance pas la scène de Durgan")
+	for c in fs.find_children("*", "ForgeScene", false, false):
+		c.queue_free()
+	var r := Profile.make_rune("isa", 2, "rare")
+	Profile.rune_inventory().append(r)
+	fs.tab = "gravure"
+	fs.focus_item = uids[3]
+	fs._rune_pick = str(r["uid"])
+	fs._engrave(Profile.find_item(uids[3]), "weapon")
+	await _frames(1)
+	var gs := fs.find_children("*", "ForgeScene", false, false)
+	if gs.is_empty() or str((gs[0] as ForgeScene).rune.get("rune", "")) != "isa":
+		errs.append("la gravure ne lance pas la scène avec la rune choisie")
+	fs.queue_free()
+	Profile.data = saved
+	if not errs.is_empty():
+		push_error("forge animée : %s" % [errs])
+		return false
+	print("forge animée : Durgan en volume (lunettes, marteau) · fusion et gravure jouées jusqu'au bout, passables, lancées par les boutons de la Forge avec la rune choisie")
 	return true
 
 

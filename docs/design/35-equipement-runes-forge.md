@@ -163,6 +163,8 @@ On y accède par une nouvelle salle d'Havre-Aube, par le bouton « Forge » de l
 - **Fin de combat** : les runes gagnées apparaissent dans le butin, sur leur faisceau de rareté. Le bouton « Équipement » (à côté de Rejouer, Carte et Havre-Aube) ouvre directement l'équipement ; il passe au vert avec une flèche quand un objet de réserve fait mieux que l'équipé.
 - **Aperçus** : `?room=forge`, `&tab=fusion` ou `&tab=runes`, `&gear=1` (un assortiment d'objets et de runes).
 
+Les gestes de Durgan pendant une fusion ou une gravure : voir [46-forge-animee.md](46-forge-animee.md).
+
 ## 6. Vérifications
 
 `tools/ui_smoke.gd` (`_gear_ok`) contrôle :

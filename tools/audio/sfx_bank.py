@@ -1815,6 +1815,97 @@ def all_names():
     return [n for (n, _, _) in family_names()] + list(REG.keys())
 
 
+# ---------------------------------------------------------------- forge de Durgan (fusion, gravure)
+
+@snd("forge_goggles", "ui")
+def s_forge_goggles():
+    """Lunettes rabattues : frottement de cuir puis clic du verre sur le cerclage."""
+    d = 0.45
+    return mix(d, (0, bp(noise(0.18, "pink"), 300, 1800) * env_exp(0.18, 0.06), 0.7),
+               (0.16, metal_ring(2600, 0.25, 0.6), 0.45), (0.16, bp(noise(0.03), 3000, 8000) * env_exp(0.03, 0.008), 0.6))
+
+
+@snd("forge_pick", "ui")
+def s_forge_pick():
+    """Objet pris sur l'établi : cliquetis de métal, léger souffle."""
+    d = 0.4
+    return mix(d, (0, metal_ring(1800, 0.3, 0.5), 0.5), (0.03, metal_ring(2400, 0.22, 0.4), 0.3),
+               (0, bp(noise(0.2, "pink"), 500, 2500) * env_exp(0.2, 0.05), 0.4))
+
+
+@snd("forge_place", "ui")
+def s_forge_place():
+    """Objet posé sur l'enclume : choc sourd et tintement."""
+    d = 0.55
+    return mix(d, (0, thump(150, 0.3, 0.8, 0.7), 0.8), (0, metal_ring(900, 0.45, 0.7), 0.45))
+
+
+@snd("forge_whoosh", "ui")
+def s_forge_whoosh():
+    """Le marteau levé, l'air qui siffle et le feu qui ronfle."""
+    d = 0.45
+    return mix(d, (0, whoosh(d, 300, 1600, 0.6, 1.4), 0.7), (0, lp(noise(d, "brown"), 400) * env_exp(d, 0.2), 0.4))
+
+
+@snd("forge_strike", "big")
+def s_forge_strike():
+    """Coup de marteau sur l'enclume : impact, sonnerie de l'acier, gerbe d'étincelles."""
+    d = 1.3
+    return reverb(mix(d, (0, thump(110, 0.35, 1.2, 1.0), 0.9), (0, metal_ring(620, 1.2, 1.0), 0.9), (0, metal_ring(1460, 0.9, 0.8), 0.5),
+                      (0.01, sparkle(0.7, 16, 3000, 9000, 0.08), 0.6), (0, bp(noise(0.05), 2000, 9000) * env_exp(0.05, 0.01), 0.8)), 0.5, 0.2)
+
+
+@snd("forge_fuse", "big")
+def s_forge_fuse():
+    """La fusion : un bourdon qui monte, les objets qui se fondent, puis l'éclat."""
+    d = 2.2
+    rise = fm(110, 1.5, 3.0, 1.5) * env_curve(1.5, [(0, 0), (1.2, 1.0), (1.5, 0.6)])
+    sweep = whoosh(1.5, 200, 4000, 0.7, 1.2)
+    boom = add(thump(70, 1.0, 1.0, 1.0), lp(noise(0.9, "brown"), 300) * env_exp(0.9, 0.3))
+    return reverb(mix(d, (0, rise, 0.5), (0, sweep, 0.5), (1.45, boom, 1.0), (1.45, sparkle(0.7, 30, 3000, 10000, 0.15), 0.7),
+                      (1.45, metal_ring(880, 0.7, 0.8), 0.5)), 0.7, 0.3)
+
+
+@snd("forge_reveal", "ui")
+def s_forge_reveal():
+    """L'objet né de la fusion apparaît : accord lumineux qui scintille."""
+    d = 1.9
+    return reverb(mix(d, (0, gm([(i * 0.06, n, 1.2, 100) for i, n in enumerate([67, 71, 74, 79, 83, 86])], 11, d), 1),
+                      (0, sparkle(d, 26, 4000, 11000, 0.35), 0.6), (0, bell(1320, 1.6, 1.0), 0.35)), 0.8, 0.35)
+
+
+@snd("engrave_tap", "ui")
+def s_engrave_tap():
+    """Petit coup du marteau sur le burin : tintement net."""
+    d = 0.5
+    return mix(d, (0, metal_ring(2100, 0.4, 0.8), 0.8), (0, bp(noise(0.03), 2500, 9000) * env_exp(0.03, 0.006), 0.7),
+               (0, thump(400, 0.1, 0.5, 0.4), 0.3))
+
+
+@snd("engrave_scratch", "ui")
+def s_engrave_scratch():
+    """La pointe qui trace le glyphe dans le métal."""
+    d = 0.6
+    grit = bp(noise(d), 2200, 7000) * (0.6 + 0.4 * np.sin(2 * np.pi * 23 * t_axis(d))) * env_curve(d, [(0, 0), (0.05, 1), (0.5, 0.8), (0.6, 0)])
+    return mix(d, (0, grit, 0.6), (0, metal_ring(3200, 0.5, 0.3), 0.2))
+
+
+@snd("rune_glow", "ui")
+def s_rune_glow():
+    """La rune s'éveille : souffle magique et cloches cristallines."""
+    d = 1.4
+    return reverb(mix(d, (0, whoosh(d, 600, 3000, 0.5, 1.5), 0.4), (0, bell(1046, 1.2, 1.2), 0.45), (0.08, bell(1568, 1.0, 1.0), 0.35),
+                      (0, sparkle(d, 18, 3000, 9000, 0.25), 0.5)), 0.7, 0.3)
+
+
+@snd("rune_set", "ui")
+def s_rune_set():
+    """La rune scellée dans l'objet : éclat grave puis tintement."""
+    d = 1.4
+    return reverb(mix(d, (0, thump(90, 0.5, 0.8, 0.6), 0.6), (0, bell(784, 1.2, 0.9), 0.5), (0.05, bell(1175, 1.0, 1.0), 0.4),
+                      (0, sparkle(0.9, 20, 3500, 10000, 0.2), 0.6)), 0.7, 0.3)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", default="")

@@ -333,10 +333,13 @@ func _engrave(it: Dictionary, cat: String) -> void:
 	_act(func() -> void:
 		var rr := Profile.find_rune(ruid)
 		var name := Profile.rune_name(rr)
+		var before := Profile.find_item(focus_item).duplicate(true)
+		var rune_copy := rr.duplicate(true)
+		var effect := Profile.rune_effect_text(rr, cat)
 		if Profile.engrave(focus_item, ruid):
-			Snd.sfx("ui_anvil", -3.0)
-			Snd.sfx("sw_spark", -6.0, 1.1)
-			_say("%s gravée : %s." % [name, Profile.rune_effect_text(rr, cat)])
+			_say("%s gravée : %s." % [name, effect])
+			# Durgan grave la rune, de face, sous nos yeux.
+			add_child(ForgeScene.engraving(before, rune_copy, Profile.find_item(focus_item).duplicate(true), effect))
 		_rune_pick = "")
 
 
@@ -430,12 +433,17 @@ func _fusion(col: VBoxContainer) -> void:
 		go.add_theme_color_override("font_color", UiTheme.GOLD)
 		go.add_theme_stylebox_override("normal", UiTheme.box(Color(UiTheme.WARM, 0.94), Color(UiTheme.GOLD, 0.85), 12, 2, 8, UiTheme.GOLD))
 	go.pressed.connect(func() -> void: _act(func() -> void:
+		var objs: Array = []
+		for uid in _sel:
+			var x := Profile.find_item(str(uid))
+			if not x.is_empty():
+				objs.append(x.duplicate(true))
 		var out := Profile.fuse_items(_sel)
 		_sel.clear()
 		if not out.is_empty():
-			Snd.sfx("ui_anvil", -2.0, 0.9)
-			Snd.sfx("loot_rare", -4.0)
-			_say("Fusion réussie : %s (%s) !" % [Profile.item_name(out), str(Profile.rarity_of(out).get("name", ""))])))
+			_say("Fusion réussie : %s (%s) !" % [Profile.item_name(out), str(Profile.rarity_of(out).get("name", ""))])
+			# Durgan rabat ses lunettes et forge la fusion sous nos yeux.
+			add_child(ForgeScene.fusion(objs, out.duplicate(true)))))
 	v.add_child(go)
 	if why != "" and not chosen.is_empty():
 		var wl := UiTheme.label(why, 16, UiTheme.MUTED)
@@ -644,6 +652,26 @@ static func _rune_order(a: Dictionary, b: Dictionary) -> bool:
 	if int(a["level"]) != int(b["level"]):
 		return int(a["level"]) > int(b["level"])
 	return float(Profile.rarity_of(a).get("value", 1)) > float(Profile.rarity_of(b).get("value", 1))
+
+
+## Aperçu des gestes de Durgan (« ?room=forge&fx=fusion » ou « &fx=gravure »), sans rien changer à la sauvegarde.
+func demo_scene(kind: String) -> ForgeScene:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 11
+	var sc: ForgeScene
+	if kind == "gravure":
+		var it := Profile.make_item("sceptre_solaire", "legendaire", 30, rng)
+		var r := Profile.make_rune("pyr", 3, "epique")
+		var after := it.duplicate(true)
+		after["runes"] = [r]
+		sc = ForgeScene.engraving(it, r, after, Profile.rune_effect_text(r, Profile.rune_category("weapon")))
+	else:
+		var objs: Array = []
+		for b in ["epee_ecuyer", "lame_verre", "rapiere_aube"]:
+			objs.append(Profile.make_item(str(b), "epique", 30, rng))
+		sc = ForgeScene.fusion(objs, Profile.make_item("lame_verre", "legendaire", 31, rng))
+	add_child(sc)
+	return sc
 
 
 func _say(text: String, c: Color = UiTheme.GOLD) -> void:
