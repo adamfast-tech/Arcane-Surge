@@ -7,6 +7,9 @@ signal done
 signal back
 
 var mirror := false
+var _tt: HeroTurntable
+var _yaw := PI + 0.45 ## angle du héros, gardé d'un choix à l'autre
+var _cls := "" ## classe affichée (un changement de classe fait lancer un sort)
 
 
 func _ready() -> void:
@@ -16,6 +19,8 @@ func _ready() -> void:
 
 
 func _rebuild() -> void:
+	if is_instance_valid(_tt):
+		_yaw = _tt.yaw
 	for ch in get_children():
 		if ch is ScrollContainer:
 			ch.queue_free()
@@ -77,9 +82,47 @@ func _rebuild() -> void:
 	col.add_child(gb)
 
 
-## Aperçu : portrait, sprite de combat vu de dos, nom, race et classe.
+## Aperçu : le héros en volume qu'on fait tourner (chaque choix s'y voit aussitôt), portrait, nom, race et classe.
 func _preview(party: Dictionary) -> PanelContainer:
 	var c: Array = UiTheme.card(Color(UiTheme.TEAL, 0.6), 14)
+	var stage := Control.new()
+	stage.custom_minimum_size = Vector2(0, float(HeroModel.FOOT_H * HeroTurntable.SCALE) + 64.0)
+	stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	(c[1] as VBoxContainer).add_child(stage)
+	var ped := GearUi.pedestal(UiTheme.TEAL, 240, 64)
+	ped.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	ped.offset_left = -120
+	ped.offset_right = 120
+	ped.offset_top = -92
+	ped.offset_bottom = -28
+	stage.add_child(ped)
+	var tt := HeroTurntable.new()
+	tt.yaw = _yaw
+	# À la création, l'arme et la tenue de la classe ; au Miroir, l'équipement porté et les cosmétiques.
+	if mirror:
+		tt.setup(Profile.look(), Profile.race(), Profile.player_class(), Profile.visible_cosmetics(), Profile.gear_look())
+	else:
+		tt.setup(Profile.look(), Profile.race(), Profile.player_class())
+	tt.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	var hw := float(HeroModel.FOOT_W * HeroTurntable.SCALE) * 0.5
+	tt.offset_left = -hw
+	tt.offset_right = hw
+	tt.offset_top = -36.0 - float(HeroModel.FOOT_H * HeroTurntable.SCALE)
+	tt.offset_bottom = -36.0
+	stage.add_child(tt)
+	_tt = tt
+	if _cls != "" and _cls != Profile.player_class():
+		tt.play("cast")
+	_cls = Profile.player_class()
+	var hint := UiTheme.label("Glisse pour le faire tourner · touche-le pour un geste", 13, Color(UiTheme.MUTED, 0.85))
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	hint.offset_left = -240
+	hint.offset_right = 240
+	hint.offset_top = -24
+	hint.offset_bottom = -2
+	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stage.add_child(hint)
 	var h := HBoxContainer.new()
 	h.add_theme_constant_override("separation", 18)
 	(c[1] as VBoxContainer).add_child(h)
@@ -95,13 +138,6 @@ func _preview(party: Dictionary) -> PanelContainer:
 	pic.custom_minimum_size = Vector2(128, 128)
 	pf.add_child(pic)
 	SpriteAtlas.set_player(Profile.look(), Profile.race(), Profile.player_class())
-	var sp := TextureRect.new()
-	sp.texture = SpriteAtlas.single("player")
-	sp.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	sp.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	sp.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	sp.custom_minimum_size = Vector2(80, 128)
-	h.add_child(sp)
 	var v := VBoxContainer.new()
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	v.alignment = BoxContainer.ALIGNMENT_CENTER

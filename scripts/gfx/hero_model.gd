@@ -7,15 +7,21 @@ extends RefCounted
 ## Repère du modèle : x vers la droite du héros, y vers le haut (0 sous les pieds), z vers son dos
 ## (le héros regarde vers -z). Angle 0 : vu de dos, comme en combat ; PI : de face.
 
-const W := 28 ## largeur de l'image rendue (pixels)
-const H := 33 ## hauteur de l'image rendue
+const W := 36 ## largeur de l'image rendue (pixels) : de la marge pour les bras levés et les armes
+const H := 44 ## hauteur de l'image rendue : de la marge pour un saut, une arme brandie
+const FOOT_W := 28 ## encombrement du héros au repos (mise en page)
+const FOOT_H := 33
 const STEPS := 48 ## angles mis en cache (7,5° chacun)
 const OUTLINE := Color("0e0a1c")
 const IVORY := Color("e8dcc0")
 
-## Voxels : Vector3i -> [couleur, émissif]
+## Voxels : Vector3i -> [couleur, émissif, partie]
 var vox: Dictionary = {}
-var _surface: Array = [] ## [position, normale, couleur, émissif]
+var _surface: Array = [] ## [position, normale, couleur, émissif, partie]
+var _part := "body" ## partie du corps des voxels posés (squelette des animations)
+var _keep := false ## repeindre un voxel sans changer sa partie
+## Pivots des parties (articulations) : hanches, cou, épaules, mains, haut de la cape…
+var pivots: Dictionary = {}
 var _cache: Dictionary = {}
 var _wx := 0 ## décalage horizontal de l'arme (main plus écartée)
 var _wy := 0 ## décalage vertical de l'arme (main plus basse)
@@ -43,13 +49,13 @@ const COMPANIONS := ["brann", "sylwen"]
 
 
 ## Modèle du héros actuel (apparence, race, classe), gardé en cache.
-static func of(look: Dictionary, race: String, cls: String, cos: Dictionary = {}) -> HeroModel:
-	var key := PlayerLook.key(look, race) + "|" + cls + "|" + JSON.stringify(cos)
+static func of(look: Dictionary, race: String, cls: String, cos: Dictionary = {}, gear: Dictionary = {}) -> HeroModel:
+	var key := PlayerLook.key(look, race) + "|" + cls + "|" + JSON.stringify(cos) + "|" + JSON.stringify(gear)
 	if not _models.has(key):
 		if _models.size() > 10:
 			_models.clear()
 		var m := HeroModel.new()
-		m.build(look, race, cls, cos)
+		m.build(look, race, cls, cos, gear)
 		_models[key] = m
 	return _models[key]
 
@@ -71,17 +77,18 @@ static func of_companion(who: String, cls: String) -> HeroModel:
 
 
 ## Image du héros pour un angle (radians, 0 = de dos), arrondi au pas de cache le plus proche.
-func image_at(yaw: float) -> Image:
-	var step := posmod(int(round(yaw / TAU * float(STEPS))), STEPS)
-	if not _cache.has(step):
-		_cache[step] = render(float(step) / float(STEPS) * TAU)
-	return _cache[step]
+func image_at(yaw: float, light: String = "jour") -> Image:
+	return frame_at(yaw, "", 0, light)
 
 
 # ---------------------------------------------------------------- construction
 
 func _put(x: int, y: int, z: int, c: Color, glow: bool = false) -> void:
-	vox[Vector3i(x, y, z)] = [c, glow]
+	var q := Vector3i(x, y, z)
+	var part := _part
+	if _keep and vox.has(q):
+		part = str(vox[q][2])
+	vox[q] = [c, glow, part]
 
 
 func _clear(x: int, y: int, z: int) -> void:
@@ -99,12 +106,15 @@ func _disc(y: int, cx: float, cz: float, rx: float, rz: float, c: Color) -> void
 
 
 ## cos : cosmétiques portés par-dessus l'équipement, {emplacement: « kit.emplacement »} (tête, tenue, dos, arme).
-func build(look: Dictionary, race: String, cls: String, cos: Dictionary = {}) -> void:
+## gear : l'équipement porté, {emplacement: {t, m, c, g, r, base}} (Profile.gear_look) ; voir HeroGear.
+func build(look: Dictionary, race: String, cls: String, cos: Dictionary = {}, gear: Dictionary = {}) -> void:
 	vox.clear()
 	_cache.clear()
 	_wx = 0
 	_wy = 0
 	_mirror = false
+	_keep = false
+	pivots = HERO_PIVOTS.duplicate()
 	var pal := PlayerLook.palette(look, race)
 	var o: Array = pal["outfit"]
 	var hr: Array = pal["hair"]
@@ -120,7 +130,15 @@ func build(look: Dictionary, race: String, cls: String, cos: Dictionary = {}) ->
 		var tp: Array = TENUE[k_tenue]
 		o = [Color(str(tp[0])), Color(str(tp[1])), Color(str(tp[2])), Color(str(tp[3]))]
 		trim = Color(str(tp[4]))
+	var gt: Variant = HeroGear.trim_of(gear)
+	if gt != null and not TENUE.has(k_tenue):
+		trim = gt
 	var head_mode := str(HEAD_MODE.get(k_tete, ""))
+	var gear_head := ""
+	if head_mode == "" and gear.has("head"):
+		gear_head = HeroGear.head_mode(gear["head"])
+	if gear_head == "hat" and head == "capuche":
+		head = "courts"
 	if head_mode == "hat" and head == "capuche":
 		head = "courts" ## un chapeau se pose sur des cheveux, pas sur une capuche
 	var tr := str(pal["trait"])
@@ -129,12 +147,14 @@ func build(look: Dictionary, race: String, cls: String, cos: Dictionary = {}) ->
 	var belt := Color("6a4a2a")
 	var gold := Color("e0b850")
 	# Jambes et bottes.
+	_part = "legs"
 	for side: int in [-2, 1]:
 		for y in range(0, 6 if tunic else 3):
 			for x in range(side, side + 2):
 				for z in range(-1, 1):
 					_put(x, y, z, boot if y == 0 else (o[0] if tunic else boot))
 	# Robe longue (évasée) ou tunique et cape.
+	_part = "body"
 	var y0 := 6 if tunic else 2
 	for y in range(y0, 15):
 		var f := clampf(float(y - 2) / 8.0, 0.0, 1.0) ## 0 en bas de la robe, 1 à la taille
@@ -158,12 +178,14 @@ func build(look: Dictionary, race: String, cls: String, cos: Dictionary = {}) ->
 	# Col de la tenue (plus clair).
 	_disc(14, 0.0, 0.0, 3.0, 2.2, o[3])
 	# Cape (tunique) : un pan dans le dos, des épaules au mollet.
+	_part = "cape"
 	if tunic:
 		for y in range(3, 15):
 			var half := 3 if y > 11 else 4
 			for x in range(-half, half + 1):
 				_put(x, y, 3 if y >= 8 else 4, o[1])
 	# Bras : manches plus sombres, mains.
+	_part = "arms"
 	for side: int in [-1, 1]:
 		var ax := side * 5
 		for y in range(8, 14):
@@ -173,7 +195,15 @@ func build(look: Dictionary, race: String, cls: String, cos: Dictionary = {}) ->
 				_put(ax - side, y, 0, o[1])
 		_put(ax, 7, 0, sk[1])
 		_put(ax, 7, -1, sk[1])
+	# L'équipement porté : armure (sauf sous une tenue cosmétique), gants, bottes.
+	if gear.has("armor") and not TENUE.has(k_tenue):
+		HeroGear.armor(self, gear["armor"], y0, tunic)
+	if gear.has("hands"):
+		HeroGear.hands(self, gear["hands"])
+	if gear.has("feet"):
+		HeroGear.feet(self, gear["feet"], tunic)
 	# Cou et tête.
+	_part = "head"
 	_put(0, 15, 0, sk[0])
 	_put(-1, 15, 0, sk[0])
 	for y in range(16, 23):
@@ -182,7 +212,8 @@ func build(look: Dictionary, race: String, cls: String, cos: Dictionary = {}) ->
 		_disc(y, 0.0, 0.0, 3.6 * k + 0.15, 3.2 * k + 0.15, sk[1])
 	_face(pal, sk, eyes)
 	# Coiffure (un couvre-chef intégral ou une capuche cosmétique la remplace).
-	if head_mode == "" or head_mode == "hat":
+	_part = "head"
+	if (head_mode == "" or head_mode == "hat") and gear_head != "full" and gear_head != "hood":
 		match head:
 			"capuche":
 				_hood(o)
@@ -190,6 +221,8 @@ func build(look: Dictionary, race: String, cls: String, cos: Dictionary = {}) ->
 				_hair(head, hr)
 	if head_mode != "":
 		_cos_head(k_tete)
+	elif gear_head != "":
+		HeroGear.head(self, gear["head"], str((gear["head"] as Dictionary).get("base", "")))
 	# Traits de race.
 	match tr:
 		"ears":
@@ -201,10 +234,13 @@ func build(look: Dictionary, race: String, cls: String, cos: Dictionary = {}) ->
 			for side: int in [-1, 1]:
 				for q in [Vector3i(2, 22, 0), Vector3i(3, 23, 1), Vector3i(3, 24, 1), Vector3i(4, 25, 2)]:
 					_put(side * q.x, q.y, q.z, IVORY)
+			_part = "tail"
 			_tail(sk)
 		"tail":
+			_part = "tail"
 			_tail(sk)
 		"wings":
+			_part = "back"
 			for side: int in [-1, 1]:
 				for y in range(7, 17):
 					var span := 5 - absi(y - 12) / 2
@@ -221,17 +257,31 @@ func build(look: Dictionary, race: String, cls: String, cos: Dictionary = {}) ->
 						_put(x, y, _front(x, y) - (1 if y < 16 else 0), hr[1] if (x + y) % 3 else hr[0])
 		"ghost":
 			# Revenant : l'ourlet effiloché.
+			_part = "body"
 			for x in [-5, -2, 2, 5]:
 				for z in range(-4, 5):
 					_clear(x, y0, z)
 	if TENUE.has(k_tenue):
+		_part = "body"
+		_keep = true
 		_cos_tenue(k_tenue, y0)
+		_keep = false
+	if gear.has("amulet"):
+		HeroGear.amulet(self, gear["amulet"])
+	if gear.has("charm"):
+		HeroGear.charm(self, gear["charm"])
 	if k_dos != "":
+		_part = "cape" if k_dos in ["courge", "carton", "stellaire"] else "back"
 		_cos_back(k_dos, sk)
+	_part = "hand"
 	if k_arme != "":
 		_cos_weapon(k_arme)
+	elif gear.has("weapon"):
+		HeroGear.weapon(self, gear["weapon"])
 	else:
-		_weapon(cls, o, eyes)
+		_weapon(cls if not (cls == "chevalier" and gear.has("offhand")) else "epeiste", o, eyes)
+	if gear.has("offhand"):
+		HeroGear.offhand(self, gear["offhand"])
 	_build_surface()
 
 
@@ -368,12 +418,15 @@ func _weapon(cls: String, o: Array, eyes: Color) -> void:
 				var b := int(round(2.4 * sin(PI * float(y - 3) / 16.0)))
 				_pw(6, y, -1 - b, wood)
 				_pw(6, y, -1, Color(0.92, 0.92, 0.96))
+			var held := _part
+			_part = "back"
 			for y in range(9, 17):
 				_pw(-2, y, 3, Color("6a4a2a"))
 				_pw(-1, y, 3, Color("6a4a2a"))
 			for x in [-2, -1]:
 				_pw(x, 17, 3, Color("e8e8f0"))
 				_pw(x, 18, 3, Color("c04a3a"))
+			_part = held
 		"epeiste":
 			for y in range(9, 23):
 				_pw(6, y, -1, steel if y < 22 else Color.WHITE)
@@ -444,6 +497,7 @@ func _ring(y: int, rx: float, rz: float, w: float, c: Color, cz: float = 0.0) ->
 
 ## Couvre-chefs des kits.
 func _cos_head(kit: String) -> void:
+	_part = "head"
 	match kit:
 		"boulanger":
 			# Toque blanche : bandeau, fût, puis le bouffant du dessus.
@@ -749,6 +803,8 @@ func build_companion(who: String, cls: String) -> void:
 	_wx = 0
 	_wy = 0
 	_mirror = false
+	_keep = false
+	pivots = HERO_PIVOTS.duplicate() if who != "brann" else BRANN_PIVOTS.duplicate()
 	match who:
 		"brann":
 			_brann(cls)
@@ -772,12 +828,14 @@ func _brann(cls: String) -> void:
 	var skin := Color("d08a6a")
 	var boot := Color("3a2e2a")
 	# Jambières et bottes.
+	_part = "legs"
 	for side: int in [-2, 1]:
 		for y in range(0, 4):
 			for x in range(side, side + 2):
 				for z in range(-1, 1):
 					_put(x, y, z, boot if y == 0 else steel)
 	# Corps trapu en armure, tabard rouge devant et derrière, ceinture à boucle d'or.
+	_part = "body"
 	for y in range(4, 12):
 		var rx := 4.7 + (0.4 if y >= 6 and y <= 9 else 0.0)
 		_disc(y, 0.0, 0.0, rx, 3.0, steel)
@@ -791,11 +849,13 @@ func _brann(cls: String) -> void:
 				_put(x, 6, z, wood)
 	_put(0, 6, _front(0, 6), gold)
 	# Cape rouge dans le dos, des épaules aux mollets.
+	_part = "cape"
 	for y in range(2, 12):
 		var half := 4 if y < 10 else 3
 		for x in range(-half, half + 1):
 			_put(x, y, 4, red_d if (x + y) % 5 else red)
 	# Épaulières, bras d'acier, gantelets.
+	_part = "arms"
 	for side: int in [-1, 1]:
 		for y in range(10, 12):
 			for x in range(5, 7):
@@ -807,6 +867,7 @@ func _brann(cls: String) -> void:
 		_put(side * 6, 4, 0, steel_d)
 		_put(side * 6, 4, -1, steel_d)
 	# Tête.
+	_part = "head"
 	for y in range(12, 19):
 		var dy := (float(y) - 15.0) / 3.4
 		var k := sqrt(maxf(0.0, 1.0 - dy * dy))
@@ -845,11 +906,13 @@ func _brann(cls: String) -> void:
 	for x in range(-2, 3):
 		_put(x, 13, _front(x, 13), beard_d)
 	# Arme : sa main est plus bas et plus écartée que celle du héros.
+	_part = "hand"
 	_wx = 1
 	_wy = -3
 	_weapon(cls, [steel_d, red_d, red, beard], Color("d8b048"))
 	if cls != "chevalier":
 		# Le bouclier rond, dans le dos.
+		_part = "back"
 		for y in range(4, 13):
 			for x in range(-4, 5):
 				var d := Vector2(float(x), float(y) - 8.0).length()
@@ -874,12 +937,14 @@ func _sylwen(cls: String) -> void:
 	var legs := Color("3a2e2a")
 	var eyes := Color("4f9a3a")
 	# Jambes (chausses sombres), bottes.
+	_part = "legs"
 	for side: int in [-2, 1]:
 		for y in range(0, 6):
 			for x in range(side, side + 2):
 				for z in range(-1, 1):
 					_put(x, y, z, Color("2a2018") if y == 0 else legs)
 	# Tunique, ceinture d'or, ourlet.
+	_part = "body"
 	for y in range(6, 15):
 		var rx := 4.4 if y < 8 else (4.0 if y <= 10 else lerpf(4.0, 4.4, float(y - 10) / 4.0))
 		_disc(y, 0.0, 0.0, rx, 2.5, tunic)
@@ -890,9 +955,11 @@ func _sylwen(cls: String) -> void:
 			if vox.has(Vector3i(x, 10, z)):
 				_put(x, 10, z, belt)
 	# Mantelet vert sur les épaules.
+	_part = "body"
 	_disc(14, 0.0, 0.0, 4.8, 3.0, hood)
 	_disc(13, 0.0, 0.0, 4.6, 2.9, hood_d)
 	# Bras (manches sombres) et mains.
+	_part = "arms"
 	for side: int in [-1, 1]:
 		for y in range(8, 14):
 			_put(side * 5, y, 0, tunic_d)
@@ -900,6 +967,7 @@ func _sylwen(cls: String) -> void:
 		_put(side * 5, 7, 0, skin)
 		_put(side * 5, 7, -1, skin)
 	# Cou, tête, visage.
+	_part = "head"
 	_put(0, 15, 0, skin_d)
 	for y in range(16, 23):
 		var dy := (float(y) - 19.0) / 3.6
@@ -920,10 +988,12 @@ func _sylwen(cls: String) -> void:
 		_put(side * 6, 20, 1, skin)
 		_put(side * 7, 21, 1, skin_d)
 	# Tresse blonde sur l'épaule droite, devant.
+	_part = "body"
 	for y in range(8, 16):
 		_put(3, y, -3, hair if y % 2 == 0 else hair_d)
 	_put(3, 7, -3, hood_d)
 	# Carquois dans le dos (côté droit) et ses plumes.
+	_part = "back"
 	if cls == "archer":
 		for y in range(9, 17):
 			_put(1, y, 3, Color("6a4a2a"))
@@ -932,6 +1002,7 @@ func _sylwen(cls: String) -> void:
 			_put(x, 17, 3, Color("e8e4d8"))
 			_put(x, 18, 3, Color("e8e4d8"))
 		# Arc dans la main gauche.
+		_part = "hand"
 		_mirror = true
 		for y in range(3, 20):
 			var b2 := int(round(2.4 * sin(PI * float(y - 3) / 16.0)))
@@ -939,6 +1010,7 @@ func _sylwen(cls: String) -> void:
 			_pw(6, y, -1, Color(0.92, 0.92, 0.96))
 		_mirror = false
 	else:
+		_part = "hand"
 		_weapon(cls, [hood_d, tunic_d, tunic, hood], eyes)
 
 
@@ -959,14 +1031,170 @@ func _build_surface() -> void:
 			continue
 		var v: Array = vox[q]
 		# Pièce fine (bâton, corde, lame) : ses faces opposées s'annulent ; elle garde sa couleur de base.
-		_surface.append([q, n.normalized() if n != Vector3.ZERO else Vector3.ZERO, v[0], v[1]])
+		_surface.append([q, n.normalized() if n != Vector3.ZERO else Vector3.ZERO, v[0], v[1], _side_part(str(v[2]), q.x)])
+
+
+## Jambes, bras et main armée : gauche ou droite selon le côté du voxel.
+func _side_part(part: String, x: int) -> String:
+	match part:
+		"legs":
+			return "legL" if x < 0 else "legR"
+		"arms":
+			return "armL" if x < 0 else "armR"
+		"hand":
+			return "wpnL" if x < 0 else "wpnR"
+	return part
+
+
+# ---------------------------------------------------------------- squelette et animations
+
+## Articulations du héros (et de Sylwen) : hanches, cou, épaules, mains, haut de la cape, base de la queue.
+const HERO_PIVOTS := {
+	"body": Vector3(0, 6, 0), "head": Vector3(0, 15.5, 0), "armR": Vector3(5, 13.5, -0.5), "armL": Vector3(-5, 13.5, -0.5),
+	"legR": Vector3(1.5, 5.5, -0.5), "legL": Vector3(-1.5, 5.5, -0.5), "cape": Vector3(0, 14.5, 3.5), "tail": Vector3(0, 6, 3),
+	"back": Vector3(0, 12, 3), "wpnR": Vector3(5.5, 7, -1), "wpnL": Vector3(-5.5, 7, -1), "root": Vector3.ZERO,
+}
+## Brann, plus trapu : épaules et mains plus basses et plus écartées.
+const BRANN_PIVOTS := {
+	"body": Vector3(0, 4, 0), "head": Vector3(0, 12, 0), "armR": Vector3(6, 11, -0.5), "armL": Vector3(-6, 11, -0.5),
+	"legR": Vector3(1.5, 3.5, -0.5), "legL": Vector3(-1.5, 3.5, -0.5), "cape": Vector3(0, 11.5, 4), "tail": Vector3(0, 4, 3),
+	"back": Vector3(0, 9, 4), "wpnR": Vector3(6.5, 4, -1), "wpnL": Vector3(-6.5, 4, -1), "root": Vector3.ZERO,
+}
+## Parties portées par le buste (elles suivent son inclinaison).
+const ON_BODY := ["head", "armR", "armL", "cape", "back", "tail"]
+
+## Animations : nombre d'images, durée d'une image (s), en boucle ou non.
+const ANIMS := {
+	"idle": {"frames": 4, "dt": 0.28, "loop": true, "name": "Repos"},
+	"walk": {"frames": 8, "dt": 0.1, "loop": true, "name": "Marche"},
+	"cast": {"frames": 7, "dt": 0.1, "loop": false, "name": "Sort"},
+	"hit": {"frames": 5, "dt": 0.09, "loop": false, "name": "Coup reçu"},
+	"victory": {"frames": 7, "dt": 0.12, "loop": false, "name": "Victoire"},
+	"defeat": {"frames": 7, "dt": 0.13, "loop": false, "name": "Défaite"},
+}
+
+
+## Pose d'une image d'animation : {partie: [rotation (degrés, autour de x, y, z), décalage]}, plus « _flash »
+## (blanchit le héros, coup reçu) et « _glow » (l'arme s'illumine, sort lancé). Rotation positive autour de x :
+## un bras ou une jambe part vers l'avant ; le buste ou la tête basculent vers l'arrière.
+static func pose(anim: String, f: int) -> Dictionary:
+	var V := Vector3.ZERO
+	match anim:
+		"idle":
+			# Respiration : épaules et tête descendent d'un pixel, la cape ondule.
+			var down := f == 2
+			var mid := f == 1 or f == 3
+			return {"head": [V, Vector3(0, -1 if down else 0, 0)], "armR": [Vector3(0, 0, 3 if mid else 0), Vector3(0, -1 if down else 0, 0)],
+				"armL": [Vector3(0, 0, -3 if mid else 0), Vector3(0, -1 if down else 0, 0)], "cape": [Vector3(-3.0 * float(f % 2 + (2 if down else 0)), 0, 0), V]}
+		"walk":
+			var ph := float(f) / 8.0 * TAU
+			var sw := sin(ph)
+			return {"legR": [Vector3(30.0 * sw, 0, 0), V], "legL": [Vector3(-30.0 * sw, 0, 0), V],
+				"armR": [Vector3(-24.0 * sw, 0, 4), V], "armL": [Vector3(24.0 * sw, 0, -4), V],
+				"root": [V, Vector3(0, 1 if absf(sw) < 0.5 else 0, 0)], "body": [Vector3(-5, 0, 0), V],
+				"cape": [Vector3(-10.0 - 8.0 * absf(sw), 0, 0), V], "head": [Vector3(3, 0, 0), V]}
+		"cast":
+			# Élan vers l'arrière, l'arme se lève et se tend vers l'avant, éclat, puis retour.
+			var arm: Array = [-30.0, 35.0, 95.0, 100.0, 100.0, 55.0, 15.0]
+			var wrist: Array = [10.0, -50.0, -125.0, -130.0, -128.0, -70.0, -18.0]
+			var lean: Array = [6.0, -2.0, -9.0, -10.0, -8.0, -4.0, 0.0]
+			var g: Array = [0.0, 0.0, 1.0, 0.7, 0.4, 0.0, 0.0]
+			return {"armR": [Vector3(float(arm[f]), 0, 4), V], "wpnR": [Vector3(float(wrist[f]), 0, 0), V],
+				"armL": [Vector3(float(arm[f]) * 0.35, 0, -10), V], "wpnL": [Vector3(-float(arm[f]) * 0.3, 0, 0), V],
+				"body": [Vector3(float(lean[f]), 0, 0), V], "head": [Vector3(float(lean[f]) * 0.6, 0, 0), V],
+				"cape": [Vector3(-float(f % 3) * 4.0 - 4.0, 0, 0), V], "_glow": float(g[f])}
+		"hit":
+			var k: float = [1.0, 0.8, 0.5, 0.2, 0.0][f]
+			return {"body": [Vector3(14.0 * k, 0, 4.0 * k), V], "head": [Vector3(14.0 * k, 0, -6.0 * k), V],
+				"armR": [Vector3(-25.0 * k, 0, 30.0 * k), V], "armL": [Vector3(-25.0 * k, 0, -30.0 * k), V],
+				"root": [V, Vector3(0, 0, round(1.5 * k))], "cape": [Vector3(-16.0 * k, 0, 0), V], "_flash": 0.75 if f == 0 else (0.3 if f == 1 else 0.0)}
+		"victory":
+			# Appel, saut, arme brandie au-dessus de la tête (elle reste droite), regard vers le ciel.
+			var arm2: Array = [-20.0, 60.0, 150.0, 172.0, 175.0, 175.0, 175.0]
+			var up: Array = [-1, 1, 3, 2, 0, 0, 0]
+			var lean2: Array = [-8.0, 0.0, 4.0, 5.0, 4.0, 3.0, 3.0]
+			var a2 := float(arm2[f])
+			return {"armR": [Vector3(a2, 0, -6.0 if a2 > 120.0 else 3.0), V], "wpnR": [Vector3(-a2 * 0.95, 0, 0), V],
+				"armL": [Vector3(0, 0, -28.0 if f >= 2 else -6.0), V], "root": [V, Vector3(0, int(up[f]), 0)],
+				"body": [Vector3(float(lean2[f]), 0, 0), V], "head": [Vector3(float(lean2[f]) * 2.5, 0, 0), V],
+				"legR": [Vector3(-12.0 if int(up[f]) > 0 else 0.0, 0, 0), V], "legL": [Vector3(18.0 if int(up[f]) > 0 else 0.0, 0, 0), V],
+				"cape": [Vector3(-22.0 if int(up[f]) > 0 else -6.0, 0, 0), V], "_glow": 0.6 if f >= 3 else 0.0}
+		"defeat":
+			# Il chancelle, met un genou à terre, s'appuie sur son arme, tête basse.
+			var t := float(f) / 6.0
+			var kneel := clampf(t * 1.6, 0.0, 1.0)
+			return {"body": [Vector3(-26.0 * kneel, 0, 6.0 * sin(t * PI)), V], "head": [Vector3(-28.0 * kneel, 0, 0), V],
+				"legL": [Vector3(85.0 * kneel, 0, 0), V], "legR": [Vector3(-35.0 * kneel, 0, 0), V],
+				"root": [V, Vector3(0, -round(3.0 * kneel), 0)],
+				"armR": [Vector3(45.0 * kneel, 0, 6), V], "wpnR": [Vector3(-38.0 * kneel, 0, 0), V],
+				"armL": [Vector3(20.0 * kneel, 0, -4), V], "cape": [Vector3(4.0 * kneel, 0, 0), V]}
+	return {}
+
+
+func _xf(part: String, pose_d: Dictionary) -> Transform3D:
+	var d: Array = pose_d.get(part, [])
+	if d.is_empty():
+		return Transform3D.IDENTITY
+	var rot: Vector3 = d[0]
+	var off: Vector3 = d[1] if d.size() > 1 else Vector3.ZERO
+	var piv: Vector3 = pivots.get(part, Vector3.ZERO)
+	var b := Basis.from_euler(Vector3(deg_to_rad(rot.x), deg_to_rad(rot.y), deg_to_rad(rot.z)))
+	return Transform3D(b, piv + off - b * piv)
+
+
+## Transformation de chaque partie pour une pose (squelette : racine → buste → tête, bras, cape ; bras → arme).
+func _skeleton(pose_d: Dictionary) -> Dictionary:
+	var root := _xf("root", pose_d)
+	var body := root * _xf("body", pose_d)
+	var out := {"root": root, "body": body, "legR": root * _xf("legR", pose_d), "legL": root * _xf("legL", pose_d)}
+	for part in ON_BODY:
+		out[part] = body * _xf(str(part), pose_d)
+	out["wpnR"] = (out["armR"] as Transform3D) * _xf("wpnR", pose_d)
+	out["wpnL"] = (out["armL"] as Transform3D) * _xf("wpnL", pose_d)
+	return out
+
+
+## Image d'une animation (image f) sous l'angle yaw, avec un éclairage ; gardée en cache.
+func frame_at(yaw: float, anim: String, f: int, light: String = "jour") -> Image:
+	var step := posmod(int(round(yaw / TAU * float(STEPS))), STEPS)
+	var key := "%s|%d|%d|%s" % [anim, f, step, light]
+	if not _cache.has(key):
+		if _cache.size() > 400:
+			_cache.clear()
+		_cache[key] = render(float(step) / float(STEPS) * TAU, pose(anim, f), light)
+	return _cache[key]
+
+
+# ---------------------------------------------------------------- éclairage
+
+## Éclairages de scène. key : lumière principale (direction, couleur, force) ; dans le repère de la vue
+## (« view » : elle suit la caméra) ou du monde (« world » : elle reste du côté de la source quand le héros
+## tourne). shade : teinte des ombres ; tint : teinte d'ensemble ; rim : liseré de contre-jour.
+const LIGHTS := {
+	"jour": {"name": "Jour", "space": "view", "dir": Vector3(-0.55, 0.6, 0.6), "key": Color.WHITE, "lit": 0.16,
+		"shade": Color.BLACK, "s1": 0.22, "s2": 0.42},
+	"aube": {"name": "Aube", "space": "view", "dir": Vector3(-0.7, 0.35, 0.6), "key": Color("ffd0a0"), "lit": 0.3,
+		"shade": Color("3a2050"), "s1": 0.26, "s2": 0.48, "tint": Color("ffb8a0"), "tint_k": 0.1, "rim": Color("ffe0b0"), "rim_dir": Vector3(0.8, 0.2, -0.4)},
+	"crepuscule": {"name": "Crépuscule", "space": "view", "dir": Vector3(0.75, 0.3, 0.55), "key": Color("ff9a5a"), "lit": 0.32,
+		"shade": Color("2a1440"), "s1": 0.3, "s2": 0.52, "tint": Color("c07090"), "tint_k": 0.12},
+	"nuit": {"name": "Nuit", "space": "view", "dir": Vector3(0.3, 0.8, -0.2), "key": Color("b8d0ff"), "lit": 0.22,
+		"shade": Color("0a0c24"), "s1": 0.36, "s2": 0.56, "tint": Color("3a4a8a"), "tint_k": 0.32, "rim": Color("a0c0ff"), "rim_dir": Vector3(-0.7, 0.4, -0.5)},
+	"feu": {"name": "Feu de camp", "space": "world", "dir": Vector3(-0.6, 0.05, -0.8), "key": Color("ffa040"), "lit": 0.4,
+		"shade": Color("140a24"), "s1": 0.4, "s2": 0.62, "tint": Color("a05030"), "tint_k": 0.18, "rim": Color("ffc070"), "rim_dir": Vector3(-0.9, 0.1, -0.3)},
+	"lave": {"name": "Lave", "space": "view", "dir": Vector3(0.1, -0.85, 0.5), "key": Color("ff5a20"), "lit": 0.45,
+		"shade": Color("1a0404"), "s1": 0.36, "s2": 0.6, "tint": Color("801a10"), "tint_k": 0.16},
+	"abysses": {"name": "Abysses", "space": "view", "dir": Vector3(0.2, 0.9, 0.3), "key": Color("70f0e0"), "lit": 0.3,
+		"shade": Color("021420"), "s1": 0.34, "s2": 0.56, "tint": Color("1a6a7a"), "tint_k": 0.3, "rim": Color("8ff0ff"), "rim_dir": Vector3(0.6, 0.3, -0.7)},
+	"lampe": {"name": "Lanterne", "space": "view", "dir": Vector3(0.6, 0.55, 0.6), "key": Color("ffd890"), "lit": 0.3,
+		"shade": Color("1e1020"), "s1": 0.28, "s2": 0.5, "tint": Color("c09060"), "tint_k": 0.1},
+}
 
 
 # ---------------------------------------------------------------- rendu
 
 ## Rendu en pixel art sous l'angle yaw (radians, 0 = de dos) : projection orthographique, tampon de profondeur,
-## ombrage en paliers (lumière fixe, en haut à gauche, côté spectateur) et contour sombre.
-func render(yaw: float) -> Image:
+## ombrage en paliers sous l'éclairage choisi, contours intérieurs et contour sombre. pose_d : voir pose().
+func render(yaw: float, pose_d: Dictionary = {}, light_id: String = "jour") -> Image:
 	var img := Image.create_empty(W, H, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0, 0, 0, 0))
 	var depth := PackedFloat32Array()
@@ -974,34 +1202,89 @@ func render(yaw: float) -> Image:
 	depth.fill(1e9)
 	var fwd := Vector3(-sin(yaw), 0.0, -cos(yaw)) ## de la caméra vers la scène
 	var right := Vector3(cos(yaw), 0.0, -sin(yaw))
-	var light := Vector3(-0.55, 0.6, 0.6).normalized() ## repère de la vue : x droite, y haut, z vers le spectateur
+	var lt: Dictionary = LIGHTS.get(light_id, LIGHTS["jour"])
+	var ld: Vector3 = (lt["dir"] as Vector3).normalized()
+	if str(lt.get("space", "view")) == "world":
+		ld = Vector3(ld.dot(right), ld.y, -ld.dot(fwd)) ## lumière du monde, ramenée dans le repère de la vue
+	var light := ld ## repère de la vue : x droite, y haut, z vers le spectateur
+	var key: Color = lt["key"]
+	var lit_k := float(lt["lit"])
+	var shade: Color = lt["shade"]
+	var s1 := float(lt["s1"])
+	var s2 := float(lt["s2"])
+	var tint: Color = lt.get("tint", Color.WHITE)
+	var tint_k := float(lt.get("tint_k", 0.0))
+	var rim_k := 0.0
+	var rim_dir := Vector3.ZERO
+	var rim: Color = lt.get("rim", Color.WHITE)
+	if lt.has("rim"):
+		rim_k = 0.45
+		rim_dir = (lt["rim_dir"] as Vector3).normalized()
+	var flash := float(pose_d.get("_flash", 0.0))
+	var glow_k := float(pose_d.get("_glow", 0.0))
+	var skel := _skeleton(pose_d) if not pose_d.is_empty() else {}
 	var cx := float(W) * 0.5
 	var subs := [-0.34, 0.0, 0.34]
+	var subs3 := [Vector3(-0.3, -0.3, -0.3), Vector3(0.3, -0.3, -0.3), Vector3(-0.3, 0.3, -0.3), Vector3(0.3, 0.3, -0.3),
+		Vector3(-0.3, -0.3, 0.3), Vector3(0.3, -0.3, 0.3), Vector3(-0.3, 0.3, 0.3), Vector3(0.3, 0.3, 0.3)]
 	for s in _surface:
 		var q: Vector3i = s[0]
 		var n: Vector3 = s[1]
+		var part := str(s[4])
+		var xf: Transform3D = skel.get(part, Transform3D.IDENTITY)
+		var turned := not xf.basis.is_equal_approx(Basis.IDENTITY)
+		if turned:
+			n = xf.basis * n
 		var nv := Vector3(n.dot(right), n.y, -n.dot(fwd))
 		if nv.z < -0.75:
 			continue ## face tournée vers l'arrière : cachée
 		var c: Color = s[2]
-		if not bool(s[3]) and n != Vector3.ZERO:
+		var glow := bool(s[3])
+		if not glow and n != Vector3.ZERO:
 			var lum := nv.dot(light)
+			if tint_k > 0.0:
+				c = c.lerp(c * tint, tint_k)
 			if lum > 0.5:
-				c = c.lightened(0.16)
+				c = c.lerp(key, lit_k)
 			elif lum < -0.35:
-				c = c.darkened(0.42)
+				c = c.lerp(shade, s2)
 			elif lum < 0.05:
-				c = c.darkened(0.22)
-		var row := H - 2 - q.y
-		if row < 0 or row >= H:
-			continue
-		for ox in subs:
-			for oz in subs:
-				var p := Vector3(float(q.x) + float(ox), 0.0, float(q.z) + float(oz))
+				c = c.lerp(shade, s1)
+			if rim_k > 0.0 and nv.dot(rim_dir) > 0.62:
+				c = c.lerp(rim, rim_k)
+		elif glow and glow_k > 0.0:
+			c = c.lerp(Color.WHITE, 0.45 * glow_k)
+		if glow_k > 0.0 and part.begins_with("wpn"):
+			c = c.lerp(Color(1.0, 0.96, 0.8), 0.25 * glow_k)
+		if flash > 0.0:
+			c = c.lerp(Color.WHITE, flash)
+		if not turned:
+			var o3 := xf.origin
+			var row := H - 2 - (q.y + int(round(o3.y)))
+			if row < 0 or row >= H:
+				continue
+			for ox in subs:
+				for oz in subs:
+					var p := Vector3(float(q.x) + float(ox) + o3.x, 0.0, float(q.z) + float(oz) + o3.z)
+					var col := int(floor(p.dot(right) + cx))
+					if col < 0 or col >= W:
+						continue
+					var dep := p.dot(fwd)
+					var i := row * W + col
+					if dep < depth[i]:
+						depth[i] = dep
+						img.set_pixel(col, row, c)
+		else:
+			var qv := Vector3(q)
+			for o in subs3:
+				var p := xf * (qv + (o as Vector3))
+				var row := H - 2 - int(floor(p.y + 0.5))
+				if row < 0 or row >= H:
+					continue
 				var col := int(floor(p.dot(right) + cx))
 				if col < 0 or col >= W:
 					continue
-				var dep := p.dot(fwd)
+				var dep := Vector3(p.x, 0.0, p.z).dot(fwd)
 				var i := row * W + col
 				if dep < depth[i]:
 					depth[i] = dep

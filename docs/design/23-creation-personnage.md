@@ -51,6 +51,6 @@ Les 8 races de l'ébauche, avec leurs modificateurs de stats, appliqués en comb
 | Yeux et magie | Cyan, ambre, vert, violet, rouge, argent (couleur des yeux, du liseré et de la lueur du bâton) |
 | Tenue | Bleu nuit, cramoisi, émeraude, violet, cendre, ocre, blanc, noir |
 
-- L'aperçu montre le **portrait** (dialogues, Havre-Aube) et le **sprite de combat** vu de dos.
+- L'aperçu montre le **héros en volume**, qui tourne au doigt et respire : chaque choix s'y voit aussitôt, sous tous les angles, et choisir une classe lui fait lancer un sort (voir [45-heros-anime.md](45-heros-anime.md)) ; dessous, le **portrait** (dialogues, Havre-Aube), le nom, la race, la classe et les stats de départ.
 - Les deux sont générés par code selon ces choix.
 - En combat, la taille du héros suit sa race : 1,25 m pour un Nain, 1,1 m pour une Fée, 1,55 m pour un Orc.

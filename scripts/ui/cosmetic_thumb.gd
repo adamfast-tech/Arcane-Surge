@@ -17,7 +17,7 @@ static func make(id: String, px: int, owned: bool = true) -> CosmeticThumb:
 	var t := CosmeticThumb.new()
 	t.piece = id
 	t.dim = not owned
-	t.custom_minimum_size = Vector2(px, float(HeroModel.H * 3 + 4)) # le héros en pied, pixels triplés
+	t.custom_minimum_size = Vector2(px, float(HeroModel.FOOT_H * 3 + 4)) # le héros en pied, pixels triplés
 	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	t.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	return t

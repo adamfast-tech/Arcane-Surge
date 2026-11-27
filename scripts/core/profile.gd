@@ -2169,6 +2169,44 @@ static func set_cosmetics_shown(v: bool) -> void:
 	_cos()["show"] = v
 
 
+## Allure de l'équipement porté, pour le héros en volume (HeroModel, HeroGear) : {emplacement: {t, m, c, g, r, base}}.
+## Le couvre-chef est omis si le joueur l'a masqué.
+static func gear_look(who: String = "player") -> Dictionary:
+	var out := {}
+	var bases: Dictionary = items_db()["bases"]
+	var eq := equipment_of(who)
+	for slot in ["weapon", "offhand", "head", "armor", "hands", "feet", "amulet", "charm"]:
+		if slot == "head" and who == "player" and not helmet_shown():
+			continue
+		var it := find_item(str(eq.get(slot, "")))
+		if it.is_empty():
+			continue
+		var bd: Dictionary = bases.get(str(it.get("base", "")), {})
+		if not bd.has("art"):
+			continue
+		var art: Dictionary = bd["art"]
+		out[slot] = {"t": str(art.get("t", "")), "m": str(art.get("m", "iron")), "c": str(art.get("c", "")), "g": str(art.get("g", "4fe3d2")),
+			"r": str(it.get("rarity", "commun")), "base": str(it.get("base", ""))}
+	return out
+
+
+## Éclairage choisi pour le héros en volume ("" : celui de l'heure à Havre-Aube).
+static func hero_light() -> String:
+	return str(_cos().get("light", ""))
+
+
+static func set_hero_light(id: String) -> void:
+	_cos()["light"] = id
+
+
+static func helmet_shown() -> bool:
+	return bool(_cos().get("helm", true))
+
+
+static func set_helmet_shown(v: bool) -> void:
+	_cos()["helm"] = v
+
+
 ## Pièces portées de chaque kit.
 static func cosmetic_kit_counts() -> Dictionary:
 	var out := {}

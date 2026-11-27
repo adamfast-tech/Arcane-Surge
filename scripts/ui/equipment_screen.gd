@@ -25,6 +25,8 @@ var _sel := "" ## « slot:<emplacement> » ou « item:<uid> » : la fiche affich
 var _cmp: Dictionary = {} ## uid → comparaison avec l'équipé (Profile.compare_to_equipped)
 var _better_by_slot: Dictionary = {} ## type d'emplacement → nombre d'objets meilleurs en réserve
 var _cos_slot := "" ## emplacement d'apparence ouvert (choix d'une pièce cosmétique)
+var _tt: HeroTurntable ## le personnage en volume
+var _light_btns: Dictionary = {} ## éclairage → bouton
 
 
 func _ready() -> void:
@@ -158,15 +160,17 @@ func _doll(eqd: Dictionary) -> PanelContainer:
 	if who == "player" or HeroModel.has_companion(who):
 		# Le personnage en volume : on le fait tourner en le glissant vers la gauche ou la droite.
 		var tt := HeroTurntable.new()
+		tt.light = scene_light()
 		if who == "player":
-			tt.setup(Profile.look(), Profile.race(), Profile.player_class(), Profile.visible_cosmetics())
+			tt.setup(Profile.look(), Profile.race(), Profile.player_class(), Profile.visible_cosmetics(), Profile.gear_look())
 		else:
 			tt.setup_model(HeroModel.of_companion(who, Profile.companion_class(who)))
+		_tt = tt
 		tt.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-		var hw := float(HeroModel.W * HeroTurntable.SCALE) * 0.5
+		var hw := float(HeroModel.FOOT_W * HeroTurntable.SCALE) * 0.5
 		tt.offset_left = -hw
 		tt.offset_right = hw
-		tt.offset_top = -40.0 - float(HeroModel.H * HeroTurntable.SCALE)
+		tt.offset_top = -40.0 - float(HeroModel.FOOT_H * HeroTurntable.SCALE)
 		tt.offset_bottom = -40.0
 		stage.add_child(tt)
 		var hint := HBoxContainer.new()
@@ -350,7 +354,108 @@ func _appearance() -> PanelContainer:
 			lines.append("%s (%d/4) : %s" % [str(kd["name"]), n, str(kd["bonus2"]["text"]) + (", " + str(kd["bonus4"]["text"]) if n >= 4 else "")])
 	if not lines.is_empty():
 		v.add_child(UiTheme.wrap(" · ".join(lines), 14, UiTheme.GOOD))
+	v.add_child(_studio())
 	return c[0]
+
+
+## Carte du héros à partager, par-dessus l'écran.
+func open_card() -> HeroCard:
+	Snd.click()
+	var hc := HeroCard.new()
+	add_child(hc)
+	return hc
+
+
+## Éclairage du personnage : celui choisi, ou par défaut l'heure de Havre-Aube (aube, jour, crépuscule, nuit).
+static func scene_light() -> String:
+	var l := Profile.hero_light()
+	if l != "" and HeroModel.LIGHTS.has(l):
+		return l
+	return Ambience.havre_phase()
+
+
+## Poses et lumière : faire jouer une animation au héros, changer l'éclairage, montrer ou masquer le casque.
+func _studio() -> VBoxContainer:
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 6)
+	var hdr := HBoxContainer.new()
+	hdr.add_theme_constant_override("separation", 8)
+	box.add_child(hdr)
+	var hl := UiTheme.label("POSES", 14, UiTheme.MUTED)
+	hl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hdr.add_child(hl)
+	var card := UiTheme.button("Carte du héros", 14)
+	card.icon = Icons.tex("star", 32)
+	card.add_theme_constant_override("icon_max_width", 16)
+	card.custom_minimum_size = Vector2(0, 38)
+	card.tooltip_text = "Une image de ton héros à partager"
+	card.pressed.connect(open_card)
+	hdr.add_child(card)
+	var helm := UiTheme.button("Casque visible" if Profile.helmet_shown() else "Casque masqué", 14)
+	helm.custom_minimum_size = Vector2(0, 38)
+	helm.tooltip_text = "Afficher ou masquer le couvre-chef porté (l'objet reste équipé)"
+	helm.pressed.connect(func() -> void:
+		Profile.set_helmet_shown(not Profile.helmet_shown())
+		_save_profile()
+		_rebuild.call_deferred())
+	hdr.add_child(helm)
+	var anims := HFlowContainer.new()
+	anims.add_theme_constant_override("h_separation", 6)
+	anims.add_theme_constant_override("v_separation", 6)
+	box.add_child(anims)
+	for an in ["walk", "cast", "hit", "victory", "defeat"]:
+		var b := _chip(str(HeroModel.ANIMS[an]["name"]), UiTheme.TEAL, false)
+		var an2 := str(an)
+		b.pressed.connect(func() -> void:
+			Snd.click()
+			if _tt != null:
+				_tt.play(an2)
+				if an2 == "walk":
+					get_tree().create_timer(2.4).timeout.connect(func() -> void:
+						if is_instance_valid(_tt) and _tt.current_anim() == "walk":
+							_tt.play("idle"))
+		)
+		anims.add_child(b)
+	box.add_child(UiTheme.label("LUMIÈRE", 14, UiTheme.MUTED))
+	var lights := HFlowContainer.new()
+	lights.add_theme_constant_override("h_separation", 6)
+	lights.add_theme_constant_override("v_separation", 6)
+	box.add_child(lights)
+	_light_btns.clear()
+	var cur := Profile.hero_light()
+	for lid in [""] + HeroModel.LIGHTS.keys():
+		var name := "Havre-Aube" if str(lid) == "" else str(HeroModel.LIGHTS[lid]["name"])
+		var b2 := _chip(name, UiTheme.GOLD, str(lid) == cur)
+		var lid2 := str(lid)
+		b2.pressed.connect(func() -> void:
+			Snd.click()
+			Profile.set_hero_light(lid2)
+			Profile.save_local()
+			if _tt != null:
+				_tt.set_light(scene_light())
+			for k in _light_btns.keys():
+				_style_chip(_light_btns[k], UiTheme.GOLD, str(k) == lid2))
+		_light_btns[lid2] = b2
+		lights.add_child(b2)
+	return box
+
+
+func _chip(text: String, col: Color, on: bool) -> Button:
+	var b := Button.new()
+	b.focus_mode = Control.FOCUS_NONE
+	b.text = text
+	b.add_theme_font_size_override("font_size", 15)
+	b.custom_minimum_size = Vector2(0, 42)
+	_style_chip(b, col, on)
+	return b
+
+
+func _style_chip(b: Button, col: Color, on: bool) -> void:
+	b.add_theme_color_override("font_color", col if on else UiTheme.TEXT)
+	b.add_theme_color_override("font_hover_color", col)
+	b.add_theme_stylebox_override("normal", UiTheme.box(Color(col.darkened(0.82), 0.95) if on else Color(UiTheme.BG, 0.85), Color(col, 0.9) if on else Color(col, 0.3), 18, 2 if on else 1, 8))
+	b.add_theme_stylebox_override("hover", UiTheme.box(Color(col.darkened(0.78), 0.95), col, 18, 2, 8))
+	b.add_theme_stylebox_override("pressed", UiTheme.box(Color(col.darkened(0.7), 0.95), col, 18, 2, 8))
 
 
 func _save_profile() -> void:

@@ -31,6 +31,7 @@ var _kit := "" ## kit dont on regarde une pièce
 var _piece := "" ## pièce choisie (achat, port)
 var _count: Label
 var _left := 0
+var _cheer := false ## après un achat : le héros fait un geste de victoire
 
 
 func _ready() -> void:
@@ -271,7 +272,7 @@ func _curios(col: VBoxContainer) -> void:
 			_rebuild.call_deferred())
 		top.add_child(rst)
 	var stage := Control.new()
-	stage.custom_minimum_size = Vector2(0, float(HeroModel.H * HeroTurntable.SCALE) + 30.0)
+	stage.custom_minimum_size = Vector2(0, float(HeroModel.FOOT_H * HeroTurntable.SCALE) + 30.0)
 	stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	v.add_child(stage)
 	var ped := GearUi.pedestal(ALDRIC, 230, 60)
@@ -282,12 +283,16 @@ func _curios(col: VBoxContainer) -> void:
 	ped.offset_bottom = -4
 	stage.add_child(ped)
 	var tt := HeroTurntable.new()
-	tt.setup(Profile.look(), Profile.race(), Profile.player_class(), look)
+	tt.light = "lampe"
+	tt.setup(Profile.look(), Profile.race(), Profile.player_class(), look, Profile.gear_look())
+	if _cheer:
+		_cheer = false
+		tt.play("victory")
 	tt.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	var hw := float(HeroModel.W * HeroTurntable.SCALE) * 0.5
+	var hw := float(HeroModel.FOOT_W * HeroTurntable.SCALE) * 0.5
 	tt.offset_left = -hw
 	tt.offset_right = hw
-	tt.offset_top = -16.0 - float(HeroModel.H * HeroTurntable.SCALE)
+	tt.offset_top = -16.0 - float(HeroModel.FOOT_H * HeroTurntable.SCALE)
 	tt.offset_bottom = -16.0
 	stage.add_child(tt)
 	var hint := UiTheme.label("Glisse pour le faire tourner · pièces essayées en surbrillance", 13, Color(UiTheme.MUTED, 0.85))
@@ -409,6 +414,7 @@ func _kit_card(kit: String, kd: Dictionary, worn: Dictionary) -> PanelContainer:
 				buy.add_theme_stylebox_override("normal", UiTheme.box(Color(UiTheme.WARM, 0.95), Color(UiTheme.GOLD, 0.9), 12, 2, 8, UiTheme.GOLD))
 			buy.pressed.connect(func() -> void:
 				if Profile.buy_cosmetic(pid2):
+					_cheer = true
 					Profile.wear_cosmetic(slot3, pid2)
 					Snd.sfx("loot_rare", -5.0)
 					_say("%s : à toi, et déjà sur ton dos. Fière allure !" % str(info["name"]))
@@ -444,7 +450,7 @@ func _kit_card(kit: String, kd: Dictionary, worn: Dictionary) -> PanelContainer:
 		kb.pressed.connect(func() -> void:
 			if Profile.gold() >= total:
 				for pid3 in missing:
-					Profile.buy_cosmetic(pid3)
+					_cheer = Profile.buy_cosmetic(pid3) or _cheer
 					Profile.wear_cosmetic(Profile.cosmetic_info(pid3)["slot"], pid3)
 				Snd.sfx("loot_rare", -3.0)
 				_say("Le kit %s complet ! Bonus : %s." % [str(kd["name"]), str(kd["bonus4"]["text"])])

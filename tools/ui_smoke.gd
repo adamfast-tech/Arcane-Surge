@@ -787,6 +787,9 @@ func _run() -> void:
 	if not await _armory_ok():
 		quit(1)
 		return
+	if not await _hero_rig_ok():
+		quit(1)
+		return
 	# Bibliothèque, onglet Classes : Ultime, sorts d'arbre et sorts de compagnon de chaque classe.
 	var cs := LibraryScreen.class_spells("chevalier")
 	var tree_ids: Array[String] = []
@@ -1825,6 +1828,106 @@ func _armory_ok() -> bool:
 		push_error("armurerie : %s" % [errs])
 		return false
 	print("armurerie : vitrine mythique %.1f %%, épique/légendaire %.1f %% · arrivage de %d offres, renouvelé toutes les %d h · %d kits de curiosités, bonus 2/4 pièces · barrière +100 · Apparence" % [myth * 100.0, high * 100.0, offers.size(), int(Profile.shop_period_len() / 3600.0), kits.size()])
+	return true
+
+
+## Héros en volume animé (docs/design/45-heros-anime.md) : squelette et animations, éclairages de scène,
+## équipement porté dessiné sur le modèle, création avec le héros qui tourne, carte du héros.
+func _hero_rig_ok() -> bool:
+	var errs: Array[String] = []
+	var saved: Dictionary = Profile.data.duplicate(true)
+	var look := {"head": "courts", "sil": 1, "face": 0}
+	var plain := HeroModel.new()
+	plain.build(look, "humain", "chevalier")
+	var front := PI + 0.6
+	# Animations : chaque image se rend, et les gestes bougent vraiment.
+	var models := {"héros": plain, "brann": HeroModel.of_companion("brann", "chevalier"), "sylwen": HeroModel.of_companion("sylwen", "archer")}
+	var rest := plain.frame_at(front, "", 0)
+	for mk in models.keys():
+		var m: HeroModel = models[mk]
+		for an in HeroModel.ANIMS.keys():
+			var seen := {}
+			for f in range(int(HeroModel.ANIMS[an]["frames"])):
+				var img := m.frame_at(front, str(an), f)
+				if img.get_used_rect().size.y < 16:
+					errs.append("%s %s %d : image vide" % [mk, an, f])
+				seen[img.get_data().hex_encode().sha256_text()] = true
+			if seen.size() < 2:
+				errs.append("%s %s : aucune image ne bouge" % [mk, an])
+	if plain.frame_at(front, "victory", 6).get_used_rect().position.y >= rest.get_used_rect().position.y:
+		errs.append("victoire : l'arme n'est pas brandie au-dessus de la tête")
+	# Éclairages.
+	for lid in HeroModel.LIGHTS.keys():
+		if str(lid) != "jour" and plain.frame_at(front, "", 0, str(lid)).get_data() == rest.get_data():
+			errs.append("éclairage %s sans effet" % lid)
+	# Équipement : chaque objet (sauf les anneaux) change l'allure du héros.
+	var bases: Dictionary = Profile.items_db()["bases"]
+	var plain_back := plain.frame_at(0.6, "", 0)
+	var n_items := 0
+	for b in bases.keys():
+		var bd: Dictionary = bases[b]
+		var slot := str(bd["slot"])
+		if slot == "ring" or not bd.has("art"):
+			continue
+		var art: Dictionary = bd["art"]
+		var g := {slot: {"t": str(art.get("t", "")), "m": str(art.get("m", "iron")), "c": str(art.get("c", "")), "g": str(art.get("g", "")), "r": "epique", "base": str(b)}}
+		var m2 := HeroModel.new()
+		m2.build(look, "humain", "chevalier", {}, g)
+		n_items += 1
+		if m2.frame_at(front, "", 0).get_data() == rest.get_data() and m2.frame_at(0.6, "", 0).get_data() == plain_back.get_data():
+			errs.append("%s (%s) : invisible sur le héros" % [b, art.get("t", "")])
+	# Profil : allure de l'équipement porté, casque masqué.
+	Profile.data["inventory"] = []
+	Profile.data["equipped"] = {}
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 3
+	for pk in [["heaume_cornu", "rare"], ["cuirasse_naine", "epique"], ["epee_ecuyer", "legendaire"]]:
+		var it := Profile.make_item(str(pk[0]), str(pk[1]), 10, rng)
+		(Profile.data["inventory"] as Array).append(it)
+		Profile.equip(str(it["uid"]))
+	var gl := Profile.gear_look()
+	if not (gl.has("head") and gl.has("armor") and gl.has("weapon")) or str(gl["armor"]["r"]) != "epique":
+		errs.append("allure de l'équipement : %s" % [gl.keys()])
+	Profile.set_helmet_shown(false)
+	if Profile.gear_look().has("head"):
+		errs.append("casque masqué toujours dessiné")
+	Profile.set_helmet_shown(true)
+	# Vue tournante : un geste joué revient au repos.
+	var tt := HeroTurntable.new()
+	root.add_child(tt)
+	tt.setup(Profile.look(), Profile.race(), Profile.player_class(), {}, Profile.gear_look())
+	tt.play("cast")
+	for i in range(40):
+		tt._process(0.1)
+	if tt.current_anim() != "idle":
+		errs.append("après un sort, la vue tournante reste sur %s" % tt.current_anim())
+	tt.queue_free()
+	# Écrans : Équipement (poses, lumière, carte), création, carte du héros.
+	var es := EquipmentScreen.new()
+	root.add_child(es)
+	await _frames(2)
+	var labels: Array[String] = []
+	for bt in es.find_children("*", "Button", true, false):
+		labels.append((bt as Button).text)
+	for want in ["Victoire", "Sort", "Marche", "Feu de camp", "Carte du héros", "Casque visible"]:
+		if not labels.has(want):
+			errs.append("Équipement : bouton « %s » absent" % want)
+	var hc: HeroCard = es.open_card()
+	await _frames(2)
+	if hc._card == null or hc._card.find_children("*", "TextureRect", true, false).size() < 4:
+		errs.append("carte du héros incomplète")
+	es.queue_free()
+	var cs := CreationScreen.new()
+	root.add_child(cs)
+	await _frames(2)
+	if cs.find_children("*", "HeroTurntable", true, false).is_empty():
+		errs.append("pas de héros qui tourne à la création")
+	cs.queue_free()
+	Profile.data = saved
+	if not errs.is_empty():
+		push_error("héros animé : %s" % [errs])
+		return false
+	print("héros animé : %d animations (héros, Brann, Sylwen) · %d éclairages · %d objets visibles sur le héros · casque masquable · création et carte du héros" % [HeroModel.ANIMS.size(), HeroModel.LIGHTS.size(), n_items])
 	return true
 
 

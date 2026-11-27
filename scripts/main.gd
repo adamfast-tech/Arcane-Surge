@@ -67,6 +67,9 @@ func _ready() -> void:
 		return
 	if room == "equipment":
 		_show_equipment(str(_query().get("who", "player")))
+		if _url_flag("card"):
+			# Aperçu de la carte du héros (« &card=1 »).
+			_screen.call("open_card")
 		return
 	if room == "forge":
 		# Aperçu de la Forge (« ?room=forge&tab=fusion »).
