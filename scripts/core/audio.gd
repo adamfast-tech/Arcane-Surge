@@ -1,11 +1,14 @@
 extends Node
 ## Son du jeu (autoload « Audio » ; docs/design/43-audio.md).
-## Quatre catégories : Musique (deux lecteurs en fondu enchaîné), Ambiance (couches en boucle), Effets (réserve
-## de lecteurs, limite par son et anti-rafale) et Voix (babillage des personnages).
+## Trois catégories : Musique (deux lecteurs en fondu enchaîné), Effets (réserve de lecteurs, limite par son et
+## anti-rafale) et Voix (babillage des personnages).
+## Sur le web, le navigateur bloque le son jusqu'au premier geste du joueur : la sortie reste coupée jusque-là,
+## puis s'ouvre en fondu et la musique repart de son début (sans cela, le son accumulé pendant l'attente sort
+## d'un coup, fort et haché).
 ## Tout passe par le seul bus Master : sur le web, des bus créés en cours de route ne sont pas raccordés à la
 ## sortie (silence complet). Le volume de chaque catégorie (Options) s'applique donc à chaque lecteur : son
 ## niveau de base (fondus compris) plus le réglage de sa catégorie et le général.
-## Les sons sont des OGG de assets/audio (sfx, music, amb, voice), générés par tools/audio. Aucun effet de bus :
+## Les sons sont des OGG de assets/audio (sfx, music, voice), générés par tools/audio. Aucun effet de bus :
 ## tout est « cuit » dans les fichiers.
 
 const CATS := ["music", "sfx", "voice"]
@@ -34,6 +37,11 @@ var _off: Dictionary = {"music": 0.0, "sfx": 0.0, "voice": 0.0} ## réglage de c
 var _live: Array[AudioStreamPlayer] = [] ## tous les lecteurs (pour réappliquer les volumes)
 var _applied := "" ## réglages de son appliqués (empreinte)
 var _sync_t := 0.0
+var _locked := false ## web : son bloqué par le navigateur tant que le joueur n'a rien touché
+var _unlock_t := -1.0 ## délai après le premier geste, le temps que le navigateur relance le son
+var _open_t := -1.0 ## fondu d'ouverture de la sortie (s écoulées), -1 : aucun
+
+const OPEN_FADE := 0.9
 
 
 func _ready() -> void:
@@ -47,6 +55,41 @@ func _ready() -> void:
 	for i in range(3):
 		_voice.append(_player("voice"))
 	apply_volumes()
+	if OS.has_feature("web"):
+		_locked = true
+		AudioServer.set_bus_volume_db(0, -80.0)
+
+
+## Premier geste du joueur (toucher, clic, touche) : le navigateur autorise le son.
+func _input(e: InputEvent) -> void:
+	if not _locked or _unlock_t >= 0.0:
+		return
+	if (e is InputEventMouseButton and (e as InputEventMouseButton).pressed) or (e is InputEventScreenTouch and (e as InputEventScreenTouch).pressed) \
+			or (e is InputEventKey and (e as InputEventKey).pressed):
+		_unlock_t = 0.3
+
+
+## Le navigateur a-t-il déjà vu un geste du joueur (au cas où il aurait eu lieu hors du jeu) ?
+func _activated() -> bool:
+	if not OS.has_feature("web"):
+		return true
+	return bool(JavaScriptBridge.eval("(navigator.userActivation ? navigator.userActivation.hasBeenActive : false)", true))
+
+
+## Ouvre la sortie en fondu et relance la musique de l'écran depuis son début.
+func _unlock() -> void:
+	_locked = false
+	_open_t = 0.0
+	print("Son : ouvert (premier geste du joueur)")
+	var m := _music[_music_cur]
+	if m.playing:
+		m.play(0.0)
+		_set_base(m, -50.0)
+		_fade(m, -50.0, _music_db, 1.6, false)
+	for p in _pool:
+		p.stop()
+	for v in _voice:
+		v.stop()
 
 
 func _player(cat: String) -> AudioStreamPlayer:
@@ -258,6 +301,19 @@ func _fade(p: AudioStreamPlayer, from_db: float, to_db: float, dur: float, stop_
 
 func _process(delta: float) -> void:
 	_t += delta
+	if _locked:
+		if _unlock_t < 0.0 and int(_t * 4.0) != int((_t - delta) * 4.0) and _activated():
+			_unlock_t = 0.3
+		if _unlock_t >= 0.0:
+			_unlock_t -= delta
+			if _unlock_t <= 0.0:
+				_unlock()
+	elif _open_t >= 0.0:
+		_open_t += delta
+		var u := clampf(_open_t / OPEN_FADE, 0.0, 1.0)
+		AudioServer.set_bus_volume_db(0, lerpf(-50.0, 0.0, u))
+		if u >= 1.0:
+			_open_t = -1.0
 	# Le profil peut être chargé (sauvegarde locale, cloud, configuration) après le démarrage de l'audio :
 	# ses volumes sont réappliqués dès qu'ils diffèrent de ceux en place.
 	_sync_t -= delta
