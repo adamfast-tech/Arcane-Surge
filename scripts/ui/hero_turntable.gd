@@ -21,8 +21,8 @@ var _last_t := 0
 var _warm := 0 ## prochain angle à préparer en arrière-plan
 
 
-func setup(look: Dictionary, race: String, cls: String) -> void:
-	setup_model(HeroModel.of(look, race, cls))
+func setup(look: Dictionary, race: String, cls: String, cos: Dictionary = {}) -> void:
+	setup_model(HeroModel.of(look, race, cls, cos))
 
 
 ## Un modèle déjà construit (compagnon).

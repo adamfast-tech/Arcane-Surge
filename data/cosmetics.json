@@ -1,0 +1,54 @@
+{
+  "slots": {"tete": "Tête", "tenue": "Tenue", "dos": "Dos", "arme": "Arme"},
+  "slot_icon": {"tete": "head", "tenue": "armor", "dos": "charm", "arme": "weapon"},
+  "kits": {
+    "boulanger": {
+      "name": "Mie d'Havre-Aube", "theme": "Le fournil du village, au petit matin", "color": "F2E0B0", "price": 1600,
+      "bonus2": {"stats": {"vig": 6}, "text": "+6 Vigueur"},
+      "bonus4": {"mods": {"barrier_flat": 100}, "text": "Barrière +100 points de vie"},
+      "pieces": {"tete": "Toque enfarinée", "tenue": "Tablier du fournil", "dos": "Sac de farine", "arme": "Baguette de combat"}
+    },
+    "corsaire": {
+      "name": "Corsaire des Sables", "theme": "Pillard des dunes, perroquet compris", "color": "E8503A", "price": 1900,
+      "bonus2": {"stats": {"des": 6}, "text": "+6 Destin"},
+      "bonus4": {"mods": {"gold_bonus": 0.15}, "text": "+15 % d'or gagné en combat"},
+      "pieces": {"tete": "Tricorne à plume", "tenue": "Veste à boutons d'or", "dos": "Perroquet bavard", "arme": "Sabre des dunes"}
+    },
+    "courge": {
+      "name": "Nuit des Courges", "theme": "La fête des récoltes, quand les citrouilles s'allument", "color": "FF8A2A", "price": 1800,
+      "bonus2": {"stats": {"pou": 6}, "text": "+6 Puissance"},
+      "bonus4": {"mods": {"elem_dmg.feu": 0.1, "elem_dmg.ombre": 0.1}, "text": "+10 % de dégâts de Feu et d'Ombre"},
+      "pieces": {"tete": "Tête de citrouille", "tenue": "Robe de la récolte", "dos": "Cape de feuilles mortes", "arme": "Lanterne-courge"}
+    },
+    "carton": {
+      "name": "Chevalier de Carton", "theme": "L'armure rêvée des enfants de Lysbourg", "color": "C8A070", "price": 1500,
+      "bonus2": {"stats": {"vig": 6}, "text": "+6 Vigueur"},
+      "bonus4": {"mods": {"barrier_max": 0.12}, "text": "Barrière +12 %"},
+      "pieces": {"tete": "Heaume en carton", "tenue": "Cuirasse en carton", "dos": "Cape en drap à carreaux", "arme": "Épée de bois"}
+    },
+    "ruche": {
+      "name": "Gardien des Ruches", "theme": "Le miel des collines d'Ambre, et ses gardiennes", "color": "F2C83A", "price": 1700,
+      "bonus2": {"stats": {"cel": 6}, "text": "+6 Célérité"},
+      "bonus4": {"mods": {"unit_speed": 0.12}, "text": "Tes invocations +12 % plus rapides"},
+      "pieces": {"tete": "Chapeau à voile", "tenue": "Combinaison d'apiculteur", "dos": "Ruche portative", "arme": "Enfumoir"}
+    },
+    "grenouille": {
+      "name": "Prince Grenouille", "theme": "Un sort raté au Marais Murmurant, devenu une mode", "color": "6FD06A", "price": 1700,
+      "bonus2": {"stats": {"esp": 6}, "text": "+6 Esprit"},
+      "bonus4": {"mods": {"mana_regen": 0.15}, "text": "Mana +15 % plus rapide"},
+      "pieces": {"tete": "Capuche-grenouille", "tenue": "Costume des mares", "dos": "Nénuphar porte-bonheur", "arme": "Parapluie des marais"}
+    },
+    "sporelin": {
+      "name": "Roi Sporelin", "theme": "Le seigneur des sous-bois, couronné d'amanite", "color": "E84A4A", "price": 1800,
+      "bonus2": {"stats": {"esp": 6}, "text": "+6 Esprit"},
+      "bonus4": {"mods": {"heal_bonus": 0.2}, "text": "Soins +20 %"},
+      "pieces": {"tete": "Chapeau d'amanite", "tenue": "Robe d'humus", "dos": "Hotte à champignons", "arme": "Bâton-champignon"}
+    },
+    "stellaire": {
+      "name": "Voyageur Stellaire", "theme": "Tombé d'une étoile filante au-dessus de l'Observatoire", "color": "8FB8FF", "price": 3400,
+      "bonus2": {"stats": {"pou": 4, "vig": 4, "esp": 4, "cel": 4, "des": 4}, "text": "+4 à toutes les stats"},
+      "bonus4": {"mods": {"barrier_flat": 100, "surge_gain": 0.15}, "text": "Barrière +100 points de vie et Surge +15 %"},
+      "pieces": {"tete": "Couronne d'étoiles", "tenue": "Robe constellée", "dos": "Cape de la nuit", "arme": "Sceptre-comète"}
+    }
+  }
+}

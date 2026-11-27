@@ -784,6 +784,9 @@ func _run() -> void:
 	if not _hero_model_ok():
 		quit(1)
 		return
+	if not await _armory_ok():
+		quit(1)
+		return
 	# Bibliothèque, onglet Classes : Ultime, sorts d'arbre et sorts de compagnon de chaque classe.
 	var cs := LibraryScreen.class_spells("chevalier")
 	var tree_ids: Array[String] = []
@@ -1693,6 +1696,135 @@ func _hero_model_ok() -> bool:
 		push_error("héros en volume : %s" % [errs])
 		return false
 	print("héros en volume : %d races, %d classes, %d angles · vue tournante dans l'Équipement · compagnons %s" % [races.size(), classes.size(), HeroModel.STEPS, HeroModel.COMPANIONS])
+	return true
+
+
+## Armurerie d'Aldric (docs/design/44-armurerie-cosmetiques.md) : arrivage toutes les 5 h (vitrine mythique
+## 1 fois sur 8, épique ou légendaire 1 fois sur 6), achat à l'or, curiosités : kits de 4 pièces portées
+## par-dessus l'équipement (bonus à 2 et à 4 pièces), panneau Apparence de l'Équipement.
+func _armory_ok() -> bool:
+	var errs: Array[String] = []
+	var saved: Dictionary = Profile.data.duplicate(true)
+	# Probabilités de la vitrine.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 44
+	var n := 20000
+	var cnt := {}
+	for i in range(n):
+		var r := Profile.shop_showcase_rarity(rng)
+		cnt[r] = int(cnt.get(r, 0)) + 1
+	var myth := float(cnt.get("mythique", 0)) / float(n)
+	var high := float(int(cnt.get("epique", 0)) + int(cnt.get("legendaire", 0))) / float(n)
+	if absf(myth - 0.125) > 0.01 or absf(high - 1.0 / 6.0) > 0.012 or int(cnt.get("rare", 0)) == 0:
+		errs.append("vitrine : mythique %.3f, épique+légendaire %.3f" % [myth, high])
+	# Arrivage : 7 offres (vitrine en tête), à l'or, sans uid ; même période → mêmes offres ; période suivante → nouvel arrivage.
+	var now := 1.8e9
+	Profile.data["shop"] = {"period": -1, "offers": []}
+	var offers := Profile.shop_offers(now)
+	var first := JSON.stringify(offers)
+	if offers.size() != 7 or not bool(offers[0]["showcase"]) or str(offers[0]["item"]["uid"]) != "":
+		errs.append("arrivage : %d offres" % offers.size())
+	for o in offers:
+		if int(o["price"]) <= 0 or int(o["price"]) % 5 != 0:
+			errs.append("prix incorrect : %s" % o["price"])
+	if JSON.stringify(Profile.shop_offers(now + 60.0)) != first:
+		errs.append("l'arrivage change dans la même période")
+	if JSON.stringify(Profile.shop_offers(now + Profile.shop_period_len())) == first:
+		errs.append("pas de nouvel arrivage après 5 h")
+	var left := Profile.shop_seconds_left(now)
+	if left <= 0 or left > int(Profile.shop_period_len()):
+		errs.append("compte à rebours : %d" % left)
+	# Achat.
+	Profile.data["gold"] = 0
+	if Profile.shop_buy_block(1) != "Or insuffisant":
+		errs.append("achat sans or accepté")
+	var price := int(Profile.shop_offers(now + Profile.shop_period_len())[1]["price"])
+	Profile.data["gold"] = price + 7
+	var inv0 := (Profile.data["inventory"] as Array).size()
+	var bought := Profile.shop_buy(1)
+	if bought.is_empty() or Profile.gold() != 7 or (Profile.data["inventory"] as Array).size() != inv0 + 1 or str(bought["uid"]) == "" \
+			or Profile.shop_buy_block(1) != "Déjà vendu":
+		errs.append("achat d'équipement incorrect")
+	# Curiosités : achat, port, bonus de kit.
+	Profile.data["cosmetics"] = {"owned": [], "worn": {}, "show": true}
+	var db := Profile.cosmetics_db()
+	var kits: Dictionary = db["kits"]
+	if kits.size() < 8:
+		errs.append("%d kits seulement" % kits.size())
+	for kit in kits.keys():
+		if (kits[kit]["pieces"] as Dictionary).size() != 4:
+			errs.append("kit %s incomplet" % kit)
+	Profile.data["gold"] = 100000
+	var p0 := Profile.power()
+	var b0 := Profile.gear_stats_of("player").duplicate()
+	for slot in ["tete", "tenue"]:
+		if not Profile.buy_cosmetic("boulanger." + slot):
+			errs.append("achat boulanger.%s refusé" % slot)
+		Profile.wear_cosmetic(slot, "boulanger." + slot)
+	if Profile.cosmetic_buy_block("boulanger.tete") != "Déjà à toi":
+		errs.append("pièce achetée deux fois")
+	var b2 := Profile.gear_stats_of("player")
+	if int(b2.get("vig", 0)) - int(b0.get("vig", 0)) != 6 or Profile.power() <= p0 or Profile.all_mods().has("barrier_flat"):
+		errs.append("bonus à 2 pièces : %s → %s" % [b0.get("vig", 0), b2.get("vig", 0)])
+	for slot in ["dos", "arme"]:
+		Profile.buy_cosmetic("boulanger." + slot)
+		Profile.wear_cosmetic(slot, "boulanger." + slot)
+	if absf(float(Profile.all_mods().get("barrier_flat", 0.0)) - 100.0) > 0.01:
+		errs.append("bonus à 4 pièces absent")
+	Profile.wear_cosmetic("tete", "corsaire.tete") # pas possédée : refusée
+	if str(Profile.worn_cosmetics()["tete"]) != "boulanger.tete":
+		errs.append("pièce non possédée portée")
+	# Combat : la barrière gagne 100 points avec le kit complet.
+	var mods_full := Profile.all_mods()
+	Profile.wear_cosmetic("arme", "")
+	var mods_3 := Profile.all_mods()
+	var s1 := BattleSim.new()
+	s1.setup(GameData.level("z01_l05"), GameData.party(), 11, {"solo": true, "mods": mods_full})
+	var s0 := BattleSim.new()
+	s0.setup(GameData.level("z01_l05"), GameData.party(), 11, {"solo": true, "mods": mods_3})
+	if absf(s1.barrier_max - s0.barrier_max - 100.0) > 0.5:
+		errs.append("barrière : %.0f contre %.0f" % [s1.barrier_max, s0.barrier_max])
+	# Rendu : chaque kit change l'apparence, de face comme de dos.
+	var look := {"head": PlayerLook.HEADS.keys()[0], "sil": 0, "face": 0}
+	var plain := HeroModel.new()
+	plain.build(look, "humain", "chevalier")
+	for kit in kits.keys():
+		var cos := {}
+		for slot in db["slots"].keys():
+			cos[slot] = "%s.%s" % [kit, slot]
+		var m := HeroModel.new()
+		m.build(look, "humain", "chevalier", cos)
+		for yaw in [PI, 0.0]:
+			var img := m.image_at(yaw)
+			if img.get_used_rect().size.y < 22 or img.get_data() == plain.image_at(yaw).get_data():
+				errs.append("kit %s : rendu inchangé (angle %.1f)" % [kit, yaw])
+	# Écrans : Armurerie (deux onglets) et Apparence de l'Équipement.
+	for tab in ["equip", "curios"]:
+		var ar := ArmoryScreen.new()
+		ar._tab = tab
+		root.add_child(ar)
+		await _frames(2)
+		var btns := ar.find_children("*", "Button", true, false).size()
+		if btns < 8:
+			errs.append("Armurerie (%s) : %d boutons" % [tab, btns])
+		if tab == "curios" and ar.find_children("*", "HeroTurntable", true, false).is_empty():
+			errs.append("pas d'essayage dans les Curiosités")
+		ar.queue_free()
+	var es := EquipmentScreen.new()
+	root.add_child(es)
+	await _frames(2)
+	var found := false
+	for l in es.find_children("*", "Label", true, false):
+		if (l as Label).text == "APPARENCE":
+			found = true
+	if not found:
+		errs.append("pas de panneau Apparence dans l'Équipement")
+	es.queue_free()
+	Profile.data = saved
+	if not errs.is_empty():
+		push_error("armurerie : %s" % [errs])
+		return false
+	print("armurerie : vitrine mythique %.1f %%, épique/légendaire %.1f %% · arrivage de %d offres, renouvelé toutes les %d h · %d kits de curiosités, bonus 2/4 pièces · barrière +100 · Apparence" % [myth * 100.0, high * 100.0, offers.size(), int(Profile.shop_period_len() / 3600.0), kits.size()])
 	return true
 
 

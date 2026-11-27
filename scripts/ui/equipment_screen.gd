@@ -11,6 +11,7 @@ extends Control
 signal back
 signal changed
 signal open_forge(uid: String) ## Forge de Durgan : gravure de runes (objet présélectionné) ou fusion
+signal open_armory ## Armurerie d'Aldric : curiosités (cosmétiques)
 
 const LEFT := ["weapon", "head", "armor", "hands", "feet"]
 const RIGHT := ["offhand", "amulet", "ring1", "ring2", "charm"]
@@ -23,6 +24,7 @@ var who := "player" ## porteur : « player » ou l'identifiant d'un compagnon
 var _sel := "" ## « slot:<emplacement> » ou « item:<uid> » : la fiche affichée
 var _cmp: Dictionary = {} ## uid → comparaison avec l'équipé (Profile.compare_to_equipped)
 var _better_by_slot: Dictionary = {} ## type d'emplacement → nombre d'objets meilleurs en réserve
+var _cos_slot := "" ## emplacement d'apparence ouvert (choix d'une pièce cosmétique)
 
 
 func _ready() -> void:
@@ -58,6 +60,8 @@ func _rebuild() -> void:
 	if not comps.is_empty():
 		_col.add_child(_wearer_tabs(comps))
 	_col.add_child(_doll(eqd))
+	if who == "player":
+		_col.add_child(_appearance())
 	_col.add_child(_stats_card())
 	_col.add_child(_detail())
 	_inventory()
@@ -85,8 +89,8 @@ func _header() -> void:
 	var tv := VBoxContainer.new()
 	tv.add_theme_constant_override("separation", 0)
 	_col.add_child(tv)
-	tv.add_child(UiTheme.title("ARMURERIE", 46, UiTheme.GOLD))
-	var sub := "ÉQUIPEMENT ET RUNES" if who == "player" else "ÉQUIPEMENT DE %s" % Dialogues.display_name(who).to_upper()
+	tv.add_child(UiTheme.title("ÉQUIPEMENT", 46, UiTheme.GOLD))
+	var sub := "ARMES, ARMURES ET RUNES" if who == "player" else "L'ARSENAL DE %s" % Dialogues.display_name(who).to_upper()
 	tv.add_child(UiTheme.title(sub, 20, UiTheme.TEXT))
 
 
@@ -155,7 +159,7 @@ func _doll(eqd: Dictionary) -> PanelContainer:
 		# Le personnage en volume : on le fait tourner en le glissant vers la gauche ou la droite.
 		var tt := HeroTurntable.new()
 		if who == "player":
-			tt.setup(Profile.look(), Profile.race(), Profile.player_class())
+			tt.setup(Profile.look(), Profile.race(), Profile.player_class(), Profile.visible_cosmetics())
 		else:
 			tt.setup_model(HeroModel.of_companion(who, Profile.companion_class(who)))
 		tt.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
@@ -221,6 +225,139 @@ func _slot_column(slots: Array, eqd: Dictionary) -> VBoxContainer:
 			_rebuild.call_deferred())
 		col.add_child(b)
 	return col
+
+
+## Apparence : les pièces cosmétiques portées par-dessus l'équipement (tête, tenue, dos, arme), à choisir
+## parmi celles achetées à l'Armurerie ; les afficher ou non ; les bonus des kits portés.
+func _appearance() -> PanelContainer:
+	var db := Profile.cosmetics_db()
+	var worn := Profile.worn_cosmetics()
+	var c: Array = UiTheme.card(Color("e0a050", 0.4), 12)
+	var v: VBoxContainer = c[1]
+	v.add_theme_constant_override("separation", 8)
+	var top := HBoxContainer.new()
+	top.add_theme_constant_override("separation", 8)
+	v.add_child(top)
+	top.add_child(UiTheme.icon_rect("sparkle", 22, Color("e0a050")))
+	var tl := UiTheme.label("APPARENCE", 18, Color("e0a050"))
+	tl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top.add_child(tl)
+	var shown := Profile.cosmetics_shown()
+	var sh := UiTheme.button("Visible" if shown else "Masquée", 14)
+	sh.icon = Icons.tex("check" if shown else "lock", 32)
+	sh.add_theme_constant_override("icon_max_width", 16)
+	sh.custom_minimum_size = Vector2(0, 38)
+	sh.tooltip_text = "Afficher ou masquer les cosmétiques (les bonus des kits restent actifs)"
+	sh.pressed.connect(func() -> void:
+		Profile.set_cosmetics_shown(not Profile.cosmetics_shown())
+		_save_profile()
+		_rebuild.call_deferred())
+	top.add_child(sh)
+	var shop := UiTheme.button("Armurerie", 14)
+	shop.icon = Icons.tex("coin", 32)
+	shop.add_theme_constant_override("icon_max_width", 16)
+	shop.custom_minimum_size = Vector2(0, 38)
+	shop.pressed.connect(func() -> void: open_armory.emit())
+	top.add_child(shop)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	v.add_child(row)
+	for slot in ["tete", "tenue", "dos", "arme"]:
+		var pid := str(worn.get(slot, ""))
+		var info := Profile.cosmetic_info(pid) if pid != "" else {}
+		var kc := Color(str(info.get("color", "8fa3b3")))
+		var on: bool = str(slot) == _cos_slot
+		var rb: Array = UiTheme.rich_button(176, "primary" if on else "tile")
+		var bt: Button = rb[0]
+		var bh: HBoxContainer = rb[1]
+		bt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var pv := VBoxContainer.new()
+		pv.add_theme_constant_override("separation", 1)
+		pv.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		pv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		bh.add_child(pv)
+		if pid != "":
+			var th := CosmeticThumb.make(pid, 84)
+			th.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			pv.add_child(th)
+		else:
+			# Rien par-dessus : l'équipement se voit tel quel.
+			var ek := str(db["slot_icon"].get(slot, "armor"))
+			var ic := TextureRect.new()
+			ic.texture = Icons.tex(str(Icons.SLOT_ICON.get(ek, "rune")), 64)
+			ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			ic.custom_minimum_size = Vector2(84, 103)
+			ic.modulate = Color(1, 1, 1, 0.22)
+			ic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			ic.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			pv.add_child(ic)
+		var sl := UiTheme.label(str(db["slots"][slot]).to_upper(), 12, UiTheme.MUTED)
+		sl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		sl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		pv.add_child(sl)
+		var nl := UiTheme.label(str(info.get("name", "Équipement")), 12, kc if pid != "" else UiTheme.MUTED)
+		nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		nl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		nl.custom_minimum_size = Vector2(60, 0)
+		nl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		pv.add_child(nl)
+		bt.pressed.connect(func() -> void:
+			Snd.click()
+			_cos_slot = "" if _cos_slot == slot else slot
+			_rebuild.call_deferred())
+		row.add_child(bt)
+	# Choix d'une pièce pour l'emplacement ouvert.
+	if _cos_slot != "":
+		var flow := HFlowContainer.new()
+		flow.add_theme_constant_override("h_separation", 6)
+		flow.add_theme_constant_override("v_separation", 6)
+		v.add_child(flow)
+		var opts: Array = [""]
+		for kit in (db["kits"] as Dictionary).keys():
+			var pid2 := "%s.%s" % [kit, _cos_slot]
+			if Profile.cosmetic_owned(pid2):
+				opts.append(pid2)
+		for pid3 in opts:
+			var info2 := Profile.cosmetic_info(str(pid3)) if str(pid3) != "" else {}
+			var col2 := Color(str(info2.get("color", "8fa3b3")))
+			var cur := str(worn.get(_cos_slot, "")) == str(pid3)
+			var ob := Button.new()
+			ob.focus_mode = Control.FOCUS_NONE
+			ob.text = str(info2.get("name", "Aucune (équipement)"))
+			ob.add_theme_font_size_override("font_size", 14)
+			ob.custom_minimum_size = Vector2(0, 40)
+			ob.add_theme_color_override("font_color", col2 if cur else UiTheme.TEXT)
+			ob.add_theme_stylebox_override("normal", UiTheme.box(Color(col2.darkened(0.82), 0.95) if cur else Color(UiTheme.BG, 0.85), Color(col2, 0.9) if cur else Color(col2, 0.4), 18, 2 if cur else 1, 8))
+			ob.add_theme_stylebox_override("hover", UiTheme.box(Color(col2.darkened(0.78), 0.95), col2, 18, 2, 8))
+			var slot2 := _cos_slot
+			var pid4 := str(pid3)
+			ob.pressed.connect(func() -> void:
+				Snd.click()
+				Profile.wear_cosmetic(slot2, pid4)
+				_save_profile()
+				_rebuild.call_deferred())
+			flow.add_child(ob)
+		if opts.size() == 1:
+			v.add_child(UiTheme.wrap("Aucune pièce pour cet emplacement : les curiosités se trouvent à l'Armurerie d'Aldric.", 14, UiTheme.MUTED))
+	# Bonus des kits portés.
+	var counts := Profile.cosmetic_kit_counts()
+	var lines: Array[String] = []
+	for kit2 in counts.keys():
+		var n := int(counts[kit2])
+		var kd: Dictionary = (db["kits"] as Dictionary).get(kit2, {})
+		if n >= 2 and not kd.is_empty():
+			lines.append("%s (%d/4) : %s" % [str(kd["name"]), n, str(kd["bonus2"]["text"]) + (", " + str(kd["bonus4"]["text"]) if n >= 4 else "")])
+	if not lines.is_empty():
+		v.add_child(UiTheme.wrap(" · ".join(lines), 14, UiTheme.GOOD))
+	return c[0]
+
+
+func _save_profile() -> void:
+	Profile.save_local()
+	if Cloud.instance != null:
+		Cloud.instance.push()
+	changed.emit()
 
 
 func _stats_card() -> PanelContainer:

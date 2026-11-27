@@ -44,13 +44,16 @@ func _ready() -> void:
 			Profile.data["player"]["class"] = str(_query().get("class", ""))
 		if _url_flag("build"):
 			_preview_build()
-	if room in ["meditation", "circle", "skills", "library", "options"]:
+	if str(_query().get("cos", "")) != "":
+		# Aperçu : un kit de curiosités possédé et porté (« &cos=corsaire »), ou une pièce de chaque (« &cos=mix »).
+		_preview_cosmetics(str(_query().get("cos", "")))
+	if room in ["meditation", "circle", "skills", "library", "options", "armory"]:
 		# Aperçu d'une salle (« ?room=meditation », « ?room=library&tab=classes&class=archer »), sans écran de chargement.
 		if str(_query().get("class", "")) != "":
 			Profile.data["player"]["class"] = str(_query().get("class", ""))
 		_show_room(room)
-		if room == "library" and str(_query().get("tab", "")) != "":
-			_screen.set("_school", str(_query().get("tab", "")))
+		if room in ["library", "armory"] and str(_query().get("tab", "")) != "":
+			_screen.set("_school" if room == "library" else "_tab", str(_query().get("tab", "")))
 			_screen.call("_rebuild")
 		return
 	if room == "map":
@@ -272,6 +275,7 @@ func _show_hub() -> void:
 	h.open_login.connect(_show_login.bind(true))
 	h.open_save.connect(_show_save)
 	h.open_forge.connect(func() -> void: _show_forge())
+	h.open_armory.connect(_show_room.bind("armory"))
 	h.open_skills.connect(_show_room.bind("skills"))
 	h.open_library.connect(_show_room.bind("library"))
 	h.open_circle.connect(_show_room.bind("circle"))
@@ -317,6 +321,8 @@ func _show_room(which: String) -> void:
 			s = MeditationScreen.new()
 		"options":
 			s = OptionsScreen.new()
+		"armory":
+			s = ArmoryScreen.new()
 		_:
 			var cs := CircleScreen.new()
 			cs.open_equipment.connect(func(who: String) -> void: _show_equipment(who, true))
@@ -341,6 +347,11 @@ func _show_equipment(who: String = "player", from_circle: bool = false) -> void:
 	else:
 		e.back.connect(_show_hub)
 	e.open_forge.connect(func(uid: String) -> void: _show_forge(uid, "equipment", who))
+	e.open_armory.connect(func() -> void:
+		var a := ArmoryScreen.new()
+		a.set("_tab", "curios")
+		a.back.connect(func() -> void: _show_equipment(who, from_circle))
+		_set_screen(a))
 	_set_screen(e)
 
 
@@ -358,6 +369,17 @@ func _preview_progress(n: int) -> void:
 	var ids: Array = GameData.level_index()["levels"]
 	for i in range(mini(n, ids.size())):
 		Profile.data["levels"][str(ids[i])] = {"stars": 3 - (i * 7) % 3 if i % 4 != 3 else 1, "best": 140.0 + float(i * 13 % 90), "clears": 1}
+
+
+func _preview_cosmetics(kit: String) -> void:
+	var kits: Array = (Profile.cosmetics_db()["kits"] as Dictionary).keys()
+	var slots := ["tete", "tenue", "dos", "arme"]
+	for i in range(slots.size()):
+		var k := str(kits[(i * 3) % kits.size()]) if kit == "mix" else kit
+		var id := "%s.%s" % [k, slots[i]]
+		if not Profile.cosmetic_owned(id) and not Profile.cosmetic_info(id).is_empty():
+			(Profile.data["cosmetics"]["owned"] as Array).append(id)
+		Profile.wear_cosmetic(slots[i], id)
 
 
 func _preview_gear() -> void:

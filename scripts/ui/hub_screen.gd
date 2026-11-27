@@ -6,6 +6,7 @@ extends Control
 signal open_map
 signal open_equipment
 signal open_forge
+signal open_armory
 signal open_login
 signal open_save
 signal open_skills
@@ -83,6 +84,16 @@ func _ready() -> void:
 	col.add_child(rooms)
 	var free := Profile.skill_points_free()
 	rooms.add_child(_small_tile("forge", "FORGE", "%d rune%s · fusions" % [Profile.rune_inventory().size(), "s" if Profile.rune_inventory().size() > 1 else ""], UiTheme.FIRE, func() -> void: open_forge.emit(), UiTheme.FIRE))
+	# Armurerie : la vitrine si elle vaut le détour, sinon le prochain arrivage.
+	var offers := Profile.shop_offers()
+	var show: Dictionary = offers[0] if not offers.is_empty() else {}
+	var srar := str((show.get("item", {}) as Dictionary).get("rarity", ""))
+	var shop_line := "Arrivage dans %d h %02d" % [Profile.shop_seconds_left() / 3600, (Profile.shop_seconds_left() % 3600) / 60]
+	var shop_col := UiTheme.MUTED
+	if not bool(show.get("sold", true)) and srar in ["epique", "legendaire", "mythique"]:
+		shop_line = "Vitrine : %s !" % str(Profile.items_db()["rarities"][srar]["name"])
+		shop_col = Color(str(Profile.items_db()["rarities"][srar]["color"]))
+	rooms.add_child(_small_tile("coin", "ARMURERIE", shop_line, shop_col, func() -> void: open_armory.emit(), Color("e0a050")))
 	rooms.add_child(_small_tile("target", "ENTRAÎNEMENT", "%d point%s" % [free, "s" if free > 1 else ""], UiTheme.GOLD if free > 0 else UiTheme.MUTED, func() -> void: open_skills.emit(), UiTheme.GOLD))
 	rooms.add_child(_small_tile("book", "BIBLIOTHÈQUE", "Deck %d / %d" % [Profile.deck().size(), Profile.DECK_MAX], UiTheme.MUTED, func() -> void: open_library.emit(), UiTheme.VIOLET))
 	var crew: Array[String] = []

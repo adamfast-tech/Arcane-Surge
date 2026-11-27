@@ -1,0 +1,9 @@
+{
+  "restock_hours": 5,
+  "regular_offers": 6,
+  "regular_odds": {"commun": 62, "rare": 33, "epique": 5},
+  "showcase_odds": {"mythique": 0.125, "haut": 0.1666667, "haut_split": {"epique": 0.66, "legendaire": 0.34}, "sinon": "rare"},
+  "price_base": {"commun": 60, "rare": 180, "epique": 600, "legendaire": 1800, "mythique": 5000},
+  "price_per_ilvl": 0.15,
+  "slot_groups": [["weapon"], ["armor"], ["head", "hands", "feet"], ["offhand", "charm"], ["amulet", "ring"], ["weapon", "armor", "head", "hands", "feet", "offhand", "amulet", "ring", "charm"]]
+}

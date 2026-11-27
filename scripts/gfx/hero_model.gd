@@ -23,18 +23,33 @@ var _mirror := false ## arme dans la main gauche (archère)
 
 static var _models: Dictionary = {}
 
+## Tenues cosmétiques : ombre, foncé, principal, clair, liseré.
+const TENUE := {
+	"boulanger": ["9a8a7a", "c8bca8", "f2ece0", "ffffff", "c89048"],
+	"corsaire": ["3a0e0e", "6a1a1a", "b8322a", "d85a4a", "e0b850"],
+	"courge": ["2a1a0a", "1a1a1a", "e8702a", "ff9a4a", "1a1a1a"],
+	"carton": ["6a4a2a", "9a7448", "c8a070", "e0c090", "e8d8b8"],
+	"ruche": ["9a9070", "c8c0a0", "f0ead0", "ffffff", "e8b83a"],
+	"grenouille": ["1a4a1a", "2a6a2a", "4aa04a", "8fd06a", "d8e8a0"],
+	"sporelin": ["3a2410", "5a3a1a", "7a5230", "a07040", "d83a3a"],
+	"stellaire": ["0a1030", "14204a", "1e2e6a", "3a4a9a", "fff0a0"],
+}
+## Couvre-chefs : « hat » se pose sur les cheveux ; « full » couvre toute la tête ; « hood » remplace la coiffure.
+const HEAD_MODE := {"boulanger": "hat", "corsaire": "hat", "courge": "full", "carton": "full", "ruche": "full",
+	"grenouille": "hood", "sporelin": "hat", "stellaire": "hat"}
+
 ## Compagnons qui ont leur modèle en volume (les autres gardent leur sprite).
 const COMPANIONS := ["brann", "sylwen"]
 
 
 ## Modèle du héros actuel (apparence, race, classe), gardé en cache.
-static func of(look: Dictionary, race: String, cls: String) -> HeroModel:
-	var key := PlayerLook.key(look, race) + "|" + cls
+static func of(look: Dictionary, race: String, cls: String, cos: Dictionary = {}) -> HeroModel:
+	var key := PlayerLook.key(look, race) + "|" + cls + "|" + JSON.stringify(cos)
 	if not _models.has(key):
-		if _models.size() > 6:
+		if _models.size() > 10:
 			_models.clear()
 		var m := HeroModel.new()
-		m.build(look, race, cls)
+		m.build(look, race, cls, cos)
 		_models[key] = m
 	return _models[key]
 
@@ -83,15 +98,31 @@ func _disc(y: int, cx: float, cz: float, rx: float, rz: float, c: Color) -> void
 				_put(x, y, z, c)
 
 
-func build(look: Dictionary, race: String, cls: String) -> void:
+## cos : cosmétiques portés par-dessus l'équipement, {emplacement: « kit.emplacement »} (tête, tenue, dos, arme).
+func build(look: Dictionary, race: String, cls: String, cos: Dictionary = {}) -> void:
 	vox.clear()
 	_cache.clear()
+	_wx = 0
+	_wy = 0
+	_mirror = false
 	var pal := PlayerLook.palette(look, race)
 	var o: Array = pal["outfit"]
 	var hr: Array = pal["hair"]
 	var sk: Array = pal["skin"]
 	var eyes: Color = pal["eyes"]
 	var head := str(pal["head"])
+	var trim := eyes
+	var k_tenue := str(cos.get("tenue", "")).get_slice(".", 0)
+	var k_tete := str(cos.get("tete", "")).get_slice(".", 0)
+	var k_dos := str(cos.get("dos", "")).get_slice(".", 0)
+	var k_arme := str(cos.get("arme", "")).get_slice(".", 0)
+	if TENUE.has(k_tenue):
+		var tp: Array = TENUE[k_tenue]
+		o = [Color(str(tp[0])), Color(str(tp[1])), Color(str(tp[2])), Color(str(tp[3]))]
+		trim = Color(str(tp[4]))
+	var head_mode := str(HEAD_MODE.get(k_tete, ""))
+	if head_mode == "hat" and head == "capuche":
+		head = "courts" ## un chapeau se pose sur des cheveux, pas sur une capuche
 	var tr := str(pal["trait"])
 	var tunic := int(pal["sil"]) == 1
 	var boot := Color("2a2030")
@@ -114,11 +145,11 @@ func build(look: Dictionary, race: String, cls: String) -> void:
 	for x in range(-6, 7):
 		for z in range(-4, 5):
 			if vox.has(Vector3i(x, y0, z)):
-				_put(x, y0, z, eyes)
+				_put(x, y0, z, trim)
 	for y in range(y0, 10):
-		_put(0, y, _front(0, y), eyes)
+		_put(0, y, _front(0, y), trim)
 	for y in range(y0 + 1, 13):
-		_put(-1, y, _back(-1, y), eyes)
+		_put(-1, y, _back(-1, y), trim)
 	for x in range(-6, 7):
 		for z in range(-4, 5):
 			if vox.has(Vector3i(x, 10, z)):
@@ -150,12 +181,15 @@ func build(look: Dictionary, race: String, cls: String) -> void:
 		var k := sqrt(maxf(0.0, 1.0 - dy * dy))
 		_disc(y, 0.0, 0.0, 3.6 * k + 0.15, 3.2 * k + 0.15, sk[1])
 	_face(pal, sk, eyes)
-	# Coiffure.
-	match head:
-		"capuche":
-			_hood(o)
-		_:
-			_hair(head, hr)
+	# Coiffure (un couvre-chef intégral ou une capuche cosmétique la remplace).
+	if head_mode == "" or head_mode == "hat":
+		match head:
+			"capuche":
+				_hood(o)
+			_:
+				_hair(head, hr)
+	if head_mode != "":
+		_cos_head(k_tete)
 	# Traits de race.
 	match tr:
 		"ears":
@@ -190,7 +224,14 @@ func build(look: Dictionary, race: String, cls: String) -> void:
 			for x in [-5, -2, 2, 5]:
 				for z in range(-4, 5):
 					_clear(x, y0, z)
-	_weapon(cls, o, eyes)
+	if TENUE.has(k_tenue):
+		_cos_tenue(k_tenue, y0)
+	if k_dos != "":
+		_cos_back(k_dos, sk)
+	if k_arme != "":
+		_cos_weapon(k_arme)
+	else:
+		_weapon(cls, o, eyes)
 	_build_surface()
 
 
@@ -388,6 +429,316 @@ func _weapon(cls: String, o: Array, eyes: Color) -> void:
 			for q in [Vector3i(6, 25, -1), Vector3i(5, 26, -1), Vector3i(7, 26, -1), Vector3i(6, 26, -2), Vector3i(6, 26, 0), Vector3i(6, 27, -1)]:
 				_pw(q.x, q.y, q.z, eyes.lightened(0.35), true)
 			_pw(6, 26, -1, Color.WHITE, true)
+
+
+# ---------------------------------------------------------------- cosmétiques
+
+## Anneau (coque d'ellipse) dans le plan y : voxels entre deux rayons.
+func _ring(y: int, rx: float, rz: float, w: float, c: Color, cz: float = 0.0) -> void:
+	for x in range(int(-rx) - 2, int(rx) + 3):
+		for z in range(int(-rz) - 2, int(rz) + 3):
+			var d := Vector2(float(x) / rx, (float(z) - cz) / rz).length()
+			if d <= 1.0 and d >= 1.0 - w:
+				_put(x, y, z, c)
+
+
+## Couvre-chefs des kits.
+func _cos_head(kit: String) -> void:
+	match kit:
+		"boulanger":
+			# Toque blanche : bandeau, fût, puis le bouffant du dessus.
+			_disc(22, 0.0, 0.0, 3.4, 3.1, Color("dcd8d0"))
+			for y in range(23, 26):
+				_disc(y, 0.0, 0.0, 3.2, 2.9, Color("f6f4ee"))
+			for y in range(26, 29):
+				_disc(y, 0.0, 0.0, 3.9 - float(y - 26) * 0.6, 3.6 - float(y - 26) * 0.6, Color.WHITE)
+		"corsaire":
+			# Tricorne noir aux bords dorés, coins relevés, plume rouge.
+			_disc(22, 0.0, 0.0, 4.8, 4.5, Color("1a1a1a"))
+			_ring(22, 4.8, 4.5, 0.22, Color("e0b850"))
+			for a in [-PI * 0.5, PI * 0.5 + 0.9, PI * 0.5 - 0.9]:
+				var p := Vector2.from_angle(a) * 4.0
+				_put(int(round(p.x)), 23, int(round(p.y)), Color("1a1a1a"))
+				_put(int(round(p.x * 1.15)), 24, int(round(p.y * 1.15)), Color("e0b850"))
+			for y in range(23, 26):
+				_disc(y, 0.0, 0.0, 3.0, 2.8, Color("1a1a1a"))
+			for y in range(24, 28):
+				_put(-3, y, 1, Color("e84a4a"))
+			_put(-4, 27, 2, Color("ff7a6a"))
+		"courge":
+			# Tête de citrouille : côtes orange, visage sculpté qui luit, tige verte.
+			for y in range(15, 24):
+				var dy := (float(y) - 19.5) / 4.0
+				var k := sqrt(maxf(0.0, 1.0 - dy * dy))
+				for x in range(-5, 6):
+					for z in range(-5, 6):
+						var d := Vector2(float(x) / (4.5 * k + 0.2), float(z) / (4.3 * k + 0.2)).length()
+						if d <= 1.0:
+							_put(x, y, z, Color("c85a1a") if absi(x) % 2 == 0 and d > 0.7 else Color("e8702a"))
+			var glow := Color("ffd050")
+			for q in [Vector3i(-2, 20, 0), Vector3i(2, 20, 0), Vector3i(-3, 21, 0), Vector3i(3, 21, 0), Vector3i(-1, 21, 0), Vector3i(1, 21, 0)]:
+				_put(q.x, q.y, _front(q.x, q.y), glow, true)
+			for x in range(-3, 4):
+				_put(x, 17 + (1 if x % 2 == 0 else 0), _front(x, 17), glow, true)
+			_put(0, 24, 0, Color("4a7a2a"))
+			_put(0, 25, 0, Color("4a7a2a"))
+			_put(1, 25, 0, Color("6a9a3a"))
+		"carton":
+			# Heaume en carton : une boîte, une fente pour les yeux, du ruban adhésif et une plume.
+			for y in range(16, 24):
+				for x in range(-4, 5):
+					for z in range(-4, 5):
+						_put(x, y, z, Color("e8d8b8") if x == 0 or y == 23 else Color("c8a070"))
+			for x in range(-3, 4):
+				_put(x, 20, -4, Color("2a2018"))
+			for y in range(24, 27):
+				_put(0, y, 1, Color("e84a4a"))
+			_put(0, 27, 2, Color("ff7a6a"))
+		"ruche":
+			# Chapeau de paille et voile à mailles (on devine le visage au travers).
+			_disc(22, 0.0, 0.0, 5.2, 5.0, Color("e8c870"))
+			for y in range(23, 25):
+				_disc(y, 0.0, 0.0, 3.0, 2.9, Color("d8b050"))
+			for y in range(16, 22):
+				for x in range(-5, 6):
+					for z in range(-5, 6):
+						var d2 := Vector2(float(x) / 4.6, float(z) / 4.4).length()
+						if d2 <= 1.0 and d2 >= 0.78 and (x + y + z) % 2 == 0:
+							_put(x, y, z, Color("dcdce8"))
+		"grenouille":
+			# Capuche-grenouille : coque verte ouverte sur le visage, deux gros yeux ronds sur le dessus.
+			_hood([Color("1a4a1a"), Color("2a6a2a"), Color("4aa04a"), Color("8fd06a")])
+			for side: int in [-1, 1]:
+				for x in range(-1, 2):
+					for y in range(-1, 2):
+						for z in range(-1, 2):
+							if absi(x) + absi(y) + absi(z) <= 2:
+								_put(side * 2 + x, 24 + y, -1 + z, Color("f0f0e8"))
+				_put(side * 2, 24, -3, Color("1a1a1a"))
+				_put(side * 2, 25, -2, Color("4aa04a"))
+		"sporelin":
+			# Chapeau d'amanite : grand dôme rouge à pois blancs, lamelles claires dessous.
+			for y in range(22, 27):
+				var rr := 5.6 - float(y - 22) * 1.0
+				_disc(y, 0.0, 0.0, rr, rr * 0.95, Color("d83a3a"))
+			for x in range(-6, 7):
+				for z in range(-6, 7):
+					for y in range(22, 27):
+						if vox.has(Vector3i(x, y, z)) and (x * 7 + z * 3 + y * 5) % 6 == 0:
+							_put(x, y, z, Color("f6f0e8"))
+			_ring(22, 5.6, 5.3, 0.3, Color("e8dcc0"))
+		"stellaire":
+			# Couronne d'étoiles : un cercle d'or et cinq pointes qui luisent.
+			_ring(22, 3.9, 3.6, 0.28, Color("e0b850"))
+			for i in range(5):
+				var p2 := Vector2.from_angle(-PI * 0.5 + float(i) * TAU / 5.0)
+				var x2 := int(round(p2.x * 3.6))
+				var z2 := int(round(p2.y * 3.3))
+				_put(x2, 23, z2, Color("fff0a0"), true)
+				_put(x2, 24, z2, Color("fffbe0"), true)
+
+
+## Motifs des tenues (la palette est déjà appliquée au corps).
+func _cos_tenue(kit: String, y0: int) -> void:
+	match kit:
+		"boulanger":
+			# Tablier crème taché de farine.
+			for y in range(y0 + 1, 11):
+				for x in range(-2, 3):
+					_put(x, y, _front(x, y), Color("ffffff") if (x * 3 + y) % 5 == 0 else Color("e8d8b0"))
+		"corsaire":
+			# Revers noirs et boutons d'or.
+			for y in range(9, 15):
+				for side: int in [-1, 1]:
+					_put(side * 2, y, _front(side * 2, y), Color("1a1a1a"))
+			for y in range(y0 + 2, 13, 2):
+				_put(0, y, _front(0, y), Color("e0b850"))
+		"courge":
+			for x in range(-6, 7):
+				for z in range(-4, 5):
+					for y in range(y0, 15, 3):
+						if vox.has(Vector3i(x, y, z)):
+							_put(x, y, z, Color("1a1a1a"))
+		"carton":
+			# Ruban adhésif en travers et un blason dessiné au feutre.
+			for y in range(y0, 15):
+				var x := (y - y0) % 9 - 4
+				_put(x, y, _front(x, y), Color("e8d8b8"))
+				_put(x, y, _back(x, y), Color("e8d8b8"))
+			for q in [Vector2i(-1, 8), Vector2i(0, 8), Vector2i(1, 8), Vector2i(0, 7), Vector2i(-1, 9), Vector2i(1, 9), Vector2i(0, 9)]:
+				_put(q.x, q.y, _front(q.x, q.y), Color("c83a3a"))
+		"ruche":
+			# Fermeture éclair et ceinture jaune.
+			for y in range(y0, 15):
+				_put(0, y, _front(0, y), Color("a8b0c0"))
+			for x in range(-6, 7):
+				for z in range(-4, 5):
+					if vox.has(Vector3i(x, 9, z)):
+						_put(x, 9, z, Color("e8b83a"))
+		"grenouille":
+			# Ventre clair.
+			for y in range(y0 + 1, 12):
+				for x in range(-2, 3):
+					if absi(x) + absi(y - 7) / 2 <= 3:
+						_put(x, y, _front(x, y), Color("d8e8a0"))
+		"sporelin":
+			# Petits chapeaux rouges sur l'ourlet.
+			for x in range(-5, 6, 2):
+				_put(x, y0 + 1, _front(x, y0 + 1), Color("d83a3a"))
+				_put(x, y0 + 1, _back(x, y0 + 1), Color("d83a3a"))
+		"stellaire":
+			# Étoiles brodées qui luisent.
+			for x in range(-6, 7):
+				for z in range(-4, 5):
+					for y in range(y0, 15):
+						if vox.has(Vector3i(x, y, z)) and (x * 13 + z * 7 + y * 11) % 17 == 0:
+							_put(x, y, z, Color("fff0a0"), true)
+
+
+## Pièces de dos.
+func _cos_back(kit: String, sk: Array) -> void:
+	match kit:
+		"boulanger":
+			# Sac de farine, rayé de bleu, noué en haut.
+			for y in range(7, 14):
+				for x in range(-3, 3):
+					for z in range(3, 6):
+						_put(x, y, z, Color("5a7ac8") if y == 10 else Color("e8dcc0"))
+			_put(-1, 14, 4, Color("8a5a2b"))
+			_put(0, 14, 4, Color("8a5a2b"))
+		"corsaire":
+			# Perroquet sur l'épaule droite : rouge, aile verte, bec jaune, queue bleue.
+			for q in [Vector3i(4, 15, 0), Vector3i(4, 16, 0), Vector3i(4, 16, -1), Vector3i(4, 17, -1)]:
+				_put(q.x, q.y, q.z, Color("e8322a"))
+			_put(5, 15, 0, Color("3aa84a"))
+			_put(5, 16, 1, Color("3aa84a"))
+			_put(4, 17, -2, Color("f2c83a"))
+			_put(4, 18, -1, Color("e8322a"))
+			_put(4, 14, 1, Color("3a6ac8"))
+			_put(4, 13, 2, Color("3a6ac8"))
+			_put(3, 17, -2, Color("1a1a1a"))
+		"courge":
+			for y in range(3, 15):
+				var half := 4 if y < 12 else 3
+				for x in range(-half, half + 1):
+					var leaf := [Color("e8702a"), Color("c84a2a"), Color("8a5a2a"), Color("e8b84a")]
+					_put(x, y, 3 if y >= 8 else 4, leaf[(x * 5 + y * 3 + 7) % 4])
+		"carton":
+			for y in range(3, 15):
+				var half2 := 4 if y < 12 else 3
+				for x in range(-half2, half2 + 1):
+					_put(x, y, 3 if y >= 8 else 4, Color("c83a3a") if (x + y) % 2 == 0 else Color("f0ece0"))
+		"ruche":
+			# Ruche portative en anneaux, son entrée, et trois abeilles qui tournent autour.
+			for y in range(6, 15):
+				var rr := 3.2 - absf(float(y) - 10.0) * 0.32
+				for x in range(-4, 5):
+					for z in range(2, 9):
+						if Vector2(float(x) / rr, (float(z) - 5.0) / (rr * 0.9)).length() <= 1.0:
+							_put(x, y, z, Color("a87a1a") if y % 2 == 0 else Color("e8b83a"))
+			_put(0, 8, _back(0, 8), Color("2a1a0a"))
+			for q in [Vector3i(4, 14, 6), Vector3i(-4, 12, 7), Vector3i(3, 16, 5)]:
+				_put(q.x, q.y, q.z, Color("f2c83a"), true)
+		"grenouille":
+			# Nénuphar porte-bonheur dans le dos, et sa fleur rose.
+			for y in range(5, 15):
+				for x in range(-5, 6):
+					var d := Vector2(float(x), float(y) - 10.0).length()
+					if d <= 4.6 and not (x >= 0 and absi(y - 10) <= 0 and x <= 4):
+						_put(x, y, 4, Color("3a8a3a") if d < 3.6 else Color("2a6a2a"))
+			for q in [Vector3i(0, 13, 5), Vector3i(-1, 13, 5), Vector3i(1, 13, 5), Vector3i(0, 14, 5)]:
+				_put(q.x, q.y, q.z, Color("f0a0c0"))
+			_put(0, 13, 6, Color("f2c83a"))
+		"sporelin":
+			# Hotte d'osier, des champignons qui en sortent.
+			for y in range(7, 14):
+				for x in range(-3, 4):
+					for z in range(3, 6):
+						_put(x, y, z, Color("8a5a2b") if (x + y) % 2 == 0 else Color("6a4220"))
+			for q in [Vector3i(-2, 14, 4), Vector3i(1, 14, 4), Vector3i(2, 15, 5)]:
+				_put(q.x, q.y, q.z, Color("e8dcc0"))
+				_put(q.x, q.y + 1, q.z, Color("d83a3a"))
+				_put(q.x + 1, q.y + 1, q.z, Color("d83a3a"))
+		"stellaire":
+			for y in range(2, 15):
+				var half3 := 4 if y < 12 else 3
+				for x in range(-half3, half3 + 1):
+					var star := (x * 7 + y * 5) % 11 == 0
+					_put(x, y, 3 if y >= 8 else 4, Color("fff0a0") if star else Color("14204a"), star)
+
+
+## Armes cosmétiques (par-dessus l'arme de la classe), dans la main droite.
+func _cos_weapon(kit: String) -> void:
+	match kit:
+		"boulanger":
+			# Baguette dorée, entaillée.
+			for y in range(4, 19):
+				for z in [-1, -2]:
+					_pw(6, y, z, Color("f0c070") if y % 3 == 0 and z == -2 else Color("d89a4a"))
+		"corsaire":
+			# Sabre courbe à garde d'or.
+			for y in range(9, 21):
+				var cz := -1 - int(round(1.6 * sin(PI * float(y - 9) / 14.0)))
+				_pw(6, y, cz, Color("d8dce8") if y < 20 else Color.WHITE)
+			for x in range(5, 8):
+				_pw(x, 8, -1, Color("e0b850"))
+			_pw(6, 7, -1, Color("3a2a1a"))
+			_pw(6, 6, -1, Color("e0b850"))
+		"courge":
+			# Lanterne-courge au bout d'un bâton.
+			for y in range(4, 17):
+				_pw(6, y, -1, Color("6a4a2a"))
+			for x in range(5, 8):
+				for y in range(15, 18):
+					for z in range(-3, -1):
+						_pw(x, y, z, Color("e8702a"))
+			_pw(6, 16, -4, Color("ffd050"), true)
+			_pw(6, 18, -2, Color("4a7a2a"))
+		"carton":
+			# Épée de bois, garde clouée.
+			for y in range(9, 20):
+				for z in [-1, -2]:
+					_pw(6, y, z, Color("c8a070") if y < 19 else Color("e0c090"))
+			for x in range(5, 8):
+				_pw(x, 8, -1, Color("8a5a2b"))
+			_pw(6, 8, -2, Color("a8b0c0"))
+			_pw(6, 7, -1, Color("6a4a2a"))
+		"ruche":
+			# Enfumoir de métal, et sa fumée.
+			for y in range(5, 11):
+				for x in range(6, 8):
+					for z in range(-2, 0):
+						_pw(x, y, z, Color("a8b0c0") if y > 5 else Color("6a4a2a"))
+			for q in [Vector3i(7, 12, -1), Vector3i(6, 13, -2), Vector3i(7, 15, -1), Vector3i(6, 16, -2)]:
+				_pw(q.x, q.y, q.z, Color("dcdce8"))
+		"grenouille":
+			# Parapluie ouvert, au-dessus de la tête.
+			for y in range(6, 24):
+				_pw(6, y, -1, Color("2a2a2a"))
+			_pw(5, 6, -1, Color("2a2a2a"))
+			for y in range(23, 26):
+				var rr := 5.0 - float(y - 23) * 1.6
+				for x in range(-5, 6):
+					for z in range(-5, 6):
+						if Vector2(float(x), float(z)).length() <= rr:
+							_pw(6 + x if 6 + x != 0 else 1, y, -1 + z, Color("8fd06a") if (x + z) % 3 == 0 else Color("4aa04a"))
+		"sporelin":
+			for y in range(2, 20):
+				_pw(6, y, -1, Color("8a5a2b"))
+			for y in range(20, 23):
+				var rr2 := 2.6 - float(y - 20) * 0.8
+				for x in range(-3, 4):
+					for z in range(-3, 4):
+						if Vector2(float(x), float(z)).length() <= rr2:
+							_pw(6 + x, y, -1 + z, Color("f6f0e8") if (x + z + y) % 3 == 0 else Color("d83a3a"))
+		"stellaire":
+			# Sceptre d'argent, étoile filante à sa pointe.
+			for y in range(6, 20):
+				_pw(6, y, -1, Color("d8dce8") if y % 4 else Color("e0b850"))
+			for q in [Vector3i(6, 21, -1), Vector3i(5, 21, -1), Vector3i(7, 21, -1), Vector3i(6, 22, -1), Vector3i(6, 20, -1)]:
+				_pw(q.x, q.y, q.z, Color("fff0a0"), true)
+			for q in [Vector3i(6, 19, 1), Vector3i(6, 18, 2), Vector3i(6, 17, 3)]:
+				_pw(q.x, q.y, q.z, Color("8fb8ff"), true)
 
 
 # ---------------------------------------------------------------- compagnons

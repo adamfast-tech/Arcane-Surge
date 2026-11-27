@@ -96,6 +96,8 @@ static func texture(who: String, mood: String = "neutre") -> Texture2D:
 			_thalren(img, mood)
 		"ossian":
 			_ossian(img, mood)
+		"aldric":
+			_aldric(img, mood)
 		"sphinx":
 			_sphinx(img, mood)
 		"ignara":
@@ -121,7 +123,7 @@ static func texture(who: String, mood: String = "neutre") -> Texture2D:
 
 
 static func has_portrait(who: String) -> bool:
-	return who in ["porteur", "sylwen", "brann", "ancien", "cerf", "sylvarche", "fee", "voix", "krag", "gharok", "prevote", "varg", "nyx", "vesper", "aurele", "corvin", "aelis", "durgan", "ysolde", "orrin", "thalren", "ossian", "sphinx", "ignara", "mere_dragon", "wyrm", "ssareth", "leviathan", "ourdisseur", "morvaen"] \
+	return who in ["porteur", "sylwen", "brann", "ancien", "cerf", "sylvarche", "fee", "voix", "krag", "gharok", "prevote", "varg", "nyx", "vesper", "aurele", "corvin", "aelis", "durgan", "ysolde", "orrin", "thalren", "ossian", "aldric", "sphinx", "ignara", "mere_dragon", "wyrm", "ssareth", "leviathan", "ourdisseur", "morvaen"] \
 		or ResourceLoader.exists("res://assets/portraits/%s.png" % who)
 
 
@@ -1374,6 +1376,50 @@ static func _ossian(img: Image, mood: String) -> void:
 	if mood in ["joie", "surpris", "colere", "triste"]:
 		_mouth(img, 32, 40, mood, Color("6a3a3a"), Color("3a1a1a"))
 	_rim(img, 3, 61, 9, 63, Color("ffd8a0"))
+
+
+## Aldric : armurier et marchand de curiosités d'Havre-Aube. Humain, cheveux bruns bouclés grisonnant aux
+## tempes, barbe courte, anneau d'or à l'oreille, chemise bordeaux sous un tablier de cuir, un mètre de tailleur
+## autour du cou.
+static func _aldric(img: Image, mood: String) -> void:
+	var skin := _ramp(["9a5a44", "d0906a", "ecb48e"])
+	var hair := _ramp(["2a1a14", "4a2e20", "6a4430"])
+	var shirt := _ramp(["3a1018", "6a1e2a", "8a2e3a"])
+	var leather := _ramp(["2a1a10", "4a2e1a", "6a4428", "8a5e38"])
+	var gold := Color("f2c46b")
+	_glow(img, 52, 50, 16, Color("ffb45a"), 0.2)
+	_poly(img, PackedVector2Array([Vector2(2, 64), Vector2(5, 50), Vector2(17, 44), Vector2(47, 44), Vector2(59, 50), Vector2(62, 64)]), shirt)
+	# Tablier de cuir et ses bretelles.
+	_poly(img, PackedVector2Array([Vector2(17, 64), Vector2(19, 50), Vector2(45, 50), Vector2(47, 64)]), leather)
+	for y in range(44, 51):
+		_px(img, 21, y, Color("2a1a10"))
+		_px(img, 43, y, Color("2a1a10"))
+	# Mètre de tailleur autour du cou.
+	for i in range(14):
+		_px(img, 24 - i / 4, 45 + i, Color("e8d090") if i % 3 else Color("2a2a2a"))
+		_px(img, 40 + i / 4, 45 + i, Color("e8d090") if i % 3 else Color("2a2a2a"))
+	_ellipse(img, 32.0, 44.0, 3.8, 3.8, skin)
+	# Cheveux bouclés (derrière), visage.
+	_ellipse(img, 32.0, 25.0, 12.5, 11.0, hair)
+	_ellipse(img, 32.0, 31.0, 10.0, 12.0, skin)
+	for p in [Vector2(23, 18), Vector2(27, 15), Vector2(32, 14), Vector2(37, 15), Vector2(41, 18), Vector2(43, 23), Vector2(21, 23)]:
+		_ellipse(img, p.x, p.y, 3.0, 2.6, hair)
+	# Tempes grisonnantes.
+	for y in range(23, 29):
+		_px(img, 21, y, Color("a8a0a0"))
+		_px(img, 43, y, Color("a8a0a0"))
+	# Barbe courte.
+	_poly(img, PackedVector2Array([Vector2(22, 33), Vector2(23, 40), Vector2(27, 44), Vector2(32, 45), Vector2(37, 44), Vector2(41, 40), Vector2(42, 33), Vector2(38, 38), Vector2(32, 39), Vector2(26, 38)]), hair)
+	_ellipse(img, 32.0, 35.0, 2.6, 2.6, skin, 0.25)
+	# Anneau d'or à l'oreille.
+	_px(img, 21, 33, gold)
+	_px(img, 21, 34, gold)
+	_brow(img, 25, 27, -1, mood, Color("2a1a14"), 2)
+	_brow(img, 36, 27, 1, mood, Color("2a1a14"), 2)
+	_eye(img, 25, 30, -1, mood, Color("6a4a2a"), Color("1a1a1a"))
+	_eye(img, 35, 30, 1, mood, Color("6a4a2a"), Color("1a1a1a"))
+	_mouth(img, 32, 40, mood, Color("6a3a3a"), Color("3a1a1a"))
+	_rim(img, 4, 60, 9, 63, Color("ffd8a0"))
 
 
 ## Le Sphinx de verre : visage de cristal pâle, coiffe à rayures or et turquoise, yeux d'ombre violette.

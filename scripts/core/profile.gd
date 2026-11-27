@@ -79,6 +79,8 @@ static func default_data() -> Dictionary:
 		"circle": default_circle(),
 		"companions": {},
 		"meditation": {"configs": [{}, {}, {}], "harmony": 0},
+		"shop": {"period": -1, "offers": []},
+		"cosmetics": {"owned": [], "worn": {}, "show": true},
 	}
 
 
@@ -450,7 +452,7 @@ static func gear_stats() -> Dictionary:
 
 
 static func gear_stats_of(who: String) -> Dictionary:
-	var out := {}
+	var out := cosmetic_stats() if who == "player" else {}
 	var eq := equipment_of(who)
 	for s in eq.keys():
 		var it := find_item(str(eq[s]))
@@ -566,7 +568,7 @@ static func apply_battle(level_id: String, victory: bool, stars: int, time: floa
 	if victory:
 		var mult := (1.0 + float(p["star_bonus"]) * stars) * (float(p["first_clear_mult"]) if first else 1.0)
 		xp_gain *= mult
-		gold_gain *= mult
+		gold_gain *= mult * (1.0 + float(cosmetic_mods().get("gold_bonus", 0.0)))
 		var is_boss := str(lv.get("objective", "")) == "boss"
 		# Difficulté : plus (ou moins) de coffres, et des objets plus rares au-delà de Normal.
 		var loot := difficulty_mult()
@@ -1434,6 +1436,9 @@ static func all_mods() -> Dictionary:
 	var ru := rune_mods_of("player")
 	for k in ru.keys():
 		out[k] = float(out.get(k, 0.0)) + float(ru[k])
+	var cm := cosmetic_mods()
+	for k in cm.keys():
+		out[k] = float(out.get(k, 0.0)) + float(cm[k])
 	return out
 
 
@@ -1944,3 +1949,257 @@ static func harmony() -> int:
 	data["gold"] = gold() - cost
 	_med()["harmony"] = int(_med()["harmony"]) + 1
 	return -Story.add_value("corruption", -5)
+
+
+# ---------------------------------------------------------------- Armurerie (boutique d'équipement)
+## docs/design/44-armurerie-cosmetiques.md. Un arrivage par période de 5 h (mêmes heures pour tous) :
+## 6 offres courantes (commun, rare, parfois épique) et une vitrine (mythique 1 fois sur 8, épique ou
+## légendaire 1 fois sur 6, rare sinon). Les objets suivent la progression (niveau d'objet du prochain combat).
+
+static func shop_db() -> Dictionary:
+	return GameData.load_json("res://data/shop.json")
+
+
+static func _shop() -> Dictionary:
+	if not (data.get("shop") is Dictionary):
+		data["shop"] = {"period": -1, "offers": []}
+	var sh: Dictionary = data["shop"]
+	if not (sh.get("offers") is Array):
+		sh["offers"] = []
+	return sh
+
+
+static func shop_period_len() -> float:
+	return float(shop_db().get("restock_hours", 5)) * 3600.0
+
+
+static func shop_period(now: float = -1.0) -> int:
+	var t := Time.get_unix_time_from_system() if now < 0.0 else now
+	return int(floor(t / shop_period_len()))
+
+
+## Secondes avant le prochain arrivage.
+static func shop_seconds_left(now: float = -1.0) -> int:
+	var t := Time.get_unix_time_from_system() if now < 0.0 else now
+	return int(ceil(float(shop_period(t) + 1) * shop_period_len() - t))
+
+
+## Offres de la période en cours (l'arrivage se fait à la première visite de la période).
+static func shop_offers(now: float = -1.0) -> Array:
+	var per := shop_period(now)
+	if int(_shop().get("period", -1)) != per:
+		shop_restock(per)
+	return _shop()["offers"]
+
+
+static func shop_price(rarity: String, ilvl: int) -> int:
+	var sd := shop_db()
+	var base := float((sd["price_base"] as Dictionary).get(rarity, 60))
+	return int(round(base * (1.0 + float(sd.get("price_per_ilvl", 0.15)) * float(ilvl)) / 5.0)) * 5
+
+
+## Niveau d'objet de la boutique : celui du prochain combat de l'histoire.
+static func shop_ilvl() -> int:
+	return maxi(1, int(GameData.level(next_level()).get("global_level", 1)))
+
+
+## Rareté de la vitrine : mythique 1 fois sur 8, épique ou légendaire 1 fois sur 6, rare sinon.
+static func shop_showcase_rarity(rng: RandomNumberGenerator) -> String:
+	var o: Dictionary = shop_db()["showcase_odds"]
+	var r := rng.randf()
+	if r < float(o["mythique"]):
+		return "mythique"
+	if r < float(o["mythique"]) + float(o["haut"]):
+		return _roll(o["haut_split"], rng)
+	return str(o.get("sinon", "rare"))
+
+
+static func shop_restock(period: int, rng: RandomNumberGenerator = null) -> void:
+	var sd := shop_db()
+	if rng == null:
+		rng = RandomNumberGenerator.new()
+		rng.randomize()
+	var db := items_db()
+	var gl := shop_ilvl()
+	var zone := int(GameData.level(next_level()).get("zone", 1))
+	var by_slot: Dictionary = {}
+	for z in range(1, zone + 1):
+		for b in db["loot_pool"].get(str(z), []):
+			var bd: Dictionary = db["bases"].get(str(b), {})
+			if bd.is_empty() or bool(bd.get("unique", false)):
+				continue
+			var sl := str(bd["slot"])
+			if not by_slot.has(sl):
+				by_slot[sl] = []
+			(by_slot[sl] as Array).append(str(b))
+	var offers: Array = []
+	var pick := func(slots: Array) -> String:
+		var opts: Array = []
+		for sl in slots:
+			if by_slot.has(str(sl)):
+				opts.append(str(sl))
+		var chosen := str(opts[rng.randi_range(0, opts.size() - 1)]) if not opts.is_empty() else str(by_slot.keys()[0])
+		var arr: Array = by_slot[chosen]
+		return str(arr[rng.randi_range(0, arr.size() - 1)])
+	# La vitrine.
+	var srar := shop_showcase_rarity(rng)
+	var sil := gl + 1
+	var sit := make_item(pick.call(by_slot.keys()), srar, sil, rng)
+	sit["uid"] = ""
+	offers.append({"item": sit, "price": shop_price(srar, sil), "sold": false, "showcase": true})
+	# Les offres courantes, d'emplacements variés.
+	var groups: Array = sd["slot_groups"]
+	for i in range(int(sd.get("regular_offers", 6))):
+		var rar := _roll(sd["regular_odds"], rng)
+		var il := maxi(1, gl - rng.randi_range(0, 2))
+		var it := make_item(pick.call(groups[i % groups.size()]), rar, il, rng)
+		it["uid"] = ""
+		offers.append({"item": it, "price": shop_price(rar, il), "sold": false, "showcase": false})
+	var sh := _shop()
+	sh["period"] = period
+	sh["offers"] = offers
+
+
+## "" si l'offre peut être achetée, sinon la raison.
+static func shop_buy_block(i: int) -> String:
+	var offers: Array = _shop()["offers"]
+	if i < 0 or i >= offers.size():
+		return "Offre inconnue"
+	var o: Dictionary = offers[i]
+	if bool(o.get("sold", false)):
+		return "Déjà vendu"
+	if gold() < int(o["price"]):
+		return "Or insuffisant"
+	return ""
+
+
+## Achète une offre : l'objet rejoint la réserve. Renvoie l'objet ({} si refusé).
+static func shop_buy(i: int) -> Dictionary:
+	if shop_buy_block(i) != "":
+		return {}
+	var o: Dictionary = _shop()["offers"][i]
+	data["gold"] = gold() - int(o["price"])
+	var it: Dictionary = (o["item"] as Dictionary).duplicate(true)
+	it["uid"] = "i%d" % int(data["next_uid"])
+	data["next_uid"] = int(data["next_uid"]) + 1
+	(data["inventory"] as Array).append(it)
+	o["sold"] = true
+	return it
+
+
+# ---------------------------------------------------------------- cosmétiques
+## Pièces de kits insolites (tête, tenue, dos, arme), portées par-dessus l'équipement : elles changent
+## l'apparence du héros, et un kit porté donne un bonus à 2 pièces (stats) et à 4 pièces (bonus spécial).
+
+static func cosmetics_db() -> Dictionary:
+	return GameData.load_json("res://data/cosmetics.json")
+
+
+static func _cos() -> Dictionary:
+	if not (data.get("cosmetics") is Dictionary):
+		data["cosmetics"] = {"owned": [], "worn": {}, "show": true}
+	var c: Dictionary = data["cosmetics"]
+	if not (c.get("owned") is Array):
+		c["owned"] = []
+	if not (c.get("worn") is Dictionary):
+		c["worn"] = {}
+	if not c.has("show"):
+		c["show"] = true
+	return c
+
+
+## Fiche d'une pièce (« boulanger.tete ») : kit, emplacement, nom, prix, couleur du kit.
+static func cosmetic_info(id: String) -> Dictionary:
+	var kit := id.get_slice(".", 0)
+	var slot := id.get_slice(".", 1)
+	var kd: Dictionary = (cosmetics_db()["kits"] as Dictionary).get(kit, {})
+	if kd.is_empty() or not (kd["pieces"] as Dictionary).has(slot):
+		return {}
+	return {"id": id, "kit": kit, "slot": slot, "name": str(kd["pieces"][slot]), "price": int(kd["price"]), "color": str(kd["color"]),
+		"kit_name": str(kd["name"])}
+
+
+static func cosmetic_owned(id: String) -> bool:
+	return (_cos()["owned"] as Array).has(id)
+
+
+static func cosmetic_buy_block(id: String) -> String:
+	var info := cosmetic_info(id)
+	if info.is_empty():
+		return "Pièce inconnue"
+	if cosmetic_owned(id):
+		return "Déjà à toi"
+	if gold() < int(info["price"]):
+		return "Or insuffisant"
+	return ""
+
+
+static func buy_cosmetic(id: String) -> bool:
+	if cosmetic_buy_block(id) != "":
+		return false
+	data["gold"] = gold() - int(cosmetic_info(id)["price"])
+	(_cos()["owned"] as Array).append(id)
+	return true
+
+
+## Porter une pièce possédée à son emplacement ("" retire la pièce de cet emplacement).
+static func wear_cosmetic(slot: String, id: String) -> void:
+	var worn: Dictionary = _cos()["worn"]
+	if id == "":
+		worn.erase(slot)
+		return
+	if cosmetic_owned(id) and cosmetic_info(id).get("slot", "") == slot:
+		worn[slot] = id
+
+
+static func worn_cosmetics() -> Dictionary:
+	return (_cos()["worn"] as Dictionary).duplicate()
+
+
+## Cosmétiques affichés sur le héros (rien si l'apparence est masquée).
+static func visible_cosmetics() -> Dictionary:
+	return worn_cosmetics() if cosmetics_shown() else {}
+
+
+static func cosmetics_shown() -> bool:
+	return bool(_cos().get("show", true))
+
+
+static func set_cosmetics_shown(v: bool) -> void:
+	_cos()["show"] = v
+
+
+## Pièces portées de chaque kit.
+static func cosmetic_kit_counts() -> Dictionary:
+	var out := {}
+	for slot in worn_cosmetics().keys():
+		var kit := str(worn_cosmetics()[slot]).get_slice(".", 0)
+		out[kit] = int(out.get(kit, 0)) + 1
+	return out
+
+
+## Bonus de stats des kits portés (2 pièces ou plus).
+static func cosmetic_stats() -> Dictionary:
+	var out := {}
+	var kits: Dictionary = cosmetics_db()["kits"]
+	var counts := cosmetic_kit_counts()
+	for kit in counts.keys():
+		if int(counts[kit]) >= 2 and kits.has(kit):
+			var st: Dictionary = (kits[kit]["bonus2"] as Dictionary).get("stats", {})
+			for k in st.keys():
+				out[k] = int(out.get(k, 0)) + int(st[k])
+	return out
+
+
+## Bonus spéciaux des kits complets (4 pièces), en modificateurs de combat.
+static func cosmetic_mods() -> Dictionary:
+	var out := {}
+	var kits: Dictionary = cosmetics_db()["kits"]
+	var counts := cosmetic_kit_counts()
+	for kit in counts.keys():
+		if int(counts[kit]) >= 4 and kits.has(kit):
+			var md: Dictionary = (kits[kit]["bonus4"] as Dictionary).get("mods", {})
+			for k in md.keys():
+				out[k] = float(out.get(k, 0.0)) + float(md[k])
+	return out
+
