@@ -44,3 +44,13 @@
 - À l'ouverture, la carte défile jusqu'au niveau choisi (le prochain de la zone, sinon le dernier ouvert).
 - Aperçus : `?room=map`, `&zone=4` pour une zone, `&prog=14` pour les 14 premiers niveaux gagnés.
 
+## Bibliothèque (`scripts/ui/library_screen.gd`)
+
+- **Ossian**, l'archiviste (portrait dans `scripts/gfx/portrait_art.gd` : cheveux blancs, demi-lunes d'argent, plume, robe d'étude verte, clé des archives), commente en bandeau ; sa phrase change avec l'école choisie.
+- **Deck** en barre de sorts : 7 emplacements (icône, lueur à la couleur du sort, cadre au rang, mana), répartition par école et mana moyen. Toucher un sort l'ouvre dans la fiche.
+- **Écoles** en médaillons (Tous, Feu, Givre, Foudre, Nature, Ombre, Arcane, Terre, Classes) avec un arc d'or : la part des sorts appris.
+- **Sorts** en grille de tuiles, par rang (Novice à Interdit) ; chaque rang indique sorts appris / total et sa fourchette de prix. Une tuile montre l'état du sort : connu (en couleur, mana), dans le deck (coche sarcelle), à apprendre (pâle, prix en or, rouge s'il manque de l'or), verrouillé (cadenas, niveau requis) ; étincelle violette sur la magie interdite.
+- **Classes** : 7 médaillons (emblème : leur Ultime, point sarcelle sur ta voie, arc des techniques apprises), puis GRIMOIRE (disciplines en pastilles avec leur compte, techniques par rang) ou LA VOIE (Ultime, sorts d'arbre, sorts de compagnon).
+- **Fiche du sort**, fixe en bas : grande tuile, nom, rang, école ou discipline, stats en pastilles (Puissance, Mana, Recharge, Zone, Dégâts, Durée), description, bouton Écouter (la signature sonore du sort), et l'action : AJOUTER AU DECK / RETIRER DU DECK, ou APPRENDRE avec le prix et ce qui bloque (niveau, or manquant, voie, Corruption).
+- Aperçus : `?room=library`, `&tab=feu` (ou une autre école, `classes`), `&class=archer`.
+

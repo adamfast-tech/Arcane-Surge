@@ -275,13 +275,15 @@ static func figure(name: String, h: float) -> TextureRect:
 
 
 ## Bandeau d'un personnage qui parle : portrait encadré, nom et titre, bulle de texte.
-static func speaker_banner(who: String, name: String, title: String, line: String, line_col: Color = UiTheme.TEXT) -> PanelContainer:
-	var c: Array = UiTheme.card(Color(Dialogues.color(who), 0.55), 12)
+static func speaker_banner(who: String, name: String, title: String, line: String, line_col: Color = UiTheme.TEXT,
+		accent: Color = Color(0, 0, 0, 0)) -> PanelContainer:
+	var tint := accent if accent.a > 0.0 else Dialogues.color(who)
+	var c: Array = UiTheme.card(Color(tint, 0.55), 12)
 	var h := HBoxContainer.new()
 	h.add_theme_constant_override("separation", 14)
 	(c[1] as VBoxContainer).add_child(h)
 	var fr := PanelContainer.new()
-	fr.add_theme_stylebox_override("panel", UiTheme.box(Color("0a1019"), Color(Dialogues.color(who), 0.8), 10, 2, 4))
+	fr.add_theme_stylebox_override("panel", UiTheme.box(Color("0a1019"), Color(tint, 0.8), 10, 2, 4))
 	fr.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var pt := TextureRect.new()
 	pt.texture = PortraitArt.texture(who, "joie" if line_col == UiTheme.GOLD else "neutre")
@@ -298,7 +300,7 @@ static func speaker_banner(who: String, name: String, title: String, line: Strin
 	var nr := HBoxContainer.new()
 	nr.add_theme_constant_override("separation", 8)
 	v.add_child(nr)
-	nr.add_child(UiTheme.label(name.to_upper(), 21, Dialogues.color(who)))
+	nr.add_child(UiTheme.label(name.to_upper(), 21, tint))
 	nr.add_child(UiTheme.label(title, 15, UiTheme.MUTED))
 	var bub := PanelContainer.new()
 	bub.add_theme_stylebox_override("panel", UiTheme.box(Color(0.04, 0.06, 0.1, 0.85), Color(UiTheme.BORDER, 0.9), 10, 1, 10))

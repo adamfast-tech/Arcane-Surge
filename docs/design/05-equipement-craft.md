@@ -59,7 +59,7 @@ Chaque salle a un **gardien** relié au lore et se débloque selon l'histoire.
 |---|---|---|
 | **Forge** | Durgan Enclume (nain, descendant des Runistes) | Début de l'acte 1 |
 | **Salle d'entraînement** | Sergent Hargo (humain, Bastion d'Argent) | Début de l'acte 1 |
-| **Bibliothèque** | Ossian (humain, archiviste) | Début de l'acte 1 |
+| **Bibliothèque** | Ossian (humain, archiviste ; il commente le grimoire en bandeau) | Début de l'acte 1 |
 | **Laboratoire** | Mirelle Fiolebrume (fée alchimiste) | Fin de l'acte 1 |
 | **Sanctum arcanique** | Thalren (mage du Collège Arcanique) | Fin de l'acte 1 |
 | **Salle de méditation** | Sœur Aelis (Ordre de l'Aube) | Fin de l'acte 1 |

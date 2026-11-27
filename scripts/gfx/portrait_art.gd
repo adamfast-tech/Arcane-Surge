@@ -94,6 +94,8 @@ static func texture(who: String, mood: String = "neutre") -> Texture2D:
 			_orrin(img, mood)
 		"thalren":
 			_thalren(img, mood)
+		"ossian":
+			_ossian(img, mood)
 		"sphinx":
 			_sphinx(img, mood)
 		"ignara":
@@ -119,7 +121,7 @@ static func texture(who: String, mood: String = "neutre") -> Texture2D:
 
 
 static func has_portrait(who: String) -> bool:
-	return who in ["porteur", "sylwen", "brann", "ancien", "cerf", "sylvarche", "fee", "voix", "krag", "gharok", "prevote", "varg", "nyx", "vesper", "aurele", "corvin", "aelis", "durgan", "ysolde", "orrin", "thalren", "sphinx", "ignara", "mere_dragon", "wyrm", "ssareth", "leviathan", "ourdisseur", "morvaen"] \
+	return who in ["porteur", "sylwen", "brann", "ancien", "cerf", "sylvarche", "fee", "voix", "krag", "gharok", "prevote", "varg", "nyx", "vesper", "aurele", "corvin", "aelis", "durgan", "ysolde", "orrin", "thalren", "ossian", "sphinx", "ignara", "mere_dragon", "wyrm", "ssareth", "leviathan", "ourdisseur", "morvaen"] \
 		or ResourceLoader.exists("res://assets/portraits/%s.png" % who)
 
 
@@ -1314,6 +1316,64 @@ static func _thalren(img: Image, mood: String) -> void:
 		_px(img, x, 29, gold)
 	_mouth(img, 32, 40, mood, Color("6a3a3a"), Color("3a1a1a"))
 	_rim(img, 4, 60, 10, 63, Color("e0c8ff"))
+
+
+## Ossian : vieil archiviste humain de la Bibliothèque. Cheveux blancs tirés en arrière, longue barbe,
+## demi-lunes d'argent sur le nez, plume derrière l'oreille, robe d'étude verte à capuche rabattue,
+## clé des archives au cou. La lueur d'une chandelle l'éclaire par la gauche.
+static func _ossian(img: Image, mood: String) -> void:
+	var skin := _ramp(["8a5a48", "c48c6e", "e2b090"])
+	var white := _ramp(["7a7a88", "b4b4c0", "dedee8", "f6f6fa"])
+	var robe := _ramp(["16201a", "263a2c", "3a5640", "52744e"])
+	var gold := Color("f2c46b")
+	_glow(img, 10, 50, 18, Color("ffb45a"), 0.28)
+	_poly(img, PackedVector2Array([Vector2(2, 64), Vector2(6, 50), Vector2(18, 44), Vector2(46, 44), Vector2(58, 50), Vector2(62, 64)]), robe)
+	# Capuche rabattue autour du cou.
+	_poly(img, PackedVector2Array([Vector2(13, 52), Vector2(17, 44), Vector2(32, 49), Vector2(47, 44), Vector2(51, 52), Vector2(32, 57)]), robe, 0.25)
+	# Clé des archives sur sa chaîne.
+	for i in range(9):
+		_px(img, 24 + i, 49 + i / 2, gold)
+		_px(img, 40 - i, 49 + i / 2, gold)
+	_ellipse(img, 32.0, 56.0, 2.2, 2.2, _ramp(["8a6a2a", "e6c15a", "fff0a0"]))
+	for y in range(58, 63):
+		_px(img, 32, y, gold)
+	_px(img, 33, 61, gold)
+	_px(img, 33, 62, gold)
+	# Cheveux blancs derrière, tirés en arrière, puis le visage.
+	_ellipse(img, 32.0, 27.0, 13.0, 13.0, white)
+	_ellipse(img, 32.0, 31.0, 10.0, 12.0, skin)
+	_poly(img, PackedVector2Array([Vector2(21, 27), Vector2(22, 19), Vector2(27, 15), Vector2(37, 15), Vector2(42, 19), Vector2(43, 27), Vector2(40, 21), Vector2(32, 18), Vector2(24, 21)]), white)
+	# Front dégarni : un peu de peau entre les mèches.
+	_ellipse(img, 32.0, 20.0, 4.0, 2.4, skin, 0.15)
+	# Longue barbe blanche, en pointe.
+	_poly(img, PackedVector2Array([Vector2(22, 33), Vector2(23, 42), Vector2(27, 52), Vector2(32, 60), Vector2(37, 52), Vector2(41, 42), Vector2(42, 33), Vector2(38, 38), Vector2(32, 39), Vector2(26, 38)]), white)
+	for k in range(4):
+		_px(img, 29 + k * 2, 46 + k % 2 * 3, Color("9a9aa8"))
+	_ellipse(img, 27.5, 37.6, 4.6, 1.9, white, 0.2)
+	_ellipse(img, 36.5, 37.6, 4.6, 1.9, white, 0.2)
+	_ellipse(img, 32.0, 34.5, 2.6, 2.8, skin, 0.25)
+	_brow(img, 25, 26, -1, mood, Color("eeeef4"), 2)
+	_brow(img, 36, 26, 1, mood, Color("eeeef4"), 2)
+	_eye(img, 25, 29, -1, mood, Color("4a6a5a"), Color("1a1a1a"))
+	_eye(img, 35, 29, 1, mood, Color("4a6a5a"), Color("1a1a1a"))
+	# Demi-lunes d'argent posées bas sur le nez.
+	for c in [Vector2i(26, 31), Vector2i(37, 31)]:
+		for a in range(9):
+			var t := float(a) / 8.0 * PI
+			_px(img, c.x + int(round(cos(t) * 3.4)), c.y + int(round(sin(t) * 2.2)), Color("d8dce8"))
+		for dx in range(-3, 4):
+			_px(img, c.x + dx, c.y, Color("d8dce8"))
+	for x in range(30, 34):
+		_px(img, x, 30, Color("d8dce8"))
+	# Plume derrière l'oreille droite.
+	for i in range(12):
+		_px(img, 42 + i / 2, 22 - i, Color("e8e0c8"))
+		if i > 2:
+			_px(img, 43 + i / 2, 22 - i, Color("b8a888"))
+	_px(img, 42, 23, Color("3a2a1a"))
+	if mood in ["joie", "surpris", "colere", "triste"]:
+		_mouth(img, 32, 40, mood, Color("6a3a3a"), Color("3a1a1a"))
+	_rim(img, 3, 61, 9, 63, Color("ffd8a0"))
 
 
 ## Le Sphinx de verre : visage de cristal pâle, coiffe à rayures or et turquoise, yeux d'ombre violette.
