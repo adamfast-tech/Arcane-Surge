@@ -62,3 +62,10 @@
 - **CONFIGURATIONS** : 3 sceaux (I, II, III). Un sceau gravé montre la voie, les points de l'arbre, le deck en icônes et les Clés de voûte ; CHARGER (gratuit) ou REMPLACER. Un sceau libre propose ENREGISTRER ICI.
 - **HARMONIE** : la Corruption sur une jauge circulaire (repères à 30 et 60), son état en une phrase, MÉDITER (prix, Corruption −5) ; puis la réinitialisation de l'arbre de la voie actuelle, en deux touchers.
 
+## Le Cercle (`scripts/ui/circle_screen.gd`)
+
+- **Formation de combat** autour d'un feu de camp animé (flammes, étincelles, lueur au sol) : le héros au centre, les 2 compagnons emmenés à gauche et à droite, avec leur côté (GAUCHE · BRANN…), et ÉCHANGER LES CÔTÉS. Ceux qui restent à Havre-Aube sont en petits portraits. Toucher un compagnon ouvre sa fiche.
+- **Onglets** des compagnons (portrait, nom, niveau).
+- **Fiche** : portrait, nom, côté (pastille), race, voie, niveau, rôle ; jauges d'XP et de loyauté (repère doré à 75 : amitié, +5 % de stats) ; Puissance, objets équipés et ÉQUIPEMENT ; EMMENER AU COMBAT (à la place d'un compagnon emmené) pour ceux restés à Havre-Aube.
+- **Ordre par défaut**, **Tir normal** et **Sort emporté** en tuiles : icône dans un médaillon, titre, ce que fait le choix (Focus Nexus : attaque le Nexus ennemi ; Défends : protège la Barrière ; Suis-moi : vise là où tu vises ; Libre : décide seul ; Troupes ou Tir de classe ; mana et recharge du sort), coche sur le choix actuel. Choisir un sort fait entendre sa signature.
+
