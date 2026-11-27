@@ -790,6 +790,9 @@ func _run() -> void:
 	if not await _hero_rig_ok():
 		quit(1)
 		return
+	if not await _troupe_ok():
+		quit(1)
+		return
 	# Bibliothèque, onglet Classes : Ultime, sorts d'arbre et sorts de compagnon de chaque classe.
 	var cs := LibraryScreen.class_spells("chevalier")
 	var tree_ids: Array[String] = []
@@ -1841,7 +1844,9 @@ func _hero_rig_ok() -> bool:
 	plain.build(look, "humain", "chevalier")
 	var front := PI + 0.6
 	# Animations : chaque image se rend, et les gestes bougent vraiment.
-	var models := {"héros": plain, "brann": HeroModel.of_companion("brann", "chevalier"), "sylwen": HeroModel.of_companion("sylwen", "archer")}
+	var models := {"héros": plain, "brann": HeroModel.of_companion("brann", "chevalier"), "sylwen": HeroModel.of_companion("sylwen", "archer"),
+		"krag": HeroModel.of_companion("krag", "berserker"), "nyx": HeroModel.of_companion("nyx", "necromancien"),
+		"ignara": HeroModel.of_companion("ignara", "mage"), "ssareth": HeroModel.of_companion("ssareth", "clerc")}
 	var rest := plain.frame_at(front, "", 0)
 	for mk in models.keys():
 		var m: HeroModel = models[mk]
@@ -1928,6 +1933,97 @@ func _hero_rig_ok() -> bool:
 		push_error("héros animé : %s" % [errs])
 		return false
 	print("héros animé : %d animations (héros, Brann, Sylwen) · %d éclairages · %d objets visibles sur le héros · casque masquable · création et carte du héros" % [HeroModel.ANIMS.size(), HeroModel.LIGHTS.size(), n_items])
+	return true
+
+
+## Les personnages en volume partout (docs/design/45-heros-anime.md, § 8 à 12) : en combat, au Cercle autour du
+## feu, sur la carte (le héros marche d'un niveau à l'autre) et dans les cinématiques (la troupe en pied).
+func _troupe_ok() -> bool:
+	var errs: Array[String] = []
+	# Combat : le héros et chaque compagnon ont leur modèle ; un sort le tourne vers sa cible ; la victoire le
+	# retourne vers nous.
+	for who in ["player"] + HeroModel.COMPANIONS:
+		var cv := CasterVox.for_caster(str(who), "chevalier")
+		if cv == null or cv.tex == null or cv.rest_h < 12.0:
+			errs.append("combat : pas de modèle pour %s" % who)
+	var cv2 := CasterVox.for_caster("player", Profile.player_class())
+	cv2.cast_at(4.5, 8.5)
+	for i in range(12):
+		cv2.step(0.05, 0.0, false)
+	if cv2.yaw <= 0.2:
+		errs.append("combat : le lanceur ne se tourne pas vers sa cible (%.2f)" % cv2.yaw)
+	cv2.finish(true)
+	for i in range(80):
+		cv2.step(0.05, 0.0, false)
+	if absf(cv2.yaw - PI) > 0.3 or cv2._forced != "victory":
+		errs.append("combat : victoire mal jouée (%.2f, %s)" % [cv2.yaw, cv2._forced])
+	var cv3 := CasterVox.for_caster("player", Profile.player_class())
+	for i in range(6):
+		cv3.step(0.05, 0.02, false)
+	if cv3.yaw <= 0.1 or cv3._anim != "walk":
+		errs.append("combat : se déplacer ne le tourne pas (%.2f, %s)" % [cv3.yaw, cv3._anim])
+	# Le Cercle : les trois personnages en volume autour du feu.
+	var cs := CircleScreen.new()
+	root.add_child(cs)
+	await _frames(2)
+	var figs := cs.find_children("*", "HeroTurntable", true, false)
+	if figs.size() < 2:
+		errs.append("Cercle : %d personnage(s) en volume" % figs.size())
+	for f in figs:
+		if (f as HeroTurntable).light != "camp" or (f as HeroTurntable).interactive:
+			errs.append("Cercle : personnage mal éclairé ou interactif")
+			break
+	cs.queue_free()
+	# La carte : le héros attend au prochain niveau, puis marche vers celui qu'on choisit.
+	var saved_levels: Dictionary = (Profile.data["levels"] as Dictionary).duplicate(true)
+	var ids: Array = GameData.level_index()["zones"][0]["levels"]
+	for k in range(4):
+		Profile.data["levels"][str(ids[k])] = {"stars": 2, "best": 100.0, "clears": 1}
+	var m := MapScreen.new()
+	m.zone = 1
+	root.add_child(m)
+	await _frames(3)
+	var board: MapBoard = m._board
+	if not (board._hero is HeroTurntable):
+		errs.append("carte : pas de héros en volume")
+	else:
+		var start := board._hero_i
+		board.select(str(ids[1]))
+		var walking := not board._walk.is_empty()
+		for i in range(400):
+			if board._walk.is_empty():
+				break
+			board._process(0.05)
+		if not walking or board._hero_i != 1 or start == 1:
+			errs.append("carte : le héros ne marche pas jusqu'au niveau choisi (%s, %d → %d)" % [walking, start, board._hero_i])
+	m.queue_free()
+	Profile.data["levels"] = saved_levels
+	# Cinématiques : la troupe en pied, tournée vers celui qui parle, qui fait les gestes de la scène.
+	var st := CineStage.new()
+	st.size = Vector2(720, 1280)
+	st.ground_y = 1000.0
+	root.add_child(st)
+	await _frames(1)
+	st.begin_scene({"cast": ["porteur", "brann"]})
+	st.speak("brann", "neutre")
+	st.speak("sylwen", "joie")
+	await _frames(2)
+	if st._troupe.size() != 3 or not st._troupe.has("porteur"):
+		errs.append("cinématique : troupe %s" % [st._troupe.keys()])
+	else:
+		st._act("brann", "cast")
+		if (st._troupe["brann"] as HeroTurntable).current_anim() != "cast":
+			errs.append("cinématique : le geste n'est pas joué")
+		for i in range(30):
+			st._process(0.05)
+		var hero: HeroTurntable = st._troupe["porteur"]
+		if hero.px_scale < 2 or hero.position.y > st.ground_y:
+			errs.append("cinématique : troupe mal placée")
+	st.queue_free()
+	if not errs.is_empty():
+		push_error("personnages en volume : %s" % [errs])
+		return false
+	print("personnages en volume : %d compagnons en volume · combat (se tourne, lance, célèbre) · Cercle autour du feu · marche sur la carte · troupe des cinématiques" % HeroModel.COMPANIONS.size())
 	return true
 
 

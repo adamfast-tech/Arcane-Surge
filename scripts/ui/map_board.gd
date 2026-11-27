@@ -48,8 +48,14 @@ var _fog: Array = [] ## [centre, rayon, teinte]
 var _terrain: Texture2D
 var _t := 0.0
 var _anim := true
-var _hero: TextureRect
+var _hero: Control ## le héros en volume (HeroTurntable), ou sa figure
 var _hero_foot := Vector2.ZERO
+var _hero_i := -1 ## niveau près duquel il se tient
+var _walk := PackedVector2Array() ## trajet en cours (pieds), vide s'il ne marche pas
+var _walk_d := 0.0 ## distance parcourue sur le trajet
+var _walk_to := -1
+const WALK_SPEED := 300.0 ## px par seconde
+const IDLE_YAW := PI + 0.45 ## au repos : de trois quarts face
 var _runs: Array = [] ## étapes du chemin, calculées une fois : [état, points]
 var _base: Layer ## terrain, décors, chemin fixe, ombre du héros : dessinés une seule fois
 var _dyn: Layer ## pas animés, anneau du héros, brume, particules : redessinés à chaque image
@@ -102,7 +108,9 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_t += delta
-	if _hero != null:
+	if not _walk.is_empty():
+		_step_walk(delta)
+	elif _hero != null and not (_hero is HeroTurntable):
 		_hero.position.y = _hero_foot.y - _hero.size.y + sin(_t * 2.4) * 3.0
 	for k in _medals:
 		(_medals[k] as Medal).tick(_t)
@@ -122,6 +130,95 @@ func select(id: String) -> void:
 		var m := _medals[k] as Medal
 		m.selected = str(k) == id
 		m.redraw()
+	var i := ids.find(id)
+	if i >= 0 and _hero is HeroTurntable and i != _hero_i and i != _walk_to:
+		_start_walk(i)
+
+
+# ---------------------------------------------------------------- le héros marche d'un niveau à l'autre
+
+## Où le héros se tient près d'un niveau : à côté de son médaillon, du côté opposé à son nom.
+func _stand_of(i: int) -> Vector2:
+	var p := _pts[i]
+	var right2 := p.x < size.x * 0.5
+	var r := (_medals[str(ids[i])] as Medal).diameter * 0.5
+	return Vector2(p.x + (-(r + 44.0) if right2 else r + 44.0), p.y + 34.0)
+
+
+## Premier point du chemin au médaillon du niveau i.
+func _road_index(i: int) -> int:
+	for k in range(_seg.size()):
+		if _seg[k] == i + 1:
+			return k
+	return _seg.size() - 1
+
+
+## Trajet : il quitte sa place, suit le chemin jusqu'au médaillon choisi, puis s'écarte à côté de lui.
+func _start_walk(i: int) -> void:
+	var from_k := _road_index(_hero_i) if _walk.is_empty() else _nearest_road(_hero_foot)
+	var to_k := _road_index(i)
+	var path := PackedVector2Array([_hero_foot])
+	var stepk := 1 if to_k >= from_k else -1
+	var k := from_k
+	while true:
+		path.append(_road[k] + Vector2(0, 6))
+		if k == to_k:
+			break
+		k += stepk
+	path.append(_stand_of(i))
+	_walk = path
+	_walk_d = 0.0
+	_walk_to = i
+	(_hero as HeroTurntable).play("walk")
+	set_process(true)
+
+
+func _nearest_road(p: Vector2) -> int:
+	var best := 0
+	var bd := 1e18
+	for k in range(_road.size()):
+		var d := _road[k].distance_squared_to(p)
+		if d < bd:
+			bd = d
+			best = k
+	return best
+
+
+func _step_walk(delta: float) -> void:
+	_walk_d += WALK_SPEED * delta
+	var left := _walk_d
+	var pos := _walk[_walk.size() - 1]
+	var dir := Vector2.ZERO
+	var done := true
+	for k in range(_walk.size() - 1):
+		var a := _walk[k]
+		var b := _walk[k + 1]
+		var l := a.distance_to(b)
+		if left <= l and l > 0.001:
+			pos = a.lerp(b, left / l)
+			dir = (b - a) / l
+			done = false
+			break
+		left -= l
+	_hero_foot = pos
+	var tt := _hero as HeroTurntable
+	_hero.position = Vector2(_hero_foot.x - _hero.size.x * 0.5, _hero_foot.y - _hero.size.y)
+	if done:
+		_walk = PackedVector2Array()
+		_hero_i = _walk_to
+		_walk_to = -1
+		tt.yaw = IDLE_YAW
+		tt.play("idle")
+		set_process(_anim)
+		if _dyn != null:
+			_dyn.queue_redraw()
+		return
+	if dir.length() > 0.1:
+		# Tourné dans le sens du trajet : vers le haut de la carte, on le voit de dos ; vers le bas, de face.
+		var want := atan2(dir.x, -dir.y)
+		tt.yaw = lerp_angle(tt.yaw, want, minf(1.0, delta * 10.0))
+	if tt.current_anim() != "walk":
+		tt.play("walk")
 
 
 # ---------------------------------------------------------------- géométrie
@@ -548,14 +645,20 @@ func _build_medals() -> void:
 		box.position = Vector2(_pts[i].x + half + 14.0 if right else _pts[i].x - half - 14.0 - 220.0, _pts[i].y - 26.0)
 	# Le héros attend au prochain niveau, du côté opposé à son nom.
 	if hero_i >= 0:
-		SpriteAtlas.set_player(Profile.look(), Profile.race(), Profile.player_class())
-		_hero = GearUi.figure("player", 86)
+		# Le héros en volume, qui respire ; il marchera vers le niveau choisi.
+		var tt := HeroTurntable.new()
+		tt.interactive = false
+		tt.px_scale = 3
+		tt.yaw = IDLE_YAW
+		tt.light = str(HeroCard.ZONE_LIGHT.get(zone, "jour"))
+		tt.setup(Profile.look(), Profile.race(), Profile.player_class(), Profile.visible_cosmetics(), Profile.gear_look())
+		_hero = tt
 		add_child(_hero)
 		_hero.size = _hero.custom_minimum_size
-		var p := _pts[hero_i]
-		var right2 := p.x < size.x * 0.5
-		var r := (_medals[str(ids[hero_i])] as Medal).diameter * 0.5
-		_hero_foot = Vector2(p.x + (-(r + 44.0) if right2 else r + 44.0), p.y + 34.0)
+		_hero_i = hero_i
+		_walk = PackedVector2Array()
+		_walk_to = -1
+		_hero_foot = _stand_of(hero_i)
 		_hero.position = Vector2(_hero_foot.x - _hero.size.x * 0.5, _hero_foot.y - _hero.size.y)
 
 
@@ -653,8 +756,6 @@ func _draw_base(ci: CanvasItem) -> void:
 				ci.draw_polyline(pl, Color(0.02, 0.03, 0.06, 0.45), 22.0, true)
 			"done":
 				ci.draw_polyline(pl, Color(UiTheme.GOLD, 0.16), 12.0, true)
-	if _hero != null:
-		_shadow(ci, _hero_foot + Vector2(0, -2), 26.0)
 
 
 ## Animé : pas dorés et sarcelle, anneau du héros, brume sur le verrouillé, particules.
@@ -667,6 +768,8 @@ func _draw_dyn(ci: CanvasItem) -> void:
 			"next":
 				_dots(ci, pl, Color(UiTheme.TEAL, 0.95), 14.0, _t * 26.0, 3.2)
 	if _hero != null:
+		# Son ombre et son anneau le suivent quand il marche.
+		_shadow(ci, _hero_foot + Vector2(0, -2), 26.0)
 		var a := 0.35 + 0.2 * sin(_t * 3.0)
 		ci.draw_arc(_hero_foot + Vector2(0, -3), 22.0, 0.0, TAU, 32, Color(UiTheme.TEAL, a), 2.0, true)
 	if _puff == null:

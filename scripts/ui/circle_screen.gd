@@ -118,8 +118,8 @@ func _formation(avail: Array[String], active: Array[String]) -> PanelContainer:
 	camp.ground = Color(acc.r, acc.g, acc.b) / float(maxi(1, int(ceil(float(pw2) / 4.0))))
 	v.add_child(camp)
 	var circ := Profile.circle()
-	SpriteAtlas.set_player(Profile.look(), Profile.race(), Profile.player_class())
-	var hero := GearUi.figure("player", 128)
+	# Les personnages en volume, en pied, chacun tourné vers le feu (devant eux, au centre), éclairés par lui.
+	var hero := vox_figure("player", PI + 0.12)
 	camp.add_child(hero)
 	hero.size = hero.custom_minimum_size
 	hero.position = Vector2(w * 0.5 - hero.size.x * 0.5, Camp.FEET - hero.size.y)
@@ -130,7 +130,7 @@ func _formation(avail: Array[String], active: Array[String]) -> PanelContainer:
 		var bd := _bot(who)
 		var side := _side_of(who, bd, circ)
 		var x := w * (0.2 if side == "left" else 0.8)
-		var fb := _figure_button(who, 112.0)
+		var fb := _figure_button(who, 112.0, PI - 0.55 if side == "left" else PI + 0.55)
 		camp.add_child(fb)
 		fb.position = Vector2(x - fb.custom_minimum_size.x * 0.5, Camp.FEET + 4.0 - fb.custom_minimum_size.y)
 		var tg := _tag("%s · %s" % ["GAUCHE" if side == "left" else "DROITE", Dialogues.display_name(who).to_upper()], Dialogues.color(who))
@@ -210,7 +210,25 @@ func _tag(text: String, col: Color) -> PanelContainer:
 
 
 ## Figure d'un compagnon (son sprite) qu'on touche pour ouvrir sa fiche.
-func _figure_button(who: String, h: float) -> Button:
+## Un personnage en volume, qui respire, sous la lumière du feu de camp ; null s'il n'a pas de modèle.
+static func vox_figure(who: String, yaw: float) -> HeroTurntable:
+	var m: HeroModel = null
+	if who == "player":
+		m = HeroModel.of(Profile.look(), Profile.race(), Profile.player_class(), Profile.visible_cosmetics(), Profile.gear_look())
+	elif HeroModel.has_companion(who):
+		m = HeroModel.of_companion(who, Profile.companion_class(who))
+	if m == null:
+		return null
+	var tt := HeroTurntable.new()
+	tt.interactive = false
+	tt.px_scale = 4
+	tt.light = "camp"
+	tt.yaw = yaw
+	tt.setup_model(m)
+	return tt
+
+
+func _figure_button(who: String, h: float, yaw: float = PI) -> Button:
 	var b := Button.new()
 	b.focus_mode = Control.FOCUS_NONE
 	b.flat = true
@@ -221,9 +239,16 @@ func _figure_button(who: String, h: float) -> Button:
 	var on := who == _who
 	if on:
 		b.add_child(GearUi._glow(Dialogues.color(who), 0.45))
-	var fig := GearUi.figure(who, h)
-	fig.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	b.add_child(fig)
+	var vf := vox_figure(who, yaw)
+	if vf != null:
+		b.custom_minimum_size = vf.custom_minimum_size
+		b.size = b.custom_minimum_size
+		vf.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		b.add_child(vf)
+	else:
+		var fig := GearUi.figure(who, h)
+		fig.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		b.add_child(fig)
 	b.pressed.connect(func() -> void:
 		Snd.click()
 		_who = who

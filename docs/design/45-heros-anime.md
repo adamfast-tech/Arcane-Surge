@@ -1,8 +1,8 @@
-# 45. Le héros en volume : animations, éclairage, équipement porté, carte
+# 45. Le héros en volume : animations, éclairage, équipement porté, carte, et partout dans le jeu
 
 > Code : `scripts/gfx/hero_model.gd` (modèle en cubes, squelette, poses, éclairages, rendu), `scripts/gfx/hero_gear.gd` (équipement porté), `scripts/ui/hero_turntable.gd` (vue tournante animée), `scripts/ui/hero_card.gd` (carte à partager), `scripts/ui/creation_screen.gd`, `scripts/ui/equipment_screen.gd`.
 
-Le héros (et Brann, Sylwen) est un petit modèle en cubes rendu en pixel art sous n'importe quel angle (voir [35](35-equipement-runes-forge.md)). Il s'anime désormais, s'éclaire selon la scène et porte son équipement réel.
+Le héros et ses six compagnons sont de petits modèles en cubes rendu en pixel art sous n'importe quel angle (voir [35](35-equipement-runes-forge.md)). Il s'anime désormais, s'éclaire selon la scène et porte son équipement réel.
 
 ## 1. Squelette et animations
 
@@ -70,8 +70,50 @@ Une image de 1080 × 1350 (format portrait des réseaux) :
 
 « Enregistrer l'image » la télécharge en PNG sur le web (ou l'enregistre dans le dossier du jeu ailleurs).
 
-## 7. Vérifications
+## 8. Les autres compagnons en volume
+
+Krag, Nyx, Ignara et Ssareth ont aussi leur modèle en cubes, d'après leur portrait, avec l'arme de leur voie, et toutes les animations :
+
+- **Krag**, jeune orc berserker, plus large : peau verte, torse nu barré de sangles de cuir, crâne rasé sur les côtés avec crête et chignon noirs, peintures de guerre rouges, crocs, collier de crocs à la pierre d'ambre, cape et col de fourrure, pagne de cuir ;
+- **Nyx**, fée nécromancienne, plus menue : peau lavande, cheveux cendrés en bataille, yeux violets qui luisent, ailes de phalène à ocelles, robe longue violette, pendentif d'os ;
+- **Ignara**, jeune draconique mage : cheveux cuivre en flammes, cornes recourbées vers l'arrière, écailles cuivrées aux tempes, yeux d'ambre, robe cramoisie brodée d'or, queue, braises au creux de la main ;
+- **Ssareth**, scribe reptilien clerc : tête de lézard au museau allongé, écailles vert-de-gris, pupilles fendues, collerette turquoise, robe d'écume, collier de perles de corail, queue.
+
+Les six compagnons tournent dans l'Équipement comme le héros.
+
+## 9. En combat
+
+Le héros (avec son équipement et ses cosmétiques) et ses compagnons sont rendus d'après leur modèle à la place de leur sprite (`scripts/battle/caster_vox.gd`), à la même taille, vus de dos :
+
+- au repos, ils respirent ; en se déplaçant, ils marchent en se tournant vers leur direction ;
+- en tirant (doigt posé), l'arme est tendue vers l'arène et palpite ;
+- en lançant un sort, ils se tournent vers le point visé et jouent le geste du sort ;
+- quand la barrière est touchée, le héros encaisse (flash blanc, recul) ;
+- à la victoire, ils se retournent vers nous et brandissent leur arme ; à la défaite, ils mettent un genou à terre.
+
+Les angles vont par pas de 15°. Pour garder le combat fluide, une seule image est rendue par image d'écran pour tous les personnages en volume (tant qu'elle n'est pas prête, l'image précédente reste), et le repos vu de dos est préparé au début du combat. La même règle vaut partout (vue tournante, Cercle, carte, cinématiques).
+
+## 10. Le Cercle
+
+Autour du feu, le héros et ses deux compagnons sont en pied et en volume, chacun tourné vers le feu (le héros face à lui, les compagnons de trois quarts depuis leur côté), sous la lumière « Bivouac » : lumière orangée du feu devant eux, fixée dans le monde, ombres violettes et liseré de clair de lune. Ils respirent ; toucher un compagnon ouvre toujours sa fiche.
+
+## 11. La carte du monde
+
+Le héros en volume attend près du prochain niveau, éclairé comme sa zone (nuit au Bois des Lucioles…). Choisir un autre niveau le fait marcher le long du chemin jusqu'à lui, tourné dans le sens du trajet (de dos en montant, de face en descendant, de profil sur les côtés), son ombre et son anneau le suivant ; arrivé, il se remet de trois quarts face et respire.
+
+## 12. Les cinématiques
+
+En plus des bustes, la troupe (le héros et les compagnons de la scène, trois au plus) se tient en pied, en volume, au loin sur le sol du décor, juste au-dessus des bustes, une ombre douce sous les pieds et la teinte de la scène :
+
+- ils se tournent vers celui qui parle ; celui qui parle se tourne vers nous ;
+- devant une créature (le Grand Cerf, le Wyrm…), le groupe s'écarte et lui fait face, de dos ;
+- ils jouent les gestes de la scène : lancer un sort, encaisser, mettre un genou à terre, sauter de joie, avancer, se retourner ;
+- ils s'effacent sur les cartons-titres.
+
+## 13. Vérifications
 
 `tools/ui_smoke.gd` (`_hero_rig_ok`) : chaque animation du héros, de Brann et de Sylwen se rend et bouge ; la victoire brandit l'arme au-dessus de la tête ; chaque éclairage change le rendu ; chacun des 232 objets (hors anneaux) change l'allure du héros, de face ou de dos ; l'allure de l'équipement porté et le casque masqué ; un geste revient au repos ; l'Équipement a ses poses, ses lumières, le casque et la carte ; la création a son héros qui tourne ; la carte se construit.
 
-Aperçus : `?room=equipment&gear=1` (équipement varié), `&card=1` (carte du héros), `&cos=corsaire`.
+`_troupe_ok` : chaque compagnon a son modèle en combat ; un sort tourne le lanceur vers sa cible, un déplacement aussi, la victoire le retourne vers nous ; le Cercle montre ses personnages en volume sous la lumière du bivouac ; sur la carte, le héros marche jusqu'au niveau choisi ; dans une cinématique, la troupe se forme avec les personnages de la scène et joue leurs gestes.
+
+Aperçus : `?room=equipment&gear=1` (équipement varié), `&card=1` (carte du héros), `&cos=corsaire`, `&who=krag` ; `?room=circle`, `?room=map&zone=1&prog=4`, `?scene=z01_l05_intro`, `?level=z01_l05`.

@@ -409,12 +409,10 @@ func _studio() -> VBoxContainer:
 		b.pressed.connect(func() -> void:
 			Snd.click()
 			if _tt != null:
-				_tt.play(an2)
 				if an2 == "walk":
-					get_tree().create_timer(2.4).timeout.connect(func() -> void:
-						if is_instance_valid(_tt) and _tt.current_anim() == "walk":
-							_tt.play("idle"))
-		)
+					_tt.play_for("walk", 2.4)
+				else:
+					_tt.play(an2))
 		anims.add_child(b)
 	box.add_child(UiTheme.label("LUMIÈRE", 14, UiTheme.MUTED))
 	var lights := HFlowContainer.new()
@@ -424,6 +422,8 @@ func _studio() -> VBoxContainer:
 	_light_btns.clear()
 	var cur := Profile.hero_light()
 	for lid in [""] + HeroModel.LIGHTS.keys():
+		if str(lid) != "" and bool(HeroModel.LIGHTS[lid].get("hidden", false)):
+			continue
 		var name := "Havre-Aube" if str(lid) == "" else str(HeroModel.LIGHTS[lid]["name"])
 		var b2 := _chip(name, UiTheme.GOLD, str(lid) == cur)
 		var lid2 := str(lid)

@@ -17,6 +17,8 @@ var yaw := PI + 0.45 ## de trois quarts face
 var light := "jour" ## éclairage de la scène (HeroModel.LIGHTS)
 var idle := "idle" ## animation de repos ("" : immobile)
 var react := true ## le toucher fait faire un geste
+var interactive := true ## false : simple figure animée (les clics passent au parent)
+var px_scale := SCALE ## taille d'un pixel du héros à l'écran
 var _model: HeroModel
 var _tex: ImageTexture
 var _shown := ""
@@ -31,6 +33,7 @@ var _frame := 0
 var _ft := 0.0 ## temps passé sur l'image en cours
 var _hold := 0.0 ## une animation finie reste sur sa dernière image ce temps-là
 var _tap_n := 0
+var _until := 0.0 ## animation en boucle jouée pour un temps (marche), puis retour au repos
 
 
 func setup(look: Dictionary, race: String, cls: String, cos: Dictionary = {}, gear: Dictionary = {}) -> void:
@@ -42,23 +45,40 @@ func setup_model(m: HeroModel) -> void:
 	_model = m
 	_anim = idle
 	_frame = 0
-	custom_minimum_size = Vector2(HeroModel.FOOT_W * SCALE, HeroModel.FOOT_H * SCALE)
-	mouse_filter = Control.MOUSE_FILTER_STOP
+	custom_minimum_size = Vector2(HeroModel.FOOT_W * px_scale, HeroModel.FOOT_H * px_scale)
+	mouse_filter = Control.MOUSE_FILTER_STOP if interactive else Control.MOUSE_FILTER_IGNORE
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	tooltip_text = "Glisse vers la gauche ou la droite pour le faire tourner ; touche-le pour un geste"
+	if interactive:
+		tooltip_text = "Glisse vers la gauche ou la droite pour le faire tourner ; touche-le pour un geste"
 	_shown = ""
 	_refresh()
+
+
+## Change la taille d'un pixel à l'écran (la scène a changé de taille).
+func set_px_scale(n: int) -> void:
+	if n == px_scale:
+		return
+	px_scale = n
+	custom_minimum_size = Vector2(HeroModel.FOOT_W * px_scale, HeroModel.FOOT_H * px_scale)
+	queue_redraw()
 
 
 ## Joue une animation (HeroModel.ANIMS) ; celles qui ne bouclent pas reviennent ensuite au repos.
 func play(anim: String) -> void:
 	if not HeroModel.ANIMS.has(anim):
 		return
+	_until = 0.0
 	_anim = anim
 	_frame = 0
 	_ft = 0.0
 	_hold = 0.0
 	_refresh()
+
+
+## Joue une animation en boucle (marche) pendant un temps, puis revient au repos.
+func play_for(anim: String, seconds: float) -> void:
+	play(anim)
+	_until = seconds
 
 
 func current_anim() -> String:
@@ -84,6 +104,10 @@ func _process(delta: float) -> void:
 		_vel *= pow(0.04, delta) ## freinage : la lancée s'éteint en une seconde environ
 	elif not _press:
 		_vel = 0.0
+	if _until > 0.0:
+		_until -= delta
+		if _until <= 0.0 and _anim != idle:
+			play(idle)
 	# Animation : pendant qu'on le fait tourner, il garde son image (moins de rendus).
 	if _anim != "" and not (_press and _axis == 1):
 		var ad: Dictionary = HeroModel.ANIMS[_anim]
@@ -105,12 +129,13 @@ func _process(delta: float) -> void:
 					_hold = 1.6 if _anim == "defeat" else 0.7
 	_refresh()
 	# Préparer d'avance : les images du repos sous cet angle, puis les autres angles.
-	if _warm < HeroModel.STEPS:
-		_model.frame_at(float(_warm) / float(HeroModel.STEPS) * TAU, idle, 0, light)
-		_warm += 1
-	elif idle != "" and _warm < HeroModel.STEPS + int(HeroModel.ANIMS[idle]["frames"]):
-		_model.frame_at(yaw, idle, _warm - HeroModel.STEPS, light)
-		_warm += 1
+	if _warm < int(HeroModel.ANIMS[idle]["frames"]) if idle != "" else false:
+		if _model.frame_budgeted(yaw, idle, _warm, light) != null:
+			_warm += 1
+	elif interactive and _warm < HeroModel.STEPS + 4:
+		var wk := _warm - 4
+		if _model.frame_budgeted(float(wk) / float(HeroModel.STEPS) * TAU, idle, 0, light) != null:
+			_warm += 1
 
 
 func _refresh() -> void:
@@ -120,8 +145,11 @@ func _refresh() -> void:
 	var key := "%d|%s|%d|%s" % [step, _anim, _frame, light]
 	if key == _shown:
 		return
+	# La première image tout de suite ; ensuite, une seule image rendue par image d'écran pour tous les héros.
+	var img := _model.frame_at(yaw, _anim, _frame, light) if _tex == null else _model.frame_budgeted(yaw, _anim, _frame, light)
+	if img == null:
+		return
 	_shown = key
-	var img := _model.frame_at(yaw, _anim, _frame, light)
 	if _tex == null or _tex.get_size() != Vector2(img.get_size()):
 		_tex = ImageTexture.create_from_image(img)
 	else:
@@ -133,7 +161,7 @@ func _draw() -> void:
 	if _tex == null:
 		return
 	# Toute l'image, pieds en bas au centre : un bras levé ou un saut débordent au-dessus.
-	var sz := Vector2(HeroModel.W * SCALE, HeroModel.H * SCALE)
+	var sz := Vector2(HeroModel.W * px_scale, HeroModel.H * px_scale)
 	draw_texture_rect(_tex, Rect2(Vector2((size.x - sz.x) * 0.5, size.y - sz.y), sz), false)
 
 

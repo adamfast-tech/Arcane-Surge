@@ -114,6 +114,13 @@ var _speaker := ""
 var _mouth := 0
 var _mouth_blink := false
 var _pres: Dictionary = {} ## présence (sujet) : nom, portrait, temps, action…
+## La troupe : le héros et ses compagnons en pied, en volume, petits dans le décor derrière les bustes ; ils se
+## tournent vers celui qui parle (ou vers la créature au centre) et font les gestes de la scène.
+const TROUPE_MAX := 3
+var _troupe: Dictionary = {} ## id -> HeroTurntable
+var _troupe_sh: Dictionary = {} ## id -> ombre au sol (TextureRect)
+var _troupe_order: Array[String] = []
+var _troupe_box: Control
 var _aura: Dictionary = {}
 var _ghosts: Array = []
 # Effets.
@@ -131,6 +138,7 @@ func _ready() -> void:
 	SpriteAtlas.set_player(Profile.look(), Profile.race(), Profile.player_class())
 	_fig_mat = load("res://shaders/cine_figure.gdshader")
 	_boxes["back"] = _fx_box("back", false)
+	_troupe_box = _plain_layer()
 	_ghost_box = _plain_layer()
 	_figs_box = _plain_layer()
 	_boxes["front"] = _fx_box("front", false)
@@ -277,6 +285,12 @@ func begin_scene(sc: Dictionary) -> void:
 	_order.clear()
 	_visible.clear()
 	_speaker = ""
+	for tid in _troupe.keys():
+		(_troupe[tid] as Node).queue_free()
+		(_troupe_sh[tid] as Node).queue_free()
+	_troupe.clear()
+	_troupe_sh.clear()
+	_troupe_order.clear()
 	_fx.clear()
 	_parts.clear()
 	_emotes.clear()
@@ -305,6 +319,7 @@ func begin_scene(sc: Dictionary) -> void:
 			side = 1.0
 		if _visible.size() < MAX_VISIBLE and not bool(cd.get("hidden", false)):
 			_show_fig(Dialogues.resolve_who(str(cd["id"])), side)
+		_troupe_add(Dialogues.resolve_who(str(cd["id"])))
 	if sc.has("cam"):
 		for c in _list(sc["cam"]):
 			_camera(c)
@@ -397,6 +412,7 @@ func has_figure(who: String) -> bool:
 ## Une réplique commence : l'orateur entre en scène (buste, ou présence pour une créature), réagit à son humeur.
 func speak(who: String, mood: String) -> void:
 	_speaker = who
+	_troupe_add(who)
 	if who == "narrateur" or not PortraitArt.has_portrait(who):
 		return
 	if who in PRESENCE or (not _pres.is_empty() and str(_pres["pid"]) == who):
@@ -1130,6 +1146,7 @@ func _add_fig(id: String, side: float, hidden: bool) -> void:
 
 
 func _act(id: String, what: String) -> void:
+	_troupe_act(id, what)
 	if not _figs.has(id):
 		return
 	var f: Dictionary = _figs[id]
@@ -1158,6 +1175,121 @@ func _act(id: String, what: String) -> void:
 	f["act"] = what
 	f["act_t"] = 0.0
 	f["slashed"] = false
+
+
+# ---------------------------------------------------------------- la troupe en pied
+
+## Ajoute un membre du groupe (le héros, un compagnon) qui a son modèle en volume.
+func _troupe_add(id: String) -> void:
+	if _troupe.has(id) or _troupe.size() >= TROUPE_MAX:
+		return
+	var m: HeroModel = null
+	if id == "porteur":
+		m = HeroModel.of(Profile.look(), Profile.race(), Profile.player_class(), Profile.visible_cosmetics(), Profile.gear_look())
+	elif HeroModel.has_companion(id):
+		m = HeroModel.of_companion(id, Profile.companion_class(id))
+	if m == null:
+		return
+	var tt := HeroTurntable.new()
+	tt.interactive = false
+	tt.px_scale = troupe_scale()
+	tt.yaw = PI
+	tt.setup_model(m)
+	tt.modulate.a = 0.0
+	# Une ombre douce sous ses pieds le pose sur le sol du décor.
+	var g := Gradient.new()
+	g.colors = PackedColorArray([Color(0, 0, 0, 0.55), Color(0, 0, 0, 0.0)])
+	var gt := GradientTexture2D.new()
+	gt.gradient = g
+	gt.fill = GradientTexture2D.FILL_RADIAL
+	gt.fill_from = Vector2(0.5, 0.5)
+	gt.fill_to = Vector2(1.0, 0.5)
+	gt.width = 64
+	gt.height = 64
+	var shd := TextureRect.new()
+	shd.texture = gt
+	shd.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	shd.stretch_mode = TextureRect.STRETCH_SCALE
+	shd.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	shd.modulate.a = 0.0
+	_troupe_box.add_child(shd)
+	_troupe_sh[id] = shd
+	_troupe_box.add_child(tt)
+	_troupe[id] = tt
+	# Le héros au milieu du groupe.
+	if id == "porteur":
+		_troupe_order.insert(_troupe_order.size() / 2, id)
+	else:
+		_troupe_order.append(id)
+
+
+func troupe_scale() -> int:
+	return clampi(int(_sh() / 260.0), 2, 6)
+
+
+## Gestes de la scène joués par le personnage en pied.
+func _troupe_act(id: String, what: String) -> void:
+	if not _troupe.has(id):
+		return
+	var tt: HeroTurntable = _troupe[id]
+	match what:
+		"cast", "attack", "glow":
+			tt.play("cast")
+		"hurt", "shake":
+			tt.play("hit")
+		"kneel", "fall", "droop":
+			tt.play("defeat")
+		"jump", "hop":
+			tt.play("victory")
+		"step", "enter":
+			tt.play_for("walk", 0.9)
+		"rise":
+			tt.play("idle")
+		"turn":
+			tt.yaw += PI
+
+
+func _update_troupe(delta: float) -> void:
+	var n := _troupe_order.size()
+	if n == 0:
+		return
+	var sh := _sh()
+	var pres := not _pres.is_empty() and subject != null and subject.visible
+	# Au loin, sur le sol du décor, juste au-dessus des bustes (qui occupent le bas de la scène).
+	var bust_top := ground_y - 64.0 * _fig_scale()
+	var feet := minf(top_y + sh * 0.7, bust_top - 6.0)
+	var cx := size.x * 0.5
+	var xs: Array[float] = []
+	for i in range(n):
+		# Une créature au centre : le groupe s'écarte et lui fait face, de dos.
+		xs.append(size.x * (0.5 + (float(i) - float(n - 1) * 0.5) * (0.24 if pres else 0.14)))
+	var spk := _troupe_order.find(_speaker)
+	var depth_s := 1.0 + (_cam_s - 1.0) * 0.7
+	var ps := troupe_scale()
+	for i in range(n):
+		var tt: HeroTurntable = _troupe[_troupe_order[i]]
+		tt.set_px_scale(ps)
+		tt.modulate.a = minf(1.0, tt.modulate.a + delta * 2.0) if not hold else maxf(0.0, tt.modulate.a - delta * 4.0)
+		var x := xs[i]
+		var want := PI
+		if pres:
+			want = clampf((cx - x) / size.x * 2.2, -1.0, 1.0) ## de dos, vers la créature
+		elif spk >= 0 and spk != i:
+			want = PI - signf(xs[spk] - x) * 0.85 ## vers celui qui parle
+		elif spk == i:
+			want = PI + clampf((cx - x) / size.x * 3.0, -0.5, 0.5) + (0.0 if n > 1 else 0.35)
+		else:
+			want = PI + (0.4 if x < cx else -0.4)
+		tt.yaw = lerp_angle(tt.yaw, want, clampf(delta * 5.0, 0.0, 1.0))
+		var p := _cam_point(Vector2(x, feet), 0.7)
+		tt.scale = Vector2(depth_s, depth_s)
+		tt.size = tt.custom_minimum_size
+		tt.pivot_offset = Vector2(tt.size.x * 0.5, tt.size.y)
+		tt.position = p - Vector2(tt.size.x * 0.5, tt.size.y)
+		var shd: TextureRect = _troupe_sh[_troupe_order[i]]
+		shd.size = Vector2(float(ps) * 22.0, float(ps) * 6.0) * depth_s
+		shd.position = p - Vector2(shd.size.x * 0.5, shd.size.y * 0.6)
+		shd.modulate.a = tt.modulate.a
 
 
 func _emote(id: String, kind: String) -> void:
@@ -1237,6 +1369,7 @@ func _process(delta: float) -> void:
 	_scene_t += delta
 	_update_camera(delta)
 	_update_figures(delta)
+	_update_troupe(delta)
 	_update_presence(delta)
 	_update_fx(delta)
 	_update_parts(delta)
@@ -1249,6 +1382,7 @@ func _process(delta: float) -> void:
 	if art != null:
 		art.self_modulate = _grade
 	_figs_box.modulate = _grade
+	_troupe_box.modulate = _grade
 	(_boxes["back"] as Control).modulate = _grade
 	_lb = lerpf(_lb, size.y * 0.06, clampf(delta * 2.5, 0.0, 1.0))
 	_lb_top.position = Vector2.ZERO

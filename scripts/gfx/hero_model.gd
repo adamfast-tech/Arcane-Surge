@@ -45,7 +45,7 @@ const HEAD_MODE := {"boulanger": "hat", "corsaire": "hat", "courge": "full", "ca
 	"grenouille": "hood", "sporelin": "hat", "stellaire": "hat"}
 
 ## Compagnons qui ont leur modèle en volume (les autres gardent leur sprite).
-const COMPANIONS := ["brann", "sylwen"]
+const COMPANIONS := ["brann", "sylwen", "krag", "nyx", "ignara", "ssareth"]
 
 
 ## Modèle du héros actuel (apparence, race, classe), gardé en cache.
@@ -810,6 +810,14 @@ func build_companion(who: String, cls: String) -> void:
 			_brann(cls)
 		"sylwen":
 			_sylwen(cls)
+		"krag":
+			_krag(cls)
+		"nyx":
+			_nyx(cls)
+		"ignara":
+			_ignara(cls)
+		"ssareth":
+			_ssareth(cls)
 	_build_surface()
 
 
@@ -1014,6 +1022,242 @@ func _sylwen(cls: String) -> void:
 		_weapon(cls, [hood_d, tunic_d, tunic, hood], eyes)
 
 
+## Corps commun des autres compagnons : jambes, robe longue ou tunique, ceinture, col, bras et mains, cou, tête
+## et yeux. wide : carrure en plus (bras plus écartés au-delà de 0,9). Les traits propres viennent ensuite.
+func _comp_body(o: Array, sk: Array, eyes: Color, tunic: bool, wide: float = 0.0, glow_eyes: bool = false, belt: Color = Color("6a4a2a")) -> void:
+	var boot := Color("2a2030")
+	_part = "legs"
+	for side: int in [-2, 1]:
+		for y in range(0, 6 if tunic else 3):
+			for x in range(side, side + 2):
+				for z in range(-1, 1):
+					_put(x, y, z, boot if y == 0 else (o[0] if tunic else boot))
+	_part = "body"
+	var y0 := 6 if tunic else 2
+	for y in range(y0, 15):
+		var f := clampf(float(y - 2) / 8.0, 0.0, 1.0)
+		var rx := (lerpf(5.6, 4.1, f) if y <= 10 else lerpf(4.1, 4.6, float(y - 10) / 4.0)) + wide
+		var rz := (lerpf(3.3, 2.5, f) if y <= 10 else 2.5) + wide * 0.4
+		if tunic:
+			rx = (4.2 if y < 8 else (4.0 if y <= 10 else lerpf(4.0, 4.5, float(y - 10) / 4.0))) + wide
+			rz = 2.5 + wide * 0.4
+		_disc(y, 0.0, 0.0, rx, rz, o[2])
+	for x in range(-7, 8):
+		for z in range(-5, 6):
+			if vox.has(Vector3i(x, y0, z)):
+				_put(x, y0, z, o[3])
+			if vox.has(Vector3i(x, 10, z)):
+				_put(x, 10, z, belt)
+	_disc(14, 0.0, 0.0, 3.0 + wide * 0.5, 2.2, o[3])
+	_part = "arms"
+	var aw := 6 if wide >= 0.9 else 5
+	for side: int in [-1, 1]:
+		var ax := side * aw
+		for y in range(8, 14):
+			_put(ax, y, 0, o[1])
+			_put(ax, y, -1 if y < 11 else 0, o[1])
+			if y > 11:
+				_put(ax - side, y, 0, o[1])
+		_put(ax, 7, 0, sk[1])
+		_put(ax, 7, -1, sk[1])
+	_part = "head"
+	_put(0, 15, 0, sk[0])
+	_put(-1, 15, 0, sk[0])
+	for y in range(16, 23):
+		var dy := (float(y) - 19.0) / 3.6
+		var k := sqrt(maxf(0.0, 1.0 - dy * dy))
+		_disc(y, 0.0, 0.0, 3.6 * k + 0.15, 3.2 * k + 0.15, sk[1])
+	for side: int in [-1, 1]:
+		_put(side, 19, _front(side, 19), eyes, glow_eyes)
+	_put(0, 17, _front(0, 17), sk[0].darkened(0.25))
+
+
+## Krag : jeune orc berserker, plus large. Peau verte, crâne rasé sur les côtés, crête et chignon noirs, peintures
+## de guerre rouges, crocs, collier de crocs à la pierre d'ambre, cape de fourrure, pagne de cuir.
+func _krag(cls: String) -> void:
+	pivots = HERO_PIVOTS.duplicate()
+	pivots["armR"] = Vector3(6, 13.5, -0.5)
+	pivots["armL"] = Vector3(-6, 13.5, -0.5)
+	pivots["wpnR"] = Vector3(6.5, 7, -1)
+	pivots["wpnL"] = Vector3(-6.5, 7, -1)
+	var sk := [Color("3a5a2e"), Color("5a8a44"), Color("7aaa5a")]
+	var fur := [Color("4a3420"), Color("7a5a30"), Color("a8804a"), Color("c8a068")]
+	var leather := [Color("2a1a10"), Color("4a3020"), Color("6a4628"), Color("8a6038")]
+	var hair := Color("1a1418")
+	_comp_body(leather, sk, Color("e8a33d"), true, 1.0, false, Color("3a2414"))
+	# Torse nu au-dessus de la ceinture : la peau verte, des sangles de cuir en croix.
+	_part = "body"
+	_keep = true
+	for y in range(11, 15):
+		for x in range(-6, 7):
+			for z in range(-4, 5):
+				if vox.has(Vector3i(x, y, z)) and str(vox[Vector3i(x, y, z)][2]) == "body":
+					_put(x, y, z, sk[1] if (x + y) % 5 else sk[2])
+	for k in range(0, 5):
+		_put(-2 + k, 14 - k, _front(-2 + k, 14 - k), leather[2])
+		_put(2 - k, 14 - k, _front(2 - k, 14 - k), leather[1])
+	_keep = false
+	# Collier de crocs et pierre d'ambre.
+	for x in range(-2, 3):
+		_put(x, 14, _front(x, 14) - 1, IVORY if x % 2 == 0 else fur[1])
+	_put(0, 13, _front(0, 13) - 1, Color("e8a33d"), true)
+	# Cape de fourrure sur les épaules et dans le dos.
+	_part = "cape"
+	for y in range(5, 15):
+		var half := 5 if y > 11 else 4
+		for x in range(-half, half + 1):
+			_put(x, y, 4 if y >= 8 else 5, fur[1] if (x * 3 + y) % 4 else fur[2])
+	_part = "body"
+	for x in range(-6, 7):
+		for z in range(-4, 5):
+			var d := Vector2(float(x) / 6.2, float(z) / 3.6).length()
+			if d <= 1.0 and d > 0.55:
+				_put(x, 15, z, fur[2] if (x + z) % 3 else fur[3])
+	# Tête : bras plus larges, oreilles pointues, crocs, peintures, crête et chignon.
+	_part = "head"
+	for side: int in [-1, 1]:
+		_put(side * 4, 19, 0, sk[1])
+		_put(side * 5, 20, 0, sk[2])
+		_put(side * 1, 16, _front(side, 16) - 1, IVORY)
+		_put(side * 1, 18, _front(side, 18), Color("a83a2a"))
+		_put(side * 2, 18, _front(side * 2, 18), Color("a83a2a"))
+		_put(side * 1, 20, _front(side, 20), hair)
+	for y in range(21, 25):
+		for z in range(-3, 4):
+			if Vector2(0.0, float(z)).length() <= 3.4 - float(y - 21) * 0.4:
+				_put(0, y, z, hair)
+				_put(-1 if y < 23 else 0, y, z, hair)
+	for q in [Vector3i(0, 22, 3), Vector3i(0, 23, 4), Vector3i(0, 24, 4), Vector3i(-1, 23, 4), Vector3i(0, 25, 4)]:
+		_put(q.x, q.y, q.z, hair)
+	_put(0, 22, 4, Color("e8a33d"))
+	_part = "hand"
+	_wx = 1
+	_weapon(cls, leather, Color("e8a33d"))
+
+
+## Nyx : fée nécromancienne, plus menue. Peau lavande, cheveux cendrés en bataille, yeux violets qui luisent,
+## ailes de phalène, robe longue violette, pendentif d'os.
+func _nyx(cls: String) -> void:
+	pivots = HERO_PIVOTS.duplicate()
+	var sk := [Color("9a88a8"), Color("cbb8d4"), Color("e8dcf0")]
+	var robe := [Color("1e1430"), Color("2e2048"), Color("3a2a5a"), Color("5a3a8a")]
+	var hair := [Color("3a3448"), Color("5e5872"), Color("8a84a0")]
+	var wing := [Color("3a3050"), Color("5a4a78"), Color("8a7aa8"), Color("b8a8d8")]
+	_comp_body(robe, sk, Color("c8a0ff"), false, -0.3, true, Color("5a4a78"))
+	# Ailes de phalène : deux paires, des ocelles.
+	_part = "back"
+	for side: int in [-1, 1]:
+		for y in range(6, 19):
+			var up := y >= 12
+			var span := (6 - absi(y - 15) / 2) if up else (4 - absi(y - 9) / 2)
+			for k in range(span):
+				var edge := k == span - 1 or y == 6 or y == 18
+				var eye := up and k == 3 and y == 15
+				_put(side * (2 + k), y, 3 + k / 3, wing[0] if edge else (Color("e8c8ff") if eye else wing[2 if (k + y) % 3 else 1]), eye)
+	# Pendentif d'os.
+	_part = "body"
+	_put(0, 13, _front(0, 13) - 1, Color("8a8678"))
+	_put(0, 12, _front(0, 12) - 1, IVORY)
+	# Petites oreilles pointues, cheveux cendrés en bataille.
+	_part = "head"
+	for side: int in [-1, 1]:
+		_put(side * 4, 19, 0, sk[1])
+		_put(side * 5, 20, 1, sk[2])
+	_hair("courts", hair)
+	for q in [Vector3i(-2, 24, 0), Vector3i(1, 24, -1), Vector3i(3, 23, 1), Vector3i(-4, 22, 1), Vector3i(0, 24, 2), Vector3i(2, 22, -3), Vector3i(-2, 22, -3)]:
+		_put(q.x, q.y, q.z, hair[2] if q.y > 23 else hair[1])
+	_part = "hand"
+	_weapon(cls, robe, Color("b07cff"))
+
+
+## Ignara : jeune draconique mage. Cheveux cuivre en flammes, cornes recourbées vers l'arrière, écailles cuivrées
+## aux tempes, yeux d'ambre, robe cramoisie brodée d'or, queue, braises au creux de la main.
+func _ignara(cls: String) -> void:
+	pivots = HERO_PIVOTS.duplicate()
+	var sk := [Color("a8644a"), Color("d8906a"), Color("f0b48a")]
+	var robe := [Color("4a0e12"), Color("7a1a1a"), Color("b02a22"), Color("d8502a")]
+	var hair := [Color("6a1a0e"), Color("a83a1a"), Color("e0602a"), Color("ffa050")]
+	var horn := Color("6a5248")
+	var gold := Color("f2c46b")
+	_comp_body(robe, sk, Color("ffb030"), false, 0.0, false, gold)
+	# Broderies d'or : ourlet et devant de la robe.
+	_part = "body"
+	for y in range(3, 14, 2):
+		_put(0, y, _front(0, y), gold)
+	for x in range(-6, 7):
+		for z in range(-4, 5):
+			if vox.has(Vector3i(x, 3, z)) and (x + z) % 2 == 0:
+				_put(x, 3, z, gold)
+	# Queue.
+	_part = "tail"
+	_tail([Color("7a3a1a"), Color("c8642a"), Color("f0a050")])
+	# Cheveux de flammes : longs, qui s'éclaircissent vers les pointes.
+	_part = "head"
+	_hair("longs", [hair[0], hair[1], hair[2]])
+	for q in [Vector3i(-1, 24, 1), Vector3i(1, 24, 0), Vector3i(0, 25, 1), Vector3i(2, 23, 2), Vector3i(-3, 23, 2)]:
+		_put(q.x, q.y, q.z, hair[3], q.y >= 25)
+	# Cornes recourbées vers l'arrière, écailles aux tempes.
+	for side: int in [-1, 1]:
+		for q in [Vector3i(2, 23, 0), Vector3i(3, 24, 1), Vector3i(3, 24, 2), Vector3i(3, 23, 3), Vector3i(3, 22, 4)]:
+			_put(side * q.x, q.y, q.z, horn if q.z < 3 else Color("a88a70"))
+		_put(side * 3, 19, _front(side * 3, 19), Color("c8642a"))
+		_put(side * 3, 18, _front(side * 3, 18), Color("f0a050"))
+	# Braises au creux de la main gauche.
+	_part = "arms"
+	_put(-5, 6, -1, Color("ffb050"), true)
+	_put(-5, 5, -1, Color("ffe0a0"), true)
+	_part = "hand"
+	_weapon(cls, robe, Color("ff7a2a"))
+
+
+## Ssareth : scribe reptilien clerc. Tête de lézard au museau allongé, écailles vert-de-gris, collerette turquoise,
+## yeux d'or fendus, robe d'écume, collier de perles de corail, queue.
+func _ssareth(cls: String) -> void:
+	pivots = HERO_PIVOTS.duplicate()
+	var sc := [Color("2a4a3a"), Color("4a7a5a"), Color("7aa880"), Color("a8d0a8")]
+	var robe := [Color("4a7a8a"), Color("8ab8c0"), Color("d0e8ec"), Color("f4fbfc")]
+	var frill := [Color("2a6a6a"), Color("3fa8a0"), Color("8fe0c8")]
+	_comp_body(robe, [sc[0], sc[1], sc[2]], Color("fff06a"), false, 0.0, true, Color("3fa8a0"))
+	# Écailles : un semis plus clair sur la tête.
+	_part = "head"
+	_keep = true
+	for p in vox.keys():
+		var q: Vector3i = p
+		if str(vox[q][2]) == "head" and (q.x * 3 + q.y * 2 + q.z) % 5 == 0 and not bool(vox[q][1]):
+			_put(q.x, q.y, q.z, sc[2])
+	_keep = false
+	# Museau allongé vers l'avant, narines.
+	for y in range(16, 20):
+		for x in range(-2, 3):
+			var zf := _front(x, y)
+			var reach := 2 if y < 19 else 1
+			for k in range(1, reach + 1):
+				if absi(x) + (1 if y == 19 else 0) <= 2:
+					_put(x, y, zf - k, sc[1] if y > 16 else sc[0])
+	_put(-1, 18, _front(-1, 18), Color("1a2a20"))
+	_put(1, 18, _front(1, 18), Color("1a2a20"))
+	# Pupilles fendues.
+	for side: int in [-1, 1]:
+		_put(side * 2, 19, _front(side * 2, 19), Color("2a1a08"))
+	# Collerette derrière la tête.
+	for y in range(16, 25):
+		for x in range(-5, 6):
+			var d := Vector2(float(x) / 5.2, (float(y) - 19.5) / 5.0).length()
+			if d <= 1.0 and d > 0.5:
+				_put(x, y, 3, frill[1] if d < 0.8 else frill[2])
+				if d < 0.7:
+					_put(x, y, 2, frill[0])
+	# Collier de perles de corail.
+	_part = "body"
+	for x in range(-3, 4):
+		_put(x, 14 if absi(x) > 1 else 13, _front(x, 14 if absi(x) > 1 else 13) - 1, Color("e86a8a") if x % 2 == 0 else Color("ffb0c0"))
+	# Queue.
+	_part = "tail"
+	_tail([sc[0], sc[1], sc[2]])
+	_part = "hand"
+	_weapon(cls, robe, Color("f2c46b"))
+
+
 ## Surface du modèle : les voxels visibles et leur normale (vers les voisins vides).
 func _build_surface() -> void:
 	_surface.clear()
@@ -1154,12 +1398,35 @@ func _skeleton(pose_d: Dictionary) -> Dictionary:
 	return out
 
 
+static var _budget_frame := -1 ## dernière image d'écran où une image du héros a été rendue
+
+
+## Image rendue si elle est en cache, ou si aucune autre ne l'a été à cette image d'écran ; sinon null (on garde
+## l'image précédente et on réessaie à l'image suivante). Une seule image rendue par image d'écran, pour tous les
+## personnages en volume affichés, garde l'écran fluide.
+func frame_budgeted(yaw: float, anim: String, f: int, light: String = "jour") -> Image:
+	var img := cached(yaw, anim, f, light)
+	if img != null:
+		return img
+	var now := Engine.get_process_frames()
+	if now == _budget_frame:
+		return null
+	_budget_frame = now
+	return frame_at(yaw, anim, f, light)
+
+
+## Image déjà rendue, ou null (pour ne rendre qu'un nombre limité d'images par image d'écran).
+func cached(yaw: float, anim: String, f: int, light: String = "jour") -> Image:
+	var step := posmod(int(round(yaw / TAU * float(STEPS))), STEPS)
+	return _cache.get("%s|%d|%d|%s" % [anim, f, step, light])
+
+
 ## Image d'une animation (image f) sous l'angle yaw, avec un éclairage ; gardée en cache.
 func frame_at(yaw: float, anim: String, f: int, light: String = "jour") -> Image:
 	var step := posmod(int(round(yaw / TAU * float(STEPS))), STEPS)
 	var key := "%s|%d|%d|%s" % [anim, f, step, light]
 	if not _cache.has(key):
-		if _cache.size() > 400:
+		if _cache.size() > 600:
 			_cache.clear()
 		_cache[key] = render(float(step) / float(STEPS) * TAU, pose(anim, f), light)
 	return _cache[key]
@@ -1185,6 +1452,8 @@ const LIGHTS := {
 		"shade": Color("1a0404"), "s1": 0.36, "s2": 0.6, "tint": Color("801a10"), "tint_k": 0.16},
 	"abysses": {"name": "Abysses", "space": "view", "dir": Vector3(0.2, 0.9, 0.3), "key": Color("70f0e0"), "lit": 0.3,
 		"shade": Color("021420"), "s1": 0.34, "s2": 0.56, "tint": Color("1a6a7a"), "tint_k": 0.3, "rim": Color("8ff0ff"), "rim_dir": Vector3(0.6, 0.3, -0.7)},
+	"camp": {"name": "Bivouac", "hidden": true, "space": "world", "dir": Vector3(0.35, 0.12, -1.0), "key": Color("ffa050"), "lit": 0.42,
+		"shade": Color("120a22"), "s1": 0.38, "s2": 0.6, "tint": Color("b06038"), "tint_k": 0.16, "rim": Color("9ab0ff"), "rim_dir": Vector3(-0.85, 0.45, -0.2)},
 	"lampe": {"name": "Lanterne", "space": "view", "dir": Vector3(0.6, 0.55, 0.6), "key": Color("ffd890"), "lit": 0.3,
 		"shade": Color("1e1020"), "s1": 0.28, "s2": 0.5, "tint": Color("c09060"), "tint_k": 0.1},
 }

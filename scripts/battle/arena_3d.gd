@@ -47,6 +47,7 @@ var _escort_light: OmniLight3D
 var _barrier_mat: StandardMaterial3D
 var _barrier_shield: MeshInstance3D
 var _casters: Array[Sprite3D] = []
+var _vox: Array = [] ## CasterVox de chaque lanceur (héros et compagnons en volume), ou null
 var _staff_fx: CPUParticles3D
 var _staff_light: OmniLight3D
 var _torch_lights: Array[OmniLight3D] = []
@@ -2404,6 +2405,12 @@ func _build_casters() -> void:
 		s.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
 		s.shaded = false
 		s.modulate = Color(1.1, 1.1, 1.15)
+		# Le héros et les compagnons en volume : leur modèle remplace le sprite.
+		var cv := CasterVox.for_caster(c.id, c.class_id)
+		if cv != null:
+			s.texture = cv.tex
+			s.region_enabled = false
+		_vox.append(cv)
 		add_child(s)
 		_casters.append(s)
 		_kick.append(0.0)
@@ -2485,6 +2492,8 @@ func consume_events(events: Array[Dictionary]) -> void:
 		match str(e["t"]):
 			"barrier":
 				shake = 0.25
+				if not _vox.is_empty() and _vox[0] != null:
+					(_vox[0] as CasterVox).hit()
 			"shake":
 				shake = 0.45
 			"flash":
@@ -2503,6 +2512,14 @@ func consume_events(events: Array[Dictionary]) -> void:
 			"prop_hit", "prop_fall", "prop_crash", "wall", "wall_break":
 				if _terrain_view != null:
 					_terrain_view.handle(e)
+			"spell":
+				_vox_cast(e)
+				if _spell_fx == null or not _spell_fx.handle(e):
+					var d2 := e.duplicate()
+					d2["age"] = 0.0
+					if not d2.has("dur"):
+						d2["dur"] = 0.35
+					_fx.append(d2)
 			_:
 				# Animations de sorts (projectiles, zones, foudre…) : SpellFx ; le reste en traits.
 				if _spell_fx == null or not _spell_fx.handle(e):
@@ -2869,13 +2886,49 @@ func _tint(u: Unit) -> Color:
 	return Color.WHITE
 
 
+## Le lanceur le plus proche du point de départ d'un sort se tourne vers sa cible et le lance.
+func _vox_cast(e: Dictionary) -> void:
+	var from: Vector2 = e.get("from", Vector2.ZERO)
+	var pos: Vector2 = e.get("pos", from)
+	var best := -1
+	var bd := 1e9
+	for i in range(mini(sim.casters.size(), _vox.size())):
+		var d := absf(sim.casters[i].x - from.x)
+		if d < bd:
+			bd = d
+			best = i
+	if bool(e.get("ult", false)):
+		best = 0
+	if best >= 0 and _vox[best] != null:
+		(_vox[best] as CasterVox).cast_at(sim.casters[best].x, pos.x)
+
+
 func _update_casters() -> void:
 	var cam_right := cam.global_transform.basis.x
 	var cam_up := cam.global_transform.basis.y
+	var over := sim.state == "victory" or sim.state == "defeat"
 	for i in range(_casters.size()):
 		var c := sim.casters[i]
 		var s := _casters[i]
 		var x := lerpf(c.prev_x, c.x, alpha)
+		if i < _vox.size() and _vox[i] != null:
+			var cv: CasterVox = _vox[i]
+			if over:
+				cv.finish(sim.state == "victory")
+			cv.step(_dt, c.x - c.prev_x, c.firing and not over)
+			s.pixel_size = cv.pixel_size(SpriteAtlas.height_m(c.sprite))
+			s.offset = cv.offset()
+			s.position = w3(Vector2(x, BattleSim.CASTER_Y), 0.0)
+			if i < _kick.size() and _kick[i] > 0.0:
+				s.position.z += _kick[i] * 0.06
+				_kick[i] = maxf(0.0, _kick[i] - _dt * 7.0)
+			if i == 0:
+				var tip := s.position + cam_right * (cv.tip.x * s.pixel_size) + cam_up * (cv.tip.y * s.pixel_size)
+				_staff_fx.position = tip
+				_staff_fx.emitting = c.firing
+				_staff_light.position = tip
+				_staff_light.light_energy = 1.6 if c.firing else 0.7
+			continue
 		var moving := absf(c.x - c.prev_x) > 0.001 or c.firing
 		var fr := SpriteAtlas.frame(c.sprite, "", int(t * 5.0) if moving else 0)
 		var px: Rect2i = fr["px"]
