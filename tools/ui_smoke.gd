@@ -1675,10 +1675,24 @@ func _hero_model_ok() -> bool:
 	es.queue_free()
 	if tt.is_empty():
 		errs.append("pas de vue tournante dans l'Équipement")
+	# Brann et Sylwen aussi, avec l'arme de leur voie.
+	for who in HeroModel.COMPANIONS:
+		for cls in ["chevalier", "archer", "mage"]:
+			var cm := HeroModel.of_companion(str(who), cls)
+			var front := cm.image_at(PI)
+			var back := cm.image_at(0.0)
+			if front.get_used_rect().size.y < 18 or front.get_data() == back.get_data():
+				errs.append("%s (%s) : rendu incorrect" % [who, cls])
+		var es2 := EquipmentScreen.new()
+		es2.who = str(who)
+		root.add_child(es2)
+		if es2.find_children("*", "HeroTurntable", true, false).is_empty():
+			errs.append("pas de vue tournante pour %s" % who)
+		es2.queue_free()
 	if not errs.is_empty():
 		push_error("héros en volume : %s" % [errs])
 		return false
-	print("héros en volume : %d races, %d classes, %d angles · vue tournante dans l'Équipement" % [races.size(), classes.size(), HeroModel.STEPS])
+	print("héros en volume : %d races, %d classes, %d angles · vue tournante dans l'Équipement · compagnons %s" % [races.size(), classes.size(), HeroModel.STEPS, HeroModel.COMPANIONS])
 	return true
 
 

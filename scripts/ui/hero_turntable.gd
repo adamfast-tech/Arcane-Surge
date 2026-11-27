@@ -1,6 +1,6 @@
 class_name HeroTurntable
 extends Control
-## Le héros qu'on fait tourner (Équipement) : glisser vers la gauche ou la droite le tourne sur lui-même,
+## Le héros (ou un compagnon) qu'on fait tourner (Équipement) : glisser vers la gauche ou la droite le tourne sur lui-même,
 ## librement, sur 360° ; lâché en mouvement, il continue sur sa lancée puis ralentit. Un glissé vertical reste
 ## un défilement de la page. Rendu : HeroModel (voxels -> pixel art), 48 angles gardés en cache, préparés
 ## en arrière-plan à raison d'un par image.
@@ -22,7 +22,12 @@ var _warm := 0 ## prochain angle à préparer en arrière-plan
 
 
 func setup(look: Dictionary, race: String, cls: String) -> void:
-	_model = HeroModel.of(look, race, cls)
+	setup_model(HeroModel.of(look, race, cls))
+
+
+## Un modèle déjà construit (compagnon).
+func setup_model(m: HeroModel) -> void:
+	_model = m
 	custom_minimum_size = Vector2(HeroModel.W * SCALE, HeroModel.H * SCALE)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST

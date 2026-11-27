@@ -151,10 +151,13 @@ func _doll(eqd: Dictionary) -> PanelContainer:
 	ped.offset_top = -100
 	ped.offset_bottom = -30
 	stage.add_child(ped)
-	if who == "player":
-		# Le héros en volume : on le fait tourner en le glissant vers la gauche ou la droite.
+	if who == "player" or HeroModel.has_companion(who):
+		# Le personnage en volume : on le fait tourner en le glissant vers la gauche ou la droite.
 		var tt := HeroTurntable.new()
-		tt.setup(Profile.look(), Profile.race(), Profile.player_class())
+		if who == "player":
+			tt.setup(Profile.look(), Profile.race(), Profile.player_class())
+		else:
+			tt.setup_model(HeroModel.of_companion(who, Profile.companion_class(who)))
 		tt.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
 		var hw := float(HeroModel.W * HeroTurntable.SCALE) * 0.5
 		tt.offset_left = -hw

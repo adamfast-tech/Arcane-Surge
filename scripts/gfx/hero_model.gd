@@ -17,8 +17,14 @@ const IVORY := Color("e8dcc0")
 var vox: Dictionary = {}
 var _surface: Array = [] ## [position, normale, couleur, émissif]
 var _cache: Dictionary = {}
+var _wx := 0 ## décalage horizontal de l'arme (main plus écartée)
+var _wy := 0 ## décalage vertical de l'arme (main plus basse)
+var _mirror := false ## arme dans la main gauche (archère)
 
 static var _models: Dictionary = {}
+
+## Compagnons qui ont leur modèle en volume (les autres gardent leur sprite).
+const COMPANIONS := ["brann", "sylwen"]
 
 
 ## Modèle du héros actuel (apparence, race, classe), gardé en cache.
@@ -29,6 +35,22 @@ static func of(look: Dictionary, race: String, cls: String) -> HeroModel:
 			_models.clear()
 		var m := HeroModel.new()
 		m.build(look, race, cls)
+		_models[key] = m
+	return _models[key]
+
+
+static func has_companion(who: String) -> bool:
+	return who in COMPANIONS
+
+
+## Modèle d'un compagnon, avec l'arme de sa voie actuelle.
+static func of_companion(who: String, cls: String) -> HeroModel:
+	var key := "comp|%s|%s" % [who, cls]
+	if not _models.has(key):
+		if _models.size() > 6:
+			_models.clear()
+		var m := HeroModel.new()
+		m.build_companion(who, cls)
 		_models[key] = m
 	return _models[key]
 
@@ -282,6 +304,16 @@ func _tail(sk: Array) -> void:
 			_put(q.x + 1, q.y, q.z, sk[1])
 
 
+## Voxel d'arme : décalé vers la main du personnage, et retourné dans la main gauche si besoin.
+func _pw(x: int, y: int, z: int, c: Color, glow: bool = false) -> void:
+	var nx := -x if _mirror else x
+	if nx > 0:
+		nx += _wx
+	elif nx < 0:
+		nx -= _wx
+	_put(nx, y + _wy, z, c, glow)
+
+
 ## Arme de la classe, dans la main droite (x 5, y 7).
 func _weapon(cls: String, o: Array, eyes: Color) -> void:
 	var wood := Color("8a5a2b")
@@ -293,69 +325,270 @@ func _weapon(cls: String, o: Array, eyes: Color) -> void:
 			# Arc tenu droit, la corde vers le héros ; carquois dans le dos.
 			for y in range(3, 20):
 				var b := int(round(2.4 * sin(PI * float(y - 3) / 16.0)))
-				_put(6, y, -1 - b, wood)
-				_put(6, y, -1, Color(0.92, 0.92, 0.96))
+				_pw(6, y, -1 - b, wood)
+				_pw(6, y, -1, Color(0.92, 0.92, 0.96))
 			for y in range(9, 17):
-				_put(-2, y, 3, Color("6a4a2a"))
-				_put(-1, y, 3, Color("6a4a2a"))
+				_pw(-2, y, 3, Color("6a4a2a"))
+				_pw(-1, y, 3, Color("6a4a2a"))
 			for x in [-2, -1]:
-				_put(x, 17, 3, Color("e8e8f0"))
-				_put(x, 18, 3, Color("c04a3a"))
+				_pw(x, 17, 3, Color("e8e8f0"))
+				_pw(x, 18, 3, Color("c04a3a"))
 		"epeiste":
 			for y in range(9, 23):
-				_put(6, y, -1, steel if y < 22 else Color.WHITE)
+				_pw(6, y, -1, steel if y < 22 else Color.WHITE)
 				if y > 10:
-					_put(6, y, -2, steel_d)
+					_pw(6, y, -2, steel_d)
 			for x in range(5, 8):
-				_put(x, 8, -1, gold)
-			_put(6, 7, -1, Color("5a3a22"))
-			_put(6, 6, -1, gold)
+				_pw(x, 8, -1, gold)
+			_pw(6, 7, -1, Color("5a3a22"))
+			_pw(6, 6, -1, gold)
 		"clerc":
 			for y in range(4, 17):
-				_put(6, y, -1, Color("b08a40"))
+				_pw(6, y, -1, Color("b08a40"))
 			for q in [Vector3i(5, 17, -1), Vector3i(7, 17, -1), Vector3i(6, 18, -1), Vector3i(5, 19, -1), Vector3i(7, 19, -1), Vector3i(6, 20, -1)]:
-				_put(q.x, q.y, q.z, gold)
-			_put(6, 19, -1, Color("fff6c8"), true)
-			_put(6, 17, -1, Color("fff6c8"), true)
+				_pw(q.x, q.y, q.z, gold)
+			_pw(6, 19, -1, Color("fff6c8"), true)
+			_pw(6, 17, -1, Color("fff6c8"), true)
 		"necromancien":
 			for y in range(2, 21):
-				_put(6, y, -1, Color("3a2a3a"))
+				_pw(6, y, -1, Color("3a2a3a"))
 			for x in range(5, 8):
 				for y in range(21, 24):
-					_put(x, y, -1, IVORY)
-					_put(x, y, 0, IVORY)
-			_put(5, 22, -2, Color("8e62e0"), true)
-			_put(7, 22, -2, Color("8e62e0"), true)
-			_put(6, 21, -2, Color("2a2030"))
+					_pw(x, y, -1, IVORY)
+					_pw(x, y, 0, IVORY)
+			_pw(5, 22, -2, Color("8e62e0"), true)
+			_pw(7, 22, -2, Color("8e62e0"), true)
+			_pw(6, 21, -2, Color("2a2030"))
 		"chevalier":
 			# Épée dans la main droite, bouclier au bras gauche.
 			for y in range(9, 21):
-				_put(6, y, -1, steel)
+				_pw(6, y, -1, steel)
 			for x in range(5, 8):
-				_put(x, 8, -1, gold)
+				_pw(x, 8, -1, gold)
 			for y in range(6, 15):
 				for z in range(-3, 3):
 					var edge := y == 6 or y == 14 or z == -3 or z == 2
-					_put(-6, y, z, Color("a8b0c0") if edge else o[2])
+					_pw(-6, y, z, Color("a8b0c0") if edge else o[2])
 			for y in range(7, 14):
-				_put(-7, y, 0, gold)
+				_pw(-7, y, 0, gold)
 			for z in range(-2, 2):
-				_put(-7, 10, z, gold)
+				_pw(-7, 10, z, gold)
 		"berserker":
 			for y in range(2, 19):
-				_put(6, y, -1, Color("6a4a2a"))
+				_pw(6, y, -1, Color("6a4a2a"))
 			for y in range(15, 21):
 				var w := 3 - absi(y - 18) / 2
 				for k in range(1, w + 1):
-					_put(6, y, -1 - k, steel if k < w else Color.WHITE)
-					_put(6, y, -1 + k, steel_d if k < w else steel)
+					_pw(6, y, -1 - k, steel if k < w else Color.WHITE)
+					_pw(6, y, -1 + k, steel_d if k < w else steel)
 		_:
 			# Mage : bâton de bois et orbe lumineuse.
 			for y in range(2, 25):
-				_put(6, y, -1, wood)
+				_pw(6, y, -1, wood)
 			for q in [Vector3i(6, 25, -1), Vector3i(5, 26, -1), Vector3i(7, 26, -1), Vector3i(6, 26, -2), Vector3i(6, 26, 0), Vector3i(6, 27, -1)]:
-				_put(q.x, q.y, q.z, eyes.lightened(0.35), true)
-			_put(6, 26, -1, Color.WHITE, true)
+				_pw(q.x, q.y, q.z, eyes.lightened(0.35), true)
+			_pw(6, 26, -1, Color.WHITE, true)
+
+
+# ---------------------------------------------------------------- compagnons
+
+func build_companion(who: String, cls: String) -> void:
+	vox.clear()
+	_cache.clear()
+	_wx = 0
+	_wy = 0
+	_mirror = false
+	match who:
+		"brann":
+			_brann(cls)
+		"sylwen":
+			_sylwen(cls)
+	_build_surface()
+
+
+## Brann : nain chevalier. Casque d'acier à cornes et nasal, barbe rousse tressée aux perles d'or, armure sous
+## un tabard rouge, cape rouge, bouclier rond (au bras s'il est chevalier, dans le dos sinon). Plus petit.
+func _brann(cls: String) -> void:
+	var steel := Color("7a849c")
+	var steel_l := Color("c8d0e0")
+	var steel_d := Color("4a5068")
+	var red := Color("a83a3a")
+	var red_d := Color("7a2a2a")
+	var gold := Color("d8b048")
+	var wood := Color("7a5230")
+	var beard := Color("d9773a")
+	var beard_d := Color("b8582a")
+	var skin := Color("d08a6a")
+	var boot := Color("3a2e2a")
+	# Jambières et bottes.
+	for side: int in [-2, 1]:
+		for y in range(0, 4):
+			for x in range(side, side + 2):
+				for z in range(-1, 1):
+					_put(x, y, z, boot if y == 0 else steel)
+	# Corps trapu en armure, tabard rouge devant et derrière, ceinture à boucle d'or.
+	for y in range(4, 12):
+		var rx := 4.7 + (0.4 if y >= 6 and y <= 9 else 0.0)
+		_disc(y, 0.0, 0.0, rx, 3.0, steel)
+	for y in range(3, 11):
+		for x in range(-2, 3):
+			_put(x, y, _front(x, y), red if y > 3 else gold)
+			_put(x, y, _back(x, y), red)
+	for x in range(-5, 6):
+		for z in range(-4, 5):
+			if vox.has(Vector3i(x, 6, z)):
+				_put(x, 6, z, wood)
+	_put(0, 6, _front(0, 6), gold)
+	# Cape rouge dans le dos, des épaules aux mollets.
+	for y in range(2, 12):
+		var half := 4 if y < 10 else 3
+		for x in range(-half, half + 1):
+			_put(x, y, 4, red_d if (x + y) % 5 else red)
+	# Épaulières, bras d'acier, gantelets.
+	for side: int in [-1, 1]:
+		for y in range(10, 12):
+			for x in range(5, 7):
+				for z in range(-1, 2):
+					_put(side * x, y, z, steel_l)
+		for y in range(5, 10):
+			_put(side * 6, y, 0, steel)
+			_put(side * 6, y, -1, steel)
+		_put(side * 6, 4, 0, steel_d)
+		_put(side * 6, 4, -1, steel_d)
+	# Tête.
+	for y in range(12, 19):
+		var dy := (float(y) - 15.0) / 3.4
+		var k := sqrt(maxf(0.0, 1.0 - dy * dy))
+		_disc(y, 0.0, 0.0, 3.4 * k + 0.15, 3.1 * k + 0.15, skin)
+	# Casque : coque d'acier sur le haut, bandeau aux rivets d'or, nasal, cornes d'ivoire.
+	for y in range(15, 20):
+		var dy2 := (float(y) - 15.0) / 4.2
+		var k2 := sqrt(maxf(0.0, 1.0 - dy2 * dy2))
+		for x in range(-5, 6):
+			for z in range(-5, 6):
+				var dx := float(x) / (3.4 * k2 + 0.9)
+				var dz := float(z) / (3.1 * k2 + 0.9)
+				if dx * dx + dz * dz <= 1.0:
+					_put(x, y, z, steel_d if y == 15 else steel)
+	for x in range(-4, 5):
+		for z in range(-4, 5):
+			if vox.has(Vector3i(x, 15, z)) and (x * 3 + z) % 4 == 0:
+				_put(x, 15, z, gold)
+	for y in range(13, 16):
+		_put(0, y, _front(0, y) - (1 if y < 15 else 0), steel_l)
+	for side: int in [-1, 1]:
+		for q in [Vector3i(4, 16, 0), Vector3i(5, 16, 0), Vector3i(6, 17, 0), Vector3i(6, 18, 0), Vector3i(7, 19, 1)]:
+			_put(side * q.x, q.y, q.z, IVORY)
+	# Yeux sombres sous le casque.
+	for side: int in [-1, 1]:
+		_put(side, 14, _front(side, 14), Color("2a1a1a"))
+	# Barbe rousse : de la bouche à la ceinture, deux tresses aux perles d'or ; moustache.
+	for y in range(7, 14):
+		var half2 := 3 - (13 - y) / 3
+		for x in range(-half2, half2 + 1):
+			_put(x, y, _front(x, y) - (0 if y > 11 else 1), beard if (x + y) % 3 else beard_d)
+	for side: int in [-1, 1]:
+		for y in range(5, 8):
+			_put(side * 2, y, _front(side * 2, 9) - 1, beard_d if y % 2 else beard)
+		_put(side * 2, 4, _front(side * 2, 9) - 1, gold)
+	for x in range(-2, 3):
+		_put(x, 13, _front(x, 13), beard_d)
+	# Arme : sa main est plus bas et plus écartée que celle du héros.
+	_wx = 1
+	_wy = -3
+	_weapon(cls, [steel_d, red_d, red, beard], Color("d8b048"))
+	if cls != "chevalier":
+		# Le bouclier rond, dans le dos.
+		for y in range(4, 13):
+			for x in range(-4, 5):
+				var d := Vector2(float(x), float(y) - 8.0).length()
+				if d <= 4.2:
+					var rim := d > 3.2
+					var cross := x == 0 or y == 8
+					_put(x, y, 5, gold if rim or cross else wood)
+
+
+## Sylwen : elfe archère. Capuche et mantelet verts, oreilles qui en sortent, frange et tresse blondes sur
+## l'épaule droite, tunique verte ceinturée d'or, carquois dans le dos, arc tenu dans la main gauche.
+func _sylwen(cls: String) -> void:
+	var skin := Color("f0d0b0")
+	var skin_d := Color("d8b090")
+	var hair := Color("e8c870")
+	var hair_d := Color("b8983a")
+	var hood := Color("3f7a4a")
+	var hood_d := Color("2a5a36")
+	var tunic := Color("4a8a5a")
+	var tunic_d := Color("2f5a3a")
+	var belt := Color("b8983a")
+	var legs := Color("3a2e2a")
+	var eyes := Color("4f9a3a")
+	# Jambes (chausses sombres), bottes.
+	for side: int in [-2, 1]:
+		for y in range(0, 6):
+			for x in range(side, side + 2):
+				for z in range(-1, 1):
+					_put(x, y, z, Color("2a2018") if y == 0 else legs)
+	# Tunique, ceinture d'or, ourlet.
+	for y in range(6, 15):
+		var rx := 4.4 if y < 8 else (4.0 if y <= 10 else lerpf(4.0, 4.4, float(y - 10) / 4.0))
+		_disc(y, 0.0, 0.0, rx, 2.5, tunic)
+	for x in range(-5, 6):
+		for z in range(-4, 5):
+			if vox.has(Vector3i(x, 6, z)):
+				_put(x, 6, z, tunic_d)
+			if vox.has(Vector3i(x, 10, z)):
+				_put(x, 10, z, belt)
+	# Mantelet vert sur les épaules.
+	_disc(14, 0.0, 0.0, 4.8, 3.0, hood)
+	_disc(13, 0.0, 0.0, 4.6, 2.9, hood_d)
+	# Bras (manches sombres) et mains.
+	for side: int in [-1, 1]:
+		for y in range(8, 14):
+			_put(side * 5, y, 0, tunic_d)
+			_put(side * 5, y, -1 if y < 11 else 0, tunic_d)
+		_put(side * 5, 7, 0, skin)
+		_put(side * 5, 7, -1, skin)
+	# Cou, tête, visage.
+	_put(0, 15, 0, skin_d)
+	for y in range(16, 23):
+		var dy := (float(y) - 19.0) / 3.6
+		var k := sqrt(maxf(0.0, 1.0 - dy * dy))
+		_disc(y, 0.0, 0.0, 3.5 * k + 0.15, 3.1 * k + 0.15, skin)
+	for side: int in [-1, 1]:
+		_put(side, 19, _front(side, 19), eyes, true)
+		_put(side, 20, _front(side, 20), hair_d)
+	_put(0, 17, _front(0, 17), Color("c8907a"))
+	# Capuche verte (ouverte sur le visage), frange blonde, oreilles qui sortent sur les côtés.
+	_hood([hood_d, hood_d, hood, hood])
+	for x in range(-2, 3):
+		_put(x, 21, _front(x, 21), hair)
+		if absi(x) < 2:
+			_put(x, 20, _front(x, 20) if x != 0 else _front(x, 20), hair if x == 0 else hair_d)
+	for side: int in [-1, 1]:
+		_put(side * 5, 19, 0, skin)
+		_put(side * 6, 20, 1, skin)
+		_put(side * 7, 21, 1, skin_d)
+	# Tresse blonde sur l'épaule droite, devant.
+	for y in range(8, 16):
+		_put(3, y, -3, hair if y % 2 == 0 else hair_d)
+	_put(3, 7, -3, hood_d)
+	# Carquois dans le dos (côté droit) et ses plumes.
+	if cls == "archer":
+		for y in range(9, 17):
+			_put(1, y, 3, Color("6a4a2a"))
+			_put(2, y, 3, Color("6a4a2a"))
+		for x in [1, 2]:
+			_put(x, 17, 3, Color("e8e4d8"))
+			_put(x, 18, 3, Color("e8e4d8"))
+		# Arc dans la main gauche.
+		_mirror = true
+		for y in range(3, 20):
+			var b2 := int(round(2.4 * sin(PI * float(y - 3) / 16.0)))
+			_pw(6, y, -1 - b2, Color("8a5a2b"))
+			_pw(6, y, -1, Color(0.92, 0.92, 0.96))
+		_mirror = false
+	else:
+		_weapon(cls, [hood_d, tunic_d, tunic, hood], eyes)
 
 
 ## Surface du modèle : les voxels visibles et leur normale (vers les voisins vides).
