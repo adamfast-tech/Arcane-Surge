@@ -11,6 +11,10 @@ signal open_equipment(who: String)
 
 var _who := "" ## compagnon affiché
 
+## Lieux de combat sans planche propre -> planche la plus proche (StoryArt).
+const PLATE_ALIAS := {"repaire": "campement", "saules": "marais", "porte_naine": "porte", "lac_gele": "lac", "spectres": "desert_nuit",
+	"grand_canal": "canal", "leviathan": "abysse"}
+
 ## Ordre par défaut -> [icône, ce qu'il fait].
 const ORDER_INFO := {"focus_nexus": ["target", "Attaque le Nexus ennemi"], "defends": ["champion", "Protège la Barrière"],
 	"suis_moi": ["chevron", "Vise là où tu vises"], "libre": ["sparkle", "Décide seul"]}
@@ -81,14 +85,20 @@ func _formation(avail: Array[String], active: Array[String]) -> PanelContainer:
 	var c: Array = UiTheme.card(Color(UiTheme.FIRE, 0.45), 10)
 	var v: VBoxContainer = c[1]
 	v.add_theme_constant_override("separation", 6)
+	# Le bivouac est dressé là où en est l'histoire : le lieu du prochain combat.
+	var next := Profile.next_level()
+	var lv := GameData.level(next)
+	var zone := int(lv.get("zone", 1))
 	var top := HBoxContainer.new()
 	v.add_child(top)
 	top.add_child(UiTheme.label("FORMATION DE COMBAT", 17, UiTheme.FIRE))
 	top.add_child(UiTheme.spacer())
+	top.add_child(UiTheme.label("BIVOUAC · %s" % _zone_name(zone).to_upper(), 14, UiTheme.MUTED))
 	var w := minf(680.0, get_viewport_rect().size.x - 36.0) - 24.0
 	var camp := Camp.new()
 	camp.custom_minimum_size = Vector2(w, 280)
 	camp.anim = Profile.ambience_on()
+	camp.bg = StoryArt.plate(_plate_for(next, zone), Vector2i(int(w / 3.0), 94))
 	v.add_child(camp)
 	var circ := Profile.circle()
 	SpriteAtlas.set_player(Profile.look(), Profile.race(), Profile.player_class())
@@ -110,6 +120,9 @@ func _formation(avail: Array[String], active: Array[String]) -> PanelContainer:
 		camp.add_child(tg)
 		tg.position = Vector2(x - 70.0, 196.0)
 	camp.fire_at = Vector2(w * 0.5, 236.0)
+	var nl := UiTheme.label("Prochaine étape : %s · %s" % [str(lv.get("number", "")), str(lv.get("name", ""))], 14, UiTheme.MUTED)
+	nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(nl)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	v.add_child(row)
@@ -138,6 +151,23 @@ func _formation(avail: Array[String], active: Array[String]) -> PanelContainer:
 			var pb := _portrait_button(who3, 44)
 			hr.add_child(pb)
 	return c[0]
+
+
+## Planche du lieu d'un niveau (celle de ses cinématiques), sinon celle de sa zone.
+static func _plate_for(level_id: String, zone: int) -> String:
+	var sc := str(WorldArt.LEVEL_SCENE.get(level_id, ""))
+	if zone == 1:
+		return sc if sc != "" else "foret"
+	if PLATE_ALIAS.has(sc):
+		return str(PLATE_ALIAS[sc])
+	return sc if sc != "" else str(RoomArt.ZONE_PLATES.get(zone, "foret"))
+
+
+static func _zone_name(zone: int) -> String:
+	for z in GameData.level_index().get("zones", []):
+		if int(z["id"]) == zone:
+			return str(z["name"])
+	return ""
 
 
 func _tag(text: String, col: Color) -> PanelContainer:
@@ -451,11 +481,14 @@ func _save() -> void:
 ## Le feu de camp au centre de la formation : lueur au sol, bûches, flammes et étincelles.
 class Camp extends Control:
 	var fire_at := Vector2.ZERO
+	var bg: Texture2D ## le lieu du bivouac
 	var anim := true
 	var _t := 0.0
 
 	func _ready() -> void:
 		mouse_filter = Control.MOUSE_FILTER_PASS
+		texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		clip_contents = true
 		set_process(anim)
 
 	func _process(delta: float) -> void:
@@ -465,6 +498,16 @@ class Camp extends Control:
 	func _draw() -> void:
 		var f := fire_at
 		var fl := 1.0 + 0.06 * sin(_t * 9.0) + 0.04 * sin(_t * 23.0)
+		# Le lieu, à la tombée de la nuit : le décor assombri, le sol plongé dans l'ombre.
+		if bg != null:
+			draw_texture_rect(bg, Rect2(Vector2.ZERO, size), false)
+			draw_rect(Rect2(Vector2.ZERO, size), Color(0.04, 0.05, 0.12, 0.42))
+			for k in range(12):
+				var y0 := size.y * (0.45 + 0.05 * float(k))
+				draw_rect(Rect2(0, y0, size.x, size.y * 0.05 + 1.0), Color(0.03, 0.03, 0.06, 0.06 + 0.045 * float(k)))
+			for k2 in range(5):
+				draw_rect(Rect2(float(k2) * 6.0, 0, 6, size.y), Color(0, 0, 0, 0.12 - 0.02 * float(k2)))
+				draw_rect(Rect2(size.x - float(k2 + 1) * 6.0, 0, 6, size.y), Color(0, 0, 0, 0.12 - 0.02 * float(k2)))
 		# Lueur au sol.
 		for k in range(6):
 			var r := (240.0 - float(k) * 34.0) * fl
