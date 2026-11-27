@@ -6,30 +6,43 @@ Fusionner trois objets ou graver une rune ne se contente plus d'un message : Dur
 
 ## 1. Durgan en volume
 
-Vieux nain forgeron d'après son portrait : crâne chauve noirci de suie, oreilles, nez épais, sourcils broussailleux, grande barbe grise tressée de deux anneaux de fer, moustache, tunique brune, tablier de cuir à sangles et poche aux outils, manches retroussées sur des avant-bras nus, brassard de cuir, mains noircies, marteau de forge (manche de bois, tête d'acier) dans la main droite. Ses **lunettes de forge** (verres bleutés cerclés de laiton, pont et branches de cuir, sangle autour du crâne) sont une partie à part, construite sur ses yeux et qui bascule autour du centre de la tête : relevées, elles reposent sur le haut du front, la sangle passe sur la nuque, et l'on voit ses petits yeux sombres sous ses sourcils ; rabattues, elles couvrent ses yeux.
+Vieux nain forgeron d'après son portrait : crâne chauve noirci de suie, oreilles, nez épais, sourcils broussailleux, grande barbe grise tressée de deux anneaux de fer, moustache, tunique brune, tablier de cuir à sangles et poche aux outils, manches retroussées sur des avant-bras nus, brassard de cuir, mains noircies, marteau de forge (manche de bois, tête d'acier) dans la main droite. Son marteau peut aussi attendre, couché sur l'enclume, pendant qu'il a les mains libres. Ses **lunettes de forge** (verres bleutés cerclés de laiton, pont et branches de cuir, sangle autour du crâne) sont une partie à part, construite sur ses yeux et qui bascule autour du centre de la tête : relevées, elles reposent sur le haut du front, la sangle passe sur la nuque, et l'on voit ses petits yeux sombres sous ses sourcils ; rabattues, elles couvrent ses yeux.
 
-Poses de forge (`ForgeScene.dpose`) : repos, main aux lunettes, tendre la main vers l'établi (une pose par objet), soulever, poser sur l'enclume, lever le marteau, frapper, rebond, montrer (bras levé), graver (deux temps : coup de marteau sur le burin), triomphe (marteau brandi). D'une pose à l'autre, une image intermédiaire adoucit le geste.
+Poses de forge (`ForgeScene.dpose`) : repos, les deux mains aux lunettes (saisir, faire basculer, ajuster), reprendre le marteau, remonter les lunettes, tendre la main vers l'établi (une pose par objet), soulever, poser sur l'enclume, lever le marteau, frapper, rebond, montrer (bras levé), graver (deux temps : coup de marteau sur le burin), triomphe (marteau brandi). D'une pose à l'autre, une image intermédiaire adoucit le geste.
 
 **Les objets sont les vrais** : chaque objet et chaque rune sont mis en volume d'après leur icône en pixel art (chaque pixel devient une petite colonne de cubes), donc la rune gravée est celle qu'on a choisie (famille, couleur, glyphe, niveau) et les objets fusionnés sont les trois qu'on a posés. L'enclume (pied, table, bigorne, talon) et l'établi de bois sont aussi en cubes. Les positions se calculent sur le modèle : l'établi est là où la main gauche de Durgan se tend, l'enclume sous la tête de son marteau quand il frappe, et un objet tenu suit exactement sa main.
 
 Éclairage « Forge » : lumière orangée du foyer sur le côté, ombres violacées, liseré de braise ; derrière, l'atelier de la Forge assombri et la lueur du foyer qui palpite.
 
-## 2. Fusion (environ 9 s)
+## 2. Fusion (environ 11,5 s)
 
-1. Durgan, de trois quarts devant son enclume ; les trois objets attendent sur l'établi.
-2. Il **enfile ses lunettes** : sa main gauche les saisit sur le haut de son front, les fait basculer vers l'avant, elles se posent sur ses yeux avec un claquement, et il baisse la tête pour les ajuster.
-3. Il prend le **premier objet** sur l'établi, le soulève et le **pose sur l'enclume** (choc, poussière) ; puis le deuxième, puis le troisième, côte à côte.
-4. Il lève son marteau (souffle) et **frappe trois fois** : chaque coup sonne l'acier, fait jaillir une gerbe d'étincelles et une onde de choc, secoue l'image et fait luire un peu plus les objets.
-5. Les objets se mettent à **tourner en volume**, montent en spirale au-dessus de l'enclume et se rejoignent (bourdon qui monte).
-6. **Éclair blanc** : l'objet né de la fusion apparaît, grand, au-dessus de Durgan, tournant sur lui-même, auréolé de rayons à la couleur de sa rareté ; Durgan brandit son marteau. Son nom et sa rareté s'affichent (accord scintillant).
+Avant de travailler, Durgan **enfile ses lunettes** ; il les garde pendant tout le travail et les remonte à la fin (de même pour la gravure) :
 
-## 3. Gravure (environ 7 s)
+- son marteau est couché sur l'enclume : il a les deux mains libres ;
+- il prend ses lunettes **à deux mains** sur le haut de son front, les fait basculer vers l'avant, elles se posent sur ses yeux avec un claquement, et il baisse la tête pour les ajuster ;
+- il reprend son marteau sur l'enclume.
+
+Puis, lunettes sur les yeux :
+
+1. Il prend le **premier objet** sur l'établi, le soulève et le **pose sur l'enclume** (choc, poussière) ; puis le deuxième, puis le troisième, côte à côte.
+2. Il lève son marteau (souffle) et **frappe trois fois** : chaque coup sonne l'acier, fait jaillir une gerbe d'étincelles et une onde de choc, secoue l'image et fait luire un peu plus les objets.
+3. Les objets se mettent à **tourner en volume**, montent en spirale au-dessus de l'enclume et se rejoignent (bourdon qui monte).
+4. **Éclair blanc** : l'objet né de la fusion apparaît, grand, au-dessus de Durgan, tournant sur lui-même, auréolé de rayons à la couleur de sa rareté ; Durgan brandit son marteau. Son nom et sa rareté s'affichent (accord scintillant).
+
+Enfin, sa main gauche revient à ses lunettes et les **remonte sur le haut de son crâne**.
+
+Le travail lui-même (des objets pris à l'objet révélé) garde sa durée d'origine, environ 8 s ; les lunettes s'y ajoutent avant et après.
+
+## 3. Gravure (environ 9 s)
+
+Il enfile ses lunettes à deux mains et reprend son marteau, comme pour la fusion, puis, lunettes sur les yeux :
 
 1. Durgan, **de face**, derrière son enclume ; l'objet et la rune choisie attendent sur l'établi.
 2. Il prend l'objet et le pose sur l'enclume, devant lui.
 3. Il prend **la rune** et la montre : elle s'éveille à la couleur de sa famille (souffle magique, cloches).
 4. Il la pose sur l'objet et la **grave à petits coups de marteau** sur le burin (quatre coups, étincelles à la couleur de la rune, la pointe qui trace).
 5. La rune se fond dans l'objet : **son glyphe s'allume** dessus, onde de lumière ; l'objet s'élève au-dessus de Durgan, le glyphe brillant au centre. « Pyr III gravée », sur quel objet, et son effet.
+6. Il remonte ses lunettes sur le haut de son crâne.
 
 ## 4. Sons
 

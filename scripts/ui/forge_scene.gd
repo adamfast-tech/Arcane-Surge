@@ -29,6 +29,9 @@ var rune_text := "" ## gravure : ce que fait la rune
 
 var _durgan: HeroModel
 var _anvil: HeroModel
+var _anvil_h: HeroModel ## l'enclume avec le marteau couché dessus
+var _hammer_down := true ## le marteau attend sur l'enclume (Durgan a les mains libres pour ses lunettes)
+var _bh := false ## (construction des étapes) Durgan tient-il son marteau
 var _bench: HeroModel
 var _yaw := PI
 var _props: Dictionary = {} ## id -> {model, pos, scale, yaw, spin, vis, glow, col, held}
@@ -92,6 +95,7 @@ func _ready() -> void:
 	_durgan = HeroModel.new()
 	_durgan.build_companion("durgan", "")
 	_anvil = HeroModel.anvil()
+	_anvil_h = HeroModel.anvil(true)
 	_bench = HeroModel.bench()
 	_bg = RoomArt.scene("forge", Vector2i(180, 150))
 	var g := Gradient.new()
@@ -140,23 +144,33 @@ func _add_prop(id: String, m: HeroModel, sc: float, col: Color) -> void:
 # ---------------------------------------------------------------- poses de Durgan
 
 ## Poses de Durgan : {partie: [rotation (degrés), décalage]} (voir HeroModel.pose()). goggles : lunettes rabattues
-## (0 : relevées sur le front, 1 : sur les yeux ; entre les deux, il est en train de les abaisser).
-static func dpose(name: String, goggles: float) -> Dictionary:
+## (0 : relevées sur le front, 1 : sur les yeux ; entre les deux, il est en train de les abaisser). hammer : il tient
+## son marteau (sinon le marteau est couché sur l'enclume et ses deux mains sont libres).
+static func dpose(name: String, goggles: float, hammer: bool = true) -> Dictionary:
 	var V := Vector3.ZERO
 	var rest_r := [Vector3(8, 0, 6), V]
 	var d := {}
 	match name:
 		"rest":
 			d = {"armR": rest_r, "armL": [Vector3(4, 0, -4), V]}
-		"g_up":
-			# La main saisit les lunettes sur le haut du front.
-			d = {"armL": [Vector3(168, 0, 30), V], "head": [Vector3(6, 0, 0), V], "armR": rest_r}
-		"g_pull":
-			# Il les fait basculer vers ses yeux.
-			d = {"armL": [Vector3(152, 0, 30), V], "head": [Vector3(0, 0, 0), V], "armR": rest_r}
-		"g_set":
-			# Elles claquent en place ; il baisse un peu la tête pour les ajuster.
-			d = {"armL": [Vector3(138, 0, 30), V], "head": [Vector3(-8, 0, 0), V], "armR": rest_r}
+		"g2_up":
+			# Les deux mains saisissent les lunettes sur le haut du front.
+			d = {"armL": [Vector3(168, 0, 30), V], "armR": [Vector3(168, 0, -30), V], "head": [Vector3(6, 0, 0), V]}
+		"g2_pull":
+			# Il les fait basculer vers ses yeux, des deux mains.
+			d = {"armL": [Vector3(152, 0, 30), V], "armR": [Vector3(152, 0, -30), V], "head": [Vector3(0, 0, 0), V]}
+		"g2_set":
+			# Elles se posent sur ses yeux ; il les ajuste, tête un peu baissée.
+			d = {"armL": [Vector3(138, 0, 30), V], "armR": [Vector3(138, 0, -30), V], "head": [Vector3(-8, 0, 0), V]}
+		"take_h":
+			# Il reprend son marteau couché sur l'enclume.
+			d = {"armR": [Vector3(64, 0, -8), V], "armL": [Vector3(4, 0, -4), V], "body": [Vector3(-10, 0, 0), V], "head": [Vector3(-12, 0, 0), V]}
+		"gup1":
+			# Le travail fini, sa main gauche revient aux lunettes...
+			d = {"armL": [Vector3(140, 0, 30), V], "armR": rest_r, "head": [Vector3(-4, 0, 0), V]}
+		"gup2":
+			# ... et les remonte sur le haut de son crâne.
+			d = {"armL": [Vector3(170, 0, 30), V], "armR": rest_r, "head": [Vector3(8, 0, 0), V]}
 		"reach0", "reach1", "reach2":
 			var k := int(name.right(1))
 			d = {"armL": [Vector3(66, 0, -30.0 - 9.0 * float(k)), V], "body": [Vector3(-10, 0, 0), V], "head": [Vector3(-12, 0, 0), V], "armR": rest_r}
@@ -184,6 +198,8 @@ static func dpose(name: String, goggles: float) -> Dictionary:
 			d = {"armR": [Vector3(168, 0, 6), V], "wpnR": [Vector3(-165, 0, 0), V], "armL": [Vector3(30, 0, -32), V],
 				"head": [Vector3(10, 0, 0), V], "root": [V, Vector3(0, 1, 0)]}
 	d["goggles"] = [Vector3(55.0 * (1.0 - clampf(goggles, 0.0, 1.0)), 0, 0), V]
+	if not hammer:
+		d["_nohammer"] = true
 	return d
 
 
@@ -194,30 +210,53 @@ static func lerp_pose(a: Dictionary, b: Dictionary, t: float) -> Dictionary:
 		if not keys.has(k):
 			keys.append(k)
 	for k in keys:
+		if str(k).begins_with("_"):
+			continue
 		var pa: Array = a.get(k, [Vector3.ZERO, Vector3.ZERO])
 		var pb: Array = b.get(k, [Vector3.ZERO, Vector3.ZERO])
 		var oa: Vector3 = pa[1] if pa.size() > 1 else Vector3.ZERO
 		var ob: Vector3 = pb[1] if pb.size() > 1 else Vector3.ZERO
 		out[k] = [(pa[0] as Vector3).lerp(pb[0], t), oa.lerp(ob, t)]
+	if b.has("_nohammer"):
+		out["_nohammer"] = true
 	return out
 
 
 # ---------------------------------------------------------------- la séquence
 
 func _step(d: float, pose: String, g: float, fx: Callable = Callable(), grab: String = "", drop: String = "", to: Vector2 = Vector2.ZERO) -> void:
-	_steps.append({"d": d, "pose": pose, "g": g, "fx": fx, "grab": grab, "drop": drop, "to": to})
+	_steps.append({"d": d, "pose": pose, "g": g, "h": _bh, "fx": fx, "grab": grab, "drop": drop, "to": to})
+
+
+## Au début : Durgan prend ses lunettes à deux mains sur le haut de son front et les enfile, puis reprend son marteau
+## couché sur l'enclume. Il les garde pendant tout le travail.
+func _goggles_on() -> void:
+	_bh = false
+	_step(0.6, "rest", 0.0)
+	_step(0.36, "g2_up", 0.0)
+	_step(0.32, "g2_pull", 0.55)
+	_step(0.14, "g2_set", 1.0, func() -> void: Snd.sfx("forge_goggles", -2.0))
+	_step(0.26, "g2_set", 1.0)
+	_step(0.26, "rest", 1.0)
+	_step(0.32, "take_h", 1.0)
+	_bh = true
+	_step(0.3, "rest", 1.0, func() -> void:
+		_hammer_down = false
+		Snd.sfx("forge_pick", -3.0, 0.8))
+
+
+## À la fin : il remonte ses lunettes sur le haut de son crâne.
+func _goggles_off() -> void:
+	_step(0.32, "gup1", 1.0)
+	_step(0.26, "gup2", 0.0, func() -> void: Snd.sfx("forge_goggles", -4.0, 1.15))
+	_step(0.6, "rest", 0.0)
 
 
 func _build_steps() -> void:
 	_steps.clear()
+	_goggles_on()
 	if mode == "fusion":
-		# Il enfile ses lunettes : la main les prend sur le front, les fait basculer, elles claquent sur ses yeux.
-		_step(0.6, "rest", 0.0)
-		_step(0.34, "g_up", 0.0)
-		_step(0.3, "g_pull", 0.55)
-		_step(0.14, "g_set", 1.0, func() -> void: Snd.sfx("forge_goggles", -2.0))
-		_step(0.22, "g_set", 1.0)
-		_step(0.26, "rest", 1.0)
+		# La fusion, lunettes sur les yeux : les trois objets posés sur l'enclume, trois coups, la fusion, l'objet né.
 		for k in range(items.size()):
 			var id := "i%d" % k
 			_step(0.3, "reach%d" % k, 1.0, Callable(), id)
@@ -234,22 +273,23 @@ func _build_steps() -> void:
 		_step(0.5, "triumph", 1.0, _reveal)
 		_step(1.2, "triumph", 1.0)
 	else:
-		_step(0.6, "rest", 0.0)
-		_step(0.3, "reach0", 0.0, Callable(), "i0")
-		_step(0.24, "lift", 0.0, func() -> void: Snd.sfx("forge_pick", -4.0))
-		_step(0.3, "place", 0.0, Callable(), "", "i0", Vector2(-1, 1))
-		_step(0.14, "place", 0.0, func() -> void:
+		# La gravure, lunettes sur les yeux : l'objet sur l'enclume, la rune montrée, posée, gravée, le glyphe allumé.
+		_step(0.3, "reach0", 1.0, Callable(), "i0")
+		_step(0.24, "lift", 1.0, func() -> void: Snd.sfx("forge_pick", -4.0))
+		_step(0.3, "place", 1.0, Callable(), "", "i0", Vector2(-1, 1))
+		_step(0.14, "place", 1.0, func() -> void:
 			Snd.sfx("forge_place", -3.0)
 			_dust(_slot_pos(1) + Vector2(0, PROP_C * IS), 6))
-		_step(0.3, "reach1", 0.0, Callable(), "rune")
-		_step(0.5, "show", 0.0, _rune_wake)
-		_step(0.3, "place", 0.0, Callable(), "", "rune", Vector2(-2, 1))
+		_step(0.3, "reach1", 1.0, Callable(), "rune")
+		_step(0.5, "show", 1.0, _rune_wake)
+		_step(0.3, "place", 1.0, Callable(), "", "rune", Vector2(-2, 1))
 		for n in range(4):
-			_step(0.13, "eng_b", 0.0)
-			_step(0.11, "eng_a", 0.0, func() -> void: _tap(n))
-		_step(0.4, "eng_a", 0.0, _rune_seal)
-		_step(0.6, "show", 0.0, _engraved)
-		_step(1.2, "show", 0.0)
+			_step(0.13, "eng_b", 1.0)
+			_step(0.11, "eng_a", 1.0, func() -> void: _tap(n))
+		_step(0.4, "eng_a", 1.0, _rune_seal)
+		_step(0.6, "show", 1.0, _engraved)
+		_step(1.2, "show", 1.0)
+	_goggles_off()
 
 
 ## Une image d'écran : avance la scène.
@@ -327,13 +367,15 @@ func _layout() -> void:
 	# Les poses à préparer.
 	var prev := "rest"
 	var prev_g := 0.0
+	var prev_h := false
 	for s in _steps:
-		var a := dpose(prev, prev_g)
-		var b := dpose(str(s["pose"]), float(s["g"]))
+		var a := dpose(prev, prev_g, prev_h)
+		var b := dpose(str(s["pose"]), float(s["g"]), bool(s["h"]))
 		for k in [1, 2]:
-			_warm.append(["%s%.2f>%s%.2f|%d" % [prev, prev_g, s["pose"], float(s["g"]), k], lerp_pose(a, b, float(k) / 2.0)])
+			_warm.append(["%s%.2f%d>%s%.2f%d|%d" % [prev, prev_g, int(prev_h), s["pose"], float(s["g"]), int(s["h"]), k], lerp_pose(a, b, float(k) / 2.0)])
 		prev = str(s["pose"])
 		prev_g = float(s["g"])
+		prev_h = bool(s["h"])
 
 
 ## Point du modèle de Durgan (partie, repère du modèle) à l'écran, pour une pose.
@@ -351,12 +393,14 @@ func _slot_pos(k: int) -> Vector2:
 func _begin_step(s: Dictionary) -> void:
 	var prev_pose := "rest"
 	var prev_g := 0.0
+	var prev_h := false
 	if _si > 0:
 		prev_pose = str(_steps[_si - 1]["pose"])
 		prev_g = float(_steps[_si - 1]["g"])
-	_pose_a = dpose(prev_pose, prev_g)
-	_pose_b = dpose(str(s["pose"]), float(s["g"]))
-	_pose_key = "%s%.2f>%s%.2f" % [prev_pose, prev_g, s["pose"], float(s["g"])]
+		prev_h = bool(_steps[_si - 1]["h"])
+	_pose_a = dpose(prev_pose, prev_g, prev_h)
+	_pose_b = dpose(str(s["pose"]), float(s["g"]), bool(s["h"]))
+	_pose_key = "%s%.2f%d>%s%.2f%d" % [prev_pose, prev_g, int(prev_h), s["pose"], float(s["g"]), int(s["h"])]
 	var fx: Callable = s["fx"]
 	if fx.is_valid():
 		fx.call()
@@ -521,11 +565,11 @@ func skip() -> void:
 		var p: Dictionary = _props[id]
 		p["held"] = false
 		p["moving"] = false
-	var last := "triumph" if mode == "fusion" else "show"
-	var lg := 1.0 if mode == "fusion" else 0.0
-	_pose_a = dpose(last, lg)
+	# Fin : le travail fait, les lunettes remontées sur le crâne, le marteau en main.
+	_hammer_down = false
+	_pose_a = dpose("rest", 0.0, true)
 	_pose_b = _pose_a
-	_pose_key = "%s%.2f>%s%.2f" % [last, lg, last, lg]
+	_pose_key = "rest0.001>rest0.001"
 	_si = _steps.size() - 1
 	if mode == "fusion":
 		_reveal()
@@ -659,11 +703,12 @@ func _draw() -> void:
 	# L'établi, Durgan, l'enclume.
 	var bi := _bench.frame_at(_yaw, "", 0, LIGHT)
 	_draw_model(_texture("bench", bi), _b_foot, SC)
-	var key := "%s|%d" % [_pose_key if _pose_key != "" else "rest0.00>rest0.00", _sub]
-	var di := _durgan.frame_pose(_yaw, key, _cur_pose() if _pose_key != "" else dpose("rest", 0.0), LIGHT)
+	var key := "%s|%d" % [_pose_key if _pose_key != "" else "rest0.000>rest0.000", _sub]
+	var di := _durgan.frame_pose(_yaw, key, _cur_pose() if _pose_key != "" else dpose("rest", 0.0, false), LIGHT)
 	_draw_model(_texture("d|" + key, di), _d_foot, SC)
-	var ai := _anvil.frame_at(_yaw, "", 0, LIGHT)
-	_draw_model(_texture("anvil", ai), _a_foot, SC)
+	var am := _anvil_h if _hammer_down else _anvil
+	var ai := am.frame_at(_yaw, "", 0, LIGHT)
+	_draw_model(_texture("anvil_h" if _hammer_down else "anvil", ai), _a_foot, SC)
 	# Rayons derrière l'objet révélé.
 	if _rays > 0.0:
 		var c := _reveal_at

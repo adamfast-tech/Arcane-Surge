@@ -2051,6 +2051,25 @@ func _forge_scene_ok() -> bool:
 	var icon := HeroModel.from_icon((ItemArt.rune("pyr", 3, ItemArt.S) as ImageTexture).get_image())
 	if icon.frame_at(0.0, "", 0, "forge").get_used_rect().size.x < 14:
 		errs.append("rune en volume vide")
+	# Lunettes : enfilées à deux mains avant le travail, gardées pendant tout le travail, remontées à la fin.
+	for kind2 in ["fusion", "gravure"]:
+		var probe := ForgeScene.new()
+		probe.mode = kind2
+		probe.items = [{}, {}, {}]
+		probe._build_steps()
+		var names: Array = []
+		var work_g := 1.0
+		for st in probe._steps:
+			names.append(str(st["pose"]))
+			if str(st["pose"]) in ["strike", "eng_a", "eng_b", "place"]:
+				work_g = minf(work_g, float(st["g"]))
+		var first_work := names.find("reach0")
+		if names.find("g2_up") < 0 or names.find("g2_up") > first_work or work_g < 1.0 or float(probe._steps[-1]["g"]) != 0.0 or names.find("gup2") < first_work:
+			errs.append("%s : lunettes mal mises, ôtées pendant le travail ou pas remontées" % kind2)
+		var two := ForgeScene.dpose("g2_up", 0.0, false)
+		if not (two.has("armL") and two.has("armR") and (two["armR"][0] as Vector3).x > 120.0):
+			errs.append("lunettes : pas à deux mains")
+		probe.free()
 	# Les deux scènes jouées jusqu'au bout.
 	var fs := ForgeScreen.new()
 	root.add_child(fs)

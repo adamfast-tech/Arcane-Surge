@@ -1513,6 +1513,8 @@ func _skeleton(pose_d: Dictionary) -> Dictionary:
 		out[part] = body * _xf(str(part), pose_d)
 	out["goggles"] = (out["head"] as Transform3D) * _xf("goggles", pose_d)
 	out["wpnR"] = (out["armR"] as Transform3D) * _xf("wpnR", pose_d)
+	if bool(pose_d.get("_nohammer", false)):
+		out["wpnR"] = Transform3D(Basis.IDENTITY, Vector3(0, -9999, 0)) ## l'outil est posé ailleurs : la main est vide
 	out["wpnL"] = (out["armL"] as Transform3D) * _xf("wpnL", pose_d)
 	return out
 
@@ -1578,8 +1580,8 @@ static func from_icon(img: Image, thick: int = 2) -> HeroModel:
 	return m
 
 
-## L'enclume de Durgan : pied, taille, table, bigorne et talon, en fer noirci.
-static func anvil() -> HeroModel:
+## L'enclume de Durgan : pied, taille, table, bigorne et talon, en fer noirci ; avec son marteau couché dessus.
+static func anvil(with_hammer: bool = false) -> HeroModel:
 	var m := HeroModel.new()
 	var dk := Color("1e1c26")
 	var mid := Color("3a3848")
@@ -1603,6 +1605,14 @@ static func anvil() -> HeroModel:
 		for y in range(7 - half, 8):
 			for z in range(-half, half):
 				m._put(-7 - k, y, z, lt if y == 7 else mid)
+	if with_hammer:
+		# Le marteau couché en travers de la table : le manche vers l'avant, la tête d'acier au fond.
+		for x in range(-1, 6):
+			m._put(x, 8, -1, Color("6a4428") if x % 3 else Color("4a2e1a"))
+		for y in range(8, 10):
+			for x in range(-4, -1):
+				for z in range(-3, 2):
+					m._put(x, y, z, Color("b0aec0") if (z == -3 or z == 1) else Color("4a4858"))
 	m._build_surface()
 	return m
 
