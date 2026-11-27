@@ -63,6 +63,7 @@ var _labels: VBoxContainer
 var _hint: Label
 var _warm: Array = [] ## poses à préparer
 var _budget := 0
+var speed := 1.0 ## vitesse de la scène (aperçu au ralenti : « &fxspeed=0.25 »)
 
 
 static func fusion(objs: Array, out: Dictionary) -> ForgeScene:
@@ -138,8 +139,9 @@ func _add_prop(id: String, m: HeroModel, sc: float, col: Color) -> void:
 
 # ---------------------------------------------------------------- poses de Durgan
 
-## Poses de Durgan : {partie: [rotation (degrés), décalage]} (voir HeroModel.pose()). goggles : lunettes rabattues.
-static func dpose(name: String, goggles: bool) -> Dictionary:
+## Poses de Durgan : {partie: [rotation (degrés), décalage]} (voir HeroModel.pose()). goggles : lunettes rabattues
+## (0 : relevées sur le front, 1 : sur les yeux ; entre les deux, il est en train de les abaisser).
+static func dpose(name: String, goggles: float) -> Dictionary:
 	var V := Vector3.ZERO
 	var rest_r := [Vector3(8, 0, 6), V]
 	var d := {}
@@ -147,7 +149,14 @@ static func dpose(name: String, goggles: bool) -> Dictionary:
 		"rest":
 			d = {"armR": rest_r, "armL": [Vector3(4, 0, -4), V]}
 		"g_up":
-			d = {"armL": [Vector3(158, 0, -14), V], "head": [Vector3(-8, 0, 0), V], "armR": rest_r}
+			# La main saisit les lunettes sur le haut du front.
+			d = {"armL": [Vector3(168, 0, 30), V], "head": [Vector3(6, 0, 0), V], "armR": rest_r}
+		"g_pull":
+			# Il les fait basculer vers ses yeux.
+			d = {"armL": [Vector3(152, 0, 30), V], "head": [Vector3(0, 0, 0), V], "armR": rest_r}
+		"g_set":
+			# Elles claquent en place ; il baisse un peu la tête pour les ajuster.
+			d = {"armL": [Vector3(138, 0, 30), V], "head": [Vector3(-8, 0, 0), V], "armR": rest_r}
 		"reach0", "reach1", "reach2":
 			var k := int(name.right(1))
 			d = {"armL": [Vector3(66, 0, -30.0 - 9.0 * float(k)), V], "body": [Vector3(-10, 0, 0), V], "head": [Vector3(-12, 0, 0), V], "armR": rest_r}
@@ -174,8 +183,7 @@ static func dpose(name: String, goggles: bool) -> Dictionary:
 		"triumph":
 			d = {"armR": [Vector3(168, 0, 6), V], "wpnR": [Vector3(-165, 0, 0), V], "armL": [Vector3(30, 0, -32), V],
 				"head": [Vector3(10, 0, 0), V], "root": [V, Vector3(0, 1, 0)]}
-	if goggles:
-		d["goggles"] = [V, Vector3(0, -2, 0)]
+	d["goggles"] = [Vector3(55.0 * (1.0 - clampf(goggles, 0.0, 1.0)), 0, 0), V]
 	return d
 
 
@@ -196,53 +204,57 @@ static func lerp_pose(a: Dictionary, b: Dictionary, t: float) -> Dictionary:
 
 # ---------------------------------------------------------------- la séquence
 
-func _step(d: float, pose: String, g: bool, fx: Callable = Callable(), grab: String = "", drop: String = "", to: Vector2 = Vector2.ZERO) -> void:
+func _step(d: float, pose: String, g: float, fx: Callable = Callable(), grab: String = "", drop: String = "", to: Vector2 = Vector2.ZERO) -> void:
 	_steps.append({"d": d, "pose": pose, "g": g, "fx": fx, "grab": grab, "drop": drop, "to": to})
 
 
 func _build_steps() -> void:
 	_steps.clear()
 	if mode == "fusion":
-		_step(0.7, "rest", false)
-		_step(0.32, "g_up", false)
-		_step(0.22, "g_up", true, func() -> void: Snd.sfx("forge_goggles", -2.0))
-		_step(0.28, "rest", true)
+		# Il enfile ses lunettes : la main les prend sur le front, les fait basculer, elles claquent sur ses yeux.
+		_step(0.6, "rest", 0.0)
+		_step(0.34, "g_up", 0.0)
+		_step(0.3, "g_pull", 0.55)
+		_step(0.14, "g_set", 1.0, func() -> void: Snd.sfx("forge_goggles", -2.0))
+		_step(0.22, "g_set", 1.0)
+		_step(0.26, "rest", 1.0)
 		for k in range(items.size()):
 			var id := "i%d" % k
-			_step(0.3, "reach%d" % k, true, Callable(), id)
-			_step(0.24, "lift", true, func() -> void: Snd.sfx("forge_pick", -4.0, 1.0 + 0.08 * float(k)))
-			_step(0.3, "place", true, Callable(), "", id, Vector2(-1, k))
-			_step(0.12, "place", true, func() -> void:
+			_step(0.3, "reach%d" % k, 1.0, Callable(), id)
+			_step(0.24, "lift", 1.0, func() -> void: Snd.sfx("forge_pick", -4.0, 1.0 + 0.08 * float(k)))
+			_step(0.3, "place", 1.0, Callable(), "", id, Vector2(-1, k))
+			_step(0.12, "place", 1.0, func() -> void:
 				Snd.sfx("forge_place", -3.0, 1.0 - 0.05 * float(k))
 				_dust(_slot_pos(k) + Vector2(0, PROP_C * IS), 6))
 		for n in range(3):
-			_step(0.3, "raise", true, func() -> void: Snd.sfx("forge_whoosh", -6.0, 1.0 + 0.1 * float(n)))
-			_step(0.1, "strike", true, func() -> void: _strike(n))
-			_step(0.22, "recoil", true)
-		_step(1.45, "rest", true, _merge)
-		_step(0.5, "triumph", true, _reveal)
-		_step(1.2, "triumph", true)
+			_step(0.3, "raise", 1.0, func() -> void: Snd.sfx("forge_whoosh", -6.0, 1.0 + 0.1 * float(n)))
+			_step(0.1, "strike", 1.0, func() -> void: _strike(n))
+			_step(0.22, "recoil", 1.0)
+		_step(1.45, "rest", 1.0, _merge)
+		_step(0.5, "triumph", 1.0, _reveal)
+		_step(1.2, "triumph", 1.0)
 	else:
-		_step(0.6, "rest", false)
-		_step(0.3, "reach0", false, Callable(), "i0")
-		_step(0.24, "lift", false, func() -> void: Snd.sfx("forge_pick", -4.0))
-		_step(0.3, "place", false, Callable(), "", "i0", Vector2(-1, 1))
-		_step(0.14, "place", false, func() -> void:
+		_step(0.6, "rest", 0.0)
+		_step(0.3, "reach0", 0.0, Callable(), "i0")
+		_step(0.24, "lift", 0.0, func() -> void: Snd.sfx("forge_pick", -4.0))
+		_step(0.3, "place", 0.0, Callable(), "", "i0", Vector2(-1, 1))
+		_step(0.14, "place", 0.0, func() -> void:
 			Snd.sfx("forge_place", -3.0)
 			_dust(_slot_pos(1) + Vector2(0, PROP_C * IS), 6))
-		_step(0.3, "reach1", false, Callable(), "rune")
-		_step(0.5, "show", false, _rune_wake)
-		_step(0.3, "place", false, Callable(), "", "rune", Vector2(-2, 1))
+		_step(0.3, "reach1", 0.0, Callable(), "rune")
+		_step(0.5, "show", 0.0, _rune_wake)
+		_step(0.3, "place", 0.0, Callable(), "", "rune", Vector2(-2, 1))
 		for n in range(4):
-			_step(0.13, "eng_b", false)
-			_step(0.11, "eng_a", false, func() -> void: _tap(n))
-		_step(0.4, "eng_a", false, _rune_seal)
-		_step(0.6, "show", false, _engraved)
-		_step(1.2, "show", false)
+			_step(0.13, "eng_b", 0.0)
+			_step(0.11, "eng_a", 0.0, func() -> void: _tap(n))
+		_step(0.4, "eng_a", 0.0, _rune_seal)
+		_step(0.6, "show", 0.0, _engraved)
+		_step(1.2, "show", 0.0)
 
 
 ## Une image d'écran : avance la scène.
 func _process(delta: float) -> void:
+	delta *= speed
 	if get_parent() != null and get_index() != get_parent().get_child_count() - 1:
 		move_to_front()
 	_t += delta
@@ -287,20 +299,20 @@ func _layout() -> void:
 	else:
 		_d_foot = Vector2(size.x * 0.5, _floor - SC * 3.0)
 	# L'enclume sous le coup de marteau (fusion) ou devant Durgan (gravure) ; l'établi là où sa main gauche se tend.
-	var strike := _screen(dpose("strike", false), "wpnR", HAMMER)
+	var strike := _screen(dpose("strike", 0.0), "wpnR", HAMMER)
 	if mode == "fusion":
 		_a_foot = Vector2(strike.x, _floor + SC * 2.0)
 	else:
 		_a_foot = Vector2(_d_foot.x + SC * 0.5, _floor + SC * 4.0)
 	_anvil_top = _a_foot - Vector2(0, 8.0 * SC)
-	var reach := _screen(dpose("reach0", false), "armL", HAND_L)
+	var reach := _screen(dpose("reach0", 0.0), "armL", HAND_L)
 	_b_foot = Vector2(reach.x + SC * 1.5, reach.y + PROP_C * IS + 8.0 * SC)
 	# Les objets attendent sur l'établi, chacun là où la main ira le prendre.
 	var keys := ["i0", "i1", "i2"] if mode == "fusion" else ["i0", "rune"]
 	for k in range(keys.size()):
 		if not _props.has(keys[k]):
 			continue
-		var hp := _screen(dpose("reach%d" % k, false), "armL", HAND_L)
+		var hp := _screen(dpose("reach%d" % k, 0.0), "armL", HAND_L)
 		var p: Dictionary = _props[keys[k]]
 		p["pos"] = Vector2(hp.x, _b_foot.y - 8.0 * SC - PROP_C * IS)
 		p["vis"] = true
@@ -314,14 +326,14 @@ func _layout() -> void:
 	_hint.size = Vector2(size.x, 30.0)
 	# Les poses à préparer.
 	var prev := "rest"
-	var prev_g := false
+	var prev_g := 0.0
 	for s in _steps:
 		var a := dpose(prev, prev_g)
-		var b := dpose(str(s["pose"]), bool(s["g"]))
+		var b := dpose(str(s["pose"]), float(s["g"]))
 		for k in [1, 2]:
-			_warm.append(["%s%d>%s%d|%d" % [prev, int(prev_g), s["pose"], int(s["g"]), k], lerp_pose(a, b, float(k) / 2.0)])
+			_warm.append(["%s%.2f>%s%.2f|%d" % [prev, prev_g, s["pose"], float(s["g"]), k], lerp_pose(a, b, float(k) / 2.0)])
 		prev = str(s["pose"])
-		prev_g = bool(s["g"])
+		prev_g = float(s["g"])
 
 
 ## Point du modèle de Durgan (partie, repère du modèle) à l'écran, pour une pose.
@@ -338,13 +350,13 @@ func _slot_pos(k: int) -> Vector2:
 
 func _begin_step(s: Dictionary) -> void:
 	var prev_pose := "rest"
-	var prev_g := false
+	var prev_g := 0.0
 	if _si > 0:
 		prev_pose = str(_steps[_si - 1]["pose"])
-		prev_g = bool(_steps[_si - 1]["g"])
+		prev_g = float(_steps[_si - 1]["g"])
 	_pose_a = dpose(prev_pose, prev_g)
-	_pose_b = dpose(str(s["pose"]), bool(s["g"]))
-	_pose_key = "%s%d>%s%d" % [prev_pose, int(prev_g), s["pose"], int(s["g"])]
+	_pose_b = dpose(str(s["pose"]), float(s["g"]))
+	_pose_key = "%s%.2f>%s%.2f" % [prev_pose, prev_g, s["pose"], float(s["g"])]
 	var fx: Callable = s["fx"]
 	if fx.is_valid():
 		fx.call()
@@ -510,9 +522,10 @@ func skip() -> void:
 		p["held"] = false
 		p["moving"] = false
 	var last := "triumph" if mode == "fusion" else "show"
-	_pose_a = dpose(last, mode == "fusion")
+	var lg := 1.0 if mode == "fusion" else 0.0
+	_pose_a = dpose(last, lg)
 	_pose_b = _pose_a
-	_pose_key = "%s%d>%s%d" % [last, int(mode == "fusion"), last, int(mode == "fusion")]
+	_pose_key = "%s%.2f>%s%.2f" % [last, lg, last, lg]
 	_si = _steps.size() - 1
 	if mode == "fusion":
 		_reveal()
@@ -646,8 +659,8 @@ func _draw() -> void:
 	# L'établi, Durgan, l'enclume.
 	var bi := _bench.frame_at(_yaw, "", 0, LIGHT)
 	_draw_model(_texture("bench", bi), _b_foot, SC)
-	var key := "%s|%d" % [_pose_key if _pose_key != "" else "rest0>rest0", _sub]
-	var di := _durgan.frame_pose(_yaw, key, _cur_pose() if _pose_key != "" else dpose("rest", false), LIGHT)
+	var key := "%s|%d" % [_pose_key if _pose_key != "" else "rest0.00>rest0.00", _sub]
+	var di := _durgan.frame_pose(_yaw, key, _cur_pose() if _pose_key != "" else dpose("rest", 0.0), LIGHT)
 	_draw_model(_texture("d|" + key, di), _d_foot, SC)
 	var ai := _anvil.frame_at(_yaw, "", 0, LIGHT)
 	_draw_model(_texture("anvil", ai), _a_foot, SC)

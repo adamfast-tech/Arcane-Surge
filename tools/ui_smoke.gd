@@ -2039,12 +2039,12 @@ func _forge_scene_ok() -> bool:
 	# Durgan en volume : lunettes relevées, puis rabattues sur les yeux.
 	var dm := HeroModel.new()
 	dm.build_companion("durgan", "")
-	var up := dm.frame_pose(PI, "t_up", ForgeScene.dpose("rest", false), "forge")
-	var down := dm.frame_pose(PI, "t_down", ForgeScene.dpose("rest", true), "forge")
+	var up := dm.frame_pose(PI, "t_up", ForgeScene.dpose("rest", 0.0), "forge")
+	var down := dm.frame_pose(PI, "t_down", ForgeScene.dpose("rest", 1.0), "forge")
 	if up.get_used_rect().size.y < 16 or up.get_data() == down.get_data():
 		errs.append("Durgan : modèle ou lunettes incorrects")
-	var hi := dm.project(PI, ForgeScene.dpose("raise", true), "wpnR", ForgeScene.HAMMER)
-	var lo := dm.project(PI, ForgeScene.dpose("strike", true), "wpnR", ForgeScene.HAMMER)
+	var hi := dm.project(PI, ForgeScene.dpose("raise", 1.0), "wpnR", ForgeScene.HAMMER)
+	var lo := dm.project(PI, ForgeScene.dpose("strike", 1.0), "wpnR", ForgeScene.HAMMER)
 	if hi.y >= lo.y:
 		errs.append("Durgan : le marteau ne s'abat pas (%s → %s)" % [hi, lo])
 	# Les objets et la rune en volume, d'après leurs icônes.

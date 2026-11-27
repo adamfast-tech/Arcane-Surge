@@ -79,7 +79,9 @@ func _ready() -> void:
 			_screen.call("_rebuild")
 		if str(_query().get("fx", "")) != "":
 			# Aperçu des gestes de Durgan (« &fx=fusion », « &fx=gravure »).
-			_screen.call("demo_scene", str(_query().get("fx", "")))
+			var sc: Variant = _screen.call("demo_scene", str(_query().get("fx", "")))
+			if sc != null and str(_query().get("fxspeed", "")) != "":
+				sc.set("speed", float(str(_query().get("fxspeed", "1"))))
 		return
 	var direct := _level_from_url()
 	if direct != "":

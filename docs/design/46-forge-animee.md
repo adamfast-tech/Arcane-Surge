@@ -6,7 +6,7 @@ Fusionner trois objets ou graver une rune ne se contente plus d'un message : Dur
 
 ## 1. Durgan en volume
 
-Vieux nain forgeron d'après son portrait : crâne chauve noirci de suie, oreilles, nez épais, sourcils broussailleux, grande barbe grise tressée de deux anneaux de fer, moustache, tunique brune, tablier de cuir à sangles et poche aux outils, manches retroussées sur des avant-bras nus, brassard de cuir, mains noircies, marteau de forge (manche de bois, tête d'acier) dans la main droite. Ses **lunettes de forge** (verres bleutés cerclés de laiton, sangle de cuir) sont une partie à part : relevées sur le front, elles descendent sur ses yeux quand il les rabat.
+Vieux nain forgeron d'après son portrait : crâne chauve noirci de suie, oreilles, nez épais, sourcils broussailleux, grande barbe grise tressée de deux anneaux de fer, moustache, tunique brune, tablier de cuir à sangles et poche aux outils, manches retroussées sur des avant-bras nus, brassard de cuir, mains noircies, marteau de forge (manche de bois, tête d'acier) dans la main droite. Ses **lunettes de forge** (verres bleutés cerclés de laiton, pont et branches de cuir, sangle autour du crâne) sont une partie à part, construite sur ses yeux et qui bascule autour du centre de la tête : relevées, elles reposent sur le haut du front, la sangle passe sur la nuque, et l'on voit ses petits yeux sombres sous ses sourcils ; rabattues, elles couvrent ses yeux.
 
 Poses de forge (`ForgeScene.dpose`) : repos, main aux lunettes, tendre la main vers l'établi (une pose par objet), soulever, poser sur l'enclume, lever le marteau, frapper, rebond, montrer (bras levé), graver (deux temps : coup de marteau sur le burin), triomphe (marteau brandi). D'une pose à l'autre, une image intermédiaire adoucit le geste.
 
@@ -17,7 +17,7 @@ Poses de forge (`ForgeScene.dpose`) : repos, main aux lunettes, tendre la main v
 ## 2. Fusion (environ 9 s)
 
 1. Durgan, de trois quarts devant son enclume ; les trois objets attendent sur l'établi.
-2. Il porte la main à son front et **rabat ses lunettes** (claquement du verre).
+2. Il **enfile ses lunettes** : sa main gauche les saisit sur le haut de son front, les fait basculer vers l'avant, elles se posent sur ses yeux avec un claquement, et il baisse la tête pour les ajuster.
 3. Il prend le **premier objet** sur l'établi, le soulève et le **pose sur l'enclume** (choc, poussière) ; puis le deuxième, puis le troisième, côte à côte.
 4. Il lève son marteau (souffle) et **frappe trois fois** : chaque coup sonne l'acier, fait jaillir une gerbe d'étincelles et une onde de choc, secoue l'image et fait luire un peu plus les objets.
 5. Les objets se mettent à **tourner en volume**, montent en spirale au-dessus de l'enclume et se rejoignent (bourdon qui monte).
@@ -43,4 +43,4 @@ Les poses de Durgan sont préparées pendant le plan d'ouverture (trois par imag
 
 `tools/ui_smoke.gd` (`_forge_scene_ok`) : Durgan se rend, ses lunettes changent l'image, son marteau s'abat ; une rune mise en volume n'est pas vide ; la fusion et la gravure se jouent jusqu'au bout (l'objet né de la fusion apparaît ; le glyphe s'allume sur l'objet) ; passer la scène montre le résultat ; le bouton FUSIONNER et la gravure de la Forge lancent la scène, avec la rune choisie.
 
-Aperçus : `?room=forge&fx=fusion`, `?room=forge&fx=gravure`.
+Aperçus : `?room=forge&fx=fusion`, `?room=forge&fx=gravure` ; `&fxspeed=0.25` les joue au ralenti.

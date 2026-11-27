@@ -1106,20 +1106,27 @@ func _durgan() -> void:
 			_put(x, y, _front(x, y) - (1 if y < 12 else 0), iron[2] if ring else (grey[2] if (x + y) % 3 else grey[1]))
 	for x in range(-3, 4):
 		_put(x, 14, _front(x, 14), grey[3] if absi(x) > 1 else grey[2])
-	# Lunettes de forge : sangle de cuir autour du crâne, deux verres cerclés de laiton, relevées sur le front.
+	# Lunettes de forge, construites rabattues sur les yeux : deux verres bleutés cerclés de laiton, un pont de cuir,
+	# une sangle qui fait le tour du crâne. Relevées (pose « goggles » : bascule vers l'arrière autour du centre de la
+	# tête), elles reposent sur le haut du front et la sangle passe sur la nuque ; ses petits yeux restent visibles.
+	pivots["goggles"] = Vector3(0, 15, 0)
 	_part = "goggles"
-	for x in range(-4, 5):
-		for z in range(-4, 5):
-			var d := Vector2(float(x) / 3.6, float(z) / 3.3).length()
-			if d <= 1.08 and d >= 0.85 and z >= -1:
-				_put(x, 17, z, leather[0])
+	var fz := mini(_front(-1, 15), _front(1, 15)) - 1
 	for side: int in [-1, 1]:
-		var cx := side * 2 - (1 if side < 0 else 0)
+		var cx := 1 if side > 0 else -2
 		for q in [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]:
-			_put(cx + q.x, 17 + q.y, -4, Color("7ad0e0"), q.x == 0 and q.y == 1)
+			_put(cx + q.x, 15 + q.y, fz, Color("7ad0e0") if q != Vector2i(0, 1) else Color("d8f6ff"), q == Vector2i(0, 1))
 		for q in [Vector2i(-1, 0), Vector2i(2, 0), Vector2i(-1, 1), Vector2i(2, 1), Vector2i(0, 2), Vector2i(1, 2), Vector2i(0, -1), Vector2i(1, -1)]:
-			_put(cx + q.x, 17 + q.y, -4, brass)
-	_put(0, 17, -4, leather[1])
+			_put(cx + q.x, 15 + q.y, fz, brass)
+		# Les branches de cuir jusqu'à la sangle.
+		_put(side * 4, 16, fz + 1, leather[1])
+		_put(side * 4, 16, fz + 2, leather[0])
+	_put(0, 16, fz, leather[1])
+	for x in range(-5, 6):
+		for z in range(-5, 6):
+			var d := Vector2(float(x) / 3.6, float(z) / 3.3).length()
+			if d <= 1.25 and d >= 1.02 and z >= fz + 2:
+				_put(x, 16, z, leather[0])
 	# Marteau de forge dans la main droite : manche de bois, tête d'acier (dans l'axe avant-arrière).
 	_part = "hand"
 	_wx = 1
