@@ -42,7 +42,8 @@
 - **Héros** : son sprite attend à côté du prochain niveau.
 - **Particules** selon la zone : lucioles, pollen, nappes de brume, neige, sable, braises, bulles (option d'ambiance « Enrichie » ; sinon la carte est fixe).
 - À l'ouverture, la carte défile jusqu'au niveau choisi (le prochain de la zone, sinon le dernier ouvert).
-- Aperçus : `?room=map`, `&zone=4` pour une zone, `&prog=14` pour les 14 premiers niveaux gagnés.
+- **Fluidité** : la carte est dessinée en trois calques sous les médaillons. Le terrain, les décors, le chemin fixe et l'ombre du héros, puis la vignette et le cadre, sont dessinés une seule fois ; seul le calque animé (pas, anneau du héros, brume, particules) se redessine à chaque image, et le découpage du chemin est calculé à l'ouverture. Le halo d'un médaillon vit dans un calque sous lui : le médaillon n'est plus redessiné à chaque image. Image identique au pixel près (vérifiée par comparaison de captures) ; calcul par image de la carte divisé par environ 2,5.
+- Aperçus : `?room=map`, `&zone=4` pour une zone, `&prog=14` pour les 14 premiers niveaux gagnés. `&fps=1` (sur n'importe quel écran) affiche un compteur d'images par seconde discret, en haut à gauche.
 
 ## Bibliothèque (`scripts/ui/library_screen.gd`)
 

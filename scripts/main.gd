@@ -15,6 +15,8 @@ func _ready() -> void:
 	cloud = Cloud.new()
 	add_child(cloud)
 	Profile.load_local()
+	if _url_flag("fps"):
+		_fps_counter()
 	Snd.profile_loaded() ## l'audio a démarré avant la sauvegarde : ses volumes s'appliquent, puis le son s'ouvre
 	if _url_flag("fx"):
 		# Aperçu de l'ambiance enrichie (« &fx=1 »), sans changer la sauvegarde.
@@ -466,6 +468,30 @@ func _level_from_url() -> String:
 	if id != "" and (GameData.level_index().get("levels", []) as Array).has(id):
 		return id
 	return ""
+
+
+## Compteur d'images par seconde (« &fps=1 » dans l'adresse) : discret, en haut à gauche, au-dessus de tout.
+## Il n'apparaît jamais sans ce paramètre.
+func _fps_counter() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 128
+	add_child(layer)
+	var l := Label.new()
+	l.theme = UiTheme.build()
+	l.position = Vector2(6, 4)
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	l.add_theme_font_size_override("font_size", 16)
+	l.add_theme_color_override("font_color", Color("6fe39a"))
+	l.add_theme_constant_override("outline_size", 6)
+	l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	layer.add_child(l)
+	var tm := Timer.new()
+	tm.wait_time = 0.5
+	tm.autostart = true
+	tm.timeout.connect(func() -> void:
+		var fps := Engine.get_frames_per_second()
+		l.text = "%d ips · %.1f ms" % [fps, 1000.0 / maxf(fps, 1.0)])
+	layer.add_child(tm)
 
 
 func _url_flag(key: String) -> bool:

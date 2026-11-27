@@ -69,3 +69,6 @@ Paramètres d'adresse :
 - `&hour=22` montre Havre-Aube à une autre heure ;
 - `?room=map` ouvre la carte (et `forge`, `equipment`, `skills`, `library`, `meditation`, `circle`, `options`) ;
 - `?level=z01_l03&solo=1&win=1` donne une victoire immédiate (écran de fin et butin).
+
+**Performance du shader d'ambiance** (`shaders/ui_ambience.gdshader`) : les rayons ne sont calculés que dans la moitié haute de l'écran et la brume que dans sa bande (15 à 85 % de la hauteur) ; ailleurs, leurs termes valent exactement zéro. Même image, moins de calcul.
+

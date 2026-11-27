@@ -34,21 +34,27 @@ float fbm(vec2 p) {
 
 void fragment() {
 	vec2 uv = UV;
-	// Rayons : faisceaux qui partent d'une source hors champ, en haut, et ondulent lentement.
 	vec2 d = (uv - source) * aspect;
-	float ang = atan(d.x, d.y);
 	float r = length(d);
-	float b1 = 0.5 + 0.5 * sin(ang * 17.0 + TIME * 0.13);
-	float b2 = 0.5 + 0.5 * sin(ang * 6.0 - TIME * 0.07 + 1.3);
-	float band = pow(b1 * b2, 2.2);
-	float fall = smoothstep(2.0, 0.1, r);
-	// Les rayons éclairent l'illustration (moitié haute) et s'éteignent avant les panneaux.
+	vec3 c = vec3(0.0);
+	// Rayons : faisceaux qui partent d'une source hors champ, en haut, et ondulent lentement.
+	// Ils éclairent l'illustration (moitié haute) et s'éteignent avant les panneaux : ailleurs, leur terme vaut
+	// exactement zéro, on ne le calcule donc pas (même image, moins de calcul).
 	float top = smoothstep(0.72, 0.18, uv.y);
-	vec3 c = glow2.rgb * band * fall * top * rays * 0.75;
-	// Brume : nappes qui dérivent, au pied de l'illustration.
-	float f = fbm(vec2(uv.x * 2.4 + TIME * 0.03, uv.y * 3.5 - TIME * 0.015));
+	if (top > 0.0 && rays > 0.0) {
+		float ang = atan(d.x, d.y);
+		float b1 = 0.5 + 0.5 * sin(ang * 17.0 + TIME * 0.13);
+		float b2 = 0.5 + 0.5 * sin(ang * 6.0 - TIME * 0.07 + 1.3);
+		float band = pow(b1 * b2, 2.2);
+		float fall = smoothstep(2.0, 0.1, r);
+		c = glow2.rgb * band * fall * top * rays * 0.75;
+	}
+	// Brume : nappes qui dérivent, au pied de l'illustration. Hors de sa bande, son terme vaut zéro.
 	float mid = smoothstep(0.15, 0.45, uv.y) * smoothstep(0.85, 0.5, uv.y);
-	c += glow.rgb * smoothstep(0.42, 0.85, f) * mid * fog * 0.55;
+	if (mid > 0.0 && fog > 0.0) {
+		float f = fbm(vec2(uv.x * 2.4 + TIME * 0.03, uv.y * 3.5 - TIME * 0.015));
+		c += glow.rgb * smoothstep(0.42, 0.85, f) * mid * fog * 0.55;
+	}
 	// Halo autour de la source.
 	c += glow2.rgb * smoothstep(1.0, 0.0, r) * rays * 0.12;
 	COLOR = vec4(c, 1.0);

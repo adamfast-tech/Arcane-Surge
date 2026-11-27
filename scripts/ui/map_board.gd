@@ -50,6 +50,10 @@ var _t := 0.0
 var _anim := true
 var _hero: TextureRect
 var _hero_foot := Vector2.ZERO
+var _runs: Array = [] ## étapes du chemin, calculées une fois : [état, points]
+var _base: Layer ## terrain, décors, chemin fixe, ombre du héros : dessinés une seule fois
+var _dyn: Layer ## pas animés, anneau du héros, brume, particules : redessinés à chaque image
+var _top: Layer ## vignette et cadre : dessinés une seule fois
 var _rng := RandomNumberGenerator.new()
 
 static var _cache: Dictionary = {}
@@ -80,9 +84,15 @@ func setup(z: int, level_ids: Array, width: float) -> void:
 		_cache[key] = ImageTexture.create_from_image(_paint(int(width) / S + 1, int(h) / S + 1))
 	_terrain = _cache[key]
 	_place_props(width, h)
+	_build_runs()
 	_build_medals()
 	_build_fog(width)
 	_build_parts(width, h)
+	# Trois calques sous les médaillons, dans l'ordre de dessin : seul le calque animé se redessine à chaque
+	# image ; le reste garde ses commandes de dessin (rien n'est recalculé).
+	_base = _layer(0)
+	_dyn = _layer(1)
+	_top = _layer(2)
 	set_process(_anim)
 
 
@@ -96,7 +106,8 @@ func _process(delta: float) -> void:
 		_hero.position.y = _hero_foot.y - _hero.size.y + sin(_t * 2.4) * 3.0
 	for k in _medals:
 		(_medals[k] as Medal).tick(_t)
-	queue_redraw()
+	if _dyn != null:
+		_dyn.queue_redraw()
 
 
 ## Centre du médaillon d'un niveau (pour faire défiler la carte jusqu'à lui).
@@ -110,7 +121,7 @@ func select(id: String) -> void:
 	for k in _medals:
 		var m := _medals[k] as Medal
 		m.selected = str(k) == id
-		m.queue_redraw()
+		m.redraw()
 
 
 # ---------------------------------------------------------------- géométrie
@@ -587,103 +598,145 @@ func _build_parts(w: float, h: float) -> void:
 
 # ---------------------------------------------------------------- dessin
 
-func _draw() -> void:
-	var w := size.x
-	var h := size.y
+## Calque de dessin de la carte : il délègue son dessin à la carte.
+class Layer extends Control:
+	var board: MapBoard
+	var kind := 0
+
+	func _draw() -> void:
+		board._draw_layer(self, kind)
+
+
+func _layer(kind: int) -> Layer:
+	var l := Layer.new()
+	l.board = self
+	l.kind = kind
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	l.position = Vector2.ZERO
+	l.size = size
+	add_child(l)
+	move_child(l, kind)
+	return l
+
+
+func _draw_layer(ci: CanvasItem, kind: int) -> void:
+	match kind:
+		0:
+			_draw_base(ci)
+		1:
+			_draw_dyn(ci)
+		_:
+			_draw_top(ci)
+
+
+## Fixe : terrain, décors (du fond vers l'avant, avec leur ombre), chemin verrouillé assombri et lueur dorée
+## du chemin parcouru, ombre du héros.
+func _draw_base(ci: CanvasItem) -> void:
 	if _terrain != null:
-		draw_texture_rect(_terrain, Rect2(0, 0, float(_terrain.get_width() * S), float(_terrain.get_height() * S)), false)
-	# Décors, du fond vers l'avant, avec leur ombre.
+		ci.draw_texture_rect(_terrain, Rect2(0, 0, float(_terrain.get_width() * S), float(_terrain.get_height() * S)), false)
 	for e in _props:
 		var tex: Texture2D = e[0]
 		var reg: Rect2 = e[1]
 		var foot: Vector2 = e[2]
 		var sc: float = e[3]
 		var sz := (reg.size if reg.size != Vector2.ZERO else tex.get_size()) * sc
-		_shadow(foot, sz.x * 0.42)
+		_shadow(ci, foot, sz.x * 0.42)
 		var r := Rect2(foot - Vector2(sz.x * 0.5, sz.y), sz)
 		if reg.size != Vector2.ZERO:
-			draw_texture_rect_region(tex, r, reg)
+			ci.draw_texture_rect_region(tex, r, reg)
 		else:
-			draw_texture_rect(tex, r, false)
-	_draw_progress()
+			ci.draw_texture_rect(tex, r, false)
+	for run in _runs:
+		var pl: PackedVector2Array = run[1]
+		match str(run[0]):
+			"locked":
+				ci.draw_polyline(pl, Color(0.02, 0.03, 0.06, 0.45), 22.0, true)
+			"done":
+				ci.draw_polyline(pl, Color(UiTheme.GOLD, 0.16), 12.0, true)
 	if _hero != null:
-		_shadow(_hero_foot + Vector2(0, -2), 26.0)
+		_shadow(ci, _hero_foot + Vector2(0, -2), 26.0)
+
+
+## Animé : pas dorés et sarcelle, anneau du héros, brume sur le verrouillé, particules.
+func _draw_dyn(ci: CanvasItem) -> void:
+	for run in _runs:
+		var pl: PackedVector2Array = run[1]
+		match str(run[0]):
+			"done":
+				_dots(ci, pl, Color(UiTheme.GOLD, 0.9), 16.0, _t * 10.0, 2.6)
+			"next":
+				_dots(ci, pl, Color(UiTheme.TEAL, 0.95), 14.0, _t * 26.0, 3.2)
+	if _hero != null:
 		var a := 0.35 + 0.2 * sin(_t * 3.0)
-		draw_arc(_hero_foot + Vector2(0, -3), 22.0, 0.0, TAU, 32, Color(UiTheme.TEAL, a), 2.0, true)
-	# Brume sur ce qui reste verrouillé.
+		ci.draw_arc(_hero_foot + Vector2(0, -3), 22.0, 0.0, TAU, 32, Color(UiTheme.TEAL, a), 2.0, true)
 	if _puff == null:
 		_puff = _radial()
 	for f in _fog:
 		var c: Vector2 = f[0]
 		var r2: float = f[1]
 		var drift := sin(_t * 0.25 + float(f[2]) * 6.0) * 18.0
-		draw_texture_rect(_puff, Rect2(c + Vector2(drift - r2, -r2 * 0.6), Vector2(r2 * 2.0, r2 * 1.2)), false, Color(0.03, 0.05, 0.09, 0.8))
-		draw_texture_rect(_puff, Rect2(c + Vector2(-drift - r2 * 0.6, -r2 * 0.3), Vector2(r2 * 1.2, r2 * 0.6)), false, Color(0.7, 0.78, 0.88, 0.07))
-	_draw_parts(w, h)
-	# Vignette et cadre.
+		ci.draw_texture_rect(_puff, Rect2(c + Vector2(drift - r2, -r2 * 0.6), Vector2(r2 * 2.0, r2 * 1.2)), false, Color(0.03, 0.05, 0.09, 0.8))
+		ci.draw_texture_rect(_puff, Rect2(c + Vector2(-drift - r2 * 0.6, -r2 * 0.3), Vector2(r2 * 1.2, r2 * 0.6)), false, Color(0.7, 0.78, 0.88, 0.07))
+	_draw_parts(ci, size.x, size.y)
+
+
+## Fixe : vignette sur les bords et cadre doré.
+func _draw_top(ci: CanvasItem) -> void:
+	var w := size.x
+	var h := size.y
 	for i in range(6):
 		var a2 := 0.10 * float(6 - i) / 6.0
-		draw_rect(Rect2(float(i) * 4.0, 0, 4, h), Color(0, 0, 0, a2))
-		draw_rect(Rect2(w - float(i + 1) * 4.0, 0, 4, h), Color(0, 0, 0, a2))
-	draw_rect(Rect2(1, 1, w - 2, h - 2), Color(UiTheme.GOLD, 0.35), false, 2.0)
+		ci.draw_rect(Rect2(float(i) * 4.0, 0, 4, h), Color(0, 0, 0, a2))
+		ci.draw_rect(Rect2(w - float(i + 1) * 4.0, 0, 4, h), Color(0, 0, 0, a2))
+	ci.draw_rect(Rect2(1, 1, w - 2, h - 2), Color(UiTheme.GOLD, 0.35), false, 2.0)
 
 
-func _shadow(at: Vector2, rx: float) -> void:
+func _shadow(ci: CanvasItem, at: Vector2, rx: float) -> void:
 	var pts := PackedVector2Array()
 	for i in range(16):
 		var a := float(i) / 16.0 * TAU
 		pts.append(at + Vector2(cos(a) * rx, sin(a) * rx * 0.3))
-	draw_colored_polygon(pts, Color(0, 0, 0, 0.28))
+	ci.draw_colored_polygon(pts, Color(0, 0, 0, 0.28))
 
 
-## Le chemin parcouru en or ; des pas sarcelle vers le prochain niveau ; l'inconnu assombri.
-func _draw_progress() -> void:
-	var cur := -1
-	var line := PackedVector2Array()
+## Étapes du chemin et leur état (parcouru, vers le prochain niveau, verrouillé), calculées une seule fois.
+func _build_runs() -> void:
+	_runs.clear()
 	var states: Dictionary = {}
 	for k in range(ids.size() + 1):
 		states[k] = _seg_state(k)
-	var runs: Array = []
+	var cur := -1
+	var line := PackedVector2Array()
 	for i in range(_road.size()):
 		var k := _seg[i]
 		if k != cur:
 			if line.size() > 1:
-				runs.append([cur, line])
+				_runs.append([str(states.get(cur, "locked")), line])
 			line = PackedVector2Array()
 			if i > 0:
 				line.append(_road[i - 1])
 			cur = k
 		line.append(_road[i])
 	if line.size() > 1:
-		runs.append([cur, line])
-	for run in runs:
-		var st := str(states.get(int(run[0]), "locked"))
-		var pl: PackedVector2Array = run[1]
-		match st:
-			"locked":
-				draw_polyline(pl, Color(0.02, 0.03, 0.06, 0.45), 22.0, true)
-			"done":
-				draw_polyline(pl, Color(UiTheme.GOLD, 0.16), 12.0, true)
-				_dots(pl, Color(UiTheme.GOLD, 0.9), 16.0, _t * 10.0, 2.6)
-			"next":
-				_dots(pl, Color(UiTheme.TEAL, 0.95), 14.0, _t * 26.0, 3.2)
+		_runs.append([str(states.get(cur, "locked")), line])
 
 
-func _dots(pl: PackedVector2Array, c: Color, step: float, offset: float, r: float) -> void:
+func _dots(ci: CanvasItem, pl: PackedVector2Array, c: Color, step: float, offset: float, r: float) -> void:
 	var acc := fposmod(offset, step)
+	var halo := Color(c, c.a * 0.22)
 	for i in range(1, pl.size()):
 		var a := pl[i - 1]
 		var b := pl[i]
 		var d := a.distance_to(b)
 		while acc <= d:
 			var p := a.lerp(b, acc / maxf(d, 0.001))
-			draw_circle(p, r + 2.5, Color(c, c.a * 0.22))
-			draw_circle(p, r, c)
+			ci.draw_circle(p, r + 2.5, halo)
+			ci.draw_circle(p, r, c)
 			acc += step
 		acc -= d
 
 
-func _draw_parts(w: float, h: float) -> void:
+func _draw_parts(ci: CanvasItem, w: float, h: float) -> void:
 	if _parts.is_empty():
 		return
 	var cfg: Array = PARTS.get(zone, PARTS[1])
@@ -710,14 +763,14 @@ func _draw_parts(w: float, h: float) -> void:
 				r = 2.0
 			"mist":
 				q = Vector2(fposmod(p.x + _t * 9.0, w + 200.0) - 100.0, p.y)
-				draw_texture_rect(_puff, Rect2(q - Vector2(90, 26), Vector2(180, 52)), false, Color(col, 0.08))
+				ci.draw_texture_rect(_puff, Rect2(q - Vector2(90, 26), Vector2(180, 52)), false, Color(col, 0.08))
 				continue
 			_:
 				q = Vector2(fposmod(p.x + _t * 18.0 + sin(_t + ph) * 10.0, w), p.y + sin(_t * 0.8 + ph) * 12.0)
 				a = 0.35 + 0.4 * absf(sin(_t * 1.1 + ph))
 				r = 1.6
-		draw_circle(q, r * 2.6, Color(col, a * 0.18))
-		draw_circle(q, r, Color(col, a))
+		ci.draw_circle(q, r * 2.6, Color(col, a * 0.18))
+		ci.draw_circle(q, r, Color(col, a))
 
 
 static func _radial() -> GradientTexture2D:
@@ -747,11 +800,18 @@ class Medal extends Button:
 	var anim := true
 	var diameter := 90.0
 	var _t := 0.0
+	var _under: Under ## ombre, halo du prochain niveau, anneau de sélection : seuls redessinés à chaque image
 
 	func setup(d: float) -> void:
 		diameter = d
 		custom_minimum_size = Vector2(d + 24.0, d + 40.0)
 		size = custom_minimum_size
+		_under = Under.new()
+		_under.medal = self
+		_under.show_behind_parent = true
+		_under.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_under.size = size
+		add_child(_under)
 		focus_mode = Control.FOCUS_NONE
 		flat = true
 		for s in ["normal", "hover", "pressed", "focus", "disabled", "hover_pressed"]:
@@ -767,25 +827,41 @@ class Medal extends Button:
 	func tick(t: float) -> void:
 		_t = t
 		if anim and (state == "next" or selected):
-			queue_redraw()
+			_under.queue_redraw()
+
+	## Tout redessiner (changement de sélection).
+	func redraw() -> void:
+		queue_redraw()
+		_under.queue_redraw()
+
+	func ring_color() -> Color:
+		var lock := state == "locked"
+		var ring := UiTheme.GOLD if state == "done" else (UiTheme.TEAL if state == "next" else Color("4a5868"))
+		if kind == "Boss" and not lock:
+			ring = Color("ff6b6b") if state == "next" else UiTheme.GOLD
+		return ring
+
+	## Sous le médaillon (dessiné avant lui) : son ombre, le halo qui palpite, l'anneau de sélection.
+	func draw_under(ci: CanvasItem) -> void:
+		var c := center()
+		var r := diameter * 0.5
+		var ring := ring_color()
+		ci.draw_circle(c + Vector2(0, 7), r, Color(0, 0, 0, 0.4))
+		if state == "next":
+			var p := 0.5 + 0.5 * sin(_t * 3.0)
+			ci.draw_circle(c, r + 10.0 + 4.0 * p, Color(ring, 0.10 + 0.08 * p))
+			ci.draw_circle(c, r + 5.0, Color(ring, 0.18))
+		if selected:
+			ci.draw_arc(c, r + 7.0, 0.0, TAU, 72, Color(UiTheme.GOLD, 0.9), 3.0, true)
+			for k in range(4):
+				var a := _t * 0.8 + float(k) * PI * 0.5
+				ci.draw_circle(c + Vector2.from_angle(a) * (r + 7.0), 3.5, UiTheme.GOLD)
 
 	func _draw() -> void:
 		var c := center()
 		var r := diameter * 0.5
 		var lock := state == "locked"
-		var ring := UiTheme.GOLD if state == "done" else (UiTheme.TEAL if state == "next" else Color("4a5868"))
-		if kind == "Boss" and not lock:
-			ring = Color("ff6b6b") if state == "next" else UiTheme.GOLD
-		draw_circle(c + Vector2(0, 7), r, Color(0, 0, 0, 0.4))
-		if state == "next":
-			var p := 0.5 + 0.5 * sin(_t * 3.0)
-			draw_circle(c, r + 10.0 + 4.0 * p, Color(ring, 0.10 + 0.08 * p))
-			draw_circle(c, r + 5.0, Color(ring, 0.18))
-		if selected:
-			draw_arc(c, r + 7.0, 0.0, TAU, 72, Color(UiTheme.GOLD, 0.9), 3.0, true)
-			for k in range(4):
-				var a := _t * 0.8 + float(k) * PI * 0.5
-				draw_circle(c + Vector2.from_angle(a) * (r + 7.0), 3.5, UiTheme.GOLD)
+		var ring := ring_color()
 		# Ornements : piques du boss (5) et du mini-boss (3).
 		var spikes := 5 if kind == "Boss" else (3 if kind == "Mini-boss" else 0)
 		for k in range(spikes):
@@ -831,3 +907,11 @@ class Medal extends Button:
 		var outline := pts.duplicate()
 		outline.append(pts[0])
 		draw_polyline(outline, Color(0, 0, 0, 0.7) if on else Color(UiTheme.GOLD, 0.45), 1.5, true)
+
+
+## Calque sous un médaillon (show_behind_parent) : il délègue son dessin au médaillon.
+class Under extends Control:
+	var medal: Medal
+
+	func _draw() -> void:
+		medal.draw_under(self)
