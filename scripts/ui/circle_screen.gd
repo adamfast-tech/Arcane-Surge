@@ -96,30 +96,47 @@ func _formation(avail: Array[String], active: Array[String]) -> PanelContainer:
 	top.add_child(UiTheme.label("BIVOUAC · %s" % _zone_name(zone).to_upper(), 14, UiTheme.MUTED))
 	var w := minf(680.0, get_viewport_rect().size.x - 36.0) - 24.0
 	var camp := Camp.new()
-	camp.custom_minimum_size = Vector2(w, 280)
+	camp.custom_minimum_size = Vector2(w, Camp.H)
 	camp.anim = Profile.ambience_on()
-	camp.bg = StoryArt.plate(_plate_for(next, zone), Vector2i(int(w / 3.0), 94))
+	# Le lieu au loin : la planche, rendue petite (pixels de 2), ne montre que son ciel, son horizon et son
+	# sujet (chariot, moulins, portes…), placés au-dessus des têtes ; le premier plan est le sol du bivouac,
+	# à la couleur du terrain de la zone.
+	var kind := _plate_for(next, zone)
+	var frac := _horizon(kind)
+	var pw := int(w / Camp.S)
+	var ph := 130
+	# Planche plus large que la scène : son sujet (au milieu) tombe entre le compagnon de gauche et le héros,
+	# au lieu d'être caché derrière lui.
+	var pw2 := int(float(pw) * 1.5)
+	camp.bg = StoryArt.plate(kind, Vector2i(pw2, ph))
+	camp.src = Rect2(float(pw2) * 0.5 - float(pw) * 0.34, float(ph) * frac - Camp.HORIZON / Camp.S, float(pw), Camp.FAR / Camp.S)
+	var img := camp.bg.get_image()
+	var gy := clampi(int(float(ph) * frac + Camp.FAR / Camp.S - Camp.HORIZON / Camp.S) - 2, 0, ph - 1)
+	var acc := Color(0, 0, 0, 0)
+	for x in range(0, pw2, 4):
+		acc += img.get_pixel(x, gy)
+	camp.ground = Color(acc.r, acc.g, acc.b) / float(maxi(1, int(ceil(float(pw2) / 4.0))))
 	v.add_child(camp)
 	var circ := Profile.circle()
 	SpriteAtlas.set_player(Profile.look(), Profile.race(), Profile.player_class())
 	var hero := GearUi.figure("player", 128)
 	camp.add_child(hero)
 	hero.size = hero.custom_minimum_size
-	hero.position = Vector2(w * 0.5 - hero.size.x * 0.5, 40.0)
+	hero.position = Vector2(w * 0.5 - hero.size.x * 0.5, Camp.FEET - hero.size.y)
 	var hl := _tag("TOI", UiTheme.TEAL)
 	camp.add_child(hl)
-	hl.position = Vector2(w * 0.5 - 22.0, 172.0)
+	hl.position = Vector2(w * 0.5 - 22.0, Camp.FEET + 2.0)
 	for who in active:
 		var bd := _bot(who)
 		var side := _side_of(who, bd, circ)
 		var x := w * (0.2 if side == "left" else 0.8)
 		var fb := _figure_button(who, 112.0)
 		camp.add_child(fb)
-		fb.position = Vector2(x - fb.custom_minimum_size.x * 0.5, 60.0)
+		fb.position = Vector2(x - fb.custom_minimum_size.x * 0.5, Camp.FEET + 4.0 - fb.custom_minimum_size.y)
 		var tg := _tag("%s · %s" % ["GAUCHE" if side == "left" else "DROITE", Dialogues.display_name(who).to_upper()], Dialogues.color(who))
 		camp.add_child(tg)
-		tg.position = Vector2(x - 70.0, 196.0)
-	camp.fire_at = Vector2(w * 0.5, 236.0)
+		tg.position = Vector2(x - 70.0, Camp.FEET + 22.0)
+	camp.fire_at = Vector2(w * 0.5, Camp.FEET + 56.0)
 	var nl := UiTheme.label("Prochaine étape : %s · %s" % [str(lv.get("number", "")), str(lv.get("name", ""))], 14, UiTheme.MUTED)
 	nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(nl)
@@ -161,6 +178,23 @@ static func _plate_for(level_id: String, zone: int) -> String:
 	if PLATE_ALIAS.has(sc):
 		return str(PLATE_ALIAS[sc])
 	return sc if sc != "" else str(RoomArt.ZONE_PLATES.get(zone, "foret"))
+
+
+## Hauteur de l'horizon dans une planche (part de sa hauteur), selon sa famille de décors.
+static func _horizon(kind: String) -> float:
+	if kind in ["steppe", "moulins", "campement", "orage", "traite", "fort", "route", "pylones", "gue", "caravane", "rebouteux"]:
+		return 0.55
+	if kind in ["marais", "cercle", "hydre", "refuge", "pilotis", "mares", "brume", "gue_morts", "croc", "barque", "sorciere"]:
+		return 0.57
+	if kind in ["pics", "porte", "lac", "forteresse", "colosse", "col", "congeres", "sentinelle", "aurore", "chariot", "portes"]:
+		return 0.63
+	if kind in ["dunes", "oasis", "miroirs", "college", "desert_nuit", "sphinx", "mirage", "scarabee", "caravane_sable", "sceaux"]:
+		return 0.62
+	if kind in ["cendres", "coulee", "braisemont", "nid", "autels", "citadelle", "caldeira", "antre", "lisiere_cendree", "couloirs", "ailes", "drake"]:
+		return 0.67
+	if kind in ["cite", "quais", "canal", "statues", "archives", "palais", "abysse", "marees", "kraken", "cloche", "portes_archives", "sirenes", "fil", "fosse"]:
+		return 0.62
+	return 0.64
 
 
 static func _zone_name(zone: int) -> String:
@@ -480,8 +514,15 @@ func _save() -> void:
 
 ## Le feu de camp au centre de la formation : lueur au sol, bûches, flammes et étincelles.
 class Camp extends Control:
+	const H := 300.0 ## hauteur de la scène
+	const S := 2.0 ## taille d'un pixel du décor lointain
+	const HORIZON := 104.0 ## l'horizon, au-dessus des têtes
+	const FEET := 206.0 ## le sol où se tiennent les personnages
+	const FAR := 150.0 ## hauteur du décor lointain (sous elle : le sol du bivouac)
 	var fire_at := Vector2.ZERO
 	var bg: Texture2D ## le lieu du bivouac
+	var src := Rect2() ## partie de la planche montrée (l'horizon à HORIZON)
+	var ground := Color("2a2a2a") ## couleur du sol du bivouac (celle du terrain de la planche)
 	var anim := true
 	var _t := 0.0
 
@@ -500,11 +541,25 @@ class Camp extends Control:
 		var fl := 1.0 + 0.06 * sin(_t * 9.0) + 0.04 * sin(_t * 23.0)
 		# Le lieu, à la tombée de la nuit : le décor assombri, le sol plongé dans l'ombre.
 		if bg != null:
-			draw_texture_rect(bg, Rect2(Vector2.ZERO, size), false)
-			draw_rect(Rect2(Vector2.ZERO, size), Color(0.04, 0.05, 0.12, 0.42))
-			for k in range(12):
-				var y0 := size.y * (0.45 + 0.05 * float(k))
-				draw_rect(Rect2(0, y0, size.x, size.y * 0.05 + 1.0), Color(0.03, 0.03, 0.06, 0.06 + 0.045 * float(k)))
+			draw_texture_rect_region(bg, Rect2(0, 0, size.x, FAR), src)
+			# Le sol du bivouac : la couleur du terrain, qui recouvre en fondu le bas du décor.
+			draw_rect(Rect2(0, FAR, size.x, size.y - FAR), ground)
+			for k in range(10):
+				draw_rect(Rect2(0, FAR - 30.0 + float(k) * 3.0, size.x, 3.0), Color(ground, 0.1 * float(k + 1)))
+			var rng := RandomNumberGenerator.new()
+			rng.seed = 7
+			for i in range(int(size.x * (size.y - FAR) / 260.0)):
+				var gp := Vector2(rng.randf() * size.x, FAR + rng.randf() * (size.y - FAR))
+				draw_rect(Rect2(gp, Vector2(2, 2)), Color(ground.darkened(0.3) if i % 2 else ground.lightened(0.12), 0.8))
+			draw_rect(Rect2(Vector2.ZERO, size), Color(0.04, 0.05, 0.12, 0.40))
+			# Brume du lointain sur l'horizon : le décor recule derrière les personnages.
+			for k in range(8):
+				var hy := HORIZON - 36.0 + float(k) * 9.0
+				draw_rect(Rect2(0, hy, size.x, 9.0), Color(0.62, 0.68, 0.82, 0.05 + 0.012 * float(4 - absi(k - 4))))
+			# Le sol du bivouac, au premier plan, plongé dans l'ombre de la nuit.
+			for k in range(14):
+				var y0 := HORIZON + 28.0 + float(k) * 12.0
+				draw_rect(Rect2(0, y0, size.x, 12.0), Color(0.03, 0.03, 0.06, 0.10 + 0.05 * float(k)))
 			for k2 in range(5):
 				draw_rect(Rect2(float(k2) * 6.0, 0, 6, size.y), Color(0, 0, 0, 0.12 - 0.02 * float(k2)))
 				draw_rect(Rect2(size.x - float(k2 + 1) * 6.0, 0, 6, size.y), Color(0, 0, 0, 0.12 - 0.02 * float(k2)))
@@ -514,7 +569,7 @@ class Camp extends Control:
 			_ellipse(f + Vector2(0, 6), r, r * 0.28, Color(1.0, 0.55, 0.2, 0.05 + 0.025 * float(k)))
 		# Ombres des personnages.
 		for x in [0.2, 0.5, 0.8]:
-			_ellipse(Vector2(size.x * float(x), 170.0), 46.0, 10.0, Color(0, 0, 0, 0.35))
+			_ellipse(Vector2(size.x * float(x), FEET), 46.0, 10.0, Color(0, 0, 0, 0.4))
 		# Bûches.
 		draw_line(f + Vector2(-30, 8), f + Vector2(30, -2), Color("4a2e1a"), 9.0)
 		draw_line(f + Vector2(-30, -2), f + Vector2(30, 8), Color("5a3820"), 9.0)
