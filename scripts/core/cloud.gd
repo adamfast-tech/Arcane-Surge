@@ -230,6 +230,24 @@ func fetch_remote() -> Variant:
 	return rows[0]["data"]
 
 
+## Tour des Échos : envoie le meilleur étage de la semaine (le serveur garde le meilleur) avec l'allure du héros.
+## Renvoie le record de la semaine enregistré, ou -1.
+func tower_submit(floor: int, cls: String, race: String, look: Dictionary, cos: Dictionary, gear: Dictionary) -> int:
+	if not is_online():
+		return -1
+	var r := await _authed(HTTPClient.METHOD_POST, "/rest/v1/rpc/arcane_tower_submit",
+		{"p_floor": floor, "p_cls": cls, "p_race": race, "p_look": look, "p_cos": cos, "p_gear": gear})
+	if not r["ok"] or r["data"] == null:
+		return -1
+	return int(r["data"])
+
+
+## Classement de la Tour pour la semaine en cours (50 premiers), lisible sans compte.
+func tower_board() -> Array:
+	var r := await _request(HTTPClient.METHOD_POST, "/rest/v1/rpc/arcane_tower_board", {}, access_token != "")
+	return r["data"] if r["ok"] and r["data"] is Array else []
+
+
 ## Versions précédentes gardées par le serveur (5 au plus), de la plus récente à la plus ancienne.
 func fetch_history() -> Array:
 	if not is_online():

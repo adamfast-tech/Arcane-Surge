@@ -796,6 +796,9 @@ func _run() -> void:
 	if not await _forge_scene_ok():
 		quit(1)
 		return
+	if not await _quests_tower_place_ok():
+		quit(1)
+		return
 	# Bibliothèque, onglet Classes : Ultime, sorts d'arbre et sorts de compagnon de chaque classe.
 	var cs := LibraryScreen.class_spells("chevalier")
 	var tree_ids: Array[String] = []
@@ -2139,6 +2142,133 @@ func _forge_scene_ok() -> bool:
 		push_error("forge animée : %s" % [errs])
 		return false
 	print("forge animée : Durgan en volume (lunettes, marteau) · fusion et gravure jouées jusqu'au bout, passables, lancées par les boutons de la Forge avec la rune choisie")
+	return true
+
+
+## Défis et hauts faits (doc 47), Tour des Échos (doc 48), place d'Havre-Aube (doc 49).
+func _quests_tower_place_ok() -> bool:
+	var errs: Array[String] = []
+	var saved: Dictionary = Profile.data.duplicate(true)
+	Profile.data["quests"] = {}
+	# Défis : 3 du jour et 2 de la semaine, stables dans la période, renouvelés à la suivante.
+	var now := 1.8e9
+	var qs := Profile.quests(now)
+	var first := JSON.stringify(qs["daily"])
+	if (qs["daily"] as Array).size() != 3 or (qs["weekly"] as Array).size() != 2:
+		errs.append("défis : %d du jour, %d de la semaine" % [(qs["daily"] as Array).size(), (qs["weekly"] as Array).size()])
+	if JSON.stringify(Profile.quests(now + 60.0)["daily"]) != first:
+		errs.append("défis du jour changés dans la journée")
+	Profile.quests(now + 86400.0 * 3.0)
+	# Un défi « remporte N combats » avance avec les combats, se réclame une fois.
+	Profile.data["quests"] = {"day": Profile.quest_day(), "daily": [{"id": "d_wins", "p": 0, "claimed": false}, {"id": "d_kills", "p": 0, "claimed": false}, {"id": "d_spells", "p": 0, "claimed": false}],
+		"week": Profile.quest_week(), "weekly": [{"id": "w_wins", "p": 0, "claimed": false}, {"id": "w_spells", "p": 0, "claimed": false}]}
+	var g0 := Profile.gold()
+	for i in range(3):
+		Profile.record_battle("z01_l01", true, {"kills": 60, "spells": 15, "elems": {"feu": 15}, "barrier_low": 0.9, "stars": 3, "gold": 50})
+	var d: Array = Profile.quests()["daily"]
+	if not (Profile.quest_done(d[0]) and Profile.quest_done(d[1]) and Profile.quest_done(d[2])):
+		errs.append("défis : progression %s" % [d])
+	if Profile.quests_claimable() < 3:
+		errs.append("défis : %d à réclamer" % Profile.quests_claimable())
+	var got := Profile.claim_quest(false, 0)
+	if got.is_empty() or Profile.gold() <= g0 or not Profile.claim_quest(false, 0).is_empty():
+		errs.append("défis : réclamer incorrect")
+	# Hauts faits : « Premiers pas » débloqué, titre porté.
+	if not Profile.achievement_unlocked("premiers_pas"):
+		errs.append("haut fait « Premiers pas » non débloqué")
+	Profile.set_title("premiers_pas")
+	if Profile.title() != "Apprenti canalisateur":
+		errs.append("titre : %s" % Profile.title())
+	Profile.set_title("legende")
+	if Profile.title() != "Apprenti canalisateur":
+		errs.append("titre d'un haut fait verrouillé accepté")
+	# Tour des Échos : étages composés, boss tous les 10, bonus, défaite qui clôt l'ascension.
+	Profile.data["levels"]["z01_l10"] = {"stars": 1, "best": 200.0, "clears": 1}
+	Profile.tower_start()
+	var run := Profile.tower_run()
+	var l1 := Profile.tower_level(1, int(run["seed"]))
+	var l5 := Profile.tower_level(5, int(run["seed"]))
+	var l10 := Profile.tower_level(10, int(run["seed"]))
+	var l30 := Profile.tower_level(30, int(run["seed"]))
+	if str(l10.get("objective", "")) != "boss" or str(l5.get("type", "")) != "Mini-boss" or l1.has("story_mods") or str(l1.get("type", "")) in ["Boss", "Mini-boss", "Escorte"]:
+		errs.append("tour : étages mal composés (%s, %s, %s)" % [l1.get("type"), l5.get("type"), l10.get("type")])
+	if l30.has("nexus") and l1.has("nexus") and float(l30["nexus"]["hp"]) <= float(GameData.level(str(l30["decor_id"]))["nexus"]["hp"]):
+		errs.append("tour : pas de renforcement")
+	var r1 := Profile.tower_floor_done(true)
+	if int(r1.get("gold", 0)) <= 0 or int(Profile.tower_run()["floor"]) != 2 or (Profile.tower_run()["choice"] as Array).size() != 3:
+		errs.append("tour : victoire d'étage incorrecte")
+	var boon := str(Profile.tower_run()["choice"][0])
+	Profile.tower_pick_boon(boon)
+	var mods := Profile.tower_opts(2)["mods"] as Dictionary
+	var bm: Dictionary = Profile.tower_boon(boon)["mods"]
+	var mk := str(bm.keys()[0])
+	if float(mods.get(mk, 0.0)) < float(bm[mk]) - 0.001:
+		errs.append("tour : bonus non appliqué (%s)" % boon)
+	Profile.tower_floor_done(false)
+	if not Profile.tower_run().is_empty() or Profile.tower_best() != 1:
+		errs.append("tour : la défaite ne clôt pas l'ascension (record %d)" % Profile.tower_best())
+	# Un étage se joue : le combat accepte un niveau composé.
+	Profile.tower_start()
+	var o := Profile.tower_opts(1)
+	o["level_data"] = Profile.tower_level(1, int(Profile.tower_run()["seed"]))
+	var bs := BattleScreen.new()
+	bs.configure("tour", false, o)
+	root.add_child(bs)
+	await _frames(3)
+	if bs.sim == null or str(bs._level.get("id", "")) != "tour_1":
+		errs.append("tour : l'étage ne se lance pas")
+	bs.queue_free()
+	await _frames(1)
+	Profile.tower_abandon()
+	# Écrans.
+	var qsc := QuestsScreen.new()
+	root.add_child(qsc)
+	await _frames(1)
+	qsc.tab = "hauts"
+	qsc._rebuild()
+	await _frames(1)
+	if qsc.find_children("*", "Button", true, false).size() < 20:
+		errs.append("écran des hauts faits incomplet")
+	qsc.queue_free()
+	var tsc := TowerScreen.new()
+	root.add_child(tsc)
+	await _frames(2)
+	var labels: Array[String] = []
+	for bt in tsc.find_children("*", "Button", true, false):
+		labels.append((bt as Button).text)
+	if not labels.has("COMMENCER L'ASCENSION"):
+		errs.append("Tour : pas de bouton pour commencer (%s)" % [labels])
+	tsc.queue_free()
+	# Place d'Havre-Aube : marchands en volume, le héros marche vers un lieu et l'ouvre.
+	var hub := HubScreen.new()
+	root.add_child(hub)
+	await _frames(2)
+	var places := hub.find_children("*", "HavrePlace", true, false)
+	if places.is_empty():
+		errs.append("pas de place dans Havre-Aube")
+	else:
+		var pl: HavrePlace = places[0]
+		if not (pl._npcs.has("forge") and pl._npcs.has("armurerie") and pl._npcs.has("bibliotheque")):
+			errs.append("place : marchands absents (%s)" % [pl._npcs.keys()])
+		var opened: Array[String] = [""]
+		pl.open.connect(func(r: String) -> void: opened[0] = r)
+		pl.go_to("armory")
+		var x0 := pl._hero_x
+		for i in range(300):
+			pl._process(0.05)
+			if opened[0] != "":
+				break
+		if opened[0] != "armory" or absf(pl._hero_x - x0) < 50.0:
+			errs.append("place : le héros n'est pas allé à l'Armurerie (%s)" % opened[0])
+		pl._tap(Vector2(20, 400))
+		if pl._target < 0.0 or pl._goal != "":
+			errs.append("place : toucher la rue ne fait pas marcher")
+	hub.queue_free()
+	Profile.data = saved
+	if not errs.is_empty():
+		push_error("défis, tour, place : %s" % [errs])
+		return false
+	print("défis et hauts faits (3 du jour, 2 de la semaine, titres) · Tour des Échos (étages, boss, bonus, record) · place d'Havre-Aube (marchands, promenade)")
 	return true
 
 

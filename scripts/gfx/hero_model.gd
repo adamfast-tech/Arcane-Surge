@@ -820,6 +820,12 @@ func build_companion(who: String, cls: String) -> void:
 			_ssareth(cls)
 		"durgan":
 			_durgan()
+		"aldric":
+			_aldric()
+		"ossian":
+			_ossian()
+		"aelis":
+			_aelis()
 	_build_surface()
 
 
@@ -1138,6 +1144,130 @@ func _durgan() -> void:
 			_pw(6, y, z, iron[3] if (z == -4 or z == 2) else (iron[2] if y == 16 else iron[1]))
 			_pw(5, y, z, iron[1])
 			_pw(7, y, z, iron[1])
+
+
+## Aldric, l'armurier : cheveux bruns bouclés grisonnant aux tempes, barbe courte, anneau d'or à l'oreille,
+## chemise bordeaux, tablier de cuir à bretelles, mètre de tailleur autour du cou.
+func _aldric() -> void:
+	pivots = HERO_PIVOTS.duplicate()
+	var sk := [Color("9a5a44"), Color("d0906a"), Color("ecb48e")]
+	var shirt := [Color("2a0c12"), Color("3a1018"), Color("6a1e2a"), Color("8a2e3a")]
+	var leather := [Color("2a1a10"), Color("4a2e1a"), Color("6a4428"), Color("8a5e38")]
+	var hair := [Color("2a1a14"), Color("4a2e20"), Color("6a4430")]
+	_comp_body(shirt, sk, Color("3a2a1a"), true, 0.2, false, leather[1])
+	_part = "legs"
+	_keep = true
+	for p in vox.keys():
+		var q: Vector3i = p
+		if str(vox[q][2]) == "legs" and q.y > 0:
+			_put(q.x, q.y, q.z, Color("2e2a3a"))
+	_keep = false
+	# Tablier de cuir et bretelles, mètre de tailleur jaune autour du cou.
+	_part = "body"
+	for y in range(6, 12):
+		for x in range(-3, 4):
+			_put(x, y, _front(x, y), leather[2] if absi(x) < 3 else leather[1])
+	for y in range(12, 15):
+		for side: int in [-1, 1]:
+			_put(side * 2, y, _front(side * 2, y), leather[1])
+	for y in range(11, 15):
+		_put(-1, y, _front(-1, y) - 1, Color("e8c84a") if y % 2 else Color("2a2a2a"))
+		_put(1, y, _front(1, y) - 1, Color("e8c84a") if y % 2 == 0 else Color("2a2a2a"))
+	# Cheveux bouclés, tempes grises, barbe courte, anneau d'or.
+	_part = "head"
+	_hair("courts", hair)
+	for q in [Vector3i(-2, 23, 0), Vector3i(1, 23, 1), Vector3i(3, 22, -1), Vector3i(-3, 22, 1), Vector3i(0, 24, 0), Vector3i(2, 23, -2)]:
+		_put(q.x, q.y, q.z, hair[2])
+	for side: int in [-1, 1]:
+		_put(side * 4, 18, 0, Color("9a9aa8"))
+		_put(side * 4, 19, 0, Color("b0b0bc"))
+	for y in range(15, 18):
+		for x in range(-2, 3):
+			if absi(x) + (17 - y) <= 3:
+				_put(x, y, _front(x, y), hair[1] if (x + y) % 2 else hair[0])
+	_put(-4, 17, 0, Color("f2c46b"), true)
+	_part = "hand"
+	# Un mètre déroulé dans la main droite.
+	for y in range(3, 8):
+		_pw(5, y, -1, Color("e8c84a") if y % 2 else Color("2a2a2a"))
+
+
+## Ossian, l'archiviste : cheveux blancs tirés en arrière, front dégarni, longue barbe blanche en pointe,
+## demi-lunes d'argent, robe verte sombre à capuche rabattue, clé d'or au cou, un grand livre dans la main gauche.
+func _ossian() -> void:
+	pivots = HERO_PIVOTS.duplicate()
+	var sk := [Color("8a5a48"), Color("c48c6e"), Color("e2b090")]
+	var white := [Color("7a7a88"), Color("b4b4c0"), Color("dedee8"), Color("f6f6fa")]
+	var robe := [Color("16201a"), Color("263a2c"), Color("3a5640"), Color("52744e")]
+	_comp_body(robe, sk, Color("2a3a4a"), false, 0.0, false, Color("8a6a2a"))
+	# Capuche rabattue sur les épaules, clé des archives.
+	_part = "body"
+	for x in range(-4, 5):
+		for z in range(-1, 4):
+			var d := Vector2(float(x) / 4.6, float(z - 1) / 3.0).length()
+			if d <= 1.0 and d > 0.5:
+				_put(x, 14, z, robe[3])
+	_put(0, 12, _front(0, 12) - 1, Color("e6c15a"), true)
+	_put(0, 11, _front(0, 11) - 1, Color("8a6a2a"))
+	# Cheveux blancs tirés en arrière (front dégarni), longue barbe en pointe, demi-lunes.
+	_part = "head"
+	for y in range(18, 24):
+		var dy := (float(y) - 19.0) / 3.6
+		var k := sqrt(maxf(0.0, 1.0 - dy * dy))
+		for x in range(-5, 6):
+			for z in range(-5, 6):
+				if Vector2(float(x) / (3.6 * k + 0.9), float(z) / (3.2 * k + 0.9)).length() > 1.0:
+					continue
+				if z < 0 and y < 22:
+					continue ## le front dégarni et le visage restent visibles
+				_put(x, y, z, white[2] if (x + y) % 3 else white[1])
+	for y in range(9, 17):
+		for x in range(-3, 4):
+			var w := 3 if y > 14 else (2 if y > 11 else 1)
+			if absi(x) <= w:
+				_put(x, y, _front(x, y) - (1 if y < 15 else 0), white[3] if (x + y) % 3 else white[2])
+	for side: int in [-1, 1]:
+		_put(side, 19, _front(side, 19) - 1, Color("cfd6e4"))
+		_put(side * 2, 19, _front(side * 2, 19), Color("8a90a0"))
+	# Plume derrière l'oreille droite.
+	_put(4, 21, 1, Color("f0ece0"))
+	_put(5, 22, 2, Color("f0ece0"))
+	# Un grand livre relié de cuir, dans la main gauche.
+	_part = "hand"
+	for y in range(5, 11):
+		for z in range(-3, 1):
+			_put(-6, y, z, Color("6a2a1a") if z > -3 else Color("e6c15a"))
+			_put(-7, y, z, Color("f0e8d0") if y > 5 and y < 10 and z > -3 else Color("4a1a10"))
+
+
+## Sœur Aelis, gardienne de la Salle de méditation : voile blanc sur les épaules, guimpe, diadème solaire d'or,
+## robe claire à étole dorée, pendentif solaire, un bâton surmonté d'un soleil.
+func _aelis() -> void:
+	pivots = HERO_PIVOTS.duplicate()
+	var sk := [Color("b88a72"), Color("e2b89c"), Color("f8dcc4")]
+	var veil := [Color("9a96a8"), Color("d0ccdc"), Color("eeeaf6"), Color("ffffff")]
+	var robe := [Color("6a5a3a"), Color("d8c08a"), Color("f2e2b8"), Color("ffffff")]
+	var gold := [Color("8a6a28"), Color("c89a3a"), Color("f2c46b"), Color("fff0b0")]
+	_comp_body(robe, sk, Color("7a9ac8"), false, -0.1, false, gold[1])
+	# Étole dorée qui descend devant, pendentif solaire.
+	_part = "body"
+	for y in range(4, 14):
+		for side: int in [-1, 1]:
+			_put(side * 2, y, _front(side * 2, y), gold[2] if y % 3 else gold[1])
+	_put(0, 12, _front(0, 12) - 1, gold[3], true)
+	# Voile : coque autour de la tête ouverte sur le visage, qui tombe sur les épaules ; guimpe blanche.
+	_part = "head"
+	_hood([veil[0], veil[1], veil[2], veil[3]])
+	for x in range(-2, 3):
+		_put(x, 21, _front(x, 21), veil[3])
+	# Diadème solaire.
+	for x in range(-3, 4):
+		_put(x, 22, _front(x, 22) - 1, gold[2])
+	_put(0, 23, _front(0, 23) - 1, gold[3], true)
+	_put(-1, 23, _front(-1, 23) - 1, gold[2])
+	_put(1, 23, _front(1, 23) - 1, gold[2])
+	_part = "hand"
+	_weapon("clerc", robe, gold[3])
 
 
 ## Corps commun des autres compagnons : jambes, robe longue ou tunique, ceinture, col, bras et mains, cou, tête

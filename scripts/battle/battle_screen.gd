@@ -111,6 +111,9 @@ var _hover_cell := -1
 var _cell_ids: Array[String] = []
 
 
+var _feats: Array = [] ## hauts faits débloqués par ce combat
+
+
 func configure(id: String, solo_mode: bool, opts: Dictionary = {}) -> void:
 	_mode = str(opts.get("spell_mode", "deck"))
 	_opts = opts
@@ -129,7 +132,8 @@ func _exit_tree() -> void:
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_level = GameData.level(level_id)
+	# Tour des Échos : l'étage est un niveau composé (Profile.tower_level), passé dans les options.
+	_level = _opts["level_data"] if _opts.get("level_data") is Dictionary else GameData.level(level_id)
 	sim = BattleSim.new()
 	var o := _opts.duplicate()
 	o["solo"] = solo
@@ -150,7 +154,7 @@ func _ready() -> void:
 	arena = Arena3D.new()
 	vp.add_child(arena)
 	WorldArt.zone = int(_level.get("zone", 1))
-	WorldArt.scene = str(WorldArt.LEVEL_SCENE.get(level_id, ""))
+	WorldArt.scene = str(WorldArt.LEVEL_SCENE.get(str(_level.get("decor_id", level_id)), ""))
 	if _opts.has("look"):
 		SpriteAtlas.set_player(_opts["look"], str(_opts.get("player_race", "elfe")), str(_opts.get("player_class", "mage")))
 	arena.setup(sim, UiTheme.font(), bool(_opts.get("healed", false)))
@@ -1508,15 +1512,76 @@ func _bot_idx(side: String) -> int:
 	return -1
 
 
+## Fin d'un étage de la Tour des Échos : ses récompenses, puis le choix d'un bonus (victoire) ou la fin de l'ascension.
+func _open_tower_end(win: bool) -> void:
+	if _rewards.is_empty():
+		var tw: Dictionary = _level.get("tower", {})
+		_rewards = Profile.tower_floor_done(win)
+		_feats = Profile.record_battle("", win, {"kills": sim.kills, "spells": sim.spells_cast, "elems": sim.elem_casts,
+			"barrier_low": sim.barrier_low, "stars": sim.stars, "gold": int(_rewards.get("gold", 0)), "zone": int(tw.get("zone", 0)),
+			"boss": bool(tw.get("boss", false)) or bool(tw.get("mini", false))})
+		Profile.save_local()
+		if Cloud.instance != null:
+			Cloud.instance.push()
+	var floor := int(_rewards.get("floor", 0))
+	var v := _modal("ÉTAGE %d FRANCHI" % floor if win else "L'ASCENSION S'ARRÊTE",
+		("Les échos reculent : la Tour s'ouvre plus haut." if win else "Tu as franchi %d étage%s. Le record compte pour le classement de la semaine." % [int(_rewards.get("reached", 0)), "s" if int(_rewards.get("reached", 0)) > 1 else ""]),
+		UiTheme.GOLD if win else UiTheme.DANGER)
+	var rw := PanelContainer.new()
+	rw.add_theme_stylebox_override("panel", UiTheme.box(UiTheme.PANEL2, UiTheme.BORDER, 12, 2, 12))
+	v.add_child(rw)
+	var rv := VBoxContainer.new()
+	rv.add_theme_constant_override("separation", 6)
+	rw.add_child(rv)
+	if win:
+		rv.add_child(UiTheme.label("+%d or · +%d poussière" % [int(_rewards.get("gold", 0)), int(_rewards.get("dust", 0))], 22, UiTheme.GOLD))
+		for it in _rewards.get("items", []):
+			rv.add_child(LootFx.card(it, 0) if Profile.ambience_on() else _wrap_label(Profile.item_name(it), 19, Profile.item_color(it)))
+		for r2 in _rewards.get("runes", []):
+			rv.add_child(_wrap_label("Rune %s" % Profile.rune_name(r2), 19, Profile.item_color(r2)))
+	else:
+		rv.add_child(UiTheme.label("Record : étage %d · cette semaine : %d" % [Profile.tower_best(), Profile.tower_week_best()], 20, UiTheme.TEAL))
+	_feat_lines(rv)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	v.add_child(row)
+	var go := UiTheme.button("CHOISIR UN BONUS" if win else "TOUR DES ÉCHOS", 22)
+	go.custom_minimum_size = Vector2(0, 64)
+	go.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	go.add_theme_color_override("font_color", UiTheme.GOLD)
+	go.pressed.connect(func() -> void: exit_requested.emit("tower"))
+	row.add_child(go)
+	var hub := UiTheme.button("Havre-Aube", 22)
+	hub.custom_minimum_size = Vector2(0, 64)
+	hub.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hub.pressed.connect(func() -> void: exit_requested.emit("hub"))
+	row.add_child(hub)
+
+
+## Défis accomplis et hauts faits débloqués par ce combat, sous les récompenses.
+func _feat_lines(rv: VBoxContainer) -> void:
+	for a in _feats:
+		rv.add_child(_wrap_label("Haut fait : %s · titre « %s »" % [str(a["name"]), str(a["title"])], 18, UiTheme.GOLD))
+	var ready := Profile.quests_claimable()
+	if ready > 0:
+		rv.add_child(_wrap_label("%d défi%s accompli%s : récompense à réclamer à Havre-Aube" % [ready, "s" if ready > 1 else "", "s" if ready > 1 else ""], 17, UiTheme.TEAL))
+
+
 func _open_end() -> void:
 	_end_open = true
 	aiming = ""
 	var win := sim.state == "victory"
 	if audio != null:
 		audio.end(win)
+	if _opts.has("tower"):
+		_open_tower_end(win)
+		return
 	if _rewards.is_empty():
 		Story.on_battle(_present)
 		_rewards = Profile.apply_battle(level_id, win, sim.stars, sim.time, _present, sim.bonus_unique, sim.story_out)
+		# Défis et hauts faits.
+		_feats = Profile.record_battle(level_id, win, {"kills": sim.kills, "spells": sim.spells_cast, "elems": sim.elem_casts,
+			"barrier_low": sim.barrier_low, "stars": sim.stars, "gold": int(_rewards.get("gold", 0))})
 		if Cloud.instance != null:
 			Cloud.instance.push()
 	var v := _modal("VICTOIRE" if win else "DÉFAITE", sim.end_reason, UiTheme.GOLD if win else UiTheme.DANGER)
@@ -1555,6 +1620,7 @@ func _open_end() -> void:
 			parts.append("%s +%d XP%s" % [Dialogues.display_name(str(who)), int(cr["xp"]),
 				(" · niveau %d !" % int(cr["level"])) if int(cr["levels"]) > 0 else ""])
 		rv.add_child(_wrap_label("Compagnons : " + " · ".join(parts), 17, UiTheme.MUTED))
+	_feat_lines(rv)
 	for sl in _rewards.get("story", []):
 		# Fils de l'histoire écrits par la victoire (acte 6 : retour du compagnon racheté).
 		rv.add_child(_wrap_label(str(sl), 19, UiTheme.VIOLET))

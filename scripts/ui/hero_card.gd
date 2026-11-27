@@ -248,13 +248,19 @@ static func build_card(z: int, pose: String) -> Control:
 		ic.position = box.position + Vector2(8, 8)
 		ic.size = Vector2(px - 16, px - 16)
 		root.add_child(ic)
+	# Titre gagné par un haut fait.
+	if Profile.title() != "":
+		var tl := _text("« %s »" % Profile.title(), 30, UiTheme.GOLD, false)
+		tl.position = Vector2(0, 176)
+		tl.size = Vector2(CARD.x, 38)
+		root.add_child(tl)
 	# Kit de curiosités complet.
 	var counts := Profile.cosmetic_kit_counts()
 	for kit in counts.keys():
 		if int(counts[kit]) >= 4:
 			var kd: Dictionary = (Profile.cosmetics_db()["kits"] as Dictionary).get(kit, {})
 			var kl := _text("Kit complet : %s" % str(kd.get("name", "")), 28, Color(str(kd.get("color", "e0a050"))), false)
-			kl.position = Vector2(0, 186)
+			kl.position = Vector2(0, 216)
 			kl.size = Vector2(CARD.x, 36)
 			root.add_child(kl)
 	return root

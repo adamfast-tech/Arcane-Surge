@@ -493,6 +493,7 @@ static func upgrade(uid: String) -> bool:
 		return false
 	data["gold"] = gold() - upgrade_cost(it)
 	it["up"] = int(it.get("up", 0)) + 1
+	quest_event("upgrades")
 	return true
 
 
@@ -812,6 +813,7 @@ static func engrave(item_uid: String, rune_uid: String) -> bool:
 	if not (it.get("runes") is Array):
 		it["runes"] = []
 	(it["runes"] as Array).append(r)
+	quest_event("engraves")
 	return true
 
 
@@ -949,6 +951,7 @@ static func fuse_items(uids: Array) -> Dictionary:
 			rune_inventory().append(r)
 		(data["inventory"] as Array).erase(it)
 	(data["inventory"] as Array).append(out)
+	quest_event("fusions")
 	return out
 
 
@@ -2084,7 +2087,555 @@ static func shop_buy(i: int) -> Dictionary:
 	data["next_uid"] = int(data["next_uid"]) + 1
 	(data["inventory"] as Array).append(it)
 	o["sold"] = true
+	quest_event("purchases")
 	return it
+
+
+# ---------------------------------------------------------------- défis et hauts faits
+## Défis du jour (3, tirés chaque jour) et de la semaine (2), à réclamer ; hauts faits qui donnent des titres
+## (docs/design/47-defis-hauts-faits.md, data/challenges.json). Les compteurs suivent les combats (record_battle),
+## la Forge, l'Armurerie et la Tour des Échos (quest_event).
+
+const DAY_S := 86400
+const WEEK_S := 604800
+
+
+static func quests_db() -> Dictionary:
+	return GameData.load_json("res://data/challenges.json")
+
+
+static func _q() -> Dictionary:
+	if not (data.get("quests") is Dictionary):
+		data["quests"] = {}
+	var q: Dictionary = data["quests"]
+	for k in ["counters", "ach"]:
+		if not (q.get(k) is Dictionary):
+			q[k] = {}
+	if not q.has("title"):
+		q["title"] = ""
+	return q
+
+
+static func quest_day(now: float = -1.0) -> int:
+	return int(floor((Time.get_unix_time_from_system() if now < 0.0 else now) / float(DAY_S)))
+
+
+static func quest_week(now: float = -1.0) -> int:
+	return int(floor((Time.get_unix_time_from_system() if now < 0.0 else now) / float(WEEK_S)))
+
+
+## Secondes avant le prochain tirage (jour ou semaine).
+static func quest_reset_in(weekly: bool, now: float = -1.0) -> int:
+	var t := Time.get_unix_time_from_system() if now < 0.0 else now
+	var span := float(WEEK_S if weekly else DAY_S)
+	return int(ceil((floor(t / span) + 1.0) * span - t))
+
+
+static func tower_unlocked() -> bool:
+	return int(level_record("z01_l10")["clears"]) > 0
+
+
+## Zones déjà atteintes (pour les défis « dans la zone… »).
+static func _zones_open() -> Array:
+	var out: Array = []
+	for z in GameData.level_index()["zones"]:
+		var lv: Array = z["levels"]
+		if not lv.is_empty() and is_unlocked(str(lv[0])):
+			out.append(int(z["id"]))
+	return out
+
+
+## Éléments des sorts du deck (pour les défis « lance des sorts de… »).
+static func _deck_elements() -> Array:
+	var out: Array = []
+	var names: Dictionary = quests_db()["elements"]
+	for id in deck():
+		var el := str((GameData.spells().get(id, {}) as Dictionary).get("element", ""))
+		if names.has(el) and not out.has(el):
+			out.append(el)
+	return out
+
+
+## Tire les défis d'une période : count défis distincts, réalisables avec la progression actuelle.
+static func _draw_quests(pool: Array, count: int, seed: int) -> Array:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed
+	var cands: Array = []
+	for d in pool:
+		var dd: Dictionary = d
+		if str(dd.get("needs", "")) == "tower" and not tower_unlocked():
+			continue
+		if str(dd.get("filter", "")) == "element" and _deck_elements().is_empty():
+			continue
+		cands.append(dd)
+	var out: Array = []
+	while out.size() < count and not cands.is_empty():
+		var i := rng.randi_range(0, cands.size() - 1)
+		var d: Dictionary = cands[i]
+		cands.remove_at(i)
+		var e := {"id": str(d["id"]), "p": 0, "claimed": false}
+		match str(d.get("filter", "")):
+			"zone":
+				var zs := _zones_open()
+				e["zone"] = int(zs[rng.randi_range(0, zs.size() - 1)]) if not zs.is_empty() else 1
+			"element":
+				var els := _deck_elements()
+				e["element"] = str(els[rng.randi_range(0, els.size() - 1)])
+		out.append(e)
+	return out
+
+
+## Défis du jour et de la semaine, tirés au premier regard de la période.
+static func quests(now: float = -1.0) -> Dictionary:
+	var q := _q()
+	var day := quest_day(now)
+	if int(q.get("day", -1)) != day:
+		q["day"] = day
+		q["daily"] = _draw_quests(quests_db()["daily"], 3, day * 7919 + 17)
+	var wk := quest_week(now)
+	if int(q.get("week", -1)) != wk:
+		q["week"] = wk
+		q["weekly"] = _draw_quests(quests_db()["weekly"], 2, wk * 104729 + 3)
+	return {"daily": q["daily"], "weekly": q["weekly"]}
+
+
+static func _quest_def(id: String) -> Dictionary:
+	var db := quests_db()
+	for pool in ["daily", "weekly"]:
+		for d in db[pool]:
+			if str(d["id"]) == id:
+				return d
+	return {}
+
+
+## Texte d'un défi tiré (zone, élément, objectif remplacés).
+static func quest_text(e: Dictionary) -> String:
+	var d := _quest_def(str(e["id"]))
+	var t := str(d.get("text", ""))
+	t = t.replace("{n}", str(int(d.get("n", 1))))
+	if e.has("zone"):
+		var zn := ""
+		for z in GameData.level_index()["zones"]:
+			if int(z["id"]) == int(e["zone"]):
+				zn = str(z["name"])
+		t = t.replace("{zone}", zn)
+	if e.has("element"):
+		t = t.replace("{element}", str((quests_db()["elements"] as Dictionary).get(str(e["element"]), str(e["element"]))))
+	return t
+
+
+static func quest_goal(e: Dictionary) -> int:
+	return int(_quest_def(str(e["id"])).get("n", 1))
+
+
+static func quest_done(e: Dictionary) -> bool:
+	return int(e.get("p", 0)) >= quest_goal(e)
+
+
+## Récompense d'un défi : de l'or et de la poussière (selon le niveau) ; une rune ; la semaine, une curiosité
+## pas encore possédée (de l'or si toutes le sont).
+static func quest_reward(e: Dictionary, weekly: bool) -> Dictionary:
+	var lv := level()
+	if weekly:
+		return {"gold": 600 + 60 * lv, "dust": 80 + 4 * lv, "rune": 3, "cosmetic": true}
+	return {"gold": 120 + 15 * lv, "dust": 15 + lv, "rune": 1 if str(e["id"]).hash() % 3 == 0 else 0}
+
+
+## Réclame un défi accompli : la récompense est ajoutée ; renvoie ce qui a été gagné ({} si refusé).
+static func claim_quest(weekly: bool, i: int) -> Dictionary:
+	var list: Array = quests()["weekly" if weekly else "daily"]
+	if i < 0 or i >= list.size():
+		return {}
+	var e: Dictionary = list[i]
+	if bool(e.get("claimed", false)) or not quest_done(e):
+		return {}
+	e["claimed"] = true
+	var rw := quest_reward(e, weekly)
+	var got := {"gold": int(rw["gold"]), "dust": int(rw["dust"])}
+	data["gold"] = gold() + int(rw["gold"])
+	data["dust"] = dust() + int(rw["dust"])
+	if int(rw.get("rune", 0)) > 0:
+		var fams: Array = (runes_db()["families"] as Dictionary).keys()
+		var rng := RandomNumberGenerator.new()
+		rng.randomize()
+		var r := make_rune(str(fams[rng.randi_range(0, fams.size() - 1)]), int(rw["rune"]), "rare" if weekly else "commun")
+		rune_inventory().append(r)
+		got["rune"] = r
+	if bool(rw.get("cosmetic", false)):
+		var missing: Array = []
+		for kit in (cosmetics_db()["kits"] as Dictionary).keys():
+			for slot in ["tete", "tenue", "dos", "arme"]:
+				var pid := "%s.%s" % [kit, slot]
+				if not cosmetic_owned(pid):
+					missing.append(pid)
+		if missing.is_empty():
+			data["gold"] = gold() + 1500
+			got["gold"] = int(got["gold"]) + 1500
+		else:
+			var pid2 := str(missing[randi() % missing.size()])
+			(_cos()["owned"] as Array).append(pid2)
+			got["cosmetic"] = pid2
+	if not weekly:
+		quest_event("daily_done")
+	return got
+
+
+## Un défi (du jour ou de la semaine) est prêt à être réclamé.
+static func quests_claimable() -> int:
+	var n := 0
+	var qs := quests()
+	for pool in ["daily", "weekly"]:
+		for e in qs[pool]:
+			if quest_done(e) and not bool(e.get("claimed", false)):
+				n += 1
+	return n
+
+
+## Un évènement compté : il fait avancer les défis concernés et les compteurs des hauts faits. ctx : zone,
+## element… Renvoie les hauts faits débloqués à l'instant.
+static func quest_event(kind: String, amount: int = 1, ctx: Dictionary = {}) -> Array:
+	var q := _q()
+	var counters: Dictionary = q["counters"]
+	if kind in ["tower_floor"]:
+		counters["tower_best"] = maxi(int(counters.get("tower_best", 0)), amount)
+	else:
+		counters[kind] = int(counters.get(kind, 0)) + amount
+	var qs := quests()
+	for pool in ["daily", "weekly"]:
+		for e in qs[pool]:
+			var d := _quest_def(str(e["id"]))
+			if str(d.get("kind", "")) != kind or bool(e.get("claimed", false)):
+				continue
+			if e.has("zone") and int(ctx.get("zone", -1)) != int(e["zone"]):
+				continue
+			if e.has("element") and str(ctx.get("element", "")) != str(e["element"]):
+				continue
+			if bool(d.get("best", false)):
+				e["p"] = maxi(int(e.get("p", 0)), amount)
+			else:
+				e["p"] = mini(int(e.get("p", 0)) + amount, int(d.get("n", 1)))
+	return check_achievements()
+
+
+## Un combat terminé : victoires, étoiles, ennemis vaincus, sorts lancés (par élément), Barrière intacte, boss,
+## or gagné. Renvoie les hauts faits débloqués.
+static func record_battle(level_id: String, won: bool, st: Dictionary) -> Array:
+	var lv := GameData.level(level_id) if level_id != "" else {}
+	var zone := int(lv.get("zone", st.get("zone", 0)))
+	var ctx := {"zone": zone}
+	var got: Array = []
+	got.append_array(quest_event("kills", int(st.get("kills", 0)), ctx))
+	var elems: Dictionary = st.get("elems", {})
+	var total := int(st.get("spells", 0))
+	if total > 0:
+		got.append_array(quest_event("spells", 0, ctx))
+		var q := _q()
+		(q["counters"] as Dictionary)["spells"] = int(q["counters"].get("spells", 0)) + total
+		for e in quests()["daily"] + quests()["weekly"]:
+			var d := _quest_def(str(e["id"]))
+			if str(d.get("kind", "")) == "spells" and not e.has("element") and not bool(e.get("claimed", false)):
+				e["p"] = mini(int(e.get("p", 0)) + total, int(d.get("n", 1)))
+		for el in elems.keys():
+			for e2 in quests()["daily"] + quests()["weekly"]:
+				var d2 := _quest_def(str(e2["id"]))
+				if str(d2.get("kind", "")) == "spells" and str(e2.get("element", "")) == str(el) and not bool(e2.get("claimed", false)):
+					e2["p"] = mini(int(e2.get("p", 0)) + int(elems[el]), int(d2.get("n", 1)))
+	if won:
+		got.append_array(quest_event("wins", 1, ctx))
+		if int(st.get("stars", 0)) >= 3:
+			got.append_array(quest_event("stars3", 1, ctx))
+		if float(st.get("barrier_low", 0.0)) >= 0.75:
+			got.append_array(quest_event("flawless", 1, ctx))
+		if str(lv.get("objective", "")) == "boss" or str(lv.get("type", "")) in ["Boss", "Mini-boss"] or bool(st.get("boss", false)):
+			got.append_array(quest_event("boss", 1, ctx))
+		if int(st.get("gold", 0)) > 0:
+			got.append_array(quest_event("gold", int(st["gold"]), ctx))
+	got.append_array(check_achievements())
+	return got
+
+
+static func _ach_progress(a: Dictionary) -> int:
+	var c: Dictionary = _q()["counters"]
+	match str(a["kind"]):
+		"stars_total":
+			return stars_total()
+		"zone_clear":
+			var z := int(a["n"])
+			for zd in GameData.level_index()["zones"]:
+				if int(zd["id"]) == z:
+					var lv: Array = zd["levels"]
+					return 1 if not lv.is_empty() and int(level_record(str(lv[lv.size() - 1]))["clears"]) > 0 else 0
+			return 0
+		"own_mythic":
+			for it in data["inventory"]:
+				if str(it.get("rarity", "")) == "mythique":
+					return 1
+			return 0
+		"kit_full":
+			for k in cosmetic_kit_counts().keys():
+				if int(cosmetic_kit_counts()[k]) >= 4:
+					return 1
+			return 0
+		"cosmetics":
+			return (_cos()["owned"] as Array).size()
+		"level":
+			return level()
+	return int(c.get(str(a["kind"]), 0))
+
+
+static func ach_goal(a: Dictionary) -> int:
+	return 1 if str(a["kind"]) == "zone_clear" else int(a["n"])
+
+
+## Progression d'un haut fait (valeur, objectif).
+static func ach_state(a: Dictionary) -> Array:
+	return [mini(_ach_progress(a), ach_goal(a)), ach_goal(a)]
+
+
+## Débloque les hauts faits atteints ; renvoie ceux qui viennent de l'être.
+static func check_achievements() -> Array:
+	var q := _q()
+	var unlocked: Dictionary = q["ach"]
+	var out: Array = []
+	for a in quests_db()["achievements"]:
+		var id := str(a["id"])
+		if unlocked.has(id):
+			continue
+		if _ach_progress(a) >= ach_goal(a):
+			unlocked[id] = int(Time.get_unix_time_from_system())
+			out.append(a)
+	return out
+
+
+static func achievement_unlocked(id: String) -> bool:
+	return (_q()["ach"] as Dictionary).has(id)
+
+
+## Titre affiché sous le nom (« » si aucun).
+static func title() -> String:
+	var id := str(_q().get("title", ""))
+	if id == "" or not achievement_unlocked(id):
+		return ""
+	for a in quests_db()["achievements"]:
+		if str(a["id"]) == id:
+			return str(a["title"])
+	return ""
+
+
+static func set_title(id: String) -> void:
+	if id == "" or achievement_unlocked(id):
+		_q()["title"] = id
+
+
+# ---------------------------------------------------------------- Tour des Échos
+## Ascension sans fin (docs/design/48-tour-des-echos.md) : des étages tirés des niveaux de l'histoire (zones déjà
+## atteintes), toujours plus durs ; un mini-boss tous les 5 étages, un boss tous les 10 ; entre deux étages, un bonus
+## à choisir parmi trois, qui dure toute l'ascension. Une défaite finit l'ascension ; le meilleur étage de la semaine
+## va au classement (Supabase).
+
+const TOWER_BOONS := [
+	{"id": "puissance", "name": "Puissance", "desc": "+12 % de dégâts des sorts", "icon": "boule_de_feu", "mods": {"spell_dmg": 0.12}},
+	{"id": "cadence", "name": "Cadence", "desc": "+15 % de cadence de tir", "icon": "volee_fleches", "mods": {"cadence": 0.15}},
+	{"id": "rempart", "name": "Rempart", "desc": "+60 points de Barrière", "icon": "bouclier_arcanique", "mods": {"barrier_flat": 60.0}},
+	{"id": "bastion", "name": "Bastion", "desc": "+12 % de Barrière", "icon": "rempart_sacre", "mods": {"barrier_max": 0.12}},
+	{"id": "source", "name": "Source vive", "desc": "Mana +20 % plus rapide", "icon": "seve_vitale", "mods": {"mana_regen": 0.2}},
+	{"id": "precision", "name": "Œil sûr", "desc": "+6 % de coups critiques", "icon": "tir_precision", "mods": {"crit": 0.06}},
+	{"id": "economie", "name": "Économie", "desc": "Sorts 10 % moins chers", "icon": "etincelle", "mods": {"spell_cost": 0.1}},
+	{"id": "renfort", "name": "Renforts", "desc": "Invocations 12 % plus rapides", "icon": "horde", "mods": {"unit_speed": 0.12}},
+	{"id": "surge", "name": "Écho du Surge", "desc": "Surge +20 %", "icon": "onde_arcanique", "mods": {"surge_gain": 0.2}},
+	{"id": "soins", "name": "Lumière douce", "desc": "Soins +25 %", "icon": "priere", "mods": {"heal_bonus": 0.25}},
+	{"id": "recharge", "name": "Mains vives", "desc": "Recharges 10 % plus courtes", "icon": "eclair_chaine", "mods": {"cd_red": 0.1}},
+]
+
+
+static func _tw() -> Dictionary:
+	if not (data.get("tower") is Dictionary):
+		data["tower"] = {}
+	var t: Dictionary = data["tower"]
+	if not (t.get("run") is Dictionary):
+		t["run"] = {}
+	return t
+
+
+static func tower_best() -> int:
+	return int(_tw().get("best", 0))
+
+
+## Record de la semaine en cours.
+static func tower_week_best() -> int:
+	var t := _tw()
+	return int(t.get("week_best", 0)) if int(t.get("week", -1)) == quest_week() else 0
+
+
+## Ascension en cours : {floor (prochain étage), seed, boons, gold, dust, choice (bonus proposés)} ou {}.
+static func tower_run() -> Dictionary:
+	return _tw()["run"]
+
+
+static func tower_start() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	_tw()["run"] = {"floor": 1, "seed": rng.randi(), "boons": [], "gold": 0, "dust": 0, "choice": []}
+
+
+static func tower_boon(id: String) -> Dictionary:
+	for b in TOWER_BOONS:
+		if str(b["id"]) == id:
+			return b
+	return {}
+
+
+## Bonus de l'ascension, additionnés.
+static func tower_mods() -> Dictionary:
+	var out := all_mods()
+	for id in tower_run().get("boons", []):
+		var b := tower_boon(str(id))
+		for k in (b.get("mods", {}) as Dictionary).keys():
+			out[k] = float(out.get(k, 0.0)) + float(b["mods"][k])
+	return out
+
+
+## Un étage : un niveau de l'histoire (zones atteintes, une zone par dizaine d'étages, en boucle), renforcé.
+## Étage 10, 20… : le boss de la zone ; 5, 15… : son mini-boss ; sinon un assaut, une purification ou un siège.
+static func tower_level(floor: int, seed: int) -> Dictionary:
+	var zones := _zones_open()
+	if zones.is_empty():
+		zones = [1]
+	var zone := int(zones[((floor - 1) / 10) % zones.size()])
+	var ids: Array = []
+	for zd in GameData.level_index()["zones"]:
+		if int(zd["id"]) == zone:
+			ids = zd["levels"]
+	var want := "Boss" if floor % 10 == 0 else ("Mini-boss" if floor % 5 == 0 else "")
+	var cands: Array = []
+	for id in ids:
+		var lv := GameData.level(str(id))
+		var ty := str(lv.get("type", ""))
+		if (want != "" and ty == want) or (want == "" and ty in ["Assaut", "Purification", "Siège"]):
+			cands.append(str(id))
+	if cands.is_empty():
+		cands = [str(ids[0])]
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed + floor * 7919
+	var src := str(cands[rng.randi_range(0, cands.size() - 1)])
+	var lv2: Dictionary = GameData.level(src).duplicate(true)
+	var k := float(floor - 1)
+	lv2["decor_id"] = src
+	lv2["id"] = "tour_%d" % floor
+	lv2["number"] = "Étage %d" % floor
+	lv2["name"] = str(lv2.get("name", ""))
+	lv2.erase("story_mods")
+	lv2["global_level"] = maxi(int(lv2.get("global_level", 1)), level()) + floor / 3
+	if lv2.has("nexus"):
+		lv2["nexus"]["hp"] = float(lv2["nexus"]["hp"]) * (1.0 + 0.05 * k)
+	if lv2.has("boss"):
+		lv2["boss"]["hp"] = float(lv2["boss"]["hp"]) * (1.0 + 0.06 * k)
+	for tw in lv2.get("towers", []):
+		tw["hp"] = float(tw["hp"]) * (1.0 + 0.05 * k)
+	if lv2.has("waves"):
+		var w: Dictionary = lv2["waves"]
+		w["budget_base"] = float(w.get("budget_base", 20)) * (1.0 + 0.04 * k)
+		w["local_level"] = int(w.get("local_level", 1)) + floor / 4
+	lv2["tower"] = {"floor": floor, "zone": zone, "boss": want == "Boss", "mini": want == "Mini-boss"}
+	return lv2
+
+
+## Options de combat d'un étage : les bonus de l'ascension et une difficulté qui monte.
+static func tower_opts(floor: int) -> Dictionary:
+	var o := battle_opts()
+	o["mods"] = tower_mods()
+	o["difficulty"] = float(o.get("difficulty", 1.0)) * (1.0 + 0.03 * float(floor - 1))
+	o["tower"] = floor
+	return o
+
+
+## Fin d'un étage. Victoire : récompenses (or, poussière ; une rune au mini-boss, un objet au boss), l'étage suivant
+## et trois bonus proposés. Défaite : l'ascension s'arrête. Renvoie le détail.
+static func tower_floor_done(won: bool) -> Dictionary:
+	var run := tower_run()
+	if run.is_empty():
+		return {}
+	var floor := int(run["floor"])
+	var t := _tw()
+	var out := {"floor": floor, "won": won, "gold": 0, "dust": 0, "items": [], "runes": []}
+	if won:
+		var boss := floor % 10 == 0
+		var mini := floor % 5 == 0 and not boss
+		var gold_g := (40 + 8 * floor) * (3 if boss else (2 if mini else 1))
+		var dust_g := 5 + floor
+		data["gold"] = gold() + gold_g
+		data["dust"] = dust() + dust_g
+		run["gold"] = int(run.get("gold", 0)) + gold_g
+		run["dust"] = int(run.get("dust", 0)) + dust_g
+		out["gold"] = gold_g
+		out["dust"] = dust_g
+		var rng := RandomNumberGenerator.new()
+		rng.randomize()
+		if mini:
+			var fams: Array = (runes_db()["families"] as Dictionary).keys()
+			var r := make_rune(str(fams[rng.randi_range(0, fams.size() - 1)]), clampi(1 + floor / 15, 1, 4), "rare")
+			rune_inventory().append(r)
+			out["runes"] = [r]
+		if boss:
+			var zone := str(int(GameData.level(next_level()).get("zone", 1)))
+			var pool: Array = items_db()["loot_pool"].get(zone, items_db()["loot_pool"]["1"])
+			var rar := "legendaire" if floor >= 40 else ("epique" if floor >= 20 else "rare")
+			var it := make_item(str(pool[rng.randi_range(0, pool.size() - 1)]), rar, maxi(1, shop_ilvl() + floor / 10), rng)
+			(data["inventory"] as Array).append(it)
+			out["items"] = [it]
+		run["floor"] = floor + 1
+		run["choice"] = tower_draw_boons(floor)
+		_tower_record(floor)
+	else:
+		out["reached"] = floor - 1
+		_tower_record(floor - 1)
+		t["last"] = {"floor": floor - 1, "gold": int(run.get("gold", 0)), "dust": int(run.get("dust", 0)), "boons": run.get("boons", [])}
+		t["run"] = {}
+	return out
+
+
+static func _tower_record(cleared: int) -> void:
+	var t := _tw()
+	t["best"] = maxi(int(t.get("best", 0)), cleared)
+	if int(t.get("week", -1)) != quest_week():
+		t["week"] = quest_week()
+		t["week_best"] = 0
+	t["week_best"] = maxi(int(t.get("week_best", 0)), cleared)
+	quest_event("tower_floor", cleared)
+
+
+## Trois bonus au choix après l'étage, tirés de l'ascension (jamais deux fois le même dans un tirage).
+static func tower_draw_boons(floor: int) -> Array:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(tower_run().get("seed", 1)) + floor * 104729
+	var ids: Array = []
+	for b in TOWER_BOONS:
+		ids.append(str(b["id"]))
+	var out: Array = []
+	while out.size() < 3 and not ids.is_empty():
+		var i := rng.randi_range(0, ids.size() - 1)
+		out.append(ids[i])
+		ids.remove_at(i)
+	return out
+
+
+static func tower_pick_boon(id: String) -> bool:
+	var run := tower_run()
+	if run.is_empty() or not (run.get("choice", []) as Array).has(id):
+		return false
+	(run["boons"] as Array).append(id)
+	run["choice"] = []
+	return true
+
+
+## Abandonner : l'ascension s'arrête, l'étage atteint compte.
+static func tower_abandon() -> void:
+	var run := tower_run()
+	if run.is_empty():
+		return
+	var t := _tw()
+	t["last"] = {"floor": int(run["floor"]) - 1, "gold": int(run.get("gold", 0)), "dust": int(run.get("dust", 0)), "boons": run.get("boons", [])}
+	t["run"] = {}
 
 
 # ---------------------------------------------------------------- cosmétiques
@@ -2139,6 +2690,7 @@ static func buy_cosmetic(id: String) -> bool:
 		return false
 	data["gold"] = gold() - int(cosmetic_info(id)["price"])
 	(_cos()["owned"] as Array).append(id)
+	quest_event("purchases")
 	return true
 
 

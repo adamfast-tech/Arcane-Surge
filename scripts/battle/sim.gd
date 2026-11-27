@@ -124,6 +124,9 @@ var _echo_done: Array[bool] = [false, false]
 var wave_t := 0.0
 var wave_index := 0
 var kills := 0
+var spells_cast := 0 ## sorts lancés par le joueur (défis)
+var elem_casts: Dictionary = {} ## élément -> sorts lancés par le joueur
+var barrier_low := 1.0 ## la Barrière au plus bas (part de son maximum)
 var summoned := 0
 var fusions := 0
 var healed_total := 0.0
@@ -2358,6 +2361,8 @@ func _hurt_barrier(amount: float) -> void:
 	if amount <= 0.0:
 		return
 	barrier_hp -= amount
+	if barrier_max > 0.0:
+		barrier_low = minf(barrier_low, maxf(0.0, barrier_hp) / barrier_max)
 	barrier_flash = 0.25
 	_event({"t": "barrier"})
 	if _ash_renew and barrier_hp > 0.0 and barrier_hp < barrier_max * 0.25:
@@ -2838,6 +2843,10 @@ func cast_spell(c: Caster, id: String, at: Vector2) -> bool:
 	if not ok:
 		return false
 	c.mana -= spell_cost(c, id)
+	if c.idx == 0:
+		spells_cast += 1
+		var el := str(sp.get("element", ""))
+		elem_casts[el] = int(elem_casts.get(el, 0)) + 1
 	c.spell_cd[id] = float(sp.get("cd", 0)) * (1.0 - clampf(_mod("cd_red"), 0.0, 0.4) if c.idx == 0 else 1.0)
 	var price := float(sp.get("barrier_cost", 0.0))
 	if price > 0.0:

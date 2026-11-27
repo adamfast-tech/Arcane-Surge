@@ -47,13 +47,17 @@ func _ready() -> void:
 	if str(_query().get("cos", "")) != "":
 		# Aperçu : un kit de curiosités possédé et porté (« &cos=corsaire »), ou une pièce de chaque (« &cos=mix »).
 		_preview_cosmetics(str(_query().get("cos", "")))
-	if room in ["meditation", "circle", "skills", "library", "options", "armory"]:
+	if room == "tower":
+		_preview_progress(maxi(10, int(str(_query().get("prog", "10")))))
+		_show_tower()
+		return
+	if room in ["meditation", "circle", "skills", "library", "options", "armory", "quests"]:
 		# Aperçu d'une salle (« ?room=meditation », « ?room=library&tab=classes&class=archer »), sans écran de chargement.
 		if str(_query().get("class", "")) != "":
 			Profile.data["player"]["class"] = str(_query().get("class", ""))
 		_show_room(room)
-		if room in ["library", "armory"] and str(_query().get("tab", "")) != "":
-			_screen.set("_school" if room == "library" else "_tab", str(_query().get("tab", "")))
+		if room in ["library", "armory", "quests"] and str(_query().get("tab", "")) != "":
+			_screen.set({"library": "_school", "armory": "_tab", "quests": "tab"}[room], str(_query().get("tab", "")))
 			_screen.call("_rebuild")
 		return
 	if room == "map":
@@ -284,6 +288,8 @@ func _show_hub() -> void:
 	h.open_save.connect(_show_save)
 	h.open_forge.connect(func() -> void: _show_forge())
 	h.open_armory.connect(_show_room.bind("armory"))
+	h.open_quests.connect(_show_room.bind("quests"))
+	h.open_tower.connect(_show_tower)
 	h.open_skills.connect(_show_room.bind("skills"))
 	h.open_library.connect(_show_room.bind("library"))
 	h.open_circle.connect(_show_room.bind("circle"))
@@ -331,12 +337,45 @@ func _show_room(which: String) -> void:
 			s = OptionsScreen.new()
 		"armory":
 			s = ArmoryScreen.new()
+		"quests":
+			s = QuestsScreen.new()
 		_:
 			var cs := CircleScreen.new()
 			cs.open_equipment.connect(func(who: String) -> void: _show_equipment(who, true))
 			s = cs
 	s.connect("back", _show_hub)
 	_set_screen(s)
+
+
+## Tour des Échos : l'écran de l'ascension, et chaque étage en combat.
+func _show_tower() -> void:
+	var t := TowerScreen.new()
+	t.back.connect(_show_hub)
+	t.climb.connect(_start_tower_floor)
+	_set_screen(t)
+
+
+func _start_tower_floor() -> void:
+	var run := Profile.tower_run()
+	if run.is_empty():
+		_show_tower()
+		return
+	var floor := int(run["floor"])
+	var o := Profile.tower_opts(floor)
+	o["level_data"] = Profile.tower_level(floor, int(run["seed"]))
+	var b := BattleScreen.new()
+	b.configure("tour", false, o)
+	b.exit_requested.connect(func(dest: String) -> void:
+		# Quitter un étage en cours de combat met fin à l'ascension.
+		if b.sim != null and b.sim.state != "victory" and b.sim.state != "defeat" and not Profile.tower_run().is_empty():
+			Profile.tower_abandon()
+			Profile.save_local()
+		if dest == "hub":
+			_show_hub()
+		else:
+			_show_tower())
+	b.restart_requested.connect(_show_tower)
+	_set_screen(b)
 
 
 func _show_save() -> void:

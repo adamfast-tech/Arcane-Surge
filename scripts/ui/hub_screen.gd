@@ -7,6 +7,8 @@ signal open_map
 signal open_equipment
 signal open_forge
 signal open_armory
+signal open_quests
+signal open_tower
 signal open_login
 signal open_save
 signal open_skills
@@ -26,6 +28,7 @@ var _account_btn: Button
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	UiTheme.backdrop(self, 0.28, 0.94, "havre")
+	Profile.check_achievements()
 	var col := UiTheme.scroll_column(self, 680.0, 16.0)
 	col.add_theme_constant_override("separation", 16)
 	col.add_child(_profile_card())
@@ -56,11 +59,16 @@ func _ready() -> void:
 	sub.add_theme_color_override("font_outline_color", Color(0.03, 0.05, 0.08))
 	sub.add_theme_constant_override("outline_size", 6)
 	col.add_child(sub)
-	# Espace qui laisse voir l'illustration (plus grand sur les écrans hauts).
-	var gap := Control.new()
-	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	gap.custom_minimum_size = Vector2(0, clampf(get_viewport_rect().size.y - 1000.0, 24.0, 420.0))
-	col.add_child(gap)
+	# La place du village : le héros s'y promène, les marchands attendent devant leur boutique.
+	var frame := PanelContainer.new()
+	frame.add_theme_stylebox_override("panel", UiTheme.box(Color(0, 0, 0, 0.35), Color(UiTheme.GOLD, 0.45), 14, 2, 4))
+	col.add_child(frame)
+	var place := HavrePlace.new()
+	place.open.connect(_open_room)
+	frame.add_child(place)
+	var hint := UiTheme.label("Touche la rue pour te promener, un lieu pour y entrer", 14, Color(UiTheme.MUTED, 0.9))
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(hint)
 	col.add_child(_continue_button())
 	var grid := GridContainer.new()
 	grid.columns = 2
@@ -94,6 +102,23 @@ func _ready() -> void:
 		shop_line = "Vitrine : %s !" % str(Profile.items_db()["rarities"][srar]["name"])
 		shop_col = Color(str(Profile.items_db()["rarities"][srar]["color"]))
 	rooms.add_child(_small_tile("coin", "ARMURERIE", shop_line, shop_col, func() -> void: open_armory.emit(), Color("e0a050")))
+	# Défis du jour et de la semaine, hauts faits.
+	var ready := Profile.quests_claimable()
+	var qs := Profile.quests()
+	var dn := 0
+	for e in qs["daily"]:
+		if Profile.quest_done(e):
+			dn += 1
+	rooms.add_child(_small_tile("star", "DÉFIS", ("%d à réclamer !" % ready) if ready > 0 else "Aujourd'hui %d / %d" % [dn, (qs["daily"] as Array).size()],
+		UiTheme.GOLD if ready > 0 else UiTheme.MUTED, func() -> void: open_quests.emit(), Color("8fd8ff")))
+	# Tour des Échos : ascension sans fin (après l'acte 1).
+	var tw_open := Profile.tower_unlocked()
+	var tw := _small_tile("tower", "TOUR DES ÉCHOS", ("Record : étage %d" % Profile.tower_best()) if tw_open and Profile.tower_best() > 0 else ("Ascension sans fin" if tw_open else "Fin de l'acte 1"),
+		UiTheme.TEAL if tw_open else UiTheme.MUTED, func() -> void: open_tower.emit(), Color("b07cff"))
+	tw.disabled = not tw_open
+	if not tw_open:
+		tw.modulate = Color(1, 1, 1, 0.6)
+	rooms.add_child(tw)
 	rooms.add_child(_small_tile("target", "ENTRAÎNEMENT", "%d point%s" % [free, "s" if free > 1 else ""], UiTheme.GOLD if free > 0 else UiTheme.MUTED, func() -> void: open_skills.emit(), UiTheme.GOLD))
 	rooms.add_child(_small_tile("book", "BIBLIOTHÈQUE", "Deck %d / %d" % [Profile.deck().size(), Profile.DECK_MAX], UiTheme.MUTED, func() -> void: open_library.emit(), UiTheme.VIOLET))
 	var crew: Array[String] = []
@@ -131,6 +156,31 @@ func _ready() -> void:
 	_refresh_cloud()
 
 
+## Un lieu de la place : il ouvre sa salle.
+func _open_room(room: String) -> void:
+	match room:
+		"map":
+			open_map.emit()
+		"equipment":
+			open_equipment.emit()
+		"forge":
+			open_forge.emit()
+		"armory":
+			open_armory.emit()
+		"library":
+			open_library.emit()
+		"skills":
+			open_skills.emit()
+		"circle":
+			open_circle.emit()
+		"meditation":
+			open_meditation.emit()
+		"tower":
+			open_tower.emit()
+		"quests":
+			open_quests.emit()
+
+
 func _profile_card() -> PanelContainer:
 	var c: Array = UiTheme.card(UiTheme.BORDER, 16)
 	var v: VBoxContainer = c[1]
@@ -166,6 +216,9 @@ func _profile_card() -> PanelContainer:
 	if Cloud.instance != null and Cloud.instance.username != "":
 		pname = Cloud.instance.username
 	who.add_child(UiTheme.label(pname, 28))
+	if Profile.title() != "":
+		# Le titre gagné par un haut fait, sous le nom.
+		who.add_child(UiTheme.label("« %s »" % Profile.title(), 16, UiTheme.GOLD))
 	var party := GameData.party()
 	var cname := str((party["classes"] as Dictionary).get(Profile.player_class(), {}).get("name", "Mage"))
 	var rname := str((party["races"] as Dictionary).get(Profile.race(), {}).get("name", "")).to_lower()
