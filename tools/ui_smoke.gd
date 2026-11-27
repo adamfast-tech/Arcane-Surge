@@ -1514,7 +1514,7 @@ func _gear_ok() -> bool:
 	var fused_r := Profile.fuse_runes(trio)
 	if refuse == "" or int(fused_r.get("level", 0)) != 3 or str(fused_r.get("rune", "")) != "isa":
 		errs.append("fusion de runes : refus « %s », résultat %s" % [refuse, fused_r])
-	# Fusion d'objets : 3 communs -> rare « fusion », qui ne peut plus fusionner ; 3 légendaires -> Mythique.
+	# Fusion d'objets : 3 communs -> rare « fusion », qui peut refusionner ; 3 légendaires -> Mythique.
 	var com: Array = []
 	for k in range(3):
 		var it := Profile.make_item("gants_cuir" if k == 0 else "bottes_marche", "commun", 5 + k, rng)
@@ -1531,7 +1531,18 @@ func _gear_ok() -> bool:
 	var refuse_i := Profile.fusion_block(mixed_items)
 	var myth := Profile.fuse_items(leg)
 	var equipped_block := Profile.fusion_item_block(helm)
-	if str(out.get("rarity", "")) != "rare" or str(out.get("base", "")) != "gants_cuir" or int(out.get("ilvl", 0)) != 7 or not bool(out.get("fused", false)) or again == "" \
+	# Un objet fusionné refusionne : 3 rares « fusion » -> épique.
+	var re_fused: Array = [str(out["uid"])]
+	for k in range(2):
+		var it2 := Profile.make_item("gants_cuir", "rare", 8, rng)
+		it2["fused"] = true
+		(Profile.data["inventory"] as Array).append(it2)
+		re_fused.append(str(it2["uid"]))
+	Profile.data["gold"] = Profile.gold() + 5000
+	var epic := Profile.fuse_items(re_fused)
+	if str(epic.get("rarity", "")) != "epique" or not bool(epic.get("fused", false)):
+		errs.append("refusion d'objets fusionnés : %s" % epic.get("rarity", "refusée"))
+	if str(out.get("rarity", "")) != "rare" or str(out.get("base", "")) != "gants_cuir" or int(out.get("ilvl", 0)) != 7 or not bool(out.get("fused", false)) or again != "" \
 			or refuse_i == "" or str(myth.get("rarity", "")) != "mythique" or Profile.sockets_of(myth) != 4 or equipped_block == "":
 		errs.append("fusion d'objets : %s %s iLvl %s, refusion « %s », mélange « %s », mythique %s, équipé « %s »" % [out.get("base", ""), out.get("rarity", ""), out.get("ilvl", 0), again, refuse_i, myth.get("rarity", ""), equipped_block])
 	if bases.size() < 180:

@@ -895,8 +895,6 @@ static func fusion_cost(items: Array) -> int:
 static func fusion_item_block(it: Dictionary) -> String:
 	if it.is_empty():
 		return "Objet introuvable"
-	if bool(it.get("fused", false)):
-		return "Issu d'une fusion : il ne peut plus fusionner"
 	if bool(base_of(it).get("unique", false)):
 		return "Objet unique"
 	if holder_of(str(it["uid"])) != "":
@@ -928,7 +926,7 @@ static func fusion_block(uids: Array) -> String:
 
 
 ## Fusionne 3 objets : le premier donne son modèle, le niveau d'objet est le plus haut des trois ;
-## le résultat est marqué « fusion » et ne pourra plus fusionner. Les runes gravées reviennent en réserve.
+## le résultat est marqué « Issu d'une fusion » et peut lui-même refusionner. Les runes gravées reviennent en réserve.
 static func fuse_items(uids: Array) -> Dictionary:
 	if fusion_block(uids) != "":
 		return {}

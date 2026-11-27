@@ -131,7 +131,7 @@ On y accède par une nouvelle salle d'Havre-Aube, par le bouton « Forge » de l
 - Un cercle rituel accueille les 3 objets choisis dans la grille de réserve, et montre le résultat (modèle du premier, rareté au-dessus, niveau d'objet, emplacements). Les objets d'une autre rareté que la sélection sont grisés.
 - 3 objets de même rareté donnent 1 objet de la rareté au-dessus (3 légendaires → Mythique).
 - Le premier objet choisi donne son modèle. Le niveau d'objet est le plus haut des trois. Les affixes sont tirés à nouveau.
-- Le résultat est marqué **« Issu d'une fusion »** : il ne peut plus fusionner.
+- Le résultat est marqué **« Issu d'une fusion »**. Il peut refusionner avec d'autres objets de même rareté (fusionnés ou non) pour monter encore d'une rareté.
 - Les objets équipés et les uniques ne fusionnent pas.
 - Les runes gravées sur les objets fusionnés reviennent en réserve.
 - Coût : 120 / 360 / 900 / 2 400 or selon la rareté, +3 % par niveau d'objet.
@@ -170,7 +170,7 @@ On y accède par une nouvelle salle d'Havre-Aube, par le bouton « Forge » de l
 - Kaor sur un heaume (POU) ;
 - l'emplacement plein, et le retrait ;
 - la fusion de runes (refus d'un mélange) ;
-- la fusion d'objets : modèle, niveau d'objet, marque « fusion » non refusionnable, mélange refusé, objet équipé refusé, Mythique à 4 emplacements ;
+- la fusion d'objets : modèle, niveau d'objet, marque « fusion », un objet fusionné qui refusionne, mélange refusé, objet équipé refusé, Mythique à 4 emplacements ;
 - les runes au butin d'un boss ;
 - le bouclier de départ et les résistances en combat ;
 - les trois onglets de la Forge.

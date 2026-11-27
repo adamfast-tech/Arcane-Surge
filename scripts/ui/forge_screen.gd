@@ -4,7 +4,7 @@ extends Control
 ## - GRAVURE : choisir l'objet (grille), le poser sur l'enclume (ses emplacements de runes en grand), choisir
 ##   une rune (grille) : son effet sur ce type d'objet s'affiche, puis Graver ; une rune gravée se retire ;
 ## - FUSION : 3 objets de même rareté posés dans le cercle rituel → 1 objet de la rareté au-dessus
-##   (3 légendaires → Mythique) ; un objet issu d'une fusion ne peut plus fusionner ;
+##   (3 légendaires → Mythique) ; un objet issu d'une fusion peut refusionner ;
 ## - RUNES : la réserve en grille, la fusion de 3 runes identiques (niveau +1) et le recyclage.
 
 signal back
