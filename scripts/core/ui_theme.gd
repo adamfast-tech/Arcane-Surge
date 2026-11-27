@@ -261,6 +261,9 @@ static func scroll_column(parent: Control, max_w: float = 680.0, top: float = 24
 			keep = (ch as ScrollContainer).scroll_vertical
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	# La place de la barre de défilement est toujours réservée : une page courte et une page longue du même
+	# écran (onglets) gardent exactement la même position, la barre n'apparaissant qu'au besoin.
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_RESERVE
 	parent.add_child(scroll)
 	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	if keep > 0:
