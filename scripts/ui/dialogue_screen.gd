@@ -8,6 +8,7 @@ signal finished
 
 const CPS := 45.0
 const AUTO_DELAY := 1.4
+const TAP_GAP_MS := 90 ## deux touchers plus rapprochés : un seul (événement livré en double)
 
 var scenes: Array[String] = []
 ## Scènes revues (mission déjà réussie) : mise en scène et choix déjà faits, sans en rejouer les effets.
@@ -36,6 +37,7 @@ var _talk_frame := 0
 var _blink := false
 var _blink_t := 3.0
 var _hold := 0.0 ## carton-titre : la première réplique attend (un toucher l'abrège)
+var _tap_ms := -100000 ## instant du dernier toucher pris en compte (anti-doublon)
 
 var art_rect: TextureRect
 var subject_rect: TextureRect
@@ -583,11 +585,26 @@ func _finish() -> void:
 
 # ---------------------------------------------------------------- entrées et animation
 
+## Sur un écran tactile, un toucher arrive deux fois : en toucher, puis en clic émulé (« emulate_mouse_from_touch »).
+## Compté deux fois, il passait à la réplique suivante ET la finissait aussitôt : texte d'un bloc, ni voix ni lèvres.
+## On ne lit donc que le clic (le toucher seulement si l'émulation est coupée), avec un anti-doublon par sécurité.
 func _on_gui_input(ev: InputEvent) -> void:
+	var tap := false
 	if ev is InputEventMouseButton and ev.is_pressed() and (ev as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
-		_tap()
-	elif ev is InputEventScreenTouch and ev.is_pressed():
-		_tap()
+		tap = true
+	elif ev is InputEventScreenTouch and ev.is_pressed() and not _touch_makes_click():
+		tap = true
+	if not tap:
+		return
+	var now := Time.get_ticks_msec()
+	if now - _tap_ms < TAP_GAP_MS:
+		return
+	_tap_ms = now
+	_tap()
+
+
+static func _touch_makes_click() -> bool:
+	return bool(ProjectSettings.get_setting("input_devices/pointing/emulate_mouse_from_touch", true))
 
 
 func _unhandled_input(ev: InputEvent) -> void:
@@ -645,6 +662,7 @@ func _process(delta: float) -> void:
 		text_label.visible_characters = int(_shown)
 		_babble.tick(delta, int(_shown))
 		if int(_shown) >= n:
+			_babble.finish_line()
 			_complete_line()
 	_animate_portrait(delta)
 	stage.talking = _typing

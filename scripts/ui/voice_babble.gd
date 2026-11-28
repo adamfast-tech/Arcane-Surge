@@ -33,6 +33,8 @@ var _last := -1
 var _text := ""
 var _beat := 9.0 ## temps depuis la dernière syllabe (bouche du portrait)
 var _flap := 0.0 ## horloge des lèvres pendant que le personnage parle
+var _prev_shown := 0 ## lettres visibles à l'image précédente
+var _count := 0 ## syllabes déjà dites dans cette réplique
 
 
 ## Nouvelle réplique.
@@ -52,6 +54,8 @@ func start(who: String, mood: String, text: String) -> void:
 	_last = -1
 	_beat = 9.0
 	_flap = 0.0
+	_prev_shown = 0
+	_count = 0
 
 
 static func voice_of(who: String) -> String:
@@ -73,13 +77,36 @@ func tick(delta: float, shown: int) -> void:
 	_flap += delta
 	if _voice == "" or _text.is_empty():
 		return
+	var prev := _prev_shown
+	_prev_shown = shown
 	_acc += delta
 	if _acc < _gap:
 		return
 	var i := clampi(shown - 1, 0, _text.length() - 1)
-	var k := syllable_of(_text[i])
-	if k < 0:
+	# Une image en retard (téléphone, buste qui apparaît) peut dévoiler plusieurs lettres d'un coup : on prend
+	# la dernière lettre apparue pendant cette image, pas la ponctuation qui la suit.
+	var j := i
+	var lo := clampi(prev, 0, i)
+	while j > lo and syllable_of(_text[j]) < 0:
+		j -= 1
+	if syllable_of(_text[j]) >= 0:
+		_say(j)
+
+
+## La réplique a fini de s'écrire : si elle a été dévoilée trop vite pour qu'une syllabe parte (« Hmpf. »
+## affiché d'un coup), le personnage en dit au moins une.
+func finish_line() -> void:
+	if _voice == "" or _count > 0:
 		return
+	for j in range(_text.length() - 1, -1, -1):
+		if syllable_of(_text[j]) >= 0:
+			_say(j)
+			return
+
+
+func _say(i: int) -> void:
+	var k := syllable_of(_text[i])
+	_count += 1
 	_acc = 0.0
 	_beat = 0.0
 	# Deux fois la même syllabe de suite : la voisine, pour garder le rebond du babillage.

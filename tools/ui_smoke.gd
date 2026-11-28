@@ -802,6 +802,9 @@ func _run() -> void:
 	if not _babble_ok():
 		quit(1)
 		return
+	if not await _phone_tap_ok():
+		quit(1)
+		return
 	# Bibliothèque, onglet Classes : Ultime, sorts d'arbre et sorts de compagnon de chaque classe.
 	var cs := LibraryScreen.class_spells("chevalier")
 	var tree_ids: Array[String] = []
@@ -2289,6 +2292,19 @@ func _babble_ok() -> bool:
 			errs.append("lèvres figées à %d images/s : %s" % [roundi(1.0 / dt), seen.keys()])
 	if int(counts.get("brann", 0)) < 8 or int(counts.get("cerf", 0)) >= int(counts.get("brann", 0)):
 		errs.append("débits : %s" % [counts])
+	# Réplique très courte dévoilée d'un coup (image en retard sur téléphone) : au moins une syllabe.
+	for t in [["brann", "Hmpf."], ["krag", "Père !"]]:
+		var before2 := Snd.played().size()
+		var bs := VoiceBabble.new()
+		bs.start(str(t[0]), "neutre", str(t[1]))
+		bs.tick(0.4, str(t[1]).length())
+		bs.finish_line()
+		var said := 0
+		for name in Snd.played().slice(before2):
+			if str(name).begins_with("voice/%s_" % str(t[0])):
+				said += 1
+		if said < 1:
+			errs.append("« %s » d'un coup : muet" % str(t[1]))
 	for v in VoiceBabble.VOICES:
 		var st: AudioStream = load("res://assets/audio/voice/%s.ogg" % v)
 		if st == null or st.get_length() < float(VoiceBabble.N_SYL) * 0.22 - 0.15:
@@ -2297,6 +2313,40 @@ func _babble_ok() -> bool:
 		push_error("babillage : %s" % [errs])
 		return false
 	print("babillage : une syllabe par lettre · %d syllabes chez Brann, %d chez le Grand Cerf pour la même réplique · %d voix" % [int(counts["brann"]), int(counts["cerf"]), VoiceBabble.VOICES.size()])
+	return true
+
+
+## Téléphone : un toucher arrive deux fois (toucher + clic émulé). Il ne doit faire qu'une chose : passer à la
+## réplique suivante, qui s'écrit alors lettre à lettre (voix et lèvres), au lieu de s'afficher d'un bloc.
+func _phone_tap_ok() -> bool:
+	var d := DialogueScreen.new()
+	d.configure(["z02_l08_intro"])
+	root.add_child(d)
+	await _frames(2)
+	var errs: Array[String] = []
+	for step in range(3):
+		# Réplique en cours terminée, puis un toucher de téléphone.
+		if d._hold <= 0.0 and d._typing:
+			d._complete_line()
+		await _frames(1)
+		var before := str(d.text_label.text)
+		var t := InputEventScreenTouch.new()
+		t.pressed = true
+		d._on_gui_input(t)
+		var m := InputEventMouseButton.new()
+		m.pressed = true
+		m.button_index = MOUSE_BUTTON_LEFT
+		d._on_gui_input(m)
+		await _frames(1)
+		if step > 0 and (str(d.text_label.text) == before or not d._typing):
+			errs.append("toucher %d : la réplique suivante ne s'écrit pas (en cours : %s)" % [step, d._typing])
+		await create_timer(0.12).timeout
+	d.queue_free()
+	await _frames(2)
+	if not errs.is_empty():
+		push_error("toucher de téléphone : %s" % [errs])
+		return false
+	print("toucher de téléphone : un toucher = une réplique, qui s'écrit lettre à lettre")
 	return true
 
 
