@@ -17,10 +17,10 @@ Ils se débloquent d'eux-mêmes (en fin de combat, à la Forge, à l'Armurerie, 
 
 ## 3. Écrans
 
-- **Havre-Aube** : tuile « Défis » (« 2 à réclamer ! » ou « Aujourd'hui 1 / 3 ») ; le tableau des défis sur la place (pastille rouge quand une récompense attend).
+- **Havre-Aube** : tuile « Défis » (« 2 à réclamer ! » ou « Aujourd'hui 1 / 3 »).
 - **Défis** : onglet Défis (cartes avec progression, récompenses, RÉCLAMER) et onglet Hauts faits (titre affiché, grille : débloqués en or, les autres avec leur progression).
 - **Fin de combat** : les hauts faits débloqués et le nombre de défis à réclamer.
 
 ## 4. Vérifications
 
-`tools/ui_smoke.gd` (`_quests_tower_place_ok`) : 3 défis du jour et 2 de la semaine, stables dans la journée ; trois victoires accomplissent les défis correspondants ; une récompense se réclame une seule fois ; « Premiers pas » se débloque ; un titre verrouillé est refusé.
+`tools/ui_smoke.gd` (`_quests_tower_ok`) : 3 défis du jour et 2 de la semaine, stables dans la journée ; trois victoires accomplissent les défis correspondants ; une récompense se réclame une seule fois ; « Premiers pas » se débloque ; un titre verrouillé est refusé.

@@ -796,7 +796,7 @@ func _run() -> void:
 	if not await _forge_scene_ok():
 		quit(1)
 		return
-	if not await _quests_tower_place_ok():
+	if not await _quests_tower_ok():
 		quit(1)
 		return
 	# Bibliothèque, onglet Classes : Ultime, sorts d'arbre et sorts de compagnon de chaque classe.
@@ -2145,8 +2145,8 @@ func _forge_scene_ok() -> bool:
 	return true
 
 
-## Défis et hauts faits (doc 47), Tour des Échos (doc 48), place d'Havre-Aube (doc 49).
-func _quests_tower_place_ok() -> bool:
+## Défis et hauts faits (doc 47), Tour des Échos (doc 48).
+func _quests_tower_ok() -> bool:
 	var errs: Array[String] = []
 	var saved: Dictionary = Profile.data.duplicate(true)
 	Profile.data["quests"] = {}
@@ -2239,36 +2239,11 @@ func _quests_tower_place_ok() -> bool:
 	if not labels.has("COMMENCER L'ASCENSION"):
 		errs.append("Tour : pas de bouton pour commencer (%s)" % [labels])
 	tsc.queue_free()
-	# Place d'Havre-Aube : marchands en volume, le héros marche vers un lieu et l'ouvre.
-	var hub := HubScreen.new()
-	root.add_child(hub)
-	await _frames(2)
-	var places := hub.find_children("*", "HavrePlace", true, false)
-	if places.is_empty():
-		errs.append("pas de place dans Havre-Aube")
-	else:
-		var pl: HavrePlace = places[0]
-		if not (pl._npcs.has("forge") and pl._npcs.has("armurerie") and pl._npcs.has("bibliotheque")):
-			errs.append("place : marchands absents (%s)" % [pl._npcs.keys()])
-		var opened: Array[String] = [""]
-		pl.open.connect(func(r: String) -> void: opened[0] = r)
-		pl.go_to("armory")
-		var x0 := pl._hero_x
-		for i in range(300):
-			pl._process(0.05)
-			if opened[0] != "":
-				break
-		if opened[0] != "armory" or absf(pl._hero_x - x0) < 50.0:
-			errs.append("place : le héros n'est pas allé à l'Armurerie (%s)" % opened[0])
-		pl._tap(Vector2(20, 400))
-		if pl._target < 0.0 or pl._goal != "":
-			errs.append("place : toucher la rue ne fait pas marcher")
-	hub.queue_free()
 	Profile.data = saved
 	if not errs.is_empty():
-		push_error("défis, tour, place : %s" % [errs])
+		push_error("défis, tour : %s" % [errs])
 		return false
-	print("défis et hauts faits (3 du jour, 2 de la semaine, titres) · Tour des Échos (étages, boss, bonus, record) · place d'Havre-Aube (marchands, promenade)")
+	print("défis et hauts faits (3 du jour, 2 de la semaine, titres) · Tour des Échos (étages, boss, bonus, record)")
 	return true
 
 

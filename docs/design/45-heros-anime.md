@@ -79,7 +79,7 @@ Krag, Nyx, Ignara et Ssareth ont aussi leur modèle en cubes, d'après leur port
 - **Ignara**, jeune draconique mage : cheveux cuivre en flammes, cornes recourbées vers l'arrière, écailles cuivrées aux tempes, yeux d'ambre, robe cramoisie brodée d'or, queue, braises au creux de la main ;
 - **Ssareth**, scribe reptilien clerc : tête de lézard au museau allongé, écailles vert-de-gris, pupilles fendues, collerette turquoise, robe d'écume, collier de perles de corail, queue.
 
-Les six compagnons tournent dans l'Équipement comme le héros.
+Les six compagnons tournent dans l'Équipement comme le héros. Aldric, Ossian et Sœur Aelis ont aussi leur modèle (`build_companion`), prêt pour de futurs usages.
 
 ## 9. En combat
 

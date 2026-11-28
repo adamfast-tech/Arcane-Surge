@@ -28,12 +28,12 @@ Après chaque étage franchi : **un bonus à choisir parmi trois**, qui dure tou
 
 ## 5. Écrans
 
-- **Havre-Aube** : tuile « Tour des Échos » (record) ; la Tour violette au bout de la place.
+- **Havre-Aube** : tuile « Tour des Échos » (record).
 - **Tour des Échos** : commencer l'ascension ; ou l'étage suivant (numéro, type, nom, zone, renforcement, bonus acquis, gains) avec MONTER et Abandonner ; ou le choix du bonus ; records ; classement.
 - **Fin d'étage** : « Étage N franchi » (or, poussière, rune ou objet, hauts faits) → CHOISIR UN BONUS ; ou « L'ascension s'arrête » (record).
 
 ## 6. Vérifications
 
-`_quests_tower_place_ok` : étages bien composés (mini-boss, boss, pas d'escorte ni de fils d'histoire), renforcés ; une victoire donne de l'or, l'étage suivant et trois bonus ; un bonus choisi s'applique aux combats ; une défaite clôt l'ascension et fixe le record ; un étage se lance en combat ; l'écran de la Tour propose de commencer.
+`_quests_tower_ok` : étages bien composés (mini-boss, boss, pas d'escorte ni de fils d'histoire), renforcés ; une victoire donne de l'or, l'étage suivant et trois bonus ; un bonus choisi s'applique aux combats ; une défaite clôt l'ascension et fixe le record ; un étage se lance en combat ; l'écran de la Tour propose de commencer.
 
 Aperçu : `?room=tower`.

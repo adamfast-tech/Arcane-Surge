@@ -59,16 +59,11 @@ func _ready() -> void:
 	sub.add_theme_color_override("font_outline_color", Color(0.03, 0.05, 0.08))
 	sub.add_theme_constant_override("outline_size", 6)
 	col.add_child(sub)
-	# La place du village : le héros s'y promène, les marchands attendent devant leur boutique.
-	var frame := PanelContainer.new()
-	frame.add_theme_stylebox_override("panel", UiTheme.box(Color(0, 0, 0, 0.35), Color(UiTheme.GOLD, 0.45), 14, 2, 4))
-	col.add_child(frame)
-	var place := HavrePlace.new()
-	place.open.connect(_open_room)
-	frame.add_child(place)
-	var hint := UiTheme.label("Touche la rue pour te promener, un lieu pour y entrer", 14, Color(UiTheme.MUTED, 0.9))
-	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	col.add_child(hint)
+	# Espace qui laisse voir l'illustration (plus grand sur les écrans hauts).
+	var gap := Control.new()
+	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	gap.custom_minimum_size = Vector2(0, clampf(get_viewport_rect().size.y - 1000.0, 24.0, 420.0))
+	col.add_child(gap)
 	col.add_child(_continue_button())
 	var grid := GridContainer.new()
 	grid.columns = 2
@@ -154,31 +149,6 @@ func _ready() -> void:
 	if Cloud.instance != null:
 		Cloud.instance.status_changed.connect(_refresh_cloud)
 	_refresh_cloud()
-
-
-## Un lieu de la place : il ouvre sa salle.
-func _open_room(room: String) -> void:
-	match room:
-		"map":
-			open_map.emit()
-		"equipment":
-			open_equipment.emit()
-		"forge":
-			open_forge.emit()
-		"armory":
-			open_armory.emit()
-		"library":
-			open_library.emit()
-		"skills":
-			open_skills.emit()
-		"circle":
-			open_circle.emit()
-		"meditation":
-			open_meditation.emit()
-		"tower":
-			open_tower.emit()
-		"quests":
-			open_quests.emit()
 
 
 func _profile_card() -> PanelContainer:
