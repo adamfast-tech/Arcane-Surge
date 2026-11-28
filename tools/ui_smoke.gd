@@ -2275,6 +2275,18 @@ func _babble_ok() -> bool:
 		counts[who] = n
 		if who == "brann" and mouths.size() < 2:
 			errs.append("la bouche ne suit pas les syllabes")
+	# Sur un téléphone (20 à 30 images/s), les lèvres passent bien par fermée et grande ouverte, mot après mot.
+	for dt in [1.0 / 30.0, 0.05]:
+		var bb := VoiceBabble.new()
+		bb.start("krag", "colere", "Ourza ! Elle m'a soigné quand j'étais petit.")
+		var sh := 0.0
+		var seen := {}
+		for i in range(int(0.9 / dt)):
+			sh += dt * 45.0
+			bb.tick(dt, int(sh))
+			seen[bb.mouth()] = true
+		if not (seen.has(0) and seen.has(2)):
+			errs.append("lèvres figées à %d images/s : %s" % [roundi(1.0 / dt), seen.keys()])
 	if int(counts.get("brann", 0)) < 8 or int(counts.get("cerf", 0)) >= int(counts.get("brann", 0)):
 		errs.append("débits : %s" % [counts])
 	for v in VoiceBabble.VOICES:

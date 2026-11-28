@@ -348,8 +348,9 @@ static func _brow(img: Image, ex: int, ey: int, side: int, mood: String, c: Colo
 
 static func _mouth(img: Image, cx: int, my: int, mood: String, c: Color, open_c: Color) -> void:
 	if _talk > 0:
-		# Bouche qui parle : un ovale ouvert sur 1 ou 2 rangées, plus large dans la joie.
-		var hw := 2 if mood == "joie" else 1
+		# Bouche qui parle : un ovale ouvert sur 1 ou 2 rangées, grand ouvert plus large (lisible sur un buste),
+		# plus large encore dans la joie.
+		var hw := (2 if mood == "joie" else 1) + (1 if _talk == 2 else 0)
 		var top := my - 1 if mood == "joie" else my
 		for x in range(-hw, hw + 1):
 			_px(img, cx + x, top, c)
@@ -360,6 +361,9 @@ static func _mouth(img: Image, cx: int, my: int, mood: String, c: Color, open_c:
 				_px(img, cx + x, top + 1 + r, open_c)
 		if _talk == 2:
 			_px(img, cx, top + 1, open_c.lightened(0.25))
+			# La langue au fond de la bouche grande ouverte : lisible même sur un visage sombre.
+			for x in range(-hw + 1, hw):
+				_px(img, cx + x, top + 2, Color("8a3a44"))
 		for x in range(-hw, hw + 1):
 			_px(img, cx + x, top + 1 + _talk, c)
 		return

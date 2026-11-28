@@ -32,6 +32,7 @@ var _acc := 0.0
 var _last := -1
 var _text := ""
 var _beat := 9.0 ## temps depuis la dernière syllabe (bouche du portrait)
+var _flap := 0.0 ## horloge des lèvres pendant que le personnage parle
 
 
 ## Nouvelle réplique.
@@ -44,11 +45,13 @@ func start(who: String, mood: String, text: String) -> void:
 		_pitch *= 0.85 + float(absi(hash(who)) % 7) * 0.05
 	elif _voice == "porteur":
 		_pitch *= float(RACE_PITCH.get(Profile.race(), 1.0))
-	_db = -16.0 if _voice == "narrateur" else (-2.0 if mood == "colere" else -4.0)
+	# Bien au-dessus de la musique (qui s'efface pendant qu'on parle, cf. tick), même sur un haut-parleur de téléphone.
+	_db = -14.0 if _voice == "narrateur" else (0.0 if mood == "colere" else -1.5)
 	_gap = float(GAP.get(_voice, DEFAULT_GAP))
 	_acc = _gap
 	_last = -1
 	_beat = 9.0
+	_flap = 0.0
 
 
 static func voice_of(who: String) -> String:
@@ -67,6 +70,7 @@ static func syllable_of(ch: String) -> int:
 ## Appelé à chaque image pendant que le texte s'écrit : « shown » lettres sont visibles.
 func tick(delta: float, shown: int) -> void:
 	_beat += delta
+	_flap += delta
 	if _voice == "" or _text.is_empty():
 		return
 	_acc += delta
@@ -94,6 +98,8 @@ func tick(delta: float, shown: int) -> void:
 		db += 2.0
 		p *= 1.03
 	Snd.voice(_voice, k, db, p)
+	# La musique s'efface pendant que le personnage parle, et revient après la réplique.
+	Snd.duck(-4.0 if _voice == "narrateur" else -9.0)
 
 
 ## Ponctuation qui termine la phrase en cours (« », « . », « ? », « ! »).
@@ -113,13 +119,21 @@ func _closeness(i: int) -> float:
 	return 0.0
 
 
-## Bouche du portrait, au rythme des syllabes : grande ouverte sur la syllabe, entrouverte, puis fermée.
+## Bouche du portrait, au rythme des syllabes. Les gens parlent vite : les lèvres battent sur un cycle lisible
+## (fermée, entrouverte, grande ouverte…) tant que les syllabes s'enchaînent, quelle que soit la cadence d'images
+## (un téléphone à 20 ou 30 images/s voit chaque étape), et se ferment sur les espaces et la ponctuation.
+## Les grandes créatures, lentes : grande ouverte sur la syllabe, puis entrouverte, puis fermée.
+const FLAP := [1, 2, 2, 1, 0]
+const FLAP_STEP := 0.055
+
+
 func mouth() -> int:
 	if _voice == "narrateur" or _voice == "":
 		return 0
-	var open := minf(0.05, _gap * 0.45)
-	if _beat < open:
-		return 2
-	if _beat < _gap * 0.85:
-		return 1
-	return 0
+	if _gap >= 0.11:
+		if _beat < 0.08:
+			return 2
+		return 1 if _beat < 0.15 else 0
+	if _beat > maxf(_gap * 1.6, 0.12):
+		return 0
+	return int(FLAP[int(_flap / FLAP_STEP) % FLAP.size()])

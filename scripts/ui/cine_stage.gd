@@ -1283,6 +1283,10 @@ func _update_troupe(delta: float) -> void:
 		tt.yaw = lerp_angle(tt.yaw, want, clampf(delta * 5.0, 0.0, 1.0))
 		var p := _cam_point(Vector2(x, feet), 0.7)
 		tt.scale = Vector2(depth_s, depth_s)
+		if spk == i and talking:
+			# Celui qui parle, en pied : il s'anime au rythme de ses syllabes.
+			p.y -= float(_mouth) * float(ps) * 0.5
+			tt.scale.y *= 1.0 + 0.015 * float(_mouth)
 		tt.size = tt.custom_minimum_size
 		tt.pivot_offset = Vector2(tt.size.x * 0.5, tt.size.y)
 		tt.position = p - Vector2(tt.size.x * 0.5, tt.size.y)
@@ -1516,7 +1520,8 @@ func _update_figures(delta: float) -> void:
 		var rim := Color(0, 0, 0, 0)
 		var desat := 0.0 if lit else 0.3
 		if speaking and talking:
-			dy -= absf(sin(_t * 8.0)) * k * 0.35
+			# Il parle : la tête accompagne la bouche (un hochement à chaque syllabe).
+			dy -= (absf(sin(_t * 8.0)) * 0.35 + float(_mouth) * 0.45) * k
 		match str(f["persist"]):
 			"droop":
 				dy += fs.y * 0.03
