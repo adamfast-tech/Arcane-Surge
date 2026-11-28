@@ -65,10 +65,12 @@ func _ready() -> void:
 	gap.custom_minimum_size = Vector2(0, clampf(get_viewport_rect().size.y - 1000.0, 24.0, 420.0))
 	col.add_child(gap)
 	col.add_child(_continue_button())
+	# Tuiles « diorama » : le décor de chaque salle, son gardien en volume, l'ambiance, ce qui attend.
+	HubTile.reset_order()
 	var grid := GridContainer.new()
 	grid.columns = 2
-	grid.add_theme_constant_override("h_separation", 14)
-	grid.add_theme_constant_override("v_separation", 14)
+	grid.add_theme_constant_override("h_separation", 12)
+	grid.add_theme_constant_override("v_separation", 12)
 	col.add_child(grid)
 	var index := GameData.level_index()
 	var total := (index["levels"] as Array).size() * 3
@@ -77,26 +79,36 @@ func _ready() -> void:
 	for z in index.get("zones", []):
 		if int(z["id"]) == zid:
 			zname = str(z["name"])
-	grid.add_child(_tile("map", "CARTE DU MONDE", zname, "Zone %d · %d / %d étoiles" % [zid, Profile.stars_total(), total], func() -> void: open_map.emit(), UiTheme.TEAL))
-	grid.add_child(_tile("baton_chene", "ÉQUIPEMENT", "Équipement et runes", _gear_line(), func() -> void: open_equipment.emit(), UiTheme.FIRE))
-	# Salles : Entraînement (arbre), Bibliothèque (deck), Cercle (compagnons), Méditation (voies, Harmonie).
+	var hero := HeroModel.of(Profile.look(), Profile.race(), Profile.player_class(), Profile.visible_cosmetics(), Profile.gear_look())
+	grid.add_child(_dio({"art": "zone%d" % zid, "title": "CARTE DU MONDE", "line": "%s · %d / %d étoiles" % [zname, Profile.stars_total(), total],
+		"line_col": UiTheme.TEAL, "icon": "map", "accent": UiTheme.TEAL, "big": true, "keepers": [[hero, 0.45, 0.72, "aube"]], "fx": "fireflies", "gesture": "walk"},
+		func() -> void: open_map.emit()))
+	grid.add_child(_dio({"art": "creation", "title": "ÉQUIPEMENT", "line": _gear_line(), "line_col": UiTheme.GOOD if Profile.better_items("player").size() > 0 else UiTheme.MUTED,
+		"icon": "baton_chene", "accent": UiTheme.FIRE, "big": true, "keepers": [[hero, PI + 0.45, 0.68, "jour"]], "fx": "beam", "pedestal": true, "gesture": "victory",
+		"badge": ("%d mieux !" % Profile.better_items("player").size()) if Profile.better_items("player").size() > 0 else ""},
+		func() -> void: open_equipment.emit()))
 	var rooms := GridContainer.new()
 	rooms.columns = 2
-	rooms.add_theme_constant_override("h_separation", 10)
-	rooms.add_theme_constant_override("v_separation", 10)
+	rooms.add_theme_constant_override("h_separation", 12)
+	rooms.add_theme_constant_override("v_separation", 12)
 	col.add_child(rooms)
 	var free := Profile.skill_points_free()
-	rooms.add_child(_small_tile("forge", "FORGE", "%d rune%s · fusions" % [Profile.rune_inventory().size(), "s" if Profile.rune_inventory().size() > 1 else ""], UiTheme.FIRE, func() -> void: open_forge.emit(), UiTheme.FIRE))
+	rooms.add_child(_dio({"art": "forge", "title": "FORGE", "line": "%d rune%s · fusions" % [Profile.rune_inventory().size(), "s" if Profile.rune_inventory().size() > 1 else ""],
+		"line_col": UiTheme.FIRE, "icon": "forge", "accent": UiTheme.FIRE, "keepers": [[HeroModel.of_companion("durgan", ""), PI + 0.45, 0.72, "forge"]], "fx": "embers"},
+		func() -> void: open_forge.emit()))
 	# Armurerie : la vitrine si elle vaut le détour, sinon le prochain arrivage.
 	var offers := Profile.shop_offers()
 	var show: Dictionary = offers[0] if not offers.is_empty() else {}
 	var srar := str((show.get("item", {}) as Dictionary).get("rarity", ""))
 	var shop_line := "Arrivage dans %d h %02d" % [Profile.shop_seconds_left() / 3600, (Profile.shop_seconds_left() % 3600) / 60]
 	var shop_col := UiTheme.MUTED
+	var shop_badge := ""
 	if not bool(show.get("sold", true)) and srar in ["epique", "legendaire", "mythique"]:
 		shop_line = "Vitrine : %s !" % str(Profile.items_db()["rarities"][srar]["name"])
 		shop_col = Color(str(Profile.items_db()["rarities"][srar]["color"]))
-	rooms.add_child(_small_tile("coin", "ARMURERIE", shop_line, shop_col, func() -> void: open_armory.emit(), Color("e0a050")))
+		shop_badge = str(Profile.items_db()["rarities"][srar]["name"]).to_upper()
+	rooms.add_child(_dio({"art": "armurerie", "title": "ARMURERIE", "line": shop_line, "line_col": shop_col, "icon": "coin", "accent": Color("e0a050"),
+		"keepers": [[HeroModel.of_companion("aldric", ""), PI - 0.45, 0.72, "lampe"]], "fx": "motes", "badge": shop_badge}, func() -> void: open_armory.emit()))
 	# Défis du jour et de la semaine, hauts faits.
 	var ready := Profile.quests_claimable()
 	var qs := Profile.quests()
@@ -104,30 +116,34 @@ func _ready() -> void:
 	for e in qs["daily"]:
 		if Profile.quest_done(e):
 			dn += 1
-	rooms.add_child(_small_tile("star", "DÉFIS", ("%d à réclamer !" % ready) if ready > 0 else "Aujourd'hui %d / %d" % [dn, (qs["daily"] as Array).size()],
-		UiTheme.GOLD if ready > 0 else UiTheme.MUTED, func() -> void: open_quests.emit(), Color("8fd8ff")))
+	rooms.add_child(_dio({"art": "archives", "title": "DÉFIS", "line": ("%d à réclamer !" % ready) if ready > 0 else "Aujourd'hui %d / %d" % [dn, (qs["daily"] as Array).size()],
+		"line_col": UiTheme.GOLD if ready > 0 else UiTheme.MUTED, "icon": "star", "accent": Color("8fd8ff"), "fx": "sparks", "badge": ("%d !" % ready) if ready > 0 else ""},
+		func() -> void: open_quests.emit()))
 	# Tour des Échos : ascension sans fin (après l'acte 1).
 	var tw_open := Profile.tower_unlocked()
-	var tw := _small_tile("tower", "TOUR DES ÉCHOS", ("Record : étage %d" % Profile.tower_best()) if tw_open and Profile.tower_best() > 0 else ("Ascension sans fin" if tw_open else "Fin de l'acte 1"),
-		UiTheme.TEAL if tw_open else UiTheme.MUTED, func() -> void: open_tower.emit(), Color("b07cff"))
-	tw.disabled = not tw_open
-	if not tw_open:
-		tw.modulate = Color(1, 1, 1, 0.6)
-	rooms.add_child(tw)
-	rooms.add_child(_small_tile("target", "ENTRAÎNEMENT", "%d point%s" % [free, "s" if free > 1 else ""], UiTheme.GOLD if free > 0 else UiTheme.MUTED, func() -> void: open_skills.emit(), UiTheme.GOLD))
-	rooms.add_child(_small_tile("book", "BIBLIOTHÈQUE", "Deck %d / %d" % [Profile.deck().size(), Profile.DECK_MAX], UiTheme.MUTED, func() -> void: open_library.emit(), UiTheme.VIOLET))
+	rooms.add_child(_dio({"art": "zone7", "tint": Color(0.78, 0.62, 1.0), "title": "TOUR DES ÉCHOS",
+		"line": ("Record : étage %d" % Profile.tower_best()) if tw_open and Profile.tower_best() > 0 else ("Ascension sans fin" if tw_open else "Fin de l'acte 1"),
+		"line_col": Color("c8a0ff") if tw_open else UiTheme.MUTED, "icon": "tower", "accent": Color("b07cff"), "fx": "echoes", "locked": not tw_open},
+		func() -> void: open_tower.emit()))
+	rooms.add_child(_dio({"art": "entrainement", "title": "ENTRAÎNEMENT", "line": "%d point%s à placer" % [free, "s" if free > 1 else ""] if free > 0 else "Arbre de compétences",
+		"line_col": UiTheme.GOLD if free > 0 else UiTheme.MUTED, "icon": "target", "accent": UiTheme.GOLD, "keepers": [[hero, 0.55, 0.7, "crepuscule"]], "fx": "fireflies",
+		"badge": ("+%d" % free) if free > 0 else ""}, func() -> void: open_skills.emit()))
+	rooms.add_child(_dio({"art": "bibliotheque", "title": "BIBLIOTHÈQUE", "line": "Deck %d / %d" % [Profile.deck().size(), Profile.DECK_MAX], "line_col": UiTheme.MUTED,
+		"icon": "book", "accent": UiTheme.VIOLET, "keepers": [[HeroModel.of_companion("ossian", ""), PI + 0.45, 0.72, "lampe"]], "fx": "dust"}, func() -> void: open_library.emit()))
 	var crew: Array[String] = []
+	var crew_k: Array = []
 	for who in Profile.active_companions():
 		crew.append("%s niv. %d" % [Dialogues.display_name(who), Profile.companion_level(who)])
-	rooms.add_child(_small_tile("circle", "LE CERCLE", " · ".join(crew), UiTheme.MUTED, func() -> void: open_circle.emit(), UiTheme.GOOD))
+		if HeroModel.has_companion(who) and crew_k.size() < 2:
+			crew_k.append([HeroModel.of_companion(who, Profile.companion_class(who)), PI - 0.8 if crew_k.is_empty() else PI + 0.8, 0.6 if crew_k.is_empty() else 0.84, "camp"])
+	rooms.add_child(_dio({"art": "cercle", "title": "LE CERCLE", "line": " · ".join(crew), "line_col": UiTheme.MUTED, "icon": "circle", "accent": UiTheme.GOOD,
+		"keepers": crew_k, "fx": "fireflies", "gesture": "victory"}, func() -> void: open_circle.emit()))
 	var med_open := Profile.meditation_unlocked()
 	var cor := Story.value("corruption")
-	var med := _small_tile("moon", "MÉDITATION", ("Voies · Corruption %d" % cor if cor > 0 else "Voies · configurations") if med_open else "Fin de l'acte 1",
-		Color("D93CF2") if med_open and cor > 0 else UiTheme.MUTED, func() -> void: open_meditation.emit(), Color("d8c0ff"))
-	med.disabled = not med_open
-	if not med_open:
-		med.modulate = Color(1, 1, 1, 0.6)
-	rooms.add_child(med)
+	rooms.add_child(_dio({"art": "meditation", "title": "MÉDITATION", "line": ("Voies · Corruption %d" % cor if cor > 0 else "Voies · configurations") if med_open else "Fin de l'acte 1",
+		"line_col": Color("D93CF2") if med_open and cor > 0 else UiTheme.MUTED, "icon": "moon", "accent": Color("d8c0ff"),
+		"keepers": [[HeroModel.of_companion("aelis", ""), PI - 0.4, 0.72, "aube"]] if med_open else [], "fx": "motes", "locked": not med_open},
+		func() -> void: open_meditation.emit()))
 	col.add_child(UiTheme.section("Prochainement"))
 	var soon := GridContainer.new()
 	soon.columns = 2
@@ -318,6 +334,28 @@ func _small_tile(icon: String, title: String, line: String, line_col: Color, cb:
 		v.add_child(l)
 	b.pressed.connect(cb)
 	return b
+
+
+## Une tuile « diorama » (HubTile) d'après sa description.
+func _dio(d: Dictionary, cb: Callable) -> HubTile:
+	var t := HubTile.new()
+	t.art_kind = str(d.get("art", "forge"))
+	t.art_tint = d.get("tint", Color.WHITE)
+	t.title_text = str(d.get("title", ""))
+	t.line_text = str(d.get("line", ""))
+	t.line_col = d.get("line_col", UiTheme.MUTED)
+	t.icon_name = str(d.get("icon", "star"))
+	t.accent = d.get("accent", UiTheme.TEAL)
+	t.big = bool(d.get("big", false))
+	t.badge = str(d.get("badge", ""))
+	t.locked = bool(d.get("locked", false))
+	t.keepers = d.get("keepers", [])
+	t.particles = str(d.get("fx", ""))
+	t.pedestal = bool(d.get("pedestal", false))
+	t.gesture = str(d.get("gesture", "cast"))
+	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	t.chosen.connect(cb)
+	return t
 
 
 func _locked(name: String, detail: String) -> HBoxContainer:
