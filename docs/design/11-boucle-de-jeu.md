@@ -50,6 +50,9 @@ Jouer sans compte ───────────┴─> Havre-Aube ─┬─>
 
 **Règles des boss**
 - Un familier qui touche le boss frappe une fois, puis se dissipe, comme sur un Nexus. Champions et élites restent au corps à corps.
+- Le boss se tient avant le bout du couloir (y 13,6 à 14,4) : une invocation qui passe à côté de lui sans le toucher **revient vers lui** pour le frapper, au lieu d'attendre au bord. Filet de sécurité : une invocation restée 5 s au bord sans rien à frapper se dissipe.
+  - Avant ce correctif, ces invocations s'entassaient derrière le boss, sans combattre ni mourir (les tireuses le criblaient en continu). Elles atteignaient le plafond de 300 alliés : la Fusion arcanique avalait alors toutes les nouvelles invocations, squelettes du héros compris (des « losanges » à la place, et plus rien ne sortait).
+  - Les mini-boss des missions 5 (zones 1 à 5) étaient réglés avec ce paquet : leurs PV sont recalibrés pour garder la même durée de combat (IA nécromancienne avec Brann et Sylwen) — Grand Cerf 75 000 → 18 000, Varg 120 000 → 13 800, Croc-Liche 125 000 → 16 000, Sentinelle runique 110 000 → 8 800, Scarabée solaire 120 000 → 13 200. Les autres boss n'en dépendaient pas (inchangés).
 - Le boss émet une onde toutes les 2,5 s.
 - Ses attaques sont annoncées par des zones rouges hachurées.
 - Les dégâts sur la durée (brûlure, poison) sont plafonnés, pour qu'un boss ne fonde pas.

@@ -93,6 +93,7 @@ Les portails négatifs se **purifient** avec un sort de type Portail (§7) ou un
 - Plafonds à l'écran : **300 unités alliées**, **200 ennemies**, **400 projectiles**.
 - Au-delà du plafond, **10 familiers fusionnent en 1 élite fusionnée**, avec un effet visuel de vortex.
 - Ce mécanisme garde les performances stables et rend un bon jeu toujours payant.
+- Le plafond ne doit jamais être atteint par des invocations inactives : celles qui dépassent le boss reviennent le frapper, et une invocation restée au bord du couloir sans cible se dissipe (docs/design/11-boucle-de-jeu.md, règles des boss).
 
 ## 5. Dégâts
 

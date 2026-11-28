@@ -12,6 +12,7 @@ const CASTER_Y := 0.35
 const NEXUS_POS := Vector2(4.5, 15.0)
 const NEXUS_R := 0.8
 const HOMING_Y := 13.0
+const EDGE_LINGER := 5.0 ## secondes au bord du couloir, sans cible, avant qu'une invocation se dissipe
 const MAX_ALLIES := 300
 const MAX_ENEMIES := 200
 const GRID_W := 10
@@ -161,6 +162,7 @@ var escort: Unit = null
 var escort_start_y := 1.6
 var escort_goal_y := 13.8
 var orbs: Array[Dictionary] = []
+var edge_lost := 0 ## invocations dissipées au bord du couloir faute de cible (filet de sécurité, tests)
 var orb_cfg: Dictionary = {}
 var telegraphs: Array[Dictionary] = []
 var end_reason := ""
@@ -1070,9 +1072,22 @@ func _move_units() -> void:
 			continue
 		sf *= _slide(u) * _water(u)
 		if u.pos.y > HOMING_Y:
+			var tp := _end_target(u)
+			if u.pos.y >= tp.y:
+				# Passée à côté de sa cible (le boss se tient avant le bout du couloir) : l'invocation revient vers
+				# elle au lieu d'attendre au bord, où elle s'entassait sans combattre jusqu'au plafond d'alliés.
+				var to := tp - u.pos
+				var d := to.length()
+				if d > 0.001:
+					u.pos += to / d * minf(d, u.speed * sf * TICK)
+				u.pos.x = clampf(u.pos.x + (_wind_push(u) + _current_push(u)) * TICK, 0.2, W - 0.2)
+				u.pos.y = minf(H - 0.2, u.pos.y)
+				_edge_watch(u)
+				continue
 			u.vx = clampf((_homing_target_x(u) - u.pos.x) * 1.5, -1.8, 1.8)
 		u.pos.x = clampf(u.pos.x + u.vx * sf * TICK + (_wind_push(u) + _current_push(u)) * TICK, 0.2, W - 0.2)
 		u.pos.y = minf(H - 0.2, u.pos.y + u.speed * sf * TICK)
+		_edge_watch(u)
 	for e in enemies:
 		e.prev_pos = e.pos
 		if not e.alive:
@@ -1094,21 +1109,38 @@ func _homing_target_x(u: Unit) -> float:
 	for t in towers:
 		if t["alive"] and absf(u.pos.x - (t["pos"] as Vector2).x) < 1.3:
 			return (t["pos"] as Vector2).x
+	return _end_target(u).x
+
+
+## Cible finale d'une invocation : rune de son élément, boss, ou Nexus le plus proche.
+func _end_target(u: Unit) -> Vector2:
 	if boss != null and boss.alive:
 		# Colosse runique : une invocation de l'élément d'une rune va droit sur elle.
 		for ru in runes:
 			if ru.alive and ru.element == u.element:
-				return ru.pos.x
-		return boss.pos.x
-	var best := NEXUS_POS.x
+				return ru.pos
+		return boss.pos
+	var best := NEXUS_POS
 	var bd := 1e9
 	for n in nexi:
 		if n["alive"]:
 			var d := absf((n["pos"] as Vector2).x - u.pos.x)
 			if d < bd:
 				bd = d
-				best = (n["pos"] as Vector2).x
+				best = n["pos"]
 	return best
+
+
+## Filet de sécurité : une invocation restée au bord du couloir sans rien à frapper se dissipe au bout de
+## quelques secondes (elle ne doit jamais s'y entasser jusqu'au plafond d'alliés, qui avalerait les suivantes).
+func _edge_watch(u: Unit) -> void:
+	if u.pos.y < H - 0.3:
+		u.edge_t = 0.0
+		return
+	u.edge_t += TICK
+	if u.edge_t >= EDGE_LINGER:
+		u.alive = false
+		edge_lost += 1
 
 
 # ---------------------------------------------------------------- portails

@@ -11,7 +11,7 @@
   "par_time": 150,
   "boss": {
     "kind": "stag",
-    "hp": 75000,
+    "hp": 18000,
     "x": 4.5,
     "y": 13.6,
     "phases": [

@@ -5,6 +5,7 @@ extends SceneTree
 ## « --krag » : Krag recruté et emmené avec Sylwen (au lieu de Brann) ; « --active=brann,krag » pour choisir.
 ## « --flags=s1.portes_reactivees » : drapeaux d'histoire (story_mods des niveaux) ;
 ## « --class=chevalier » : classe du héros ; « --mods=barrier_cap:5,miracle:1 » : effets d'arbre forcés.
+## « --boss_hp=0.4 » : PV du boss multipliés (calibrage des boss).
 
 
 func _init() -> void:
@@ -18,6 +19,7 @@ func _init() -> void:
 	var cls := "mage"
 	var mods := {}
 	var flags: Array = []
+	var boss_hp := 1.0
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--level="):
 			level_id = a.trim_prefix("--level=")
@@ -38,6 +40,8 @@ func _init() -> void:
 			diffm = float(a.trim_prefix("--diff="))
 		elif a.begins_with("--deck="):
 			deck = Array(a.trim_prefix("--deck=").split(","))
+		elif a.begins_with("--boss_hp="):
+			boss_hp = float(a.trim_prefix("--boss_hp="))
 		elif a.begins_with("--flags="):
 			flags = Array(a.trim_prefix("--flags=").split(","))
 		elif a.begins_with("--active="):
@@ -68,6 +72,9 @@ func _init() -> void:
 			(o["flags"] as Array).append("s1.krag_allie")
 			o["active"] = active
 		s.setup(lv, party, 1000 + i, o)
+		if s.boss != null and boss_hp != 1.0:
+			s.boss.max_hp *= boss_hp
+			s.boss.hp = s.boss.max_hp
 		var t0 := Time.get_ticks_usec()
 		var steps := 0
 		while (s.state == "running" or s.state == "echo") and s.time < 900.0:

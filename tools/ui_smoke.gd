@@ -805,6 +805,9 @@ func _run() -> void:
 	if not await _phone_tap_ok():
 		quit(1)
 		return
+	if not _boss_summons_ok():
+		quit(1)
+		return
 	# Bibliothèque, onglet Classes : Ultime, sorts d'arbre et sorts de compagnon de chaque classe.
 	var cs := LibraryScreen.class_spells("chevalier")
 	var tree_ids: Array[String] = []
@@ -2347,6 +2350,30 @@ func _phone_tap_ok() -> bool:
 		push_error("toucher de téléphone : %s" % [errs])
 		return false
 	print("toucher de téléphone : un toucher = une réplique, qui s'écrit lettre à lettre")
+	return true
+
+
+## Boss : une invocation qui passe à côté du boss revient le frapper au lieu de s'entasser au bord du couloir.
+## (Entassées, elles atteignaient le plafond d'alliés : la Fusion avalait alors toutes les nouvelles, squelettes
+## du héros compris, qui ne sortaient plus — des losanges à la place.)
+func _boss_summons_ok() -> bool:
+	var errs: Array[String] = []
+	for lid in ["z01_l05", "z02_l05"]:
+		var sim := BattleSim.new()
+		sim.setup(GameData.level(lid), GameData.party(), 11, {"solo": false, "player_level": 20, "player_class": "necromancien"})
+		sim.set_player_firing(true)
+		var stuck := 0
+		while sim.state == "running" and sim.time < 120.0:
+			sim.step()
+			for u in sim.allies:
+				if u.alive and u.shot == "" and u.edge_t > 1.0:
+					stuck += 1
+		if sim.fusions > 0 or sim.peak_allies >= BattleSim.MAX_ALLIES / 2 or stuck > 0:
+			errs.append("%s : fusions %d, pic d'alliés %d, coincées au bord %d" % [lid, sim.fusions, sim.peak_allies, stuck])
+	if not errs.is_empty():
+		push_error("invocations face au boss : %s" % [errs])
+		return false
+	print("boss : les invocations qui le dépassent reviennent le frapper (aucune coincée, aucune fusion)")
 	return true
 
 

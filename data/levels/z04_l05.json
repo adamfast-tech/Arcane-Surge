@@ -16,7 +16,7 @@
   "par_time": 220,
   "boss": {
     "kind": "rune_sentinel",
-    "hp": 110000,
+    "hp": 8800,
     "x": 4.5,
     "y": 13.6,
     "phases": [

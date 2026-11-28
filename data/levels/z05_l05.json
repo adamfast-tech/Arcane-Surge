@@ -16,7 +16,7 @@
   "par_time": 230,
   "boss": {
     "kind": "sun_scarab",
-    "hp": 120000,
+    "hp": 13200,
     "x": 4.5,
     "y": 13.6,
     "phases": [

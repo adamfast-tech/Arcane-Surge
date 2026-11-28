@@ -31,6 +31,7 @@ var siege := false
 var elite := false
 var alive := true
 var engaged := false
+var edge_t := 0.0 ## temps passé au bord du couloir sans rien à frapper (voir BattleSim._edge_watch)
 var crossed: Dictionary = {}
 var last_elem := ""
 
