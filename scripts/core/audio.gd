@@ -263,7 +263,7 @@ func _free_player() -> AudioStreamPlayer:
 
 ## Une syllabe de voix (babillage des cinématiques) : tranche « idx » de la bande « voice/<voix> »
 ## (une syllabe toutes les VOICE_SLOT secondes ; tools/audio/voices.py).
-const VOICE_SLOT := 0.6
+const VOICE_SLOT := 0.22
 
 
 func voice(name: String, idx: int, vol_db: float = 0.0, pitch: float = 1.0) -> void:

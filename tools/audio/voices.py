@@ -1,4 +1,6 @@
-"""Voix des personnages des cinématiques : un babillage (syllabes inventées) par personnage.
+"""Voix des personnages des cinématiques : un babillage à la « Animal Crossing » par personnage, dans le style de
+l'Ancien Tobin : chaque lettre de la réplique déclenche une courte syllabe nette (« bi », « pa », « da »…), vite
+enchaînées, à la hauteur et au timbre du personnage ; les grandes créatures parlent plus grave et plus lentement.
 
 Usage : python3 tools/audio/voices.py [--only motif] [--png dossier]
 Chaque voix a son timbre : hauteur, taille du conduit vocal (formants), souffle, raucité (orcs, dragons),
@@ -12,8 +14,12 @@ from synth import *
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "assets", "audio", "voice")
-N_SYL = 6
-SLOT = 0.6 ## place d'une syllabe dans la bande de la voix (s)
+## Syllabes de la bande, dans l'ordre (le jeu choisit la syllabe d'après la lettre : voice_babble.gd, LETTER).
+SYLS = [("", "a"), ("", "é"), ("", "i"), ("", "o"), ("", "u"), ("b", "a"), ("p", "i"), ("d", "a"), ("t", "é"), ("k", "a"),
+        ("g", "o"), ("m", "o"), ("n", "a"), ("l", "i"), ("r", "a"), ("s", "a"), ("f", "o"), ("j", "i"), ("h", "a"), ("w", "a"),
+        ("z", "u"), ("v", "é")]
+N_SYL = len(SYLS)
+SLOT = 0.22 ## place d'une syllabe dans la bande de la voix (s)
 
 VOWELS = {"a": (800, 1200, 2700), "e": (450, 1850, 2600), "i": (310, 2250, 3000), "o": (480, 850, 2600), "u": (330, 800, 2400),
           "é": (390, 2100, 2800), "ou": (340, 700, 2300), "an": (650, 1000, 2500)}
@@ -38,16 +44,16 @@ VOICES = {
     "vesper": dict(f0=116, fs=0.93, breath=0.22),
     "sphinx": dict(f0=172, fs=1.0, breath=0.08, echo=0.5, chorus=3),
     "durgan": dict(f0=104, fs=0.87, breath=0.08, growl=0.3),
-    "fee": dict(f0=520, fs=1.45, breath=0.1, vib=0.02, rate=0.75),
-    "varg": dict(f0=108, fs=0.92, breath=0.07, growl=0.35),
-    "sylvarche": dict(f0=68, fs=0.75, breath=0.05, growl=0.3, echo=0.3, rate=1.4),
-    "gharok": dict(f0=78, fs=0.78, breath=0.05, growl=0.8),
-    "mere_dragon": dict(f0=118, fs=0.8, breath=0.15, growl=0.4, echo=0.35, rate=1.25),
-    "cerf": dict(f0=72, fs=0.74, breath=0.08, echo=0.5, rate=1.4),
+    "fee": dict(f0=520, fs=1.45, breath=0.1, vib=0.02, rate=0.7),
+    "varg": dict(f0=108, fs=0.92, breath=0.07, growl=0.35, rate=1.3),
+    "sylvarche": dict(f0=68, fs=0.75, breath=0.05, growl=0.3, echo=0.3, rate=2.2),
+    "gharok": dict(f0=78, fs=0.78, breath=0.05, growl=0.6, rate=1.6),
+    "mere_dragon": dict(f0=118, fs=0.8, breath=0.15, growl=0.4, echo=0.3, rate=1.9),
+    "cerf": dict(f0=72, fs=0.74, breath=0.08, echo=0.4, rate=2.2),
     "corvin": dict(f0=134, fs=1.0, breath=0.1, nasal=1.0),
-    "leviathan": dict(f0=58, fs=0.7, breath=0.05, growl=0.2, echo=0.55, lp=1600, rate=1.5),
-    "wyrm": dict(f0=64, fs=0.72, breath=0.2, growl=1.0, echo=0.3, rate=1.3),
-    "ourdisseur": dict(f0=160, fs=1.05, whisper=1.0, echo=0.6, chorus=3, rate=1.2),
+    "leviathan": dict(f0=58, fs=0.7, breath=0.05, growl=0.2, echo=0.45, lp=1800, rate=2.4),
+    "wyrm": dict(f0=64, fs=0.72, breath=0.2, growl=0.8, echo=0.25, rate=2.1),
+    "ourdisseur": dict(f0=160, fs=1.05, whisper=1.0, echo=0.45, chorus=3, rate=1.7),
     "morvaen": dict(f0=124, fs=0.97, breath=0.15, echo=0.35),
     "narrateur": dict(quill=True),
 }
@@ -103,25 +109,23 @@ def consonant(kind, p):
 
 
 def syllable(p, i):
-    """Syllabe i de la voix p : consonne (ou rien) + voyelle, contour de hauteur léger."""
+    """Syllabe i de la bande (SYLS[i]) pour la voix p : consonne brève et nette, voyelle courte (plus longue pour les
+    grandes créatures, « rate »), petit contour de hauteur, comme le babillage de l'Ancien Tobin."""
     rate = p.get("rate", 1.0)
-    hiss = p.get("hiss", 0.0)
-    cons_pool = "ptkbdgmnlrsfc"
-    if hiss > 0:
-        cons_pool += "s" * int(hiss * 10)
-    c = cons_pool[rng.integers(0, len(cons_pool))] if rng.random() < 0.85 else ""
-    v = list(VOWELS.keys())[rng.integers(0, len(VOWELS))]
-    vd = rng.uniform(0.075, 0.12) * rate
-    f0 = p["f0"] * rng.uniform(0.94, 1.08)
-    contour = f0 * (1 + rng.uniform(-0.06, 0.06) * t_axis(vd) / vd)
-    vw = vowel(contour, vd, v, p) * env_curve(vd, [(0, 0), (0.012, 1), (vd * 0.7, 0.85), (vd, 0)])
+    c, v = SYLS[i]
+    vd = rng.uniform(0.05, 0.065) * rate
+    f0 = p["f0"] * rng.uniform(0.97, 1.05) * (1.04 if v in ("i", "é") else 1.0)
+    contour = f0 * (1 + rng.uniform(-0.05, 0.07) * t_axis(vd) / vd)
+    vw = vowel(contour, vd, v, p) * env_curve(vd, [(0, 0), (0.006, 1), (vd * 0.6, 0.9), (vd, 0)])
     parts = []
     if c:
-        parts.append(consonant(c, p))
+        k = {"j": "c", "h": "f", "w": "b", "z": "s", "v": "f"}.get(c, c)
+        cs = consonant(k, p)
+        parts.append(cs[:int(0.03 * SR * min(rate, 1.6))])
     parts.append(vw)
     x = np.concatenate(parts)
-    if hiss > 0 and rng.random() < hiss * 0.5:
-        x = np.concatenate([x, bp(noise(0.06), 4000, 9000) * env_curve(0.06, [(0, 1), (0.06, 0)]) * 0.35])
+    if p.get("hiss", 0.0) > 0 and c in ("s", "z", ""):
+        x = np.concatenate([x, bp(noise(0.04), 4000, 9000) * env_curve(0.04, [(0, 1), (0.04, 0)]) * 0.3 * p["hiss"]])
     return x
 
 
@@ -150,10 +154,10 @@ def render_voice(name):
             x = lp(x, p["lp"], 2)
         e = p.get("echo", 0.0)
         if e > 0:
-            x = reverb(x, 0.55, e, 0.5, tail=0.22)
-        x = lp(hp(x, 70, 2), 7500, 2)
-        x = trim_tail(fade(x, 0.003, 0.02))
-        out.append(normalize(x, -21.0, 0.85, 3.0))
+            x = reverb(x, 0.45, e, 0.5, tail=0.12)
+        x = lp(hp(x, 90, 2), 7500, 2)
+        x = trim_tail(fade(x, 0.002, 0.012))
+        out.append(normalize(x, -19.0, 0.85, 3.0))
     return out
 
 

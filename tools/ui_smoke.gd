@@ -799,6 +799,9 @@ func _run() -> void:
 	if not await _quests_tower_ok():
 		quit(1)
 		return
+	if not _babble_ok():
+		quit(1)
+		return
 	# Bibliothèque, onglet Classes : Ultime, sorts d'arbre et sorts de compagnon de chaque classe.
 	var cs := LibraryScreen.class_spells("chevalier")
 	var tree_ids: Array[String] = []
@@ -2244,6 +2247,44 @@ func _quests_tower_ok() -> bool:
 		push_error("défis, tour : %s" % [errs])
 		return false
 	print("défis et hauts faits (3 du jour, 2 de la semaine, titres) · Tour des Échos (étages, boss, bonus, record)")
+	return true
+
+
+## Babillage à la « Animal Crossing » (docs/design/43-audio.md) : une syllabe par lettre (un même mot sonne pareil),
+## débit vif pour les gens, lent pour les grandes créatures, bouche au rythme des syllabes, bandes de 22 syllabes.
+func _babble_ok() -> bool:
+	var errs: Array[String] = []
+	if VoiceBabble.syllable_of("b") != 5 or VoiceBabble.syllable_of("É") != 1 or VoiceBabble.syllable_of(" ") != -1 or VoiceBabble.syllable_of("!") != -1:
+		errs.append("lettres -> syllabes incorrectes")
+	var counts := {}
+	for who in ["brann", "cerf"]:
+		var before := Snd.played().size()
+		var b := VoiceBabble.new()
+		b.start(who, "neutre", "Bonjour, voyageur ! Tu viens de loin ?")
+		var shown := 0.0
+		var mouths := {}
+		for i in range(60):
+			shown += 0.05 * 45.0
+			b.tick(0.05, int(shown))
+			mouths[b.mouth()] = true
+		var got: Array = Snd.played().slice(before)
+		var n := 0
+		for name in got:
+			if str(name).begins_with("voice/%s_" % who):
+				n += 1
+		counts[who] = n
+		if who == "brann" and mouths.size() < 2:
+			errs.append("la bouche ne suit pas les syllabes")
+	if int(counts.get("brann", 0)) < 8 or int(counts.get("cerf", 0)) >= int(counts.get("brann", 0)):
+		errs.append("débits : %s" % [counts])
+	for v in VoiceBabble.VOICES:
+		var st: AudioStream = load("res://assets/audio/voice/%s.ogg" % v)
+		if st == null or st.get_length() < float(VoiceBabble.N_SYL) * 0.22 - 0.15:
+			errs.append("bande de voix %s trop courte" % v)
+	if not errs.is_empty():
+		push_error("babillage : %s" % [errs])
+		return false
+	print("babillage : une syllabe par lettre · %d syllabes chez Brann, %d chez le Grand Cerf pour la même réplique · %d voix" % [int(counts["brann"]), int(counts["cerf"]), VoiceBabble.VOICES.size()])
 	return true
 
 

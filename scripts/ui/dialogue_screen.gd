@@ -511,7 +511,8 @@ func _animate_portrait(delta: float) -> void:
 		var i := clampi(int(_shown), 0, maxi(0, text_label.text.length() - 1))
 		var ch := text_label.text.substr(i, 1)
 		if not (ch in [" ", ",", ".", "!", "?", "…", ";", ":", "—", "«", "»"]):
-			talk = [1, 2, 1, 0][int(_t / 0.08) % 4]
+			# Les lèvres bougent au rythme du babillage : ouvertes sur chaque syllabe.
+			talk = _babble.mouth()
 	_blink_t -= delta
 	var blink := false
 	if _blink_t <= 0.0:

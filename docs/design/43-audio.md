@@ -15,7 +15,7 @@ Tout est **fabriqué par nos outils** (`tools/audio/`), sans banque de sons ache
 |---|---|
 | `tools/audio/synth.py` | Boîte à outils de synthèse. Oscillateurs à bande limitée, bruits blanc, rose et brun, crépitements à fenêtre douce. Enveloppes. Filtres fixes et filtre balayé à variables d'état « TPT » (stable à toutes les fréquences). FM, corde pincée (Karplus-Strong), objets résonants (cloches, verre, métal, os). Distorsion. Réverbération, chorus, délai et compression (pedalboard). Notes d'instruments réels par FluidSynth et la banque FluidR3 GM (licence MIT) : chœur, cordes, cors, harpe, célesta, timbales, taikos, cloches. Mixage aux bords adoucis, sonie mesurée, normalisation avec compresseur (jamais de saturation), encodage OGG Vorbis (ffmpeg), spectrogrammes. |
 | `tools/audio/sfx_bank.py` | Les effets : 33 familles de sorts, cris des créatures, tirs de classe, combat, interface, évènements de l'arène. 246 sons, 24 kHz, 2,3 Mo. |
-| `tools/audio/voices.py` | 29 voix : 6 syllabes inventées par personnage, rangées dans une « bande » par voix. 0,27 Mo. |
+| `tools/audio/voices.py` | 29 voix : 22 syllabes par personnage (une par famille de lettres : « a », « é », « ba », « pi », « da »…), rangées dans une « bande » par voix. 0,5 Mo. |
 | `tools/audio/music.py` | 15 morceaux écrits en Python (tonalité, mode, grille d'accords, mélodies, arrangement), joués par FluidSynth, polis (salle, compression, limiteur) et bouclés sans couture : la queue de réverbération est repliée sur le début. Stéréo, 24 kHz, 3,2 Mo. |
 
 Régénérer : `python3 tools/audio/sfx_bank.py`, `voices.py`, `music.py` (`--only motif` pour un seul son, `--png dossier` pour les spectres). Prérequis : numpy, scipy, pedalboard, mido, matplotlib, ffmpeg (libvorbis), fluidsynth et `fluid-soundfont-gm`. Puis `godot --headless --path . --import`.
@@ -92,8 +92,10 @@ Les sons suivent l'animation du sort :
   - chant des sirènes ; Marée noire ; pages ; enclume…
 - **Gestes** : coup porté, blessure, chute, sort, échos.
 - **Sujets** : la créature au centre rugit, encaisse, tombe, apparaît ou s'efface avec son cri (Cerf, Sylvarche, Mère-Dragon, Wyrm, Léviathan, Sphinx, Gharok, Varg…).
-- **Voix des personnages** : pendant que la réplique s'écrit, une syllabe de la voix du personnage part toutes les 0,07 à 0,18 s, jamais sur un espace ni sur la ponctuation.
-  - Hauteur : plus aiguë quand il est joyeux (+7 %) ou surpris (+12 %), plus grave quand il est triste (−7 %), plus forte quand il est en colère ; la fin d'une question monte.
+- **Voix des personnages**, babillage à la « Animal Crossing », dans le style de l'Ancien Tobin : pendant que la réplique s'écrit, chaque lettre déclenche une courte syllabe nette de la voix du personnage, choisie d'après la lettre (« b » → « ba », « i » → « i », « t » → « té »…), si bien qu'un même mot sonne toujours pareil ; jamais sur un espace ni sur la ponctuation.
+  - Débit : vif pour les gens (une syllabe toutes les 0,07 s environ, la fée encore plus vite), lent et grave pour les grandes créatures (le Grand Cerf, la Sylvarche, le Léviathan, le Wyrm : 0,19 à 0,22 s, syllabes deux fois plus longues ; la Mère-Dragon, l'Ourdisseur, Gharok, le Sphinx entre les deux).
+  - Hauteur : plus aiguë quand il est joyeux (+7 %) ou surpris (+12 %), plus grave quand il est triste (−7 %) ; la fin d'une question monte, la fin d'une phrase descend, une exclamation sonne plus fort, la colère aussi.
+  - Les lèvres des bustes bougent au rythme des syllabes : grandes ouvertes sur la syllabe, entrouvertes, puis fermées.
   - Le héros garde la même voix, à la hauteur de sa race : fée très aiguë, orc et nain graves.
   - Un personnage sans voix propre prend celle du héros, à une hauteur qui lui est propre. Le narrateur n'a pas de voix : on entend sa plume.
 
@@ -166,4 +168,3 @@ Dans un navigateur, on peut suivre chaque source Web Audio jusqu'à la sortie : 
 
 - Musiques plus longues (sections B, C) et une musique par boss.
 - Musique téléchargée à part sur le web, pour un premier chargement plus léger.
-- Voix plus variées (plus de syllabes, intonation par phrase).
